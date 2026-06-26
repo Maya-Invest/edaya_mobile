@@ -1,0 +1,32 @@
+name: edaya_mobile
+publish_to: none
+
+environment:
+  sdk: ^3.11.1
+
+workspace:
+  - apps/guardian
+  - apps/teacher
+  - packages/edaya_api_client
+  - packages/edaya_auth
+
+dev_dependencies:
+  melos: ^8.0.0
+
+melos:
+  command:
+    bootstrap:
+      runPubGetInParallel: true
+  scripts:
+    analyze:
+      exec: dart analyze .
+      description: Run static analysis in all packages.
+    test:
+      exec: flutter test
+      description: Run tests in all Flutter apps.
+    format:
+      exec: dart format .
+      description: Format Dart source in all packages.
+    clean:flutter:
+      exec: flutter clean
+      description: Run flutter clean in all Flutter apps.

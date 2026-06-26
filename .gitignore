@@ -1,0 +1,18 @@
+# Flutter / Dart build artifacts
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+
+# Per-package lockfiles (workspace uses root pubspec.lock)
+apps/**/pubspec.lock
+packages/**/pubspec.lock
+
+# IDE
+**/*.iml
+**/.idea/
+
+# Platform-specific generated files
+**/.cxx/
+**/DerivedData/

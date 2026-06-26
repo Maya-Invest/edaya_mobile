@@ -1,0 +1,15 @@
+name: edaya_api_client
+description: Domain-shaped HTTP client for the Edaya Core API in Flutter and Dart.
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.11.1
+
+dependencies:
+  http: ^1.6.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
