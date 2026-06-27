@@ -12,13 +12,16 @@ class AuthClient {
   AuthClient({
     required this.baseUrl,
     this.basePath = '/auth',
+    String? origin,
     http.Client? client,
     CookieJar? cookieJar,
   }) : _client = client ?? http.Client(),
-       _cookieJar = cookieJar ?? CookieJar();
+       _cookieJar = cookieJar ?? CookieJar(),
+       _origin = origin ?? Uri.parse(baseUrl).origin;
 
   final String baseUrl;
   final String basePath;
+  final String _origin;
   final http.Client _client;
   final CookieJar _cookieJar;
 
@@ -100,7 +103,7 @@ class AuthClient {
   }
 
   Future<AuthResult<void>> signOut() async {
-    final response = await _send('POST', '/sign-out');
+    final response = await _send('POST', '/sign-out', const {});
     if (response.statusCode >= 400) {
       final body = _decodeBody(response);
       return AuthResult.failure(_readError(body));
@@ -214,7 +217,9 @@ class AuthClient {
     final uri = _resolveUri(path);
     final headers = <String, String>{
       'Accept': 'application/json',
-      if (payload != null) 'Content-Type': 'application/json',
+      'Origin': _origin,
+      if (method != 'GET' && method != 'HEAD')
+        'Content-Type': 'application/json',
     };
 
     final cookies = _cookieJar.headerValue();
@@ -225,7 +230,9 @@ class AuthClient {
     final response = await _client.send(
       http.Request(method, uri)
         ..headers.addAll(headers)
-        ..body = payload == null ? '' : jsonEncode(payload),
+        ..body = payload == null
+            ? (method == 'GET' || method == 'HEAD' ? '' : '{}')
+            : jsonEncode(payload),
     );
 
     final bodyBytes = await response.stream.toBytes();

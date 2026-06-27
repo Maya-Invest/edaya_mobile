@@ -54,6 +54,23 @@ void main() {
     expect(result.data, isNull);
   });
 
+  test('signOut sends application/json content type', () async {
+    final client = AuthClient(
+      baseUrl: 'http://localhost:9999',
+      client: MockClient((request) async {
+        expect(request.url.path, '/auth/sign-out');
+        expect(request.headers['origin'], 'http://localhost:9999');
+        expect(request.headers['content-type'], 'application/json');
+        expect(jsonDecode(request.body), <String, dynamic>{});
+        return http.Response('{}', 200);
+      }),
+    );
+
+    final result = await client.signOut();
+    expect(result.isSuccess, isTrue);
+    expect(client.cookieHeader, isNull);
+  });
+
   test('sendEmailOtp posts expected payload', () async {
     final client = AuthClient(
       baseUrl: 'http://localhost:9999',

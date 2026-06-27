@@ -355,6 +355,8 @@ abstract final class ClientBindings {
     "applyDeliveryEvent": "apply-delivery-event",
     "markDeliveryRead": "mark-delivery-read",
     "updateNotificationContact": "update-notification-contact",
+    "registerPushDevice": "register-push-device",
+    "unregisterPushDevice": "unregister-push-device",
     "updateSchoolNotificationTemplates": "update-school-notification-templates",
     "resetSchoolNotificationTemplates": "reset-school-notification-templates",
   };

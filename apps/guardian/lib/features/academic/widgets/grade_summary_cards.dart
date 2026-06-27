@@ -1,0 +1,138 @@
+import 'package:flutter/material.dart';
+
+import '../models/grade_entry.dart';
+
+class GradeSummaryCards extends StatelessWidget {
+  const GradeSummaryCards({
+    super.key,
+    required this.overallAverage,
+    required this.gradedCount,
+    required this.totalCount,
+  });
+
+  final double? overallAverage;
+  final int gradedCount;
+  final int totalCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _SummaryCard(
+            label: 'Average',
+            value: overallAverage == null
+                ? '—'
+                : overallAverage!.toStringAsFixed(1),
+            suffix: '/ 20',
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _SummaryCard(
+            label: 'Graded',
+            value: '$gradedCount',
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _SummaryCard(
+            label: 'Pending',
+            value: '${totalCount - gradedCount}',
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard({
+    required this.label,
+    required this.value,
+    this.suffix,
+  });
+
+  final String label;
+  final String value;
+  final String? suffix;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
+            const SizedBox(height: 4),
+            Text.rich(
+              TextSpan(
+                text: value,
+                style: Theme.of(context).textTheme.titleLarge,
+                children: suffix == null
+                    ? null
+                    : [
+                        TextSpan(
+                          text: suffix,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SubjectGradeGroupTile extends StatelessWidget {
+  const SubjectGradeGroupTile({
+    super.key,
+    required this.group,
+    required this.onGradeTap,
+  });
+
+  final SubjectGradeGroup group;
+  final ValueChanged<GradeEntry> onGradeTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: ExpansionTile(
+        title: Text(group.subjectName),
+        subtitle: Text(
+          group.average == null
+              ? '${group.entries.length} assessments'
+              : 'Average ${group.average!.toStringAsFixed(1)} / 20',
+        ),
+        children: [
+          for (final entry in group.entries)
+            ListTile(
+              title: Text(entry.title),
+              subtitle: Text(
+                [
+                  entry.periodName,
+                  if (entry.date != null)
+                    '${entry.date!.day}/${entry.date!.month}/${entry.date!.year}',
+                ].join(' · '),
+              ),
+              trailing: Text(
+                entry.hasScore
+                    ? '${entry.score!.toStringAsFixed(1)} / ${entry.maxScore.toStringAsFixed(0)}'
+                    : '—',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              onTap: () => onGradeTap(entry),
+            ),
+        ],
+      ),
+    );
+  }
+}

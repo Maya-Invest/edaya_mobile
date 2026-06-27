@@ -355,6 +355,12 @@ extension GeneratedSchoolClientCommands on SchoolClient {
   Future<Map<String, dynamic>> updateNotificationContact(Map<String, dynamic> payload) =>
       runCommand("update-notification-contact", payload);
 
+  Future<Map<String, dynamic>> registerPushDevice(Map<String, dynamic> payload) =>
+      runCommand("register-push-device", payload);
+
+  Future<Map<String, dynamic>> unregisterPushDevice(Map<String, dynamic> payload) =>
+      runCommand("unregister-push-device", payload);
+
   Future<Map<String, dynamic>> updateSchoolNotificationTemplates(Map<String, dynamic> payload) =>
       runCommand("update-school-notification-templates", payload);
 

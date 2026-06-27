@@ -1,4 +1,3 @@
-import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
@@ -17,17 +16,5 @@ void registerEdayaDependencies(
       cookieJar: cookieJar,
     ),
     permanent: true,
-  );
-}
-
-api.SchoolClient createEdayaSchoolClient(AuthClient authClient) {
-  return api.createSchoolClient(
-    api.HttpTransport(
-      baseUrl: ApiConfig.baseUrl,
-      client: authClient.httpClient,
-      cookieHeader: edayaHttpUsesBrowserCredentials
-          ? null
-          : () => authClient.cookieHeader,
-    ),
   );
 }
