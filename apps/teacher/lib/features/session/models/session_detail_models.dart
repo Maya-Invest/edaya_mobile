@@ -26,6 +26,7 @@ class SessionStudentRow {
     required this.studentId,
     required this.studentName,
     required this.studentInitials,
+    this.photoUrl,
     this.attendanceId,
     this.status,
   });
@@ -33,6 +34,7 @@ class SessionStudentRow {
   final String studentId;
   final String studentName;
   final String studentInitials;
+  final String? photoUrl;
   final String? attendanceId;
   final SessionAttendanceStatus? status;
 
@@ -44,6 +46,7 @@ class SessionStudentRow {
       studentId: studentId,
       studentName: studentName,
       studentInitials: studentInitials,
+      photoUrl: photoUrl,
       attendanceId: attendanceId ?? this.attendanceId,
       status: status ?? this.status,
     );

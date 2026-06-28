@@ -31,6 +31,7 @@ class StaffContextController extends LevitController
   final AcademicYearController _academicYear;
 
   final staffName = LxVar<String?>(null);
+  final staffPhotoUrl = LxVar<String?>(null);
   final staffId = LxVar<String?>(null);
   final assignedClasses = LxVar<List<AssignedClass>>(const []);
   final classFilterId = LxVar<String?>(null);
@@ -44,6 +45,7 @@ class StaffContextController extends LevitController
   void onInit() {
     super.onInit();
     autoDispose(staffName);
+    autoDispose(staffPhotoUrl);
     autoDispose(staffId);
     autoDispose(assignedClasses);
     autoDispose(classFilterId);
@@ -97,6 +99,7 @@ class StaffContextController extends LevitController
     if (grants == null || grants.kind != 'staff') {
       staffId(null);
       staffName(null);
+      staffPhotoUrl(null);
       assignedClasses(const []);
       taughtClassSubjectIds({});
       assignedSessionIds({});
@@ -112,7 +115,19 @@ class StaffContextController extends LevitController
       isLoading(true);
       try {
         final client = AppRuntime.schoolClient();
-        staffName(_session.user.value?.name ?? 'Teacher');
+        try {
+          final staff = await client.staffMembers.get(resolvedStaffId);
+          final firstName = staff['firstName'] as String? ?? '';
+          final lastName = staff['lastName'] as String? ?? '';
+          final fullName = '$firstName $lastName'.trim();
+          staffName(
+            fullName.isEmpty ? (_session.user.value?.name ?? 'Teacher') : fullName,
+          );
+          staffPhotoUrl(staff['photoUrl'] as String?);
+        } on Object {
+          staffName(_session.user.value?.name ?? 'Teacher');
+          staffPhotoUrl(null);
+        }
 
         final teachingScope = teachingScopeFromScopeGrants(
           grants.effectiveGrants.scopeGrants,

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:edaya_ui/edaya_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -151,12 +152,11 @@ class _AttendanceFlowBodyState extends State<_AttendanceFlowBody> {
           const SizedBox(height: 8),
           Text('$recorded / ${students.length} recorded'),
           const Spacer(),
-          CircleAvatar(
+          PersonAvatar(
+            name: current.studentName,
+            initials: current.studentInitials,
+            photoUrl: current.photoUrl,
             radius: 40,
-            child: Text(
-              current.studentInitials,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
           ),
           const SizedBox(height: 16),
           Text(
@@ -287,7 +287,11 @@ class _AttendanceSummary extends StatelessWidget {
                 final row = students[index];
                 final status = marks[row.studentId];
                 return ListTile(
-                  leading: CircleAvatar(child: Text(row.studentInitials)),
+                  leading: PersonAvatar(
+                    name: row.studentName,
+                    initials: row.studentInitials,
+                    photoUrl: row.photoUrl,
+                  ),
                   title: Text(row.studentName),
                   trailing: status == null
                       ? null

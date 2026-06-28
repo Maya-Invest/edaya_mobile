@@ -1,3 +1,4 @@
+import 'package:edaya_ui/edaya_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -126,6 +127,13 @@ class _MarkRowState extends State<_MarkRow> {
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
+            PersonAvatar(
+              name: widget.row.studentName,
+              initials: widget.row.studentInitials ?? '?',
+              photoUrl: widget.row.photoUrl,
+              radius: 18,
+            ),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

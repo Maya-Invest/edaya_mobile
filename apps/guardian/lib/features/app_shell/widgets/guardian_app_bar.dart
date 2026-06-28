@@ -1,3 +1,4 @@
+import 'package:edaya_ui/edaya_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -64,16 +65,29 @@ class _GuardianAppBarContent extends StatelessWidget
           }
 
           final subtitle = classLabel ?? 'Not enrolled';
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          return Row(
             children: [
-              Text(
-                student.fullName,
-                style: Theme.of(context).textTheme.titleMedium,
+              PersonAvatar(
+                name: student.fullName,
+                initials: student.initials,
+                photoUrl: student.photoUrl,
+                radius: 18,
               ),
-              Text(
-                subtitle,
-                style: Theme.of(context).textTheme.bodySmall,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      student.fullName,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
               ),
             ],
           );

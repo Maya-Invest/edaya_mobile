@@ -15,6 +15,8 @@ dependencies:
     path: ../../packages/edaya_api_client
   edaya_auth:
     path: ../../packages/edaya_auth
+  edaya_ui:
+    path: ../../packages/edaya_ui
   levit_flutter: ^0.0.7
   shared_preferences: ^2.5.3
   cupertino_icons: ^1.0.8

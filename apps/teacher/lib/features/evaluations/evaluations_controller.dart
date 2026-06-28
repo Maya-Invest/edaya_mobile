@@ -250,10 +250,13 @@ class MarksEntryController extends LevitController with LevitReactiveTasksMixin 
               final firstName = row?['firstName'] as String? ?? '';
               final lastName = row?['lastName'] as String? ?? '';
               final fullName = '$firstName $lastName'.trim();
+              final displayName = fullName.isEmpty ? studentId : fullName;
               final result = scoreByStudent[studentId];
               return StudentMarkRow(
                 studentId: studentId,
-                studentName: fullName.isEmpty ? studentId : fullName,
+                studentName: displayName,
+                studentInitials: _initials(displayName),
+                photoUrl: row?['photoUrl'] as String?,
                 resultId: result?['id'] as String?,
                 score: (result?['score'] as num?)?.toDouble(),
               );
@@ -460,4 +463,15 @@ class EvaluationCreateController extends LevitController
       return 'Could not create evaluation: $error';
     }
   }
+}
+
+String _initials(String name) {
+  final parts = name.trim().split(RegExp(r'\s+'));
+  if (parts.isEmpty) {
+    return '?';
+  }
+  if (parts.length == 1) {
+    return parts.first.substring(0, 1).toUpperCase();
+  }
+  return '${parts.first.substring(0, 1)}${parts.last.substring(0, 1)}'.toUpperCase();
 }

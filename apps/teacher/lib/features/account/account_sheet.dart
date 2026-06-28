@@ -1,3 +1,4 @@
+import 'package:edaya_ui/edaya_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -37,15 +38,41 @@ class AccountSheet extends StatelessWidget {
               () {
                 final name = staffContext.staffName.value ?? 'Teacher';
                 final email = session.user.value?.email ?? 'Unknown user';
+                final initials = name
+                    .trim()
+                    .split(RegExp(r'\s+'))
+                    .where((part) => part.isNotEmpty)
+                    .map((part) => part[0])
+                    .take(2)
+                    .join()
+                    .toUpperCase();
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      name,
-                      style: Theme.of(context).textTheme.titleMedium,
+                    Row(
+                      children: [
+                        PersonAvatar(
+                          name: name,
+                          initials: initials.isEmpty ? '?' : initials,
+                          photoUrl: staffContext.staffPhotoUrl.value,
+                          radius: 28,
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(email),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(email),
                   ],
                 );
               },

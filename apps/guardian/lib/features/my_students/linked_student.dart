@@ -5,6 +5,7 @@ class LinkedStudent {
     required this.lastName,
     required this.status,
     this.matricule,
+    this.photoUrl,
   });
 
   factory LinkedStudent.fromJson(Map<String, dynamic> json) {
@@ -14,6 +15,7 @@ class LinkedStudent {
       lastName: json['lastName'] as String,
       status: json['status'] as String? ?? 'active',
       matricule: json['matricule'] as String?,
+      photoUrl: json['photoUrl'] as String?,
     );
   }
 
@@ -22,6 +24,7 @@ class LinkedStudent {
   final String lastName;
   final String status;
   final String? matricule;
+  final String? photoUrl;
 
   String get fullName => '$firstName $lastName';
 

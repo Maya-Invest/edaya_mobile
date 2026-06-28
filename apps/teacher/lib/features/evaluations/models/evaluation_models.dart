@@ -31,12 +31,16 @@ class StudentMarkRow {
   const StudentMarkRow({
     required this.studentId,
     required this.studentName,
+    this.studentInitials,
+    this.photoUrl,
     this.resultId,
     this.score,
   });
 
   final String studentId;
   final String studentName;
+  final String? studentInitials;
+  final String? photoUrl;
   final String? resultId;
   final double? score;
 
@@ -44,6 +48,8 @@ class StudentMarkRow {
     return StudentMarkRow(
       studentId: studentId,
       studentName: studentName,
+      studentInitials: studentInitials,
+      photoUrl: photoUrl,
       resultId: resultId ?? this.resultId,
       score: score ?? this.score,
     );

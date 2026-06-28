@@ -73,6 +73,7 @@ class SessionDetailController extends LevitController
                 studentId: studentId,
                 studentName: fullName.isEmpty ? studentId : fullName,
                 studentInitials: _initials(fullName.isEmpty ? studentId : fullName),
+                photoUrl: row['photoUrl'] as String?,
                 attendanceId: attendance?['id'] as String?,
                 status: SessionAttendanceStatus.fromApi(
                   attendance?['status'] as String?,

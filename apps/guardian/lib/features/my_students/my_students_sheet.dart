@@ -1,3 +1,4 @@
+import 'package:edaya_ui/edaya_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -115,7 +116,11 @@ class _StudentRow extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: ListTile(
-        leading: CircleAvatar(child: Text(student.initials)),
+        leading: PersonAvatar(
+          name: student.fullName,
+          initials: student.initials,
+          photoUrl: student.photoUrl,
+        ),
         title: Text(student.fullName),
         subtitle: Text(
           [

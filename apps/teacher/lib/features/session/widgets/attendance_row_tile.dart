@@ -1,3 +1,4 @@
+import 'package:edaya_ui/edaya_ui.dart';
 import 'package:flutter/material.dart';
 
 import '../models/session_detail_models.dart';
@@ -24,7 +25,11 @@ class AttendanceRowTile extends StatelessWidget {
 
     return Card(
       child: ListTile(
-        leading: CircleAvatar(child: Text(row.studentInitials)),
+        leading: PersonAvatar(
+          name: row.studentName,
+          initials: row.studentInitials,
+          photoUrl: row.photoUrl,
+        ),
         title: Text(row.studentName),
         subtitle: Text(row.status?.label ?? 'Not recorded'),
         trailing: TextButton(
