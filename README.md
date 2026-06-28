@@ -40,10 +40,32 @@ Mirrors the TypeScript `@edaya/api-client` package:
 - `HttpTransport` for cookie-aware requests against the API
 - Typed `EffectiveGrantsResponse` for `/core/authorization/effective-grants`
 
-Bindings are generated from the API registry when you run the repo root command:
+Bindings are generated from the published OpenAPI document (`info.x-edaya-client-bindings`).
+
+From a URL (CI-friendly — no `edaya` checkout required):
 
 ```bash
-bun run openapi:generate
+EDAYA_OPENAPI_URL=https://api.example.com/doc melos run generated:update
+```
+
+From a local OpenAPI file:
+
+```bash
+EDAYA_OPENAPI_SPEC=/path/to/openapi.json melos run generated:update
+```
+
+This updates `packages/edaya_api_client/spec/client-bindings.json` and the Dart files under `lib/src/generated/`. Commit all three when the API contract changes.
+
+Offline drift check (uses the committed bindings spec only):
+
+```bash
+melos run generated:check
+```
+
+Full workspace verification:
+
+```bash
+melos run verify
 ```
 
 ### `edaya_auth`
@@ -88,6 +110,9 @@ final students = await schoolClient.students.list({'schoolId': grants.schoolId})
 | `melos run analyze` | Static analysis across all packages |
 | `melos run test` | Run tests in all packages/apps |
 | `melos run format` | Format Dart code |
+| `melos run generated:update` | Regenerate bindings (`EDAYA_OPENAPI_URL` or `EDAYA_OPENAPI_SPEC`) |
+| `melos run generated:check` | Verify generated Dart matches `spec/client-bindings.json` |
+| `melos run verify` | `generated:check` + analyze + test |
 | `melos list` | List workspace packages |
 
 Run a single app:

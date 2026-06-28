@@ -27,6 +27,18 @@ melos:
     format:
       exec: dart format .
       description: Format Dart source in all packages.
+    generated:update:
+      run: bash scripts/generate-api-bindings.sh
+      description: Regenerate edaya_api_client bindings from an OpenAPI document.
+    generated:check:
+      run: bash scripts/check-api-bindings-drift.sh
+      description: Verify committed Dart bindings match spec/client-bindings.json.
+    verify:
+      run: |
+        melos run generated:check &&
+        melos run analyze &&
+        melos run test
+      description: Run generated drift check, analysis, and tests.
     clean:flutter:
       exec: flutter clean
       description: Run flutter clean in all Flutter apps.
