@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../access/app_runtime.dart';
-import '../../common/utils/date_time_parse.dart';
-import '../../common/widgets/data_state.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 import 'calendar_controller.dart';
 
 class AttendanceListPage extends LScopedView<AttendanceListController> {

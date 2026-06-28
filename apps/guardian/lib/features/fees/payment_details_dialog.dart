@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../common/utils/date_time_parse.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 import 'fees_controller.dart';
 import 'models/fee_formatting.dart';
 import 'models/payment_record.dart';

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../common/utils/date_time_parse.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 import '../calendar/models/teacher_session.dart';
 import 'models/session_detail_models.dart';
 import 'session_detail_controller.dart';

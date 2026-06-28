@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:edaya_ui/edaya_ui.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';

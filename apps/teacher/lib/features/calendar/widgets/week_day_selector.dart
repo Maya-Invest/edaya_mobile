@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../common/utils/date_time_parse.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 
 class WeekDaySelector extends StatelessWidget {
   const WeekDaySelector({

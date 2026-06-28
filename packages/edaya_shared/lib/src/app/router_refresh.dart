@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
 /// Notifies [GoRouter] when auth state changes so redirects run again.
-class GuardianRouterRefresh extends ChangeNotifier {
+class EdayaRouterRefresh extends ChangeNotifier {
   void refresh() => notifyListeners();
 }

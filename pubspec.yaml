@@ -9,8 +9,7 @@ workspace:
   - apps/teacher
   - packages/edaya_api_client
   - packages/edaya_auth
-  - packages/edaya_config
-  - packages/edaya_ui
+  - packages/edaya_shared
 
 dev_dependencies:
   melos: ^8.0.0

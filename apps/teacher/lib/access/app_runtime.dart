@@ -1,33 +1,31 @@
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:edaya_auth/edaya_auth.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 
-import '../features/auth/app_session_controller.dart';
 import '../features/calendar/calendar_controller.dart';
 import '../features/context/academic_year_controller.dart';
 import '../features/context/staff_context_controller.dart';
 import '../features/evaluations/evaluations_controller.dart';
-import 'root_scope.dart';
-import 'school_client.dart';
 
 class AppRuntime {
   AppRuntime._();
 
   static AppSessionController get session =>
-      TeacherRootScope.find<AppSessionController>();
+      EdayaRootScope.find<AppSessionController>();
 
   static AcademicYearController get academicYear =>
-      TeacherRootScope.find<AcademicYearController>();
+      EdayaRootScope.find<AcademicYearController>();
 
   static StaffContextController get staffContext =>
-      TeacherRootScope.find<StaffContextController>();
+      EdayaRootScope.find<StaffContextController>();
 
   static CalendarController get calendar =>
-      TeacherRootScope.find<CalendarController>();
+      EdayaRootScope.find<CalendarController>();
 
   static EvaluationsController get evaluations =>
-      TeacherRootScope.find<EvaluationsController>();
+      EdayaRootScope.find<EvaluationsController>();
 
-  static AuthClient get auth => TeacherRootScope.find<AuthClient>();
+  static AuthClient get auth => EdayaRootScope.find<AuthClient>();
 
   static api.SchoolClient schoolClient() => createEdayaSchoolClient(
     auth,

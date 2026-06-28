@@ -1,25 +1,27 @@
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
-import '../../app/router.dart';
-import '../../config/api_config.dart';
 import 'app_session_controller.dart';
 
 class LoginController extends LevitController with LevitReactiveTasksMixin {
   LoginController({
     required AuthClient authClient,
     required AppSessionController session,
-    required AppRouter appRouter,
+    required String defaultEmail,
+    required String defaultPassword,
+    required Future<void> Function() onSignInSuccess,
   }) : _authClient = authClient,
        _session = session,
-       _appRouter = appRouter;
+       _onSignInSuccess = onSignInSuccess {
+    email(defaultEmail);
+    password(defaultPassword);
+  }
 
   final AuthClient _authClient;
   final AppSessionController _session;
-  final AppRouter _appRouter;
-  final email = LxVar(ApiConfig.devStaffEmail);
-  final password = LxVar(ApiConfig.devPassword);
+  final Future<void> Function() _onSignInSuccess;
+  final email = LxVar('');
+  final password = LxVar('');
   final errorMessage = LxVar('');
 
   @override
@@ -49,9 +51,7 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
         return;
       }
 
-      await AppRuntime.academicYear.loadYears();
-      await AppRuntime.staffContext.initializeFromSession();
-      _appRouter.router.go('/calendar');
+      await _onSignInSuccess();
     }, id: 'sign-in');
   }
 }

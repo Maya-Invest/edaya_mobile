@@ -1,4 +1,4 @@
-import 'date_time_parse.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 
 String? currentAcademicPeriodId(
   List<Map<String, dynamic>> periods, {

@@ -4,9 +4,8 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../access/app_runtime.dart';
-import '../../common/utils/date_time_parse.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 import '../../common/utils/entity_filters.dart';
-import '../../common/utils/entity_query.dart';
 import '../calendar/models/teacher_session.dart';
 import 'models/session_detail_models.dart';
 

@@ -6,24 +6,33 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../access/school_client.dart';
 import '../../app/router_refresh.dart';
-import '../../services/push_notification_service.dart';
-import 'session_storage.dart';
+import '../push/push_notification_service.dart';
+import 'auth_session_storage.dart';
 
+typedef GrantValidator = String? Function(api.EffectiveGrantsResponse grants);
+
+/// Root session state shared across auth screens.
 class AppSessionController extends LevitController {
   AppSessionController({
     required AuthClient authClient,
-    required SessionStorage sessionStorage,
+    required AuthSessionStorage sessionStorage,
     required PushNotificationService pushNotifications,
-    required TeacherRouterRefresh routerRefresh,
+    required EdayaRouterRefresh routerRefresh,
+    required GrantValidator validateGrants,
+    required String Function() unauthorizedProfileMessage,
   }) : _authClient = authClient,
        _sessionStorage = sessionStorage,
        _pushNotifications = pushNotifications,
-       _routerRefresh = routerRefresh;
+       _routerRefresh = routerRefresh,
+       _validateGrants = validateGrants,
+       _unauthorizedProfileMessage = unauthorizedProfileMessage;
 
   final AuthClient _authClient;
-  final SessionStorage _sessionStorage;
+  final AuthSessionStorage _sessionStorage;
   final PushNotificationService _pushNotifications;
-  final TeacherRouterRefresh _routerRefresh;
+  final EdayaRouterRefresh _routerRefresh;
+  final GrantValidator _validateGrants;
+  final String Function() _unauthorizedProfileMessage;
 
   final user = LxVar<AuthUser?>(null);
   final grants = LxVar<api.EffectiveGrantsResponse?>(null);
@@ -99,8 +108,9 @@ class AppSessionController extends LevitController {
     final schoolClient = createEdayaSchoolClient(_authClient);
     try {
       final effectiveGrants = await schoolClient.effectiveGrants();
-      if (effectiveGrants.kind != 'staff') {
-        return 'This account is not linked to a staff profile.';
+      final validationError = _validateGrants(effectiveGrants);
+      if (validationError != null) {
+        return validationError;
       }
       user(signedInUser);
       grants(effectiveGrants);
@@ -108,7 +118,7 @@ class AppSessionController extends LevitController {
       return null;
     } on api.ApiError catch (error) {
       if (error.status == 401) {
-        return 'Signed in, but no linked staff profile. Run: bun run seed:auth:link';
+        return _unauthorizedProfileMessage();
       }
       return 'Signed in, but school session is unavailable: $error';
     } on Object catch (error) {

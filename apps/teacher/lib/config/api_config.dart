@@ -1,4 +1,4 @@
-import 'package:edaya_config/edaya_config.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 
 /// API and dev credential configuration for the teacher app.
 ///

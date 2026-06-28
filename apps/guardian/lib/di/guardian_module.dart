@@ -1,30 +1,25 @@
 import 'package:edaya_auth/edaya_auth.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../access/school_client.dart';
-import '../access/root_scope.dart';
 import '../app/router.dart';
-import '../app/router_refresh.dart';
-import '../features/auth/app_bootstrap_controller.dart';
-import '../features/auth/app_session_controller.dart';
 import '../features/auth/session_storage.dart';
 import '../features/context/academic_year_controller.dart';
 import '../features/context/student_context_controller.dart';
 import '../services/push_notification_service.dart';
-import 'edaya_module.dart';
 
 void registerGuardianDependencies(LevitScope scope) {
-  GuardianRootScope.bind(scope);
+  EdayaRootScope.bind(scope, appName: 'Guardian');
   final cookieJar = CookieJar();
   scope.put<CookieJar>(() => cookieJar, permanent: true);
   scope.put<SessionStorage>(() => SessionStorage(), permanent: true);
-  scope.put<GuardianRouterRefresh>(
-    () => GuardianRouterRefresh(),
+  scope.put<EdayaRouterRefresh>(
+    () => EdayaRouterRefresh(),
     permanent: true,
   );
   registerEdayaDependencies(scope, cookieJar: cookieJar);
   scope.put<PushNotificationService>(
-    () => PushNotificationService(
+    () => GuardianPushNotificationService(
       schoolClientFactory: () =>
           createEdayaSchoolClient(scope.find<AuthClient>()),
     ),
@@ -35,7 +30,10 @@ void registerGuardianDependencies(LevitScope scope) {
       authClient: scope.find<AuthClient>(),
       sessionStorage: scope.find<SessionStorage>(),
       pushNotifications: scope.find<PushNotificationService>(),
-      routerRefresh: scope.find<GuardianRouterRefresh>(),
+      routerRefresh: scope.find<EdayaRouterRefresh>(),
+      validateGrants: (_) => null,
+      unauthorizedProfileMessage: () =>
+          'Signed in, but no linked guardian/staff profile. Run: bun run seed:auth:link',
     ),
     permanent: true,
   );
@@ -57,8 +55,12 @@ void registerGuardianDependencies(LevitScope scope) {
   scope.put<AppRouter>(
     () => AppRouter(
       session: scope.find<AppSessionController>(),
-      routerRefresh: scope.find<GuardianRouterRefresh>(),
+      routerRefresh: scope.find<EdayaRouterRefresh>(),
     ),
+    permanent: true,
+  );
+  scope.put<EdayaAppRouter>(
+    () => scope.find<AppRouter>(),
     permanent: true,
   );
   scope.put<AppBootstrapController>(
@@ -67,8 +69,10 @@ void registerGuardianDependencies(LevitScope scope) {
       sessionStorage: scope.find<SessionStorage>(),
       session: scope.find<AppSessionController>(),
       pushNotifications: scope.find<PushNotificationService>(),
-      academicYear: scope.find<AcademicYearController>(),
-      studentContext: scope.find<StudentContextController>(),
+      initializeAuthenticatedContext: () async {
+        await scope.find<AcademicYearController>().loadYears();
+        await scope.find<StudentContextController>().initializeFromSession();
+      },
     ),
     permanent: true,
   );

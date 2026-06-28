@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -16,8 +17,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 ///
 /// Push setup is best-effort: failures (e.g. iOS Simulator without APNS) must
 /// not block auth or app startup.
-class PushNotificationService {
-  PushNotificationService({
+class GuardianPushNotificationService implements PushNotificationService {
+  GuardianPushNotificationService({
     required api.SchoolClient Function() schoolClientFactory,
     FirebaseMessaging? messaging,
   }) : _schoolClientFactory = schoolClientFactory,
@@ -31,6 +32,7 @@ class PushNotificationService {
   FirebaseMessaging get _messaging =>
       _messagingOverride ?? FirebaseMessaging.instance;
 
+  @override
   Future<void> initialize() async {
     if (kIsWeb || isFlutterTest) {
       return;
@@ -52,6 +54,7 @@ class PushNotificationService {
     }
   }
 
+  @override
   Future<void> registerForAuthenticatedUser() async {
     if (kIsWeb || isFlutterTest) {
       return;
@@ -68,6 +71,7 @@ class PushNotificationService {
     }
   }
 
+  @override
   Future<void> unregister() async {
     if (kIsWeb || isFlutterTest) {
       return;

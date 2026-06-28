@@ -1,10 +1,10 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../access/root_scope.dart';
-import '../common/models/modal_bottom_sheet_page.dart';
-import '../common/widgets/route_error_page.dart';
+import '../access/app_runtime.dart';
+import '../config/api_config.dart';
 import '../features/academic/academic_page.dart';
 import '../features/academic/grade_details_dialog.dart';
 import '../features/academic/models/grade_entry.dart';
@@ -12,8 +12,6 @@ import '../features/academic/models/report_card_summary.dart';
 import '../features/academic/report_card_details_dialog.dart';
 import '../features/account/account_sheet.dart';
 import '../features/app_shell/app_shell_page.dart';
-import '../features/auth/app_session_controller.dart';
-import '../features/auth/login_page.dart';
 import '../features/calendar/attendance_list_page.dart';
 import '../features/calendar/calendar_page.dart';
 import '../features/calendar/models/calendar_session.dart';
@@ -26,15 +24,14 @@ import '../features/inbox/inbox_page.dart';
 import '../features/inbox/models/inbox_delivery.dart';
 import '../features/inbox/message_details_dialog.dart';
 import '../features/my_students/my_students_sheet.dart';
-import 'router_refresh.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 final shellNavigatorKey = GlobalKey<NavigatorState>();
 
-class AppRouter extends LevitController {
+class AppRouter extends LevitController implements EdayaAppRouter {
   AppRouter({
     required AppSessionController session,
-    required GuardianRouterRefresh routerRefresh,
+    required EdayaRouterRefresh routerRefresh,
   }) : _session = session,
        _routerRefresh = routerRefresh {
     router = GoRouter(
@@ -56,7 +53,18 @@ class AppRouter extends LevitController {
       routes: [
         GoRoute(
           path: '/login',
-          builder: (context, state) => const LoginPage(),
+          builder: (context, state) => LoginPage(
+            appTitle: 'Edaya Guardian',
+            subtitle:
+                'Use dev guardian credentials to test against the local API.',
+            defaultEmail: ApiConfig.devGuardianEmail,
+            defaultPassword: ApiConfig.devPassword,
+            onSignInSuccess: () async {
+              await AppRuntime.academicYear.loadYears();
+              await AppRuntime.studentContext.initializeFromSession();
+              find.router.go('/calendar');
+            },
+          ),
         ),
         GoRoute(
           parentNavigatorKey: rootNavigatorKey,
@@ -230,11 +238,12 @@ class AppRouter extends LevitController {
   }
 
   final AppSessionController _session;
-  final GuardianRouterRefresh _routerRefresh;
+  final EdayaRouterRefresh _routerRefresh;
 
-  static AppRouter get find => GuardianRootScope.find<AppRouter>();
+  static AppRouter get find => EdayaRootScope.find<AppRouter>();
 
   late final GoRouter router;
 
+  @override
   RouterConfig<Object> config() => router;
 }

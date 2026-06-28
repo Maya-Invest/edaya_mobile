@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../access/app_runtime.dart';
-import '../../common/utils/date_time_parse.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 import 'calendar_controller.dart';
 import 'models/calendar_session.dart';
 

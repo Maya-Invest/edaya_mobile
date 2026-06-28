@@ -1,5 +1,5 @@
 import 'package:edaya_api_client/edaya_api_client.dart';
-import 'package:edaya_guardian/common/utils/entity_query.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

@@ -1,31 +1,4 @@
-import 'entity_query.dart';
-
-EntityQuery classGroupScope(String classGroupId) {
-  return {'classGroupId': classGroupId};
-}
-
-EntityQuery studentScope(String studentId) {
-  return {'studentId': studentId};
-}
-
-EntityQuery academicYearScope(String academicYearId) {
-  return {'academicYearId': academicYearId};
-}
-
-EntityQuery sessionScope(String sessionId) {
-  return {'sessionId': sessionId};
-}
-
-EntityQuery recordsForField(String field, List<String> ids) {
-  if (ids.isEmpty) {
-    return {
-      field: {'\$in': ['__no_match__']},
-    };
-  }
-  return {
-    field: {'\$in': ids},
-  };
-}
+import 'package:edaya_shared/edaya_shared.dart';
 
 EntityQuery publishedReportCardsForStudent(String studentId) {
   return {

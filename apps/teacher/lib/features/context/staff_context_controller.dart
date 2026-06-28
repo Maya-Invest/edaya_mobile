@@ -5,7 +5,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../access/app_runtime.dart';
 import '../../common/utils/entity_query.dart';
-import '../auth/app_session_controller.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 import '../auth/session_storage.dart';
 import 'academic_year_controller.dart';
 

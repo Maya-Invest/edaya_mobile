@@ -1,4 +1,4 @@
-import 'package:edaya_ui/edaya_ui.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 
 import '../models/session_detail_models.dart';

@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../access/app_runtime.dart';
-import '../../common/widgets/data_state.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 import 'fees_controller.dart';
 import 'models/payment_record.dart';
 import 'widgets/fee_tiles.dart';

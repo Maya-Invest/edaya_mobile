@@ -1,4 +1,4 @@
-import 'package:edaya_guardian/common/utils/date_time_parse.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_guardian/features/calendar/models/calendar_session.dart';
 import 'package:flutter_test/flutter_test.dart';
 

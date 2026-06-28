@@ -1,4 +1,4 @@
-import 'package:edaya_config/edaya_config.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
