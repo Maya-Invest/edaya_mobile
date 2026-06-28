@@ -1,0 +1,27 @@
+{
+  // ignore folders
+  "ignorePaths": [
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/logs/**",
+    "**/tmp/**",
+    "**/temp/**",
+    "**/*tests*/**"
+  ],
+  "words": [
+    "edaya",
+    "postgres",
+    "hono",
+    "zod",
+    "drizzle",
+    "tsc",
+    "tsx",
+    "tsconfig",
+    "tsup",
+    "turbo",
+    "vitest",
+    "antfu"
+  ]
+}
