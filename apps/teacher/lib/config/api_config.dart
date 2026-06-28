@@ -1,8 +1,12 @@
+import 'package:edaya_config/edaya_config.dart';
+
+/// API and dev credential configuration for the teacher app.
+///
+/// The base URL can be set at build time with
+/// `--dart-define=API_URL=http://10.0.2.2:9999` (Android emulator), or changed
+/// at runtime from Developer settings (debug builds only).
 abstract final class ApiConfig {
-  static const baseUrl = String.fromEnvironment(
-    'API_URL',
-    defaultValue: 'http://localhost:9999',
-  );
+  static String get baseUrl => ApiBaseUrlConfig.baseUrl;
 
   static const devStaffEmail = String.fromEnvironment(
     'DEV_STAFF_EMAIL',

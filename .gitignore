@@ -16,3 +16,4 @@ packages/**/pubspec.lock
 # Platform-specific generated files
 **/.cxx/
 **/DerivedData/
+.DS_Store

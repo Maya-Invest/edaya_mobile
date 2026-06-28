@@ -1,9 +1,11 @@
+import 'package:edaya_config/edaya_config.dart';
 import 'package:edaya_ui/edaya_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../access/app_runtime.dart';
+import '../auth/session_storage.dart';
 
 class AccountSheet extends StatelessWidget {
   const AccountSheet({super.key});
@@ -75,6 +77,15 @@ class AccountSheet extends StatelessWidget {
                     ),
                   ],
                 );
+              },
+            ),
+            const SizedBox(height: 24),
+            DevApiUrlSettings(
+              compact: true,
+              onUrlChanged: () async {
+                final storage = SessionStorage();
+                await storage.clearCookies();
+                await storage.markLoggedOut();
               },
             ),
             const SizedBox(height: 24),

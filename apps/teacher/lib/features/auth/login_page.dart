@@ -1,3 +1,4 @@
+import 'package:edaya_config/edaya_config.dart';
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -28,14 +29,14 @@ class LoginPage extends LScopedView<LoginController> {
       ),
       body: SafeArea(
         child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
                   Text(
                     'Sign in',
                     style: Theme.of(context).textTheme.headlineSmall,
@@ -101,12 +102,15 @@ class LoginPage extends LScopedView<LoginController> {
                           : const Text('Sign in'),
                     ),
                   ),
+                  const SizedBox(height: 24),
+                  const DevApiUrlSettings(compact: true),
                 ],
               ),
             ),
           ),
         ),
       ),
+    ),
     );
   }
 }
