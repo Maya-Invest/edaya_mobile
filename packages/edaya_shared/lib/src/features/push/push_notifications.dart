@@ -208,6 +208,7 @@ class FcmPushNotificationService implements PushNotificationService {
         return;
       }
       await _registerToken(token);
+      debugPrint('FCM token: ${await FirebaseMessaging.instance.getToken()}');
     } on Object {
       // APNS token not available yet (common on iOS Simulator).
     }
