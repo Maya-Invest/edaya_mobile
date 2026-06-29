@@ -5,6 +5,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import 'linked_student.dart';
 
 class GuardianStudentsController extends LevitController
@@ -54,10 +55,10 @@ class GuardianStudentsController extends LevitController
           ..sort((a, b) => a.fullName.compareTo(b.fullName));
         students(linkedStudents);
       } on api.ApiError catch (error) {
-        errorMessage('Could not load linked students: $error');
+        errorMessage(systemL10n().couldNotLoadLinkedStudents(error.toString()));
         students(const []);
       } on Object catch (error) {
-        errorMessage('Could not load linked students: $error');
+        errorMessage(systemL10n().couldNotLoadLinkedStudents(error.toString()));
         students(const []);
       }
     }, id: 'load-students');

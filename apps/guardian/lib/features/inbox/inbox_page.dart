@@ -65,7 +65,7 @@ class _InboxBody extends StatelessWidget {
       children: [
         if (unreadCount > 0) ...[
           Text(
-            '$unreadCount unread',
+            context.tr.unreadCount(unreadCount),
             style: Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(height: 8),

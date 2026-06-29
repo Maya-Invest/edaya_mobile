@@ -6,7 +6,8 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../access/school_client.dart';
 import '../../app/router_refresh.dart';
-import '../push/push_notification_service.dart';
+import '../../l10n/l10n_lookup.dart';
+import '../push/push_notifications.dart';
 import 'auth_session_storage.dart';
 
 typedef GrantValidator = String? Function(api.EffectiveGrantsResponse grants);
@@ -120,9 +121,9 @@ class AppSessionController extends LevitController {
       if (error.status == 401) {
         return _unauthorizedProfileMessage();
       }
-      return 'Signed in, but school session is unavailable: $error';
+      return systemL10n().signedInSchoolSessionUnavailable('$error');
     } on Object catch (error) {
-      return 'Signed in, but school session is unavailable: $error';
+      return systemL10n().signedInSchoolSessionUnavailable('$error');
     }
   }
 

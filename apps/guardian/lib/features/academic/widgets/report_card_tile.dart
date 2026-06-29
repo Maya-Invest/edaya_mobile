@@ -24,8 +24,8 @@ class ReportCardTile extends StatelessWidget {
         title: Text(reportCard.periodName),
         subtitle: Text(
           published == null
-              ? 'Published report card'
-              : 'Published ${formatShortDate(published)}',
+              ? context.tr.publishedReportCard
+              : context.tr.publishedOn(context.formatShortDate(published)),
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -36,12 +36,17 @@ class ReportCardTile extends StatelessWidget {
               children: [
                 if (reportCard.overallAverage != null)
                   Text(
-                    '${reportCard.overallAverage!.toStringAsFixed(1)} / 20',
+                    context.tr.scoreOutOfTwentyValue(
+                      reportCard.overallAverage!.toStringAsFixed(1),
+                    ),
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                 if (reportCard.rank != null && reportCard.classSize != null)
                   Text(
-                    'Rank ${reportCard.rank}/${reportCard.classSize}',
+                    context.tr.rankLabel(
+                      reportCard.rank!,
+                      reportCard.classSize!,
+                    ),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
               ],

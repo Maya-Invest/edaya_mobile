@@ -46,8 +46,8 @@ class AppRouter extends LevitController implements EdayaAppRouter {
         GoRoute(
           path: '/login',
           builder: (context, state) => LoginPage(
-            appTitle: 'Edaya Teacher',
-            subtitle: 'Use dev staff credentials to test against the local API.',
+            appTitle: context.tr.appTitleTeacher,
+            subtitle: context.tr.loginSubtitleStaffDev,
             defaultEmail: ApiConfig.devStaffEmail,
             defaultPassword: ApiConfig.devPassword,
             onSignInSuccess: () async {
@@ -56,6 +56,11 @@ class AppRouter extends LevitController implements EdayaAppRouter {
               find.router.go('/calendar');
             },
           ),
+        ),
+        GoRoute(
+          parentNavigatorKey: rootNavigatorKey,
+          path: '/settings',
+          builder: (context, state) => const SettingsPage(),
         ),
         GoRoute(
           parentNavigatorKey: rootNavigatorKey,
@@ -93,9 +98,9 @@ class AppRouter extends LevitController implements EdayaAppRouter {
                   pageBuilder: (context, state) {
                     final extra = state.extra;
                     if (extra is! TeacherSession) {
-                      return const MaterialPage<void>(
+                      return MaterialPage<void>(
                         child: RouteErrorPage(
-                          message: 'Missing session details route data.',
+                          message: context.tr.missingSessionDetailsRouteData,
                         ),
                       );
                     }
@@ -113,8 +118,8 @@ class AppRouter extends LevitController implements EdayaAppRouter {
                   builder: (context, state) {
                     final extra = state.extra;
                     if (extra is! TeacherSession) {
-                      return const RouteErrorPage(
-                        message: 'Missing attendance flow route data.',
+                      return RouteErrorPage(
+                        message: context.tr.missingAttendanceFlowRouteData,
                       );
                     }
 
@@ -144,9 +149,9 @@ class AppRouter extends LevitController implements EdayaAppRouter {
                   pageBuilder: (context, state) {
                     final extra = state.extra;
                     if (extra is! EvaluationSummary) {
-                      return const MaterialPage<void>(
+                      return MaterialPage<void>(
                         child: RouteErrorPage(
-                          message: 'Missing marks entry route data.',
+                          message: context.tr.missingMarksEntryRouteData,
                         ),
                       );
                     }

@@ -23,6 +23,7 @@ class PaymentDetailsDialog extends LScopedView<PaymentDetailsController> {
     PaymentDetailsController controller,
   ) {
     final payment = controller.payment;
+    final l10n = context.tr;
 
     return SafeArea(
       child: Padding(
@@ -35,7 +36,7 @@ class PaymentDetailsDialog extends LScopedView<PaymentDetailsController> {
               children: [
                 Expanded(
                   child: Text(
-                    'Payment details',
+                    l10n.paymentDetails,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
@@ -48,23 +49,23 @@ class PaymentDetailsDialog extends LScopedView<PaymentDetailsController> {
             Text(payment.feeLabel),
             const SizedBox(height: 16),
             _DetailRow(
-              label: 'Amount',
+              label: l10n.amount,
               value: formatMoney(payment.amount, payment.currency),
             ),
             _DetailRow(
-              label: 'Date',
-              value: formatLongDate(payment.paymentDate),
+              label: l10n.date,
+              value: context.formatLongDate(payment.paymentDate),
             ),
             _DetailRow(
-              label: 'Method',
-              value: formatPaymentMethod(payment.method),
+              label: l10n.method,
+              value: formatPaymentMethod(l10n, payment.method),
             ),
             if (payment.reference != null && payment.reference!.isNotEmpty)
-              _DetailRow(label: 'Reference', value: payment.reference!),
+              _DetailRow(label: l10n.reference, value: payment.reference!),
             if (payment.notes != null && payment.notes!.isNotEmpty) ...[
               const SizedBox(height: 12),
               Text(
-                'Notes',
+                l10n.notes,
                 style: Theme.of(context).textTheme.labelLarge,
               ),
               const SizedBox(height: 4),

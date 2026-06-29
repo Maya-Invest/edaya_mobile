@@ -46,7 +46,7 @@ class _GuardianAppBarContent extends StatelessWidget
   Widget build(BuildContext context) {
     return AppBar(
       leading: IconButton(
-        tooltip: 'Account',
+        tooltip: context.tr.tooltipAccount,
         icon: const Icon(Icons.account_circle_outlined),
         onPressed: () => context.push('/account'),
       ),
@@ -57,14 +57,14 @@ class _GuardianAppBarContent extends StatelessWidget
           final isLoading = studentContext.isLoading.value;
 
           if (isLoading && student == null) {
-            return const Text('Loading…');
+            return Text(context.tr.loading);
           }
 
           if (student == null) {
-            return const Text('Select a student');
+            return Text(context.tr.selectAStudent);
           }
 
-          final subtitle = classLabel ?? 'Not enrolled';
+          final subtitle = classLabel ?? context.tr.notEnrolled;
           return Row(
             children: [
               PersonAvatar(
@@ -97,7 +97,7 @@ class _GuardianAppBarContent extends StatelessWidget
         LWatch(
           () {
             final yearLabel =
-                academicYear.selectedYearLabel ?? 'School year';
+                academicYear.selectedYearLabel ?? context.tr.schoolYear;
             return TextButton.icon(
               onPressed: () => context.push('/academic-year-picker'),
               icon: const Icon(Icons.expand_more, size: 18),
@@ -106,7 +106,7 @@ class _GuardianAppBarContent extends StatelessWidget
           },
         ),
         IconButton(
-          tooltip: 'My students',
+          tooltip: context.tr.tooltipMyStudents,
           icon: const Icon(Icons.people_outline),
           onPressed: () => context.push('/my-students'),
         ),

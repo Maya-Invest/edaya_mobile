@@ -18,8 +18,8 @@ class AccountSheet extends StatelessWidget {
       sessionStorage: SessionStorage(),
       profileHeader: LWatch(
         () {
-          final name = staffContext.staffName.value ?? 'Teacher';
-          final email = session.user.value?.email ?? 'Unknown user';
+          final name = staffContext.staffName.value ?? context.tr.teacherFallbackName;
+          final email = session.user.value?.email ?? context.tr.unknownUser;
           final initials = name
               .trim()
               .split(RegExp(r'\s+'))

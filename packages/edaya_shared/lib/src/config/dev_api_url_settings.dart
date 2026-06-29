@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../l10n/l10n_extension.dart';
 import 'api_base_url_config.dart';
 import 'restart_stub.dart' if (dart.library.io) 'restart_io.dart';
 
@@ -27,11 +28,11 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
   String? _errorMessage;
   bool _isSaving = false;
 
-  static const _presets = <String, String>{
-    'Localhost': 'http://localhost:9999',
-    'Android emulator': 'http://10.0.2.2:9999',
-    'LAN (edit IP)': 'http://192.168.1.1:9999',
-  };
+  List<({String label, String value})> _presets(BuildContext context) => [
+    (label: context.tr.presetLocalhost, value: 'http://localhost:9999'),
+    (label: context.tr.presetAndroidEmulator, value: 'http://10.0.2.2:9999'),
+    (label: context.tr.presetLanEditIp, value: 'http://192.168.1.1:9999'),
+  ];
 
   @override
   void initState() {
@@ -76,25 +77,26 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
   }
 
   Future<void> _showRestartDialog() async {
+    final url = ApiBaseUrlConfig.baseUrl;
     await showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Restart required'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(dialogContext.tr.restartRequired),
         content: Text(
           kIsWeb
-              ? 'API URL updated to ${ApiBaseUrlConfig.baseUrl}. Reload the page to connect to the new server.'
-              : 'API URL updated to ${ApiBaseUrlConfig.baseUrl}. Restart the app to connect to the new server.',
+              ? dialogContext.tr.apiUrlUpdatedReloadPage(url)
+              : dialogContext.tr.apiUrlUpdatedRestartApp(url),
         ),
         actions: [
           if (!kIsWeb)
             FilledButton(
               onPressed: restartApp,
-              child: const Text('Restart app'),
+              child: Text(dialogContext.tr.restartApp),
             )
           else
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(dialogContext.tr.ok),
             ),
         ],
       ),
@@ -108,13 +110,13 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Current: ${ApiBaseUrlConfig.baseUrl}',
+          context.tr.currentApiUrl(ApiBaseUrlConfig.baseUrl),
           style: theme.textTheme.bodySmall,
         ),
         if (ApiBaseUrlConfig.hasOverride) ...[
           const SizedBox(height: 4),
           Text(
-            'Using saved dev override',
+            context.tr.usingSavedDevOverride,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.primary,
             ),
@@ -125,9 +127,9 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
           controller: _controller,
           keyboardType: TextInputType.url,
           autofillHints: const [AutofillHints.url],
-          decoration: const InputDecoration(
-            labelText: 'API base URL',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: context.tr.apiBaseUrlLabel,
+            border: const OutlineInputBorder(),
             hintText: 'http://localhost:9999',
           ),
           enabled: !_isSaving,
@@ -137,12 +139,12 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            for (final entry in _presets.entries)
+            for (final preset in _presets(context))
               ActionChip(
-                label: Text(entry.key),
+                label: Text(preset.label),
                 onPressed: _isSaving
                     ? null
-                    : () => _controller.text = entry.value,
+                    : () => _controller.text = preset.value,
               ),
           ],
         ),
@@ -161,7 +163,7 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
                 onPressed: _isSaving
                     ? null
                     : () => _applyUrl(ApiBaseUrlConfig.clearOverride),
-                child: const Text('Reset default'),
+                child: Text(context.tr.resetDefault),
               ),
             ),
             const SizedBox(width: 12),
@@ -178,7 +180,7 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Save'),
+                    : Text(context.tr.save),
               ),
             ),
           ],
@@ -196,7 +198,7 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
     if (widget.compact) {
       return ExpansionTile(
         leading: const Icon(Icons.settings_outlined),
-        title: const Text('Developer settings'),
+        title: Text(context.tr.developerSettings),
         subtitle: Text(ApiBaseUrlConfig.baseUrl),
         children: [
           Padding(
@@ -214,7 +216,7 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Developer settings',
+              context.tr.developerSettings,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),

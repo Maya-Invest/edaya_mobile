@@ -6,6 +6,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../../access/app_runtime.dart';
 import '../../common/utils/entity_filters.dart';
 import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
 import 'models/academic_period.dart';
@@ -79,19 +80,20 @@ class AcademicController extends LevitController with LevitReactiveTasksMixin {
   }
 
   String get emptyMessage {
+    final l10n = systemL10n();
     if (_studentContext.activeStudent.value == null) {
-      return 'Select a student to view academic information.';
+      return l10n.selectStudentToViewAcademic;
     }
     if (!_studentContext.isEnrolled.value) {
-      return 'This student is not enrolled for the selected school year.';
+      return l10n.studentNotEnrolledForYear;
     }
     switch (view.value) {
       case AcademicView.grades:
-        return 'No grades recorded for this period.';
+        return l10n.noGradesForPeriod;
       case AcademicView.curriculum:
-        return 'No curriculum progress available yet.';
+        return l10n.noCurriculumProgressYet;
       case AcademicView.reportCards:
-        return 'No published report cards yet.';
+        return l10n.noReportCardsYet;
     }
   }
 
@@ -224,11 +226,11 @@ class AcademicController extends LevitController with LevitReactiveTasksMixin {
               result: result,
               assessment: assessment,
               subjectName: subjectNameByClassSubjectId[classSubjectId] ??
-                  'Subject',
+                  systemL10n().subjectFallback,
               periodName:
                   periodNameById[assessment['periodId'] as String?] ??
                   assessment['periodId'] as String? ??
-                  'Period',
+                  systemL10n().periodFallback,
             ),
           );
         }
@@ -300,7 +302,7 @@ class AcademicController extends LevitController with LevitReactiveTasksMixin {
                 (matter) => CurriculumUnit(
                   name: subjectMatterNameById[
                           matter['subjectMatterId'] as String] ??
-                      'Unit',
+                      systemL10n().unitFallback,
                   completedPercentage:
                       (matter['completedPercentage'] as num?)?.round() ?? 0,
                   status: matter['status'] as String? ?? 'not_started',
@@ -328,7 +330,7 @@ class AcademicController extends LevitController with LevitReactiveTasksMixin {
                 periodName:
                     periodNameById[row['periodId'] as String?] ??
                     row['periodId'] as String? ??
-                    'Period',
+                    systemL10n().periodFallback,
               ),
             )
             .toList()
@@ -359,13 +361,13 @@ class AcademicController extends LevitController with LevitReactiveTasksMixin {
           selectedPeriodId(null);
         }
       } on api.ApiError catch (error) {
-        errorMessage('Could not load academic data: $error');
+        errorMessage(systemL10n().couldNotLoadAcademicData(error.toString()));
         periods(const []);
         gradeGroups(const []);
         curriculumSubjects(const []);
         reportCards(const []);
       } on Object catch (error) {
-        errorMessage('Could not load academic data: $error');
+        errorMessage(systemL10n().couldNotLoadAcademicData(error.toString()));
         periods(const []);
         gradeGroups(const []);
         curriculumSubjects(const []);
@@ -431,7 +433,7 @@ class ReportCardDetailsController extends LevitController
           ),
         );
       } on Object catch (error) {
-        errorMessage('Could not load report card: $error');
+        errorMessage(systemL10n().couldNotLoadReportCard(error.toString()));
         detail(null);
       }
     });

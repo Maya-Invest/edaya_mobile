@@ -12,6 +12,7 @@ class StudentFeeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.tr;
     final colorScheme = Theme.of(context).colorScheme;
     final statusColor = switch (line.status) {
       StudentFeeStatus.paid => colorScheme.primary,
@@ -26,11 +27,11 @@ class StudentFeeTile extends StatelessWidget {
         title: Text(line.label),
         subtitle: Text(
           [
-            formatFeeStatus(line.status),
+            formatFeeStatus(l10n, line.status),
             if (line.dueDate != null)
-              'Due ${formatShortDate(line.dueDate!)}',
+              l10n.dueDate(context.formatShortDate(line.dueDate!)),
             if (line.paymentCount > 0)
-              '${line.paymentCount} payment(s)',
+              l10n.paymentCount(line.paymentCount),
           ].join(' · '),
         ),
         trailing: Column(
@@ -42,7 +43,7 @@ class StudentFeeTile extends StatelessWidget {
               style: Theme.of(context).textTheme.titleSmall,
             ),
             Text(
-              'Paid ${formatMoney(line.paidAmount, line.currency)}',
+              l10n.paidAmount(formatMoney(line.paidAmount, line.currency)),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: statusColor,
               ),
@@ -66,13 +67,17 @@ class PaymentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.tr;
     return Card(
       clipBehavior: Clip.antiAlias,
       child: ListTile(
         onTap: onTap,
         title: Text(payment.feeLabel),
         subtitle: Text(
-          '${formatPaymentMethod(payment.method)} · ${formatShortDate(payment.paymentDate)}',
+          l10n.paymentMethodAndDate(
+            formatPaymentMethod(l10n, payment.method),
+            context.formatShortDate(payment.paymentDate),
+          ),
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,

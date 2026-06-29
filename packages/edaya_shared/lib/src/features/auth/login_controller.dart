@@ -1,6 +1,7 @@
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
+import '../../l10n/l10n_lookup.dart';
 import 'app_session_controller.dart';
 
 class LoginController extends LevitController with LevitReactiveTasksMixin {
@@ -41,7 +42,7 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
       );
 
       if (!result.isSuccess || result.data == null) {
-        errorMessage(result.error?.message ?? 'Sign-in failed');
+        errorMessage(result.error?.message ?? systemL10n().signInFailed);
         return;
       }
 

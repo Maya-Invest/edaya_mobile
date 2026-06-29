@@ -42,24 +42,29 @@ class GradeDetailsDialog extends LScopedView<GradeDetailsController> {
               ],
             ),
             Text(entry.subjectName),
-            Text('${entry.periodName} · Coefficient ${entry.coefficient.toStringAsFixed(0)}'),
+            Text(
+              context.tr.gradePeriodCoefficient(
+                entry.periodName,
+                entry.coefficient.toStringAsFixed(0),
+              ),
+            ),
             if (entry.date != null)
-              Text(formatLongDate(entry.date!)),
+              Text(context.formatLongDate(entry.date!)),
             const SizedBox(height: 20),
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Score'),
+              title: Text(context.tr.score),
               trailing: Text(
                 entry.hasScore
                     ? '${entry.score!.toStringAsFixed(1)} / ${entry.maxScore.toStringAsFixed(0)}'
-                    : 'Not graded yet',
+                    : context.tr.notGradedYet,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
             if (entry.notes != null && entry.notes!.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
-                'Notes',
+                context.tr.notes,
                 style: Theme.of(context).textTheme.labelLarge,
               ),
               const SizedBox(height: 4),

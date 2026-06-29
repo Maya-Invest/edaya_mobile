@@ -1,9 +1,13 @@
 library;
 
 export 'src/access/school_client.dart';
+export 'src/l10n/l10n_extension.dart';
+export 'src/l10n/l10n_lookup.dart';
 export 'src/app/edaya_app_root.dart';
 export 'src/app/edaya_root_scope.dart';
 export 'src/app/router_refresh.dart';
+export 'src/app/edaya_colors.dart';
+export 'src/app/edaya_typography.dart';
 export 'src/app/theme.dart';
 export 'src/common/models/modal_bottom_sheet_page.dart';
 export 'src/common/utils/date_time_parse.dart';
@@ -19,5 +23,8 @@ export 'src/features/auth/app_session_controller.dart';
 export 'src/features/auth/auth_session_storage.dart';
 export 'src/features/auth/login_controller.dart';
 export 'src/features/auth/login_page.dart';
-export 'src/features/push/push_notification_service.dart';
+export 'src/features/settings/app_settings_controller.dart';
+export 'src/features/settings/settings_page.dart';
+export 'package:firebase_messaging/firebase_messaging.dart' show RemoteMessage;
+export 'src/features/push/push_notifications.dart';
 export 'src/ui/person_avatar.dart';

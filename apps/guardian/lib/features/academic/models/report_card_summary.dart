@@ -1,4 +1,5 @@
 import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 
 class ReportCardSummary {
   const ReportCardSummary({
@@ -78,7 +79,7 @@ class ReportCardSubjectMark {
 
   factory ReportCardSubjectMark.fromJson(Map<String, dynamic> json) {
     return ReportCardSubjectMark(
-      name: json['name'] as String? ?? 'Subject',
+      name: json['name'] as String? ?? systemL10n().subjectFallback,
       average: (json['average'] as num?)?.toDouble() ?? 0,
       comment: json['comment'] as String?,
     );

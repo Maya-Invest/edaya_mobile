@@ -5,6 +5,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../../config/dev_api_url_settings.dart';
 import '../../features/auth/app_session_controller.dart';
 import '../../features/auth/auth_session_storage.dart';
+import '../../l10n/l10n_extension.dart';
 
 class AccountSheetBody extends StatelessWidget {
   const AccountSheetBody({
@@ -30,7 +31,7 @@ class AccountSheetBody extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  'Account',
+                  context.tr.accountTitle,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const Spacer(),
@@ -41,8 +42,20 @@ class AccountSheetBody extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            if (profileHeader != null) profileHeader!,
-            if (profileHeader != null) const SizedBox(height: 24),
+            if (profileHeader != null) ...[
+              profileHeader!,
+              const SizedBox(height: 24),
+            ],
+            ListTile(
+              leading: const Icon(Icons.settings_outlined),
+              title: Text(context.tr.settingsTitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                context.pop();
+                context.push('/settings');
+              },
+            ),
+            const SizedBox(height: 8),
             DevApiUrlSettings(
               compact: true,
               onUrlChanged: () async {
@@ -69,7 +82,9 @@ class AccountSheetBody extends StatelessWidget {
                       )
                     : const Icon(Icons.logout),
                 label: Text(
-                  session.isSigningOut.value ? 'Signing out…' : 'Sign out',
+                  session.isSigningOut.value
+                      ? context.tr.signingOut
+                      : context.tr.signOut,
                 ),
               ),
             ),

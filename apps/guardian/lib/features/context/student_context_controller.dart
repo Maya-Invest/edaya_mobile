@@ -5,6 +5,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../auth/session_storage.dart';
 import '../my_students/linked_student.dart';
 import 'academic_year_controller.dart';
@@ -136,13 +137,13 @@ class StudentContextController extends LevitController
           yearId: yearId,
         );
       } on api.ApiError catch (error) {
-        errorMessage('Could not load student context: $error');
+        errorMessage(systemL10n().couldNotLoadStudentContext(error.toString()));
         activeStudent(null);
         classGroupId(null);
         classLabel(null);
         isEnrolled(false);
       } on Object catch (error) {
-        errorMessage('Could not load student context: $error');
+        errorMessage(systemL10n().couldNotLoadStudentContext(error.toString()));
         activeStudent(null);
         classGroupId(null);
         classLabel(null);
@@ -190,12 +191,12 @@ class StudentContextController extends LevitController
       classLabel(level == null ? className : '$className · $level');
       isEnrolled(true);
     } on api.ApiError catch (error) {
-      errorMessage('Could not load enrollment: $error');
+      errorMessage(systemL10n().couldNotLoadEnrollment(error.toString()));
       classGroupId(null);
       classLabel(null);
       isEnrolled(false);
     } on Object catch (error) {
-      errorMessage('Could not load enrollment: $error');
+      errorMessage(systemL10n().couldNotLoadEnrollment(error.toString()));
       classGroupId(null);
       classLabel(null);
       isEnrolled(false);

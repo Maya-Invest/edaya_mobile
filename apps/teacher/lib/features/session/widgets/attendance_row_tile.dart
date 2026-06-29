@@ -31,10 +31,14 @@ class AttendanceRowTile extends StatelessWidget {
           photoUrl: row.photoUrl,
         ),
         title: Text(row.studentName),
-        subtitle: Text(row.status?.label ?? 'Not recorded'),
+        subtitle: Text(
+          row.status?.label(context.tr) ?? context.tr.notRecorded,
+        ),
         trailing: TextButton(
           onPressed: onStatusTap,
-          child: Text(row.status == null ? 'Record' : 'Edit'),
+          child: Text(
+            row.status == null ? context.tr.record : context.tr.edit,
+          ),
         ),
         textColor: statusColor,
       ),

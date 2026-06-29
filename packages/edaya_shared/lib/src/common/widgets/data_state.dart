@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/l10n_extension.dart';
+
 enum DataStatus { loading, empty, error, ready }
 
 class DataState extends StatelessWidget {
@@ -7,14 +9,14 @@ class DataState extends StatelessWidget {
     super.key,
     required this.status,
     this.errorMessage,
-    this.emptyMessage = 'Nothing to show yet.',
+    this.emptyMessage,
     this.onRetry,
     required this.child,
   });
 
   final DataStatus status;
   final String? errorMessage;
-  final String emptyMessage;
+  final String? emptyMessage;
   final VoidCallback? onRetry;
   final Widget child;
 
@@ -28,7 +30,7 @@ class DataState extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Text(
-              emptyMessage,
+              emptyMessage ?? context.tr.nothingToShowYet,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
@@ -42,13 +44,16 @@ class DataState extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  errorMessage ?? 'Something went wrong.',
+                  errorMessage ?? context.tr.somethingWentWrong,
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
                 if (onRetry != null) ...[
                   const SizedBox(height: 16),
-                  OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+                  OutlinedButton(
+                    onPressed: onRetry,
+                    child: Text(context.tr.retry),
+                  ),
                 ],
               ],
             ),

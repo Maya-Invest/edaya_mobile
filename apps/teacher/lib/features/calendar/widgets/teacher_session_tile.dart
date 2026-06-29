@@ -22,7 +22,7 @@ class TeacherSessionTile extends StatelessWidget {
         title: Text(session.title),
         subtitle: Text(
           '${session.classLabel} · ${session.subjectLabel}\n'
-          '${formatTimeOfDay(session.startsAt)} – ${formatTimeOfDay(session.endsAt)}',
+          '${context.tr.timeRange(context.formatTimeOfDay(session.startsAt), context.formatTimeOfDay(session.endsAt))}',
         ),
         isThreeLine: true,
         trailing: const Icon(Icons.chevron_right),

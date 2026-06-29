@@ -31,7 +31,7 @@ class AttendanceListPage extends LScopedView<AttendanceListController> {
             children: [
               const BackButton(),
               Text(
-                'All attendance',
+                context.tr.allAttendance,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ],
@@ -59,10 +59,10 @@ class AttendanceListPage extends LScopedView<AttendanceListController> {
 
               final records = controller.records.value;
               if (records.isEmpty) {
-                return const DataState(
+                return DataState(
                   status: DataStatus.empty,
-                  emptyMessage: 'No attendance records for this student.',
-                  child: SizedBox.shrink(),
+                  emptyMessage: context.tr.noAttendanceRecordsForStudent,
+                  child: const SizedBox.shrink(),
                 );
               }
 
@@ -84,7 +84,7 @@ class AttendanceListPage extends LScopedView<AttendanceListController> {
                         title: Text(sessionTitle),
                         subtitle: Text(
                           [
-                            formatLongDate(record.date),
+                            context.formatLongDate(record.date),
                             record.status,
                             if (record.reason != null) record.reason!,
                           ].join(' · '),

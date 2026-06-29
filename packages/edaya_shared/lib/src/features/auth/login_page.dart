@@ -2,6 +2,8 @@ import 'package:edaya_auth/edaya_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
+import '../../l10n/l10n_extension.dart';
+
 import '../../config/dev_api_url_settings.dart';
 import 'app_session_controller.dart';
 import 'login_controller.dart';
@@ -52,7 +54,7 @@ class LoginPage extends LScopedView<LoginController> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Sign in',
+                      context.tr.signInTitle,
                       style: Theme.of(context).textTheme.headlineSmall,
                       textAlign: TextAlign.center,
                     ),
@@ -67,9 +69,9 @@ class LoginPage extends LScopedView<LoginController> {
                       initialValue: controller.email.value,
                       keyboardType: TextInputType.emailAddress,
                       autofillHints: const [AutofillHints.email],
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: context.tr.emailLabel,
+                        border: const OutlineInputBorder(),
                       ),
                       onChanged: (value) => controller.email(value),
                     ),
@@ -78,9 +80,9 @@ class LoginPage extends LScopedView<LoginController> {
                       initialValue: controller.password.value,
                       obscureText: true,
                       autofillHints: const [AutofillHints.password],
-                      decoration: const InputDecoration(
-                        labelText: 'Password',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: context.tr.passwordLabel,
+                        border: const OutlineInputBorder(),
                       ),
                       onChanged: (value) => controller.password(value),
                     ),
@@ -113,7 +115,7 @@ class LoginPage extends LScopedView<LoginController> {
                                 height: 20,
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
-                            : const Text('Sign in'),
+                            : Text(context.tr.signInButton),
                       ),
                     ),
                     const SizedBox(height: 24),

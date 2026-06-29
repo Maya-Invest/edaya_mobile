@@ -30,7 +30,7 @@ class MyStudentsSheet extends LScopedView<GuardianStudentsController> {
             Row(
               children: [
                 Text(
-                  'My students',
+                  context.tr.myStudents,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const Spacer(),
@@ -63,7 +63,7 @@ class MyStudentsSheet extends LScopedView<GuardianStudentsController> {
 
                   final students = controller.students.value;
                   if (students.isEmpty) {
-                    return const Text('No linked students found.');
+                    return Text(context.tr.noLinkedStudentsFound);
                   }
 
                   final activeStudentId =
@@ -124,8 +124,9 @@ class _StudentRow extends StatelessWidget {
         title: Text(student.fullName),
         subtitle: Text(
           [
-            if (student.matricule != null) 'Matricule: ${student.matricule}',
-            'Status: ${student.status}',
+            if (student.matricule != null)
+              context.tr.matriculeLabel(student.matricule!),
+            context.tr.statusLabel(student.status),
           ].join(' · '),
         ),
         trailing: isSelected ? const Icon(Icons.check_circle) : null,

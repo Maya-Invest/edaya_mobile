@@ -6,6 +6,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../../access/app_runtime.dart';
 import '../../common/utils/entity_filters.dart';
 import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
 import 'models/payment_record.dart';
@@ -62,13 +63,14 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
   }
 
   String get emptyMessage {
+    final l10n = systemL10n();
     if (_studentContext.activeStudent.value == null) {
-      return 'Select a student to view fees and payments.';
+      return l10n.selectStudentToViewFees;
     }
     if (feeLines.value.isEmpty && payments.value.isEmpty) {
-      return 'No fee lines or payments for the selected school year.';
+      return l10n.noFeesOrPaymentsForYear;
     }
-    return 'Nothing to show yet.';
+    return l10n.nothingToShowYet;
   }
 
   Future<void> loadFeesData() async {
@@ -128,7 +130,7 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
               final feeId = row['feeId'] as String;
               return StudentFeeLine.fromJson(
                 row,
-                label: feeNameById[feeId] ?? 'School fee',
+                label: feeNameById[feeId] ?? systemL10n().schoolFee,
                 paymentCount: paymentsByFeeId[id]?.length ?? 0,
               );
             })
@@ -155,7 +157,7 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
               (row) => PaymentRecord.fromJson(
                 row,
                 feeLabel: feeLabelById[row['studentFeeId'] as String] ??
-                    'School fee',
+                    systemL10n().schoolFee,
               ),
             )
             .toList()
@@ -190,12 +192,12 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
           ),
         );
       } on api.ApiError catch (error) {
-        errorMessage('Could not load fees: $error');
+        errorMessage(systemL10n().couldNotLoadFees(error.toString()));
         feeLines(const []);
         payments(const []);
         summary(null);
       } on Object catch (error) {
-        errorMessage('Could not load fees: $error');
+        errorMessage(systemL10n().couldNotLoadFees(error.toString()));
         feeLines(const []);
         payments(const []);
         summary(null);
@@ -213,7 +215,7 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
         final fee = await client.fees.get(feeId);
         names[feeId] = fee['name'] as String? ?? feeId;
       } on Object {
-        names[feeId] = 'School fee';
+        names[feeId] = systemL10n().schoolFee;
       }
     }
     return names;

@@ -54,9 +54,8 @@ class AppRouter extends LevitController implements EdayaAppRouter {
         GoRoute(
           path: '/login',
           builder: (context, state) => LoginPage(
-            appTitle: 'Edaya Guardian',
-            subtitle:
-                'Use dev guardian credentials to test against the local API.',
+            appTitle: context.tr.appTitleGuardian,
+            subtitle: context.tr.loginSubtitleGuardianDev,
             defaultEmail: ApiConfig.devGuardianEmail,
             defaultPassword: ApiConfig.devPassword,
             onSignInSuccess: () async {
@@ -65,6 +64,11 @@ class AppRouter extends LevitController implements EdayaAppRouter {
               find.router.go('/calendar');
             },
           ),
+        ),
+        GoRoute(
+          parentNavigatorKey: rootNavigatorKey,
+          path: '/settings',
+          builder: (context, state) => const SettingsPage(),
         ),
         GoRoute(
           parentNavigatorKey: rootNavigatorKey,
@@ -117,9 +121,9 @@ class AppRouter extends LevitController implements EdayaAppRouter {
                   pageBuilder: (context, state) {
                     final extra = state.extra;
                     if (extra is! CalendarSession) {
-                      return const MaterialPage<void>(
+                      return MaterialPage<void>(
                         child: RouteErrorPage(
-                          message: 'Missing session details route data.',
+                          message: context.tr.missingSessionDetailsRouteData,
                         ),
                       );
                     }
@@ -143,9 +147,9 @@ class AppRouter extends LevitController implements EdayaAppRouter {
                   pageBuilder: (context, state) {
                     final extra = state.extra;
                     if (extra is! GradeEntry) {
-                      return const MaterialPage<void>(
+                      return MaterialPage<void>(
                         child: RouteErrorPage(
-                          message: 'Missing grade details route data.',
+                          message: context.tr.missingGradeDetailsRouteData,
                         ),
                       );
                     }
@@ -163,9 +167,9 @@ class AppRouter extends LevitController implements EdayaAppRouter {
                   pageBuilder: (context, state) {
                     final extra = state.extra;
                     if (extra is! ReportCardSummary) {
-                      return const MaterialPage<void>(
+                      return MaterialPage<void>(
                         child: RouteErrorPage(
-                          message: 'Missing report card route data.',
+                          message: context.tr.missingReportCardRouteData,
                         ),
                       );
                     }
@@ -189,9 +193,9 @@ class AppRouter extends LevitController implements EdayaAppRouter {
                   pageBuilder: (context, state) {
                     final extra = state.extra;
                     if (extra is! PaymentRecord) {
-                      return const MaterialPage<void>(
+                      return MaterialPage<void>(
                         child: RouteErrorPage(
-                          message: 'Missing payment details route data.',
+                          message: context.tr.missingPaymentDetailsRouteData,
                         ),
                       );
                     }
@@ -215,9 +219,9 @@ class AppRouter extends LevitController implements EdayaAppRouter {
                   pageBuilder: (context, state) {
                     final extra = state.extra;
                     if (extra is! InboxDelivery) {
-                      return const MaterialPage<void>(
+                      return MaterialPage<void>(
                         child: RouteErrorPage(
-                          message: 'Missing message details route data.',
+                          message: context.tr.missingMessageDetailsRouteData,
                         ),
                       );
                     }

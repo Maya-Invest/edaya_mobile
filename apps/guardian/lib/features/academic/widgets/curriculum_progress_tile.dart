@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 
 import '../models/curriculum_subject.dart';
@@ -9,6 +10,7 @@ class CurriculumProgressTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.tr;
     return Card(
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
@@ -23,13 +25,13 @@ class CurriculumProgressTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(999),
             ),
             const SizedBox(height: 4),
-            Text('${subject.completedPercentage}% complete'),
+            Text(l10n.percentComplete(subject.completedPercentage)),
           ],
         ),
         children: subject.units.isEmpty
-            ? const [
+            ? [
                 ListTile(
-                  title: Text('No programme units tracked yet.'),
+                  title: Text(l10n.noProgrammeUnitsTracked),
                 ),
               ]
             : [

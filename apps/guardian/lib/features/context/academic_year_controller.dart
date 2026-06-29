@@ -5,6 +5,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../auth/session_storage.dart';
 
 class AcademicYearController extends LevitController
@@ -58,7 +59,7 @@ class AcademicYearController extends LevitController
             ? await _loadYearsFromEnrollments()
             : _sortYears(rows);
         if (resolved.isEmpty) {
-          errorMessage('No academic years available.');
+          errorMessage(systemL10n().noAcademicYearsAvailable);
           years(const []);
           return;
         }
@@ -69,7 +70,7 @@ class AcademicYearController extends LevitController
           await _applyYearSelection(fallback);
           return;
         }
-        errorMessage('Could not load academic years: $error');
+        errorMessage(systemL10n().couldNotLoadAcademicYears(error.toString()));
         years(const []);
       } on Object catch (error) {
         final fallback = await _loadYearsFromEnrollments();
@@ -77,7 +78,7 @@ class AcademicYearController extends LevitController
           await _applyYearSelection(fallback);
           return;
         }
-        errorMessage('Could not load academic years: $error');
+        errorMessage(systemL10n().couldNotLoadAcademicYears(error.toString()));
         years(const []);
       }
     });

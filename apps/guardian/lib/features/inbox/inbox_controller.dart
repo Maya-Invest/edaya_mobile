@@ -6,6 +6,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../../access/app_runtime.dart';
 import '../../common/utils/entity_filters.dart';
 import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import 'models/inbox_delivery.dart';
 
 class InboxController extends LevitController with LevitReactiveTasksMixin {
@@ -37,7 +38,7 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
     return DataStatus.ready;
   }
 
-  String get emptyMessage => 'No messages in your inbox yet.';
+  String get emptyMessage => systemL10n().noMessagesInInbox;
 
   int get unreadCount =>
       deliveries.value.where((delivery) => delivery.isUnread).length;
@@ -72,10 +73,10 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
           });
         deliveries(parsed);
       } on api.ApiError catch (error) {
-        errorMessage('Could not load inbox: $error');
+        errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
         deliveries(const []);
       } on Object catch (error) {
-        errorMessage('Could not load inbox: $error');
+        errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
         deliveries(const []);
       }
     });

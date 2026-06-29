@@ -40,21 +40,21 @@ class AcademicPage extends LScopedView<AcademicController> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: SegmentedButton<AcademicView>(
-                  segments: const [
+                  segments: [
                     ButtonSegment(
                       value: AcademicView.grades,
-                      label: Text('Grades'),
-                      icon: Icon(Icons.grade_outlined),
+                      label: Text(context.tr.academicViewGrades),
+                      icon: const Icon(Icons.grade_outlined),
                     ),
                     ButtonSegment(
                       value: AcademicView.curriculum,
-                      label: Text('Curriculum'),
-                      icon: Icon(Icons.menu_book_outlined),
+                      label: Text(context.tr.academicViewCurriculum),
+                      icon: const Icon(Icons.menu_book_outlined),
                     ),
                     ButtonSegment(
                       value: AcademicView.reportCards,
-                      label: Text('Reports'),
-                      icon: Icon(Icons.description_outlined),
+                      label: Text(context.tr.academicViewReports),
+                      icon: const Icon(Icons.description_outlined),
                     ),
                   ],
                   selected: {controller.view.value},
@@ -128,7 +128,7 @@ class _GradesBody extends StatelessWidget {
             child: Row(
               children: [
                 FilterChip(
-                  label: const Text('All periods'),
+                  label: Text(context.tr.allPeriods),
                   selected: controller.selectedPeriodId.value == null,
                   onSelected: (_) => controller.selectPeriod(null),
                 ),

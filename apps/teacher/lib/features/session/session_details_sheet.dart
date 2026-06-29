@@ -43,11 +43,20 @@ class SessionDetailsSheet extends LScopedView<SessionDetailController> {
                             '${session.classLabel} · ${session.subjectLabel}',
                           ),
                           Text(
-                            '${formatLongDate(session.startsAt)} · ${formatTimeOfDay(session.startsAt)} – ${formatTimeOfDay(session.endsAt)}',
+                            context.tr.sessionDateTime(
+                              context.formatLongDate(session.startsAt),
+                              context.tr.timeRange(
+                                context.formatTimeOfDay(session.startsAt),
+                                context.formatTimeOfDay(session.endsAt),
+                              ),
+                            ),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                           Text(
-                            'Attendance ${controller.recordedAttendanceCount} / ${controller.students.value.length}',
+                            context.tr.attendanceProgress(
+                              controller.recordedAttendanceCount,
+                              controller.students.value.length,
+                            ),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -61,15 +70,15 @@ class SessionDetailsSheet extends LScopedView<SessionDetailController> {
                 ),
                 const SizedBox(height: 12),
                 SegmentedButton<SessionDetailSegment>(
-                  segments: const [
+                  segments: [
                     ButtonSegment(
                       value: SessionDetailSegment.attendance,
-                      label: Text('Attendance'),
+                      label: Text(context.tr.attendance),
                       icon: Icon(Icons.fact_check_outlined),
                     ),
                     ButtonSegment(
                       value: SessionDetailSegment.logbook,
-                      label: Text('Logbook'),
+                      label: Text(context.tr.logbook),
                       icon: Icon(Icons.menu_book_outlined),
                     ),
                   ],
@@ -132,7 +141,7 @@ class _SegmentBody extends StatelessWidget {
                   extra: session,
                 ),
                 icon: const Icon(Icons.swipe),
-                label: const Text('Take attendance'),
+                label: Text(context.tr.takeAttendance),
               ),
             ),
             const SizedBox(height: 8),
@@ -171,7 +180,7 @@ class _SegmentBody extends StatelessWidget {
           children: [
             for (final option in SessionAttendanceStatus.values)
               ListTile(
-                title: Text(option.label),
+                title: Text(option.label(context.tr)),
                 onTap: () => Navigator.of(context).pop(option),
               ),
           ],
@@ -230,13 +239,13 @@ class _LogbookFormState extends State<_LogbookForm> {
   Widget build(BuildContext context) {
     final matters = widget.controller.subjectMatters.value;
     if (widget.controller.session.classSubjectId == null) {
-      return const Center(
-        child: Text('Logbook is not available for this session.'),
+      return Center(
+        child: Text(context.tr.logbookNotAvailableForSession),
       );
     }
     if (matters.isEmpty) {
-      return const Center(
-        child: Text('No curriculum chapters linked to this subject.'),
+      return Center(
+        child: Text(context.tr.noCurriculumChaptersLinked),
       );
     }
 
@@ -244,8 +253,8 @@ class _LogbookFormState extends State<_LogbookForm> {
       children: [
         DropdownButtonFormField<String>(
           initialValue: _selectedMatterId,
-          decoration: const InputDecoration(
-            labelText: 'Chapter',
+          decoration: InputDecoration(
+            labelText: context.tr.chapterLabel,
             border: OutlineInputBorder(),
           ),
           items: [
@@ -260,8 +269,8 @@ class _LogbookFormState extends State<_LogbookForm> {
         const SizedBox(height: 12),
         TextField(
           controller: _contentController,
-          decoration: const InputDecoration(
-            labelText: 'Content',
+          decoration: InputDecoration(
+            labelText: context.tr.contentLabel,
             border: OutlineInputBorder(),
           ),
           maxLines: 4,
@@ -269,8 +278,8 @@ class _LogbookFormState extends State<_LogbookForm> {
         const SizedBox(height: 12),
         TextField(
           controller: _objectivesController,
-          decoration: const InputDecoration(
-            labelText: 'Objectives (one per line)',
+          decoration: InputDecoration(
+            labelText: context.tr.objectivesLabel,
             border: OutlineInputBorder(),
           ),
           maxLines: 3,
@@ -278,16 +287,16 @@ class _LogbookFormState extends State<_LogbookForm> {
         const SizedBox(height: 12),
         TextField(
           controller: _homeworkController,
-          decoration: const InputDecoration(
-            labelText: 'Homework',
+          decoration: InputDecoration(
+            labelText: context.tr.homeworkLabel,
             border: OutlineInputBorder(),
           ),
         ),
         const SizedBox(height: 12),
         TextField(
           controller: _progressController,
-          decoration: const InputDecoration(
-            labelText: 'Progress %',
+          decoration: InputDecoration(
+            labelText: context.tr.progressPercentLabel,
             border: OutlineInputBorder(),
           ),
           keyboardType: TextInputType.number,
@@ -301,7 +310,7 @@ class _LogbookFormState extends State<_LogbookForm> {
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Save logbook'),
+              : Text(context.tr.saveLogbook),
         ),
       ],
     );
@@ -334,7 +343,7 @@ class _LogbookFormState extends State<_LogbookForm> {
       setState(() => _saving = false);
       if (ok) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Logbook saved')),
+          SnackBar(content: Text(context.tr.logbookSaved)),
         );
       }
     }

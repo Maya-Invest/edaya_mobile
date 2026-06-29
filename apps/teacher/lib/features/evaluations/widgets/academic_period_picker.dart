@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 
 import '../../../common/utils/academic_period.dart';
@@ -40,8 +41,8 @@ class AcademicPeriodPicker extends StatelessWidget {
 
     return DropdownButtonFormField<String>(
       initialValue: selectedPeriodId,
-      decoration: const InputDecoration(
-        labelText: 'Period',
+      decoration: InputDecoration(
+        labelText: context.tr.periodLabel,
         border: OutlineInputBorder(),
         isDense: true,
       ),

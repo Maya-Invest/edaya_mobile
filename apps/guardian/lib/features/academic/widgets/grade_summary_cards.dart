@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 
 import '../models/grade_entry.dart';
@@ -16,28 +17,29 @@ class GradeSummaryCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.tr;
     return Row(
       children: [
         Expanded(
           child: _SummaryCard(
-            label: 'Average',
+            label: l10n.average,
             value: overallAverage == null
-                ? '—'
+                ? l10n.noScoreDash
                 : overallAverage!.toStringAsFixed(1),
-            suffix: '/ 20',
+            suffix: l10n.scoreOutOfTwenty,
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: _SummaryCard(
-            label: 'Graded',
+            label: l10n.graded,
             value: '$gradedCount',
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: _SummaryCard(
-            label: 'Pending',
+            label: l10n.pending,
             value: '${totalCount - gradedCount}',
           ),
         ),
@@ -103,14 +105,15 @@ class SubjectGradeGroupTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.tr;
     return Card(
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
         title: Text(group.subjectName),
         subtitle: Text(
           group.average == null
-              ? '${group.entries.length} assessments'
-              : 'Average ${group.average!.toStringAsFixed(1)} / 20',
+              ? l10n.assessmentCount(group.entries.length)
+              : l10n.subjectAverage(group.average!.toStringAsFixed(1)),
         ),
         children: [
           for (final entry in group.entries)
@@ -126,7 +129,7 @@ class SubjectGradeGroupTile extends StatelessWidget {
               trailing: Text(
                 entry.hasScore
                     ? '${entry.score!.toStringAsFixed(1)} / ${entry.maxScore.toStringAsFixed(0)}'
-                    : '—',
+                    : l10n.noScoreDash,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               onTap: () => onGradeTap(entry),

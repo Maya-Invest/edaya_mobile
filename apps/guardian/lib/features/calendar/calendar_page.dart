@@ -38,16 +38,16 @@ class CalendarPage extends LScopedView<CalendarController> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: SegmentedButton<CalendarView>(
-                  segments: const [
+                  segments: [
                     ButtonSegment(
                       value: CalendarView.timetable,
-                      label: Text('Timetable'),
-                      icon: Icon(Icons.schedule),
+                      label: Text(context.tr.calendarViewTimetable),
+                      icon: const Icon(Icons.schedule),
                     ),
                     ButtonSegment(
                       value: CalendarView.events,
-                      label: Text('Events'),
-                      icon: Icon(Icons.event),
+                      label: Text(context.tr.calendarViewEvents),
+                      icon: const Icon(Icons.event),
                     ),
                   ],
                   selected: {controller.view.value},
@@ -72,7 +72,7 @@ class CalendarPage extends LScopedView<CalendarController> {
                   child: TextButton.icon(
                     onPressed: () => context.push('/calendar/attendance'),
                     icon: const Icon(Icons.list_alt_outlined),
-                    label: const Text('All attendance'),
+                    label: Text(context.tr.allAttendance),
                   ),
                 ),
               Expanded(

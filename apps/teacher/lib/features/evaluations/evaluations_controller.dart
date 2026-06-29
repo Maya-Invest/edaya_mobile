@@ -7,6 +7,7 @@ import '../../access/app_runtime.dart';
 import '../../common/utils/academic_period.dart';
 import '../../common/utils/entity_filters.dart';
 import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../context/academic_year_controller.dart';
 import '../context/staff_context_controller.dart';
 import 'models/evaluation_models.dart';
@@ -110,9 +111,9 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
 
   String get emptyMessage {
     if (selectedPeriodId.value == null) {
-      return 'Select a period to view evaluations.';
+      return systemL10n().selectPeriodToViewEvaluations;
     }
-    return 'No evaluations for this period.';
+    return systemL10n().noEvaluationsForPeriod;
   }
 
   Future<void> loadEvaluations() async {
@@ -154,7 +155,7 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
             if (classSubjectId == null) {
               continue;
             }
-            var subjectLabel = 'Subject';
+            var subjectLabel = systemL10n().subjectFallback;
             try {
               final classSubject = await client.classSubjects.get(
                 classSubjectId,
@@ -165,7 +166,7 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
                 subjectLabel = subject['name'] as String? ?? subjectLabel;
               }
             } on Object {
-              subjectLabel = 'Subject';
+              subjectLabel = systemL10n().subjectFallback;
             }
 
             summaries.add(
@@ -189,10 +190,10 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
         summaries.sort((a, b) => b.date.compareTo(a.date));
         evaluations(summaries);
       } on api.ApiError catch (error) {
-        errorMessage('Could not load evaluations: $error');
+        errorMessage(systemL10n().couldNotLoadEvaluations('$error'));
         evaluations(const []);
       } on Object catch (error) {
-        errorMessage('Could not load evaluations: $error');
+        errorMessage(systemL10n().couldNotLoadEvaluations('$error'));
         evaluations(const []);
       }
     });
@@ -264,7 +265,7 @@ class MarksEntryController extends LevitController with LevitReactiveTasksMixin 
           ..sort((a, b) => a.studentName.compareTo(b.studentName));
         students(roster);
       } on Object catch (error) {
-        errorMessage('Could not load marks: $error');
+        errorMessage(systemL10n().couldNotLoadMarks('$error'));
       }
     });
   }
@@ -292,7 +293,7 @@ class MarksEntryController extends LevitController with LevitReactiveTasksMixin 
       );
       return true;
     } on Object catch (error) {
-      saveMessage('Could not save mark: $error');
+      saveMessage(systemL10n().couldNotSaveMark('$error'));
       return false;
     }
   }
@@ -367,7 +368,8 @@ class EvaluationCreateController extends LevitController
             : await client.subjects.list(entitiesByIds(subjectIds));
         final subjectNameById = {
           for (final subject in subjectRows)
-            subject['id'] as String: subject['name'] as String? ?? 'Subject',
+            subject['id'] as String:
+                subject['name'] as String? ?? systemL10n().subjectFallback,
         };
 
         final options = rows
@@ -375,8 +377,8 @@ class EvaluationCreateController extends LevitController
               final classGroupId = row['classGroupId'] as String;
               final subjectId = row['subjectId'] as String?;
               final subjectName = subjectId == null
-                  ? 'Subject'
-                  : subjectNameById[subjectId] ?? 'Subject';
+                  ? systemL10n().subjectFallback
+                  : subjectNameById[subjectId] ?? systemL10n().subjectFallback;
               final classLabel = classLabelById[classGroupId] ?? classGroupId;
               return ClassSubjectOption(
                 id: row['id'] as String,
@@ -388,7 +390,7 @@ class EvaluationCreateController extends LevitController
           ..sort((a, b) => a.label.compareTo(b.label));
         classSubjects(options);
       } on Object catch (error) {
-        errorMessage('Could not load subjects: $error');
+        errorMessage(systemL10n().couldNotLoadSubjects('$error'));
         classSubjects(const []);
       }
     });
@@ -408,7 +410,7 @@ class EvaluationCreateController extends LevitController
       );
       periods(rows);
     } on Object catch (error) {
-      errorMessage('Could not load periods: $error');
+      errorMessage(systemL10n().couldNotLoadPeriods('$error'));
       periods(const []);
     }
   }
@@ -427,13 +429,13 @@ class EvaluationCreateController extends LevitController
   }) async {
     final trimmedTitle = title.trim();
     if (trimmedTitle.isEmpty) {
-      return 'Title is required.';
+      return systemL10n().titleRequired;
     }
     if (maxScore <= 0) {
-      return 'Max score must be greater than zero.';
+      return systemL10n().maxScoreMustBePositive;
     }
     if (periodId.isEmpty) {
-      return 'Period is required.';
+      return systemL10n().periodRequired;
     }
 
     errorMessage('');
@@ -457,9 +459,9 @@ class EvaluationCreateController extends LevitController
       _evaluations.selectPeriod(periodId);
       return null;
     } on api.ApiError catch (error) {
-      return 'Could not create evaluation: $error';
+      return systemL10n().couldNotCreateEvaluation('$error');
     } on Object catch (error) {
-      return 'Could not create evaluation: $error';
+      return systemL10n().couldNotCreateEvaluation('$error');
     }
   }
 }

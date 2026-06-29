@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../l10n/l10n_lookup.dart';
+
 /// Resolves the API base URL for mobile apps.
 ///
 /// In debug builds, a [SharedPreferences] override takes precedence over the
@@ -76,7 +78,7 @@ abstract final class ApiBaseUrlConfig {
   static String _normalizeUrl(String rawUrl) {
     var url = rawUrl.trim();
     if (url.isEmpty) {
-      throw const FormatException('API URL cannot be empty');
+      throw FormatException(systemL10n().apiUrlCannotBeEmpty);
     }
 
     if (!url.contains('://')) {
@@ -85,7 +87,7 @@ abstract final class ApiBaseUrlConfig {
 
     final uri = Uri.parse(url);
     if (!uri.hasScheme || uri.host.isEmpty) {
-      throw const FormatException('Enter a valid API URL');
+      throw FormatException(systemL10n().enterValidApiUrl);
     }
 
     return uri.replace(path: uri.path.replaceAll(RegExp(r'/+$'), '')).toString();

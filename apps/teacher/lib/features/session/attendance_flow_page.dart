@@ -23,7 +23,7 @@ class AttendanceFlowPage extends LScopedView<SessionDetailController> {
   Widget buildView(BuildContext context, SessionDetailController controller) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Attendance · ${session.classLabel}'),
+        title: Text(context.tr.attendanceFlowTitle(session.classLabel)),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => context.pop(),
@@ -122,7 +122,7 @@ class _AttendanceFlowBodyState extends State<_AttendanceFlowBody> {
 
     final students = widget.controller.students.value;
     if (students.isEmpty) {
-      return const Center(child: Text('No students to record.'));
+      return Center(child: Text(context.tr.noStudentsToRecord));
     }
 
     if (_showSummary) {
@@ -150,7 +150,9 @@ class _AttendanceFlowBodyState extends State<_AttendanceFlowBody> {
         children: [
           LinearProgressIndicator(value: progress),
           const SizedBox(height: 8),
-          Text('$recorded / ${students.length} recorded'),
+          Text(
+            context.tr.attendanceRecordedProgress(recorded, students.length),
+          ),
           const Spacer(),
           PersonAvatar(
             name: current.studentName,
@@ -193,7 +195,7 @@ class _AttendanceFlowBodyState extends State<_AttendanceFlowBody> {
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: FilledButton(
                       onPressed: () => _mark(current, status),
-                      child: Text(status.label),
+                      child: Text(status.label(context.tr)),
                     ),
                   ),
                 ),
@@ -252,7 +254,7 @@ class _AttendanceSummary extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Attendance complete',
+            context.tr.attendanceComplete,
             style: Theme.of(context).textTheme.headlineSmall,
             textAlign: TextAlign.center,
           ),
@@ -270,7 +272,7 @@ class _AttendanceSummary extends StatelessWidget {
                             '${counts[status] ?? 0}',
                             style: Theme.of(context).textTheme.headlineMedium,
                           ),
-                          Text(status.label),
+                          Text(status.label(context.tr)),
                         ],
                       ),
                     ),
@@ -295,16 +297,16 @@ class _AttendanceSummary extends StatelessWidget {
                   title: Text(row.studentName),
                   trailing: status == null
                       ? null
-                      : Chip(label: Text(status.label)),
+                      : Chip(label: Text(status.label(context.tr))),
                 );
               },
             ),
           ),
-          FilledButton(onPressed: onDone, child: const Text('Done')),
+          FilledButton(onPressed: onDone, child: Text(context.tr.done)),
           const SizedBox(height: 8),
           OutlinedButton(
             onPressed: onReviewAgain,
-            child: const Text('Review again'),
+            child: Text(context.tr.reviewAgain),
           ),
         ],
       ),

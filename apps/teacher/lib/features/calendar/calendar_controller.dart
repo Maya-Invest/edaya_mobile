@@ -5,6 +5,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../context/academic_year_controller.dart';
 import '../context/staff_context_controller.dart';
 import 'models/teacher_session.dart';
@@ -71,12 +72,12 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
 
   String get emptyMessage {
     if (_staffContext.staffId.value == null) {
-      return 'Sign in to view your teaching calendar.';
+      return systemL10n().signInToViewCalendar;
     }
     if (_staffContext.assignedClasses.value.isEmpty) {
-      return 'No classes assigned for this school year.';
+      return systemL10n().noClassesAssignedForYear;
     }
-    return 'No classes scheduled for this day.';
+    return systemL10n().noClassesScheduledForDay;
   }
 
   List<TeacherSession> get sessionsForSelectedDay {
@@ -152,14 +153,15 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
             : await client.subjects.list(entitiesByIds(subjectIds));
         final subjectNameById = {
           for (final subject in subjectRows)
-            subject['id'] as String: subject['name'] as String? ?? 'Subject',
+            subject['id'] as String:
+                subject['name'] as String? ?? systemL10n().subjectFallback,
         };
         for (final row in classSubjectRows) {
           final id = row['id'] as String;
           final subjectId = row['subjectId'] as String?;
           subjectLabelByClassSubjectId[id] = subjectId == null
-              ? 'Subject'
-              : subjectNameById[subjectId] ?? 'Subject';
+              ? systemL10n().subjectFallback
+              : subjectNameById[subjectId] ?? systemL10n().subjectFallback;
         }
 
         final parsedSessions = <TeacherSession>[];
@@ -184,9 +186,9 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
                 classGroupId: classGroupId,
                 classLabel: classLabelById[classGroupId] ?? classGroupId,
                 subjectLabel: classSubjectId == null
-                    ? 'Class session'
+                    ? systemL10n().classSessionFallback
                     : subjectLabelByClassSubjectId[classSubjectId] ??
-                          'Subject',
+                          systemL10n().subjectFallback,
               ),
             );
           }
@@ -195,10 +197,10 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
         parsedSessions.sort((a, b) => a.startsAt.compareTo(b.startsAt));
         sessions(parsedSessions);
       } on api.ApiError catch (error) {
-        errorMessage('Could not load calendar: $error');
+        errorMessage(systemL10n().couldNotLoadCalendar('$error'));
         sessions(const []);
       } on Object catch (error) {
-        errorMessage('Could not load calendar: $error');
+        errorMessage(systemL10n().couldNotLoadCalendar('$error'));
         sessions(const []);
       }
     });

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -36,7 +37,7 @@ class _AcademicYearPickerSheetState extends State<AcademicYearPickerSheet> {
                 Row(
                   children: [
                     Text(
-                      'School year',
+                      context.tr.schoolYear,
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const Spacer(),
@@ -77,7 +78,7 @@ class _AcademicYearPickerSheetState extends State<AcademicYearPickerSheet> {
                             const SizedBox(height: 16),
                             OutlinedButton(
                               onPressed: academicYear.loadYears,
-                              child: const Text('Retry'),
+                              child: Text(context.tr.retry),
                             ),
                           ],
                         );
@@ -87,7 +88,7 @@ class _AcademicYearPickerSheetState extends State<AcademicYearPickerSheet> {
                       final selectedId = academicYear.selectedYearId.value;
 
                       if (years.isEmpty) {
-                        return const Text('No academic years available.');
+                        return Text(context.tr.noAcademicYearsAvailable);
                       }
 
                       return ListView.separated(
@@ -106,7 +107,7 @@ class _AcademicYearPickerSheetState extends State<AcademicYearPickerSheet> {
                           return ListTile(
                             title: Text(yearName),
                             subtitle: isActive
-                                ? const Text('Active year')
+                                ? Text(context.tr.activeYear)
                                 : null,
                             trailing: isSelected
                                 ? const Icon(Icons.check)

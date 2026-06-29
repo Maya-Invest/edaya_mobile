@@ -49,11 +49,14 @@ class SessionDetailsDialog extends LScopedView<SessionDetailsController> {
               ],
             ),
             Text(
-              formatLongDate(session.startsAt),
+              context.formatLongDate(session.startsAt),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             Text(
-              '${formatTimeOfDay(session.startsAt)} – ${formatTimeOfDay(session.endsAt)}',
+              context.tr.timeRange(
+                context.formatTimeOfDay(session.startsAt),
+                context.formatTimeOfDay(session.endsAt),
+              ),
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 20),
@@ -82,12 +85,12 @@ class SessionDetailsDialog extends LScopedView<SessionDetailsController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Attendance',
+                      context.tr.attendance,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
                     if (attendance == null)
-                      const Text('No attendance recorded.')
+                      Text(context.tr.noAttendanceRecorded)
                     else
                       Text(
                         [
@@ -99,22 +102,22 @@ class SessionDetailsDialog extends LScopedView<SessionDetailsController> {
                       ),
                     const SizedBox(height: 20),
                     Text(
-                      'Class logbook',
+                      context.tr.classLogbook,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
                     if (logbook == null)
-                      const Text('No logbook entry for this session.')
+                      Text(context.tr.noLogbookEntryForSession)
                     else ...[
                       Text(logbook.chapter, style: const TextStyle(fontWeight: FontWeight.w600)),
                       const SizedBox(height: 8),
                       Text(logbook.content),
                       if (logbook.homework != null) ...[
                         const SizedBox(height: 8),
-                        Text('Homework: ${logbook.homework}'),
+                        Text(context.tr.homeworkValue(logbook.homework!)),
                       ],
                       const SizedBox(height: 8),
-                      Text('Progress: ${logbook.progress}%'),
+                      Text(context.tr.progressPercent(logbook.progress)),
                     ],
                   ],
                 );

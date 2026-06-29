@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -38,7 +39,7 @@ class _ClassFilterSheetState extends State<ClassFilterSheet> {
                     Row(
                       children: [
                         Text(
-                          'Filter',
+                          context.tr.filterTitle,
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const Spacer(),
@@ -50,14 +51,14 @@ class _ClassFilterSheetState extends State<ClassFilterSheet> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'School year',
+                      context.tr.schoolYear,
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
                     const SizedBox(height: 4),
                     _SchoolYearSection(academicYear: academicYear),
                     const SizedBox(height: 16),
                     Text(
-                      'Class',
+                      context.tr.classLabel,
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
                     const SizedBox(height: 4),
@@ -70,7 +71,7 @@ class _ClassFilterSheetState extends State<ClassFilterSheet> {
                           children: [
                             ListTile(
                               contentPadding: EdgeInsets.zero,
-                              title: const Text('All classes'),
+                              title: Text(context.tr.allClasses),
                               trailing: selected == null
                                   ? const Icon(Icons.check)
                                   : null,
@@ -140,7 +141,7 @@ class _SchoolYearSection extends StatelessWidget {
               const SizedBox(height: 8),
               OutlinedButton(
                 onPressed: academicYear.loadYears,
-                child: const Text('Retry'),
+                child: Text(context.tr.retry),
               ),
             ],
           );
@@ -150,7 +151,7 @@ class _SchoolYearSection extends StatelessWidget {
         final selectedId = academicYear.selectedYearId.value;
 
         if (years.isEmpty) {
-          return const Text('No academic years available.');
+          return Text(context.tr.noAcademicYearsAvailable);
         }
 
         return Column(
@@ -167,7 +168,7 @@ class _SchoolYearSection extends StatelessWidget {
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: Text(yearName),
-                    subtitle: isActive ? const Text('Active year') : null,
+                    subtitle: isActive ? Text(context.tr.activeYear) : null,
                     trailing: isSelected ? const Icon(Icons.check) : null,
                     onTap: () async {
                       await academicYear.selectYear(yearId);

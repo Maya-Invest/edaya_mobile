@@ -5,6 +5,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
 import 'models/attendance_record.dart';
@@ -84,16 +85,17 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
   }
 
   String get emptyMessage {
+    final l10n = systemL10n();
     if (_studentContext.activeStudent.value == null) {
-      return 'Select a student to view the calendar.';
+      return l10n.selectStudentToViewCalendar;
     }
     if (!_studentContext.isEnrolled.value) {
-      return 'This student is not enrolled for the selected school year.';
+      return l10n.studentNotEnrolledForYear;
     }
     if (view.value == CalendarView.timetable) {
-      return 'No classes scheduled for this day.';
+      return l10n.noClassesScheduledForDay;
     }
-    return 'No school events for this period.';
+    return l10n.noSchoolEventsForPeriod;
   }
 
   List<CalendarSession> get sessionsForSelectedDay {
@@ -161,11 +163,11 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
           eventRows.map(SchoolEvent.fromJson).toList(growable: false),
         );
       } on api.ApiError catch (error) {
-        errorMessage('Could not load calendar: $error');
+        errorMessage(systemL10n().couldNotLoadCalendar(error.toString()));
         sessions(const []);
         events(const []);
       } on Object catch (error) {
-        errorMessage('Could not load calendar: $error');
+        errorMessage(systemL10n().couldNotLoadCalendar(error.toString()));
         sessions(const []);
         events(const []);
       }
@@ -241,7 +243,7 @@ class SessionDetailsController extends LevitController
         }
         logbook(matched);
       } on Object catch (error) {
-        errorMessage('Could not load session details: $error');
+        errorMessage(systemL10n().couldNotLoadSessionDetails(error.toString()));
       }
     }, id: 'load-session-details');
   }
@@ -294,7 +296,7 @@ class AttendanceListController extends LevitController
         }
         sessionTitles(titles);
       } on Object catch (error) {
-        errorMessage('Could not load attendance: $error');
+        errorMessage(systemL10n().couldNotLoadAttendance(error.toString()));
         records(const []);
       }
     }, id: 'load-attendance-list');

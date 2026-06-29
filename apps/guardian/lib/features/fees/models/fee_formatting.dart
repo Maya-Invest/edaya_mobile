@@ -1,3 +1,5 @@
+import 'package:edaya_shared/src/l10n/app_localizations.dart';
+
 import 'student_fee_line.dart';
 
 String formatMoney(double amount, String currency) {
@@ -7,32 +9,32 @@ String formatMoney(double amount, String currency) {
   return '$formatted $currency';
 }
 
-String formatPaymentMethod(String method) {
+String formatPaymentMethod(AppLocalizations l10n, String method) {
   switch (method) {
     case 'cash':
-      return 'Cash';
+      return l10n.paymentMethodCash;
     case 'card':
-      return 'Card';
+      return l10n.paymentMethodCard;
     case 'bank_transfer':
-      return 'Bank transfer';
+      return l10n.paymentMethodBankTransfer;
     case 'mobile_money':
-      return 'Mobile money';
+      return l10n.paymentMethodMobileMoney;
     default:
-      return 'Other';
+      return l10n.paymentMethodOther;
   }
 }
 
-String formatFeeStatus(StudentFeeStatus status) {
+String formatFeeStatus(AppLocalizations l10n, StudentFeeStatus status) {
   switch (status) {
     case StudentFeeStatus.paid:
-      return 'Paid';
+      return l10n.feeStatusPaid;
     case StudentFeeStatus.partial:
-      return 'Partially paid';
+      return l10n.feeStatusPartiallyPaid;
     case StudentFeeStatus.overdue:
-      return 'Overdue';
+      return l10n.feeStatusOverdue;
     case StudentFeeStatus.cancelled:
-      return 'Cancelled';
+      return l10n.feeStatusCancelled;
     case StudentFeeStatus.pending:
-      return 'Due';
+      return l10n.feeStatusDue;
   }
 }

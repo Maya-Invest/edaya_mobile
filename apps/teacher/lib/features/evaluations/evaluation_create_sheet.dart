@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -84,7 +85,7 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
               children: [
                 Expanded(
                   child: Text(
-                    'New evaluation',
+                    context.tr.newEvaluation,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
@@ -97,9 +98,9 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
             if (widget.controller.isBusy.value && subjects.isEmpty)
               const Expanded(child: Center(child: CircularProgressIndicator()))
             else if (subjects.isEmpty)
-              const Expanded(
+              Expanded(
                 child: Center(
-                  child: Text('No subjects assigned for this school year.'),
+                  child: Text(context.tr.noSubjectsAssignedForYear),
                 ),
               )
             else ...[
@@ -115,8 +116,8 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
               ],
               DropdownButtonFormField<String>(
                 initialValue: _classSubjectId,
-                decoration: const InputDecoration(
-                  labelText: 'Class · Subject',
+                decoration: InputDecoration(
+                  labelText: context.tr.classSubjectLabel,
                   border: OutlineInputBorder(),
                 ),
                 items: [
@@ -131,16 +132,16 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
               const SizedBox(height: 12),
               TextField(
                 controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Title',
+                decoration: InputDecoration(
+                  labelText: context.tr.titleLabel,
                   border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _maxScoreController,
-                decoration: const InputDecoration(
-                  labelText: 'Out of',
+                decoration: InputDecoration(
+                  labelText: context.tr.outOfLabel,
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
@@ -150,15 +151,15 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 initialValue: _kind,
-                decoration: const InputDecoration(
-                  labelText: 'Kind',
+                decoration: InputDecoration(
+                  labelText: context.tr.kindLabel,
                   border: OutlineInputBorder(),
                 ),
                 items: [
                   for (final kind in _kinds)
                     DropdownMenuItem(
                       value: kind,
-                      child: Text(_kindLabel(kind)),
+                      child: Text(_kindLabel(kind, context.tr)),
                     ),
                 ],
                 onChanged: (value) {
@@ -187,7 +188,7 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Create evaluation'),
+                    : Text(context.tr.createEvaluation),
               ),
             ],
           ],
@@ -196,11 +197,11 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
     );
   }
 
-  String _kindLabel(String kind) => switch (kind) {
-    'quiz' => 'Quiz',
-    'homework' => 'Homework',
-    'project' => 'Project',
-    _ => 'Other',
+  String _kindLabel(String kind, AppLocalizations l10n) => switch (kind) {
+    'quiz' => l10n.evaluationKindQuiz,
+    'homework' => l10n.evaluationKindHomework,
+    'project' => l10n.evaluationKindProject,
+    _ => l10n.evaluationKindOther,
   };
 
   Future<void> _submit() async {
@@ -215,7 +216,7 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
 
     final maxScore = double.tryParse(_maxScoreController.text.trim());
     if (maxScore == null) {
-      setState(() => _error = 'Enter a valid max score.');
+      setState(() => _error = context.tr.enterValidMaxScore);
       return;
     }
 

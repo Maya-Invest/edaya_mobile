@@ -21,7 +21,10 @@ class SessionTile extends StatelessWidget {
         onTap: onTap,
         title: Text(session.title),
         subtitle: Text(
-          '${formatTimeOfDay(session.startsAt)} – ${formatTimeOfDay(session.endsAt)}',
+          context.tr.timeRange(
+            context.formatTimeOfDay(session.startsAt),
+            context.formatTimeOfDay(session.endsAt),
+          ),
         ),
         trailing: const Icon(Icons.chevron_right),
       ),

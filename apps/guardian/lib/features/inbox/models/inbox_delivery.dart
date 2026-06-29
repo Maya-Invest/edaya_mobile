@@ -1,4 +1,6 @@
 import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_shared/src/l10n/app_localizations.dart';
+import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 
 enum InboxDeliveryStatus {
   pending,
@@ -17,12 +19,12 @@ enum InboxDeliveryStatus {
     };
   }
 
-  String get label => switch (this) {
-    InboxDeliveryStatus.pending => 'Pending',
-    InboxDeliveryStatus.sent => 'New',
-    InboxDeliveryStatus.failed => 'Failed',
-    InboxDeliveryStatus.read => 'Read',
-    InboxDeliveryStatus.cancelled => 'Cancelled',
+  String label(AppLocalizations l10n) => switch (this) {
+    InboxDeliveryStatus.pending => l10n.inboxStatusPending,
+    InboxDeliveryStatus.sent => l10n.inboxStatusNew,
+    InboxDeliveryStatus.failed => l10n.inboxStatusFailed,
+    InboxDeliveryStatus.read => l10n.inboxStatusRead,
+    InboxDeliveryStatus.cancelled => l10n.inboxStatusCancelled,
   };
 }
 
@@ -47,7 +49,7 @@ class InboxDelivery {
       eventKey: json['eventKey'] as String?,
       subjectId: json['subjectId'] as String,
       status: InboxDeliveryStatus.fromApi(json['status'] as String?),
-      title: json['title'] as String? ?? 'Message',
+      title: json['title'] as String? ?? systemL10n().messageDefaultTitle,
       body: json['body'] as String? ?? '',
       sentAt: parseApiDateTime(json['sentAt']),
       readAt: parseApiDateTime(json['readAt']),

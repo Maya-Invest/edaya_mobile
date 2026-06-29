@@ -7,6 +7,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import 'models/inbox_delivery.dart';
 
 class MessageDetailsController extends LevitController
@@ -40,9 +41,9 @@ class MessageDetailsController extends LevitController
       });
       delivery(InboxDelivery.fromJson(result));
     } on api.ApiError catch (error) {
-      errorMessage('Could not mark message as read: $error');
+      errorMessage(systemL10n().couldNotMarkMessageRead(error.toString()));
     } on Object catch (error) {
-      errorMessage('Could not mark message as read: $error');
+      errorMessage(systemL10n().couldNotMarkMessageRead(error.toString()));
     } finally {
       isMarkingRead(false);
     }
@@ -69,6 +70,7 @@ class MessageDetailsDialog extends LScopedView<MessageDetailsController> {
     return LWatch(
       () {
         final delivery = controller.delivery.value;
+        final l10n = context.tr;
 
         return SafeArea(
           child: Padding(
@@ -81,7 +83,7 @@ class MessageDetailsDialog extends LScopedView<MessageDetailsController> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Message',
+                        l10n.messageTitle,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ),
@@ -98,9 +100,9 @@ class MessageDetailsDialog extends LScopedView<MessageDetailsController> {
                 const SizedBox(height: 8),
                 Text(
                   [
-                    delivery.status.label,
+                    delivery.status.label(l10n),
                     if (delivery.sortDate != null)
-                      formatLongDate(delivery.sortDate!),
+                      context.formatLongDate(delivery.sortDate!),
                   ].join(' · '),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),

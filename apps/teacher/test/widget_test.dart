@@ -10,7 +10,7 @@ void main() {
   });
 
   testWidgets('teacher app bootstrap gate shows loading', (tester) async {
-    await tester.pumpWidget(const TeacherAppRoot());
+    await tester.pumpWidget(TeacherAppRoot());
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 }

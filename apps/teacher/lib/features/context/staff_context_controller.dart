@@ -6,6 +6,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../../access/app_runtime.dart';
 import '../../common/utils/entity_query.dart';
 import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../auth/session_storage.dart';
 import 'academic_year_controller.dart';
 
@@ -121,11 +122,13 @@ class StaffContextController extends LevitController
           final lastName = staff['lastName'] as String? ?? '';
           final fullName = '$firstName $lastName'.trim();
           staffName(
-            fullName.isEmpty ? (_session.user.value?.name ?? 'Teacher') : fullName,
+            fullName.isEmpty
+                ? (_session.user.value?.name ?? systemL10n().teacherFallbackName)
+                : fullName,
           );
           staffPhotoUrl(staff['photoUrl'] as String?);
         } on Object {
-          staffName(_session.user.value?.name ?? 'Teacher');
+          staffName(_session.user.value?.name ?? systemL10n().teacherFallbackName);
           staffPhotoUrl(null);
         }
 
@@ -173,9 +176,9 @@ class StaffContextController extends LevitController
           await selectClassFilter(null);
         }
       } on api.ApiError catch (error) {
-        errorMessage('Could not load teaching context: $error');
+        errorMessage(systemL10n().couldNotLoadTeachingContext('$error'));
       } on Object catch (error) {
-        errorMessage('Could not load teaching context: $error');
+        errorMessage(systemL10n().couldNotLoadTeachingContext('$error'));
       } finally {
         isLoading(false);
       }

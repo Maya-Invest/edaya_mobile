@@ -40,7 +40,11 @@ class MarksEntrySheet extends LScopedView<MarksEntryController> {
                           Text(
                             '${evaluation.classLabel} · ${evaluation.subjectLabel}',
                           ),
-                          Text('Out of ${evaluation.maxScore}'),
+                          Text(
+                            context.tr.outOfMaxScore(
+                              evaluation.maxScore.toString(),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -141,7 +145,9 @@ class _MarkRowState extends State<_MarkRow> {
                   Text(widget.row.studentName),
                   if (widget.row.score != null)
                     Text(
-                      'Current: ${widget.row.score}',
+                      context.tr.currentScore(
+                        widget.row.score.toString(),
+                      ),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                 ],
@@ -156,7 +162,9 @@ class _MarkRowState extends State<_MarkRow> {
                 ),
                 decoration: InputDecoration(
                   isDense: true,
-                  hintText: '/ ${widget.maxScore}',
+                  hintText: context.tr.scoreHintOutOf(
+                    widget.maxScore.toString(),
+                  ),
                 ),
               ),
             ),
@@ -169,7 +177,7 @@ class _MarkRowState extends State<_MarkRow> {
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Save'),
+                  : Text(context.tr.save),
             ),
           ],
         ),

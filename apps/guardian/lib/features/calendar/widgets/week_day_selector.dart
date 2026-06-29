@@ -20,26 +20,34 @@ class WeekDaySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    final labels = [
+      context.tr.dayLetterMon,
+      context.tr.dayLetterTue,
+      context.tr.dayLetterWed,
+      context.tr.dayLetterThu,
+      context.tr.dayLetterFri,
+      context.tr.dayLetterSat,
+      context.tr.dayLetterSun,
+    ];
 
     return Column(
       children: [
         Row(
           children: [
             IconButton(
-              tooltip: 'Previous week',
+              tooltip: context.tr.tooltipPreviousWeek,
               onPressed: onPreviousWeek,
               icon: const Icon(Icons.chevron_left),
             ),
             Expanded(
               child: Text(
-                formatShortDate(selectedDay),
+                context.formatShortDate(selectedDay),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
             ),
             IconButton(
-              tooltip: 'Next week',
+              tooltip: context.tr.tooltipNextWeek,
               onPressed: onNextWeek,
               icon: const Icon(Icons.chevron_right),
             ),
@@ -83,9 +91,15 @@ class _DayChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final background = selected
+        ? colorScheme.primary
+        : colorScheme.surfaceContainerHighest;
+    final foreground = selected
+        ? colorScheme.onPrimary
+        : colorScheme.onSurfaceVariant;
 
     return Material(
-      color: selected ? colorScheme.primaryContainer : colorScheme.surfaceContainerHighest,
+      color: background,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
@@ -94,12 +108,18 @@ class _DayChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: Column(
             children: [
-              Text(label, style: Theme.of(context).textTheme.labelSmall),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: foreground,
+                ),
+              ),
               const SizedBox(height: 4),
               Text(
                 '$dayNumber',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
+                  color: foreground,
                 ),
               ),
             ],

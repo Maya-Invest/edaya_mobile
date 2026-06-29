@@ -60,7 +60,6 @@ class DefaultFirebaseOptions {
     projectId: 'edayaplus',
     storageBucket: 'edayaplus.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDi_st8k6OZtl5VzsouajkC7boNmoTNQLw',
     appId: '1:839288643279:ios:906514199fb5dd5eea61ba',

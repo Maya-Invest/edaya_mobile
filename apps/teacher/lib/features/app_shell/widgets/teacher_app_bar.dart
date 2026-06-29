@@ -1,9 +1,9 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../../access/app_runtime.dart';
-import 'package:edaya_shared/edaya_shared.dart';
 
 class TeacherAppBar extends StatelessWidget implements PreferredSizeWidget {
   const TeacherAppBar({super.key});
@@ -18,7 +18,7 @@ class TeacherAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       leading: IconButton(
-        tooltip: 'Account',
+        tooltip: context.tr.tooltipAccount,
         icon: const Icon(Icons.account_circle_outlined),
         onPressed: () => context.push('/account'),
       ),
@@ -26,31 +26,28 @@ class TeacherAppBar extends StatelessWidget implements PreferredSizeWidget {
         () {
           final staffContext = AppRuntime.staffContext;
           final classLabel =
-              staffContext.classFilterLabel ?? 'All classes';
+              staffContext.classFilterLabel ?? context.tr.allClasses;
 
           if (isEvaluations) {
             final evaluations = AppRuntime.evaluations;
             final count = evaluations.evaluations.value.length;
-            final countLabel =
-                count == 1 ? '1 evaluation' : '$count evaluations';
+            final countLabel = context.tr.evaluationCount(count);
             final periodLabel = evaluations.selectedPeriodLabel;
             final periodPart =
                 periodLabel == null ? countLabel : '$periodLabel · $countLabel';
             return _AppBarTitle(
-              title: 'Evaluations',
+              title: context.tr.evaluationsTitle,
               subtitle: '$classLabel · $periodPart',
             );
           }
 
           final calendar = AppRuntime.calendar;
-          final dayLabel = formatShortDate(calendar.selectedDay.value);
+          final dayLabel = context.formatShortDate(calendar.selectedDay.value);
           final sessionCount = calendar.sessionsForSelectedDay.length;
-          final sessionLabel = sessionCount == 1
-              ? '1 session'
-              : '$sessionCount sessions';
+          final sessionLabel = context.tr.sessionCount(sessionCount);
 
           return _AppBarTitle(
-            title: 'Calendar',
+            title: context.tr.calendarTitle,
             subtitle: '$classLabel · $dayLabel · $sessionLabel',
           );
         },
@@ -58,12 +55,12 @@ class TeacherAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         if (isEvaluations)
           IconButton(
-            tooltip: 'New evaluation',
+            tooltip: context.tr.tooltipNewEvaluation,
             icon: const Icon(Icons.add),
             onPressed: () => context.push('/evaluations/create'),
           ),
         IconButton(
-          tooltip: 'Filter',
+          tooltip: context.tr.tooltipFilter,
           icon: const Icon(Icons.filter_list),
           onPressed: () => context.push('/class-filter'),
         ),

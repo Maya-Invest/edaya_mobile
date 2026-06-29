@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -24,21 +25,21 @@ class AppShellPage extends LScopedView<AppShellController> {
     final selectedIndex = controller.selectedIndexForLocation(location);
 
     return Scaffold(
-      appBar: const TeacherAppBar(),
+      appBar: TeacherAppBar(),
       body: child,
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: controller.onDestinationSelected,
-        destinations: const [
+        destinations: [
           NavigationDestination(
             icon: Icon(Icons.calendar_month_outlined),
             selectedIcon: Icon(Icons.calendar_month),
-            label: 'Calendar',
+            label: context.tr.navCalendar,
           ),
           NavigationDestination(
             icon: Icon(Icons.grade_outlined),
             selectedIcon: Icon(Icons.grade),
-            label: 'Evaluations',
+            label: context.tr.navEvaluations,
           ),
         ],
       ),

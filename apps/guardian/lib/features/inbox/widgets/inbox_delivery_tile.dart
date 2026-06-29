@@ -44,9 +44,9 @@ class InboxDeliveryTile extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               [
-                delivery.status.label,
+                delivery.status.label(context.tr),
                 if (delivery.sortDate != null)
-                  formatShortDate(delivery.sortDate!),
+                  context.formatShortDate(delivery.sortDate!),
               ].join(' · '),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,

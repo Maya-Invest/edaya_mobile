@@ -48,7 +48,7 @@ class ReportCardDetailsDialog extends LScopedView<ReportCardDetailsController> {
 
             final detail = controller.detail.value;
             if (detail == null) {
-              return const Text('Report card not found.');
+              return Text(context.tr.reportCardNotFound);
             }
 
             return SingleChildScrollView(
@@ -70,19 +70,27 @@ class ReportCardDetailsDialog extends LScopedView<ReportCardDetailsController> {
                     ],
                   ),
                   if (detail.publishedAt != null)
-                    Text('Published ${formatLongDate(detail.publishedAt!)}'),
+                    Text(
+                      context.tr.publishedOn(
+                        context.formatLongDate(detail.publishedAt!),
+                      ),
+                    ),
                   const SizedBox(height: 16),
                   if (detail.overallAverage != null)
                     Text(
-                      'Overall average: ${detail.overallAverage!.toStringAsFixed(1)} / 20',
+                      context.tr.overallAverage(
+                        detail.overallAverage!.toStringAsFixed(1),
+                      ),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   if (detail.rank != null && detail.classSize != null)
-                    Text('Class rank: ${detail.rank}/${detail.classSize}'),
+                    Text(
+                      context.tr.classRank(detail.rank!, detail.classSize!),
+                    ),
                   if (detail.teacherComment != null) ...[
                     const SizedBox(height: 16),
                     Text(
-                      'Homeroom comment',
+                      context.tr.homeroomComment,
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
                     const SizedBox(height: 4),
@@ -91,7 +99,7 @@ class ReportCardDetailsDialog extends LScopedView<ReportCardDetailsController> {
                   if (detail.principalComment != null) ...[
                     const SizedBox(height: 16),
                     Text(
-                      'Principal comment',
+                      context.tr.principalComment,
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
                     const SizedBox(height: 4),

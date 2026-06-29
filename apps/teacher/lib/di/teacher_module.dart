@@ -8,10 +8,10 @@ import '../features/calendar/calendar_controller.dart';
 import '../features/context/academic_year_controller.dart';
 import '../features/context/staff_context_controller.dart';
 import '../features/evaluations/evaluations_controller.dart';
-import '../services/push_notification_service.dart';
+import '../navigation/notification_navigation.dart';
 
 void registerTeacherDependencies(LevitScope scope) {
-  EdayaRootScope.bind(scope, appName: 'Teacher');
+  EdayaRootScope.bind(scope, appName: systemL10n().appTitleTeacher);
   final cookieJar = CookieJar();
   scope.put<CookieJar>(() => cookieJar, permanent: true);
   scope.put<SessionStorage>(() => SessionStorage(), permanent: true);
@@ -21,7 +21,12 @@ void registerTeacherDependencies(LevitScope scope) {
   );
   registerEdayaDependencies(scope, cookieJar: cookieJar);
   scope.put<PushNotificationService>(
-    () => TeacherPushNotificationService(),
+    () => FcmPushNotificationService(
+      schoolClientFactory: () =>
+          createEdayaSchoolClient(scope.find<AuthClient>()),
+      config: PushNotificationConfigs.teacher,
+      onNotificationOpened: handleTeacherNotificationOpened,
+    ),
     permanent: true,
   );
   scope.put<AppSessionController>(
@@ -32,12 +37,11 @@ void registerTeacherDependencies(LevitScope scope) {
       routerRefresh: scope.find<EdayaRouterRefresh>(),
       validateGrants: (grants) {
         if (grants.kind != 'staff') {
-          return 'This account is not linked to a staff profile.';
+          return systemL10n().accountNotLinkedToStaff;
         }
         return null;
       },
-      unauthorizedProfileMessage: () =>
-          'Signed in, but no linked staff profile. Run: bun run seed:auth:link',
+      unauthorizedProfileMessage: () => systemL10n().signedInNoStaffProfile,
     ),
     permanent: true,
   );

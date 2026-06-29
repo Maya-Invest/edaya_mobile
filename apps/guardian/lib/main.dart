@@ -8,10 +8,12 @@ import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  registerEdayaFcmBackgroundHandler();
   await ApiBaseUrlConfig.load();
+  await AppSettingsController.preload();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   Levit.enableAutoLinking();
-  runApp(const GuardianAppRoot());
+  runApp(GuardianAppRoot());
 }

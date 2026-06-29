@@ -5,6 +5,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../../common/utils/entity_filters.dart';
 import '../calendar/models/teacher_session.dart';
 import 'models/session_detail_models.dart';
@@ -96,7 +97,8 @@ class SessionDetailController extends LevitController
               : await client.subjectMatters.list(entitiesByIds(matterIds));
           final matterNameById = {
             for (final matter in matters)
-              matter['id'] as String: matter['name'] as String? ?? 'Chapter',
+              matter['id'] as String:
+                  matter['name'] as String? ?? systemL10n().chapterFallback,
           };
           subjectMatters(
             matterLinks
@@ -105,7 +107,7 @@ class SessionDetailController extends LevitController
                     id: link['id'] as String,
                     name:
                         matterNameById[link['subjectMatterId'] as String] ??
-                        'Chapter',
+                        systemL10n().chapterFallback,
                     completedPercentage:
                         (link['completedPercentage'] as num?)?.toInt() ?? 0,
                   ),
@@ -138,9 +140,9 @@ class SessionDetailController extends LevitController
           logbook(null);
         }
       } on api.ApiError catch (error) {
-        errorMessage('Could not load session: $error');
+        errorMessage(systemL10n().couldNotLoadSession('$error'));
       } on Object catch (error) {
-        errorMessage('Could not load session: $error');
+        errorMessage(systemL10n().couldNotLoadSession('$error'));
       }
     });
   }
@@ -174,7 +176,7 @@ class SessionDetailController extends LevitController
       );
       return true;
     } on Object catch (error) {
-      saveMessage('Could not save attendance: $error');
+      saveMessage(systemL10n().couldNotSaveAttendance('$error'));
       return false;
     }
   }
@@ -224,7 +226,7 @@ class SessionDetailController extends LevitController
       logbook(SessionLogbook.fromJson(saved));
       return true;
     } on Object catch (error) {
-      saveMessage('Could not save logbook: $error');
+      saveMessage(systemL10n().couldNotSaveLogbook('$error'));
       return false;
     }
   }

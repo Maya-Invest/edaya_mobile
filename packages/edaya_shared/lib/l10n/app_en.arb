@@ -1,0 +1,557 @@
+{
+  "@@locale": "en",
+  "appTitleGuardian": "Edaya",
+  "appTitleTeacher": "Edaya Staff",
+  "accountTitle": "Account",
+  "signingOut": "Signing out…",
+  "signOut": "Sign out",
+  "nothingToShowYet": "Nothing to show yet.",
+  "somethingWentWrong": "Something went wrong.",
+  "retry": "Retry",
+  "signInTitle": "Sign in",
+  "signInButton": "Sign in",
+  "emailLabel": "Email",
+  "passwordLabel": "Password",
+  "signInFailed": "Sign-in failed",
+  "signedInSchoolSessionUnavailable": "Signed in, but school session is unavailable: {error}",
+  "@signedInSchoolSessionUnavailable": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "apiUrlCannotBeEmpty": "API URL cannot be empty",
+  "enterValidApiUrl": "Enter a valid API URL",
+  "restartRequired": "Restart required",
+  "apiUrlUpdatedReloadPage": "API URL updated to {url}. Reload the page to connect to the new server.",
+  "@apiUrlUpdatedReloadPage": {
+    "placeholders": {
+      "url": {"type": "String"}
+    }
+  },
+  "apiUrlUpdatedRestartApp": "API URL updated to {url}. Restart the app to connect to the new server.",
+  "@apiUrlUpdatedRestartApp": {
+    "placeholders": {
+      "url": {"type": "String"}
+    }
+  },
+  "restartApp": "Restart app",
+  "ok": "OK",
+  "currentApiUrl": "Current: {url}",
+  "@currentApiUrl": {
+    "placeholders": {
+      "url": {"type": "String"}
+    }
+  },
+  "usingSavedDevOverride": "Using saved dev override",
+  "apiBaseUrlLabel": "API base URL",
+  "presetLocalhost": "Localhost",
+  "presetAndroidEmulator": "Android emulator",
+  "presetLanEditIp": "LAN (edit IP)",
+  "resetDefault": "Reset default",
+  "save": "Save",
+  "developerSettings": "Developer settings",
+  "loginSubtitleGuardianDev": "Use dev guardian credentials to test against the local API.",
+  "loginSubtitleStaffDev": "Use dev staff credentials to test against the local API.",
+  "missingSessionDetailsRouteData": "Missing session details route data.",
+  "missingGradeDetailsRouteData": "Missing grade details route data.",
+  "missingReportCardRouteData": "Missing report card route data.",
+  "missingPaymentDetailsRouteData": "Missing payment details route data.",
+  "missingMessageDetailsRouteData": "Missing message details route data.",
+  "missingAttendanceFlowRouteData": "Missing attendance flow route data.",
+  "missingMarksEntryRouteData": "Missing marks entry route data.",
+  "signedInNoGuardianProfile": "Signed in, but no linked guardian/staff profile. Run: bun run seed:auth:link",
+  "signedInNoStaffProfile": "Signed in, but no linked staff profile. Run: bun run seed:auth:link",
+  "accountNotLinkedToStaff": "This account is not linked to a staff profile.",
+  "navCalendar": "Calendar",
+  "navAcademic": "Academic",
+  "navFees": "Fees",
+  "navInbox": "Inbox",
+  "navEvaluations": "Evaluations",
+  "tooltipAccount": "Account",
+  "loading": "Loading…",
+  "selectAStudent": "Select a student",
+  "notEnrolled": "Not enrolled",
+  "schoolYear": "School year",
+  "tooltipMyStudents": "My students",
+  "unknownUser": "Unknown user",
+  "noAcademicYearsAvailable": "No academic years available.",
+  "activeYear": "Active year",
+  "couldNotLoadAcademicYears": "Could not load academic years: {error}",
+  "@couldNotLoadAcademicYears": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "couldNotLoadStudentContext": "Could not load student context: {error}",
+  "@couldNotLoadStudentContext": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "couldNotLoadEnrollment": "Could not load enrollment: {error}",
+  "@couldNotLoadEnrollment": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "myStudents": "My students",
+  "noLinkedStudentsFound": "No linked students found.",
+  "matriculeLabel": "Matricule: {matricule}",
+  "@matriculeLabel": {
+    "placeholders": {
+      "matricule": {"type": "String"}
+    }
+  },
+  "statusLabel": "Status: {status}",
+  "@statusLabel": {
+    "placeholders": {
+      "status": {"type": "String"}
+    }
+  },
+  "couldNotLoadLinkedStudents": "Could not load linked students: {error}",
+  "@couldNotLoadLinkedStudents": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "calendarViewTimetable": "Timetable",
+  "calendarViewEvents": "Events",
+  "allAttendance": "All attendance",
+  "selectStudentToViewCalendar": "Select a student to view the calendar.",
+  "studentNotEnrolledForYear": "This student is not enrolled for the selected school year.",
+  "noClassesScheduledForDay": "No classes scheduled for this day.",
+  "noSchoolEventsForPeriod": "No school events for this period.",
+  "couldNotLoadCalendar": "Could not load calendar: {error}",
+  "@couldNotLoadCalendar": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "couldNotLoadSessionDetails": "Could not load session details: {error}",
+  "@couldNotLoadSessionDetails": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "couldNotLoadAttendance": "Could not load attendance: {error}",
+  "@couldNotLoadAttendance": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "attendance": "Attendance",
+  "noAttendanceRecorded": "No attendance recorded.",
+  "classLogbook": "Class logbook",
+  "noLogbookEntryForSession": "No logbook entry for this session.",
+  "homeworkLabel": "Homework",
+  "homeworkValue": "Homework: {homework}",
+  "@homeworkValue": {
+    "placeholders": {
+      "homework": {"type": "String"}
+    }
+  },
+  "progressPercent": "Progress: {percent}%",
+  "@progressPercent": {
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "noAttendanceRecordsForStudent": "No attendance records for this student.",
+  "tooltipPreviousWeek": "Previous week",
+  "tooltipNextWeek": "Next week",
+  "dayLetterMon": "M",
+  "dayLetterTue": "T",
+  "dayLetterWed": "W",
+  "dayLetterThu": "T",
+  "dayLetterFri": "F",
+  "dayLetterSat": "S",
+  "dayLetterSun": "S",
+  "academicViewGrades": "Grades",
+  "academicViewCurriculum": "Curriculum",
+  "academicViewReports": "Reports",
+  "allPeriods": "All periods",
+  "selectStudentToViewAcademic": "Select a student to view academic information.",
+  "noGradesForPeriod": "No grades recorded for this period.",
+  "noCurriculumProgressYet": "No curriculum progress available yet.",
+  "noReportCardsYet": "No published report cards yet.",
+  "couldNotLoadAcademicData": "Could not load academic data: {error}",
+  "@couldNotLoadAcademicData": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "couldNotLoadReportCard": "Could not load report card: {error}",
+  "@couldNotLoadReportCard": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "subjectFallback": "Subject",
+  "periodFallback": "Period",
+  "unitFallback": "Unit",
+  "gradePeriodCoefficient": "{periodName} · Coefficient {coefficient}",
+  "@gradePeriodCoefficient": {
+    "placeholders": {
+      "periodName": {"type": "String"},
+      "coefficient": {"type": "String"}
+    }
+  },
+  "score": "Score",
+  "notGradedYet": "Not graded yet",
+  "notes": "Notes",
+  "average": "Average",
+  "scoreOutOfTwenty": "/ 20",
+  "graded": "Graded",
+  "pending": "Pending",
+  "assessmentCount": "{count, plural, =1{1 assessment} other{{count} assessments}}",
+  "@assessmentCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subjectAverage": "Average {average} / 20",
+  "@subjectAverage": {
+    "placeholders": {
+      "average": {"type": "String"}
+    }
+  },
+  "noScoreDash": "—",
+  "percentComplete": "{percent}% complete",
+  "@percentComplete": {
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "noProgrammeUnitsTracked": "No programme units tracked yet.",
+  "publishedReportCard": "Published report card",
+  "publishedOn": "Published {date}",
+  "@publishedOn": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "scoreOutOfTwentyValue": "{average} / 20",
+  "@scoreOutOfTwentyValue": {
+    "placeholders": {
+      "average": {"type": "String"}
+    }
+  },
+  "rankLabel": "Rank {rank}/{classSize}",
+  "@rankLabel": {
+    "placeholders": {
+      "rank": {"type": "int"},
+      "classSize": {"type": "int"}
+    }
+  },
+  "reportCardNotFound": "Report card not found.",
+  "overallAverage": "Overall average: {average} / 20",
+  "@overallAverage": {
+    "placeholders": {
+      "average": {"type": "String"}
+    }
+  },
+  "classRank": "Class rank: {rank}/{classSize}",
+  "@classRank": {
+    "placeholders": {
+      "rank": {"type": "int"},
+      "classSize": {"type": "int"}
+    }
+  },
+  "homeroomComment": "Homeroom comment",
+  "principalComment": "Principal comment",
+  "feeLinesSection": "Fee lines",
+  "noFeeLinesForYear": "No fee lines for this school year.",
+  "paymentsSection": "Payments",
+  "noPaymentsRecordedYet": "No payments recorded yet.",
+  "selectStudentToViewFees": "Select a student to view fees and payments.",
+  "noFeesOrPaymentsForYear": "No fee lines or payments for the selected school year.",
+  "schoolFee": "School fee",
+  "couldNotLoadFees": "Could not load fees: {error}",
+  "@couldNotLoadFees": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "paymentMethodCash": "Cash",
+  "paymentMethodCard": "Card",
+  "paymentMethodBankTransfer": "Bank transfer",
+  "paymentMethodMobileMoney": "Mobile money",
+  "paymentMethodOther": "Other",
+  "feeStatusPaid": "Paid",
+  "feeStatusPartiallyPaid": "Partially paid",
+  "feeStatusOverdue": "Overdue",
+  "feeStatusCancelled": "Cancelled",
+  "feeStatusDue": "Due",
+  "summary": "Summary",
+  "expected": "Expected",
+  "paid": "Paid",
+  "balance": "Balance",
+  "overdueFeeLinesCount": "{count, plural, =1{1 overdue fee line} other{{count} overdue fee lines}}",
+  "@overdueFeeLinesCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "dueDate": "Due {date}",
+  "@dueDate": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "paymentCount": "{count, plural, =1{1 payment} other{{count} payments}}",
+  "@paymentCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "paidAmount": "Paid {amount}",
+  "@paidAmount": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "paymentDetails": "Payment details",
+  "amount": "Amount",
+  "date": "Date",
+  "method": "Method",
+  "reference": "Reference",
+  "unreadCount": "{count} unread",
+  "@unreadCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "noMessagesInInbox": "No messages in your inbox yet.",
+  "couldNotLoadInbox": "Could not load inbox: {error}",
+  "@couldNotLoadInbox": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "inboxStatusPending": "Pending",
+  "inboxStatusNew": "New",
+  "inboxStatusFailed": "Failed",
+  "inboxStatusRead": "Read",
+  "inboxStatusCancelled": "Cancelled",
+  "messageDefaultTitle": "Message",
+  "messageTitle": "Message",
+  "couldNotMarkMessageRead": "Could not mark message as read: {error}",
+  "@couldNotMarkMessageRead": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "allClasses": "All classes",
+  "evaluationsTitle": "Evaluations",
+  "calendarTitle": "Calendar",
+  "evaluationCount": "{count, plural, =1{1 evaluation} other{{count} evaluations}}",
+  "@evaluationCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "sessionCount": "{count, plural, =1{1 session} other{{count} sessions}}",
+  "@sessionCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "tooltipNewEvaluation": "New evaluation",
+  "tooltipFilter": "Filter",
+  "teacherFallbackName": "Teacher",
+  "filterTitle": "Filter",
+  "classLabel": "Class",
+  "couldNotLoadTeachingContext": "Could not load teaching context: {error}",
+  "@couldNotLoadTeachingContext": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "signInToViewCalendar": "Sign in to view your teaching calendar.",
+  "noClassesAssignedForYear": "No classes assigned for this school year.",
+  "classSessionFallback": "Class session",
+  "logbook": "Logbook",
+  "attendanceProgress": "Attendance {recorded} / {total}",
+  "@attendanceProgress": {
+    "placeholders": {
+      "recorded": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "takeAttendance": "Take attendance",
+  "logbookNotAvailableForSession": "Logbook is not available for this session.",
+  "noCurriculumChaptersLinked": "No curriculum chapters linked to this subject.",
+  "chapterLabel": "Chapter",
+  "contentLabel": "Content",
+  "objectivesLabel": "Objectives (one per line)",
+  "progressPercentLabel": "Progress %",
+  "saveLogbook": "Save logbook",
+  "logbookSaved": "Logbook saved",
+  "notRecorded": "Not recorded",
+  "record": "Record",
+  "edit": "Edit",
+  "attendanceStatusPresent": "Present",
+  "attendanceStatusAbsent": "Absent",
+  "attendanceStatusLate": "Late",
+  "attendanceFlowTitle": "Attendance · {classLabel}",
+  "@attendanceFlowTitle": {
+    "placeholders": {
+      "classLabel": {"type": "String"}
+    }
+  },
+  "noStudentsToRecord": "No students to record.",
+  "attendanceRecordedProgress": "{recorded} / {total} recorded",
+  "@attendanceRecordedProgress": {
+    "placeholders": {
+      "recorded": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "attendanceComplete": "Attendance complete",
+  "done": "Done",
+  "reviewAgain": "Review again",
+  "couldNotLoadSession": "Could not load session: {error}",
+  "@couldNotLoadSession": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "couldNotSaveAttendance": "Could not save attendance: {error}",
+  "@couldNotSaveAttendance": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "couldNotSaveLogbook": "Could not save logbook: {error}",
+  "@couldNotSaveLogbook": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "chapterFallback": "Chapter",
+  "evaluationGradedProgress": "{graded} / {total} graded",
+  "@evaluationGradedProgress": {
+    "placeholders": {
+      "graded": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "selectPeriodToViewEvaluations": "Select a period to view evaluations.",
+  "noEvaluationsForPeriod": "No evaluations for this period.",
+  "couldNotLoadEvaluations": "Could not load evaluations: {error}",
+  "@couldNotLoadEvaluations": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "couldNotLoadMarks": "Could not load marks: {error}",
+  "@couldNotLoadMarks": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "couldNotSaveMark": "Could not save mark: {error}",
+  "@couldNotSaveMark": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "couldNotLoadSubjects": "Could not load subjects: {error}",
+  "@couldNotLoadSubjects": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "couldNotLoadPeriods": "Could not load periods: {error}",
+  "@couldNotLoadPeriods": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "titleRequired": "Title is required.",
+  "maxScoreMustBePositive": "Max score must be greater than zero.",
+  "periodRequired": "Period is required.",
+  "couldNotCreateEvaluation": "Could not create evaluation: {error}",
+  "@couldNotCreateEvaluation": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "newEvaluation": "New evaluation",
+  "noSubjectsAssignedForYear": "No subjects assigned for this school year.",
+  "classSubjectLabel": "Class · Subject",
+  "titleLabel": "Title",
+  "outOfLabel": "Out of",
+  "kindLabel": "Kind",
+  "evaluationKindQuiz": "Quiz",
+  "evaluationKindHomework": "Homework",
+  "evaluationKindProject": "Project",
+  "evaluationKindOther": "Other",
+  "createEvaluation": "Create evaluation",
+  "enterValidMaxScore": "Enter a valid max score.",
+  "outOfMaxScore": "Out of {maxScore}",
+  "@outOfMaxScore": {
+    "placeholders": {
+      "maxScore": {"type": "String"}
+    }
+  },
+  "currentScore": "Current: {score}",
+  "@currentScore": {
+    "placeholders": {
+      "score": {"type": "String"}
+    }
+  },
+  "scoreHintOutOf": "/ {maxScore}",
+  "@scoreHintOutOf": {
+    "placeholders": {
+      "maxScore": {"type": "String"}
+    }
+  },
+  "periodLabel": "Period",
+  "timeRange": "{start} – {end}",
+  "@timeRange": {
+    "placeholders": {
+      "start": {"type": "String"},
+      "end": {"type": "String"}
+    }
+  },
+  "sessionDateTime": "{date} · {timeRange}",
+  "@sessionDateTime": {
+    "placeholders": {
+      "date": {"type": "String"},
+      "timeRange": {"type": "String"}
+    }
+  },
+  "paymentMethodAndDate": "{method} · {date}",
+  "@paymentMethodAndDate": {
+    "placeholders": {
+      "method": {"type": "String"},
+      "date": {"type": "String"}
+    }
+  },
+  "settingsTitle": "Settings",
+  "settingsTheme": "Theme",
+  "settingsThemeSystem": "System default",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsLanguage": "Language",
+  "settingsLanguageSystem": "System default",
+  "settingsLanguageEnglish": "English",
+  "settingsLanguageFrench": "French",
+  "settingsTimezone": "Time zone",
+  "settingsTimezoneDevice": "Device time zone",
+  "settingsTimezoneUtc": "UTC",
+  "settingsTimezoneParis": "Paris",
+  "settingsTimezoneAbidjan": "Abidjan",
+  "settingsTimezoneLagos": "Lagos",
+  "settingsTimezoneNewYork": "New York",
+  "settingsDateFormat": "Date format",
+  "settingsDateFormatSystem": "System default",
+  "settingsDateFormatShort": "Short",
+  "settingsDateFormatMedium": "Medium",
+  "settingsDateFormatLong": "Long",
+  "settingsTimeFormat": "Time format",
+  "settingsTimeFormatSystem": "System default",
+  "settingsTimeFormat24h": "24-hour",
+  "settingsTimeFormat12h": "12-hour"
+}

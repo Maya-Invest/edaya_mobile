@@ -87,7 +87,7 @@ class _EvaluationCard extends StatelessWidget {
         title: Text(evaluation.title),
         subtitle: Text(
           '${evaluation.classLabel} · ${evaluation.subjectLabel}\n'
-          '${evaluation.gradedCount} / ${evaluation.totalStudents} graded',
+          '${context.tr.evaluationGradedProgress(evaluation.gradedCount, evaluation.totalStudents)}',
         ),
         isThreeLine: true,
         trailing: const Icon(Icons.chevron_right),

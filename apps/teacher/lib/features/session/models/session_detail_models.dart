@@ -1,3 +1,5 @@
+import 'package:edaya_shared/edaya_shared.dart';
+
 enum SessionAttendanceStatus {
   present,
   absent,
@@ -14,10 +16,10 @@ enum SessionAttendanceStatus {
 
   String get apiValue => name;
 
-  String get label => switch (this) {
-    SessionAttendanceStatus.present => 'Present',
-    SessionAttendanceStatus.absent => 'Absent',
-    SessionAttendanceStatus.late => 'Late',
+  String label(AppLocalizations l10n) => switch (this) {
+    SessionAttendanceStatus.present => l10n.attendanceStatusPresent,
+    SessionAttendanceStatus.absent => l10n.attendanceStatusAbsent,
+    SessionAttendanceStatus.late => l10n.attendanceStatusLate,
   };
 }
 

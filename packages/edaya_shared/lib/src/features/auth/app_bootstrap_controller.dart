@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../push/push_notification_service.dart';
+import '../push/push_notifications.dart';
 import 'app_session_controller.dart';
 import 'auth_session_storage.dart';
 
@@ -43,6 +43,7 @@ class AppBootstrapController extends LevitController {
       await _session.restoreSession();
       if (_session.isAuthenticated) {
         await _initializeAuthenticatedContext();
+        await _pushNotifications.consumePendingNavigation();
       }
     } finally {
       isReady(true);

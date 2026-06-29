@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 DateTime? parseApiDateTime(Object? value) {
   if (value == null) {
     return null;
@@ -33,46 +35,19 @@ DateTime defaultCalendarDay([DateTime? reference]) {
   return day;
 }
 
-String formatTimeOfDay(DateTime dateTime) {
-  final hours = dateTime.hour.toString().padLeft(2, '0');
-  final minutes = dateTime.minute.toString().padLeft(2, '0');
-  return '$hours:$minutes';
+String formatTimeOfDay(DateTime dateTime, [String? locale]) {
+  return DateFormat.Hm(locale).format(dateTime);
 }
 
-String formatShortDate(DateTime dateTime) {
-  const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  final weekday = weekdays[dateTime.weekday - 1];
-  return '$weekday ${dateTime.day}/${dateTime.month}';
+String formatShortDate(DateTime dateTime, [String? locale]) {
+  return DateFormat.MMMEd(locale).format(dateTime);
 }
 
-String formatWeekRange(DateTime weekStart) {
+String formatWeekRange(DateTime weekStart, [String? locale]) {
   final weekEnd = weekStart.add(const Duration(days: 6));
-  return '${formatShortDate(weekStart)} – ${formatShortDate(weekEnd)}';
+  return '${formatShortDate(weekStart, locale)} – ${formatShortDate(weekEnd, locale)}';
 }
 
-String formatLongDate(DateTime dateTime) {
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-  const weekdays = [
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-    'Sunday',
-  ];
-  return '${weekdays[dateTime.weekday - 1]}, ${dateTime.day} ${months[dateTime.month - 1]} ${dateTime.year}';
+String formatLongDate(DateTime dateTime, [String? locale]) {
+  return DateFormat.yMMMMEEEEd(locale).format(dateTime);
 }

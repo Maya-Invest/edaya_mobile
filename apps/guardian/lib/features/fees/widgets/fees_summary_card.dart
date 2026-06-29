@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 
 import '../models/fee_formatting.dart';
@@ -10,6 +11,7 @@ class FeesSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.tr;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -17,7 +19,7 @@ class FeesSummaryCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Summary',
+              l10n.summary,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 12),
@@ -25,7 +27,7 @@ class FeesSummaryCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: _Metric(
-                    label: 'Expected',
+                    label: l10n.expected,
                     value: formatMoney(
                       summary.totalExpected,
                       summary.currency,
@@ -34,13 +36,13 @@ class FeesSummaryCard extends StatelessWidget {
                 ),
                 Expanded(
                   child: _Metric(
-                    label: 'Paid',
+                    label: l10n.paid,
                     value: formatMoney(summary.totalPaid, summary.currency),
                   ),
                 ),
                 Expanded(
                   child: _Metric(
-                    label: 'Balance',
+                    label: l10n.balance,
                     value: formatMoney(
                       summary.totalBalance,
                       summary.currency,
@@ -52,7 +54,7 @@ class FeesSummaryCard extends StatelessWidget {
             if (summary.overdueCount > 0) ...[
               const SizedBox(height: 12),
               Text(
-                '${summary.overdueCount} overdue fee line(s)',
+                l10n.overdueFeeLinesCount(summary.overdueCount),
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],

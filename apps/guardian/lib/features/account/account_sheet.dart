@@ -15,7 +15,7 @@ class AccountSheet extends StatelessWidget {
     return AccountSheetBody(
       session: session,
       sessionStorage: SessionStorage(),
-      profileHeader: Text(user?.email ?? 'Unknown user'),
+      profileHeader: Text(user?.email ?? context.tr.unknownUser),
     );
   }
 }

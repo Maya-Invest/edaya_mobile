@@ -73,14 +73,14 @@ class _FeesBody extends StatelessWidget {
           const SizedBox(height: 16),
         ],
         Text(
-          'Fee lines',
+          context.tr.feeLinesSection,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
         if (lines.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: Text('No fee lines for this school year.'),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Text(context.tr.noFeeLinesForYear),
           )
         else
           for (final line in lines) ...[
@@ -89,14 +89,14 @@ class _FeesBody extends StatelessWidget {
           ],
         const SizedBox(height: 8),
         Text(
-          'Payments',
+          context.tr.paymentsSection,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
         if (payments.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: Text('No payments recorded yet.'),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Text(context.tr.noPaymentsRecordedYet),
           )
         else
           for (final payment in payments) ...[
