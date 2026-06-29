@@ -5,9 +5,32 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'push_runtime.dart' if (dart.library.io) 'push_runtime_io.dart';
+
+const _androidForegroundNotificationIcon = '@mipmap/ic_launcher';
+const _androidBackgroundNotificationIcon = '@drawable/ic_stat_notification';
+
+// --- Background isolate configuration ----------------------------------------
+
+FirebaseOptions? _fcmBackgroundFirebaseOptions;
+PushNotificationConfig? _fcmBackgroundConfig;
+final FlutterLocalNotificationsPlugin _backgroundLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+var _backgroundLocalNotificationsReady = false;
+var _backgroundNotificationId = 0;
+
+/// Supplies Firebase and channel settings for the FCM background isolate.
+///
+/// Call from `main()` before [registerEdayaFcmBackgroundHandler].
+void configureEdayaFcm({
+  required FirebaseOptions firebaseOptions,
+  required PushNotificationConfig notificationConfig,
+}) {
+  _fcmBackgroundFirebaseOptions = firebaseOptions;
+  _fcmBackgroundConfig = notificationConfig;
+}
 
 // --- Configuration -----------------------------------------------------------
 
@@ -109,6 +132,113 @@ NotificationDeepLink? parseNotificationDeepLink(RemoteMessage message) {
   };
 }
 
+class NotificationDisplayContent {
+  const NotificationDisplayContent({required this.title, required this.body});
+
+  final String title;
+  final String body;
+}
+
+/// Resolves a title/body from FCM notification or data payloads (Novu, etc.).
+NotificationDisplayContent? resolveNotificationDisplayContent(RemoteMessage message) {
+  final pushNotification = message.notification;
+  final data = notificationMessageData(message);
+
+  final title = pushNotification?.title?.trim().isNotEmpty == true
+      ? pushNotification!.title!.trim()
+      : _firstNonEmpty(data, const ['title', 'subject', 'emailSubject', 'gcm.notification.title']);
+  final body = pushNotification?.body?.trim().isNotEmpty == true
+      ? pushNotification!.body!.trim()
+      : _firstNonEmpty(data, const ['body', 'message', 'emailBody', 'content', 'gcm.notification.body']);
+
+  if ((title == null || title.isEmpty) && (body == null || body.isEmpty)) {
+    return null;
+  }
+
+  return NotificationDisplayContent(
+    title: title?.isNotEmpty == true ? title! : 'Edaya',
+    body: body?.isNotEmpty == true ? body! : '',
+  );
+}
+
+String? _firstNonEmpty(Map<String, String> data, List<String> keys) {
+  for (final key in keys) {
+    final value = data[key]?.trim();
+    if (value != null && value.isNotEmpty) {
+      return value;
+    }
+  }
+  return null;
+}
+
+Future<void> _ensureAndroidNotificationChannel(
+  FlutterLocalNotificationsPlugin plugin,
+  PushNotificationConfig config,
+) async {
+  if (defaultTargetPlatform != TargetPlatform.android) {
+    return;
+  }
+
+  final androidPlugin = plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+  await androidPlugin?.createNotificationChannel(
+    AndroidNotificationChannel(
+      config.androidChannelId,
+      config.androidChannelName,
+      description: config.androidChannelDescription,
+      importance: Importance.high,
+    ),
+  );
+}
+
+Future<void> displayEdayaPushNotification(
+  RemoteMessage message,
+  PushNotificationConfig config, {
+  FlutterLocalNotificationsPlugin? plugin,
+  int? notificationId,
+  String androidIcon = _androidBackgroundNotificationIcon,
+}) async {
+  final content = resolveNotificationDisplayContent(message);
+  if (content == null) {
+    return;
+  }
+
+  final notificationsPlugin = plugin ?? _backgroundLocalNotificationsPlugin;
+  final payload = message.data.isEmpty ? null : jsonEncode(message.data);
+
+  await notificationsPlugin.show(
+    notificationId ?? _backgroundNotificationId++,
+    content.title,
+    content.body,
+    NotificationDetails(
+      android: AndroidNotificationDetails(
+        config.androidChannelId,
+        config.androidChannelName,
+        channelDescription: config.androidChannelDescription,
+        importance: Importance.high,
+        priority: Priority.high,
+        icon: androidIcon,
+      ),
+      iOS: const DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true),
+    ),
+    payload: payload,
+  );
+}
+
+Future<void> _ensureBackgroundLocalNotifications(PushNotificationConfig config) async {
+  if (_backgroundLocalNotificationsReady) {
+    return;
+  }
+
+  const androidSettings = AndroidInitializationSettings(_androidBackgroundNotificationIcon);
+  const iosSettings = DarwinInitializationSettings();
+
+  await _backgroundLocalNotificationsPlugin.initialize(
+    const InitializationSettings(android: androidSettings, iOS: iosSettings),
+  );
+  await _ensureAndroidNotificationChannel(_backgroundLocalNotificationsPlugin, config);
+  _backgroundLocalNotificationsReady = true;
+}
+
 // --- Background handler ------------------------------------------------------
 
 /// Registers the FCM background handler.
@@ -121,7 +251,20 @@ void registerEdayaFcmBackgroundHandler() {
 /// Handles FCM messages while the app is terminated or in the background.
 @pragma('vm:entry-point')
 Future<void> edayaFcmBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final options = _fcmBackgroundFirebaseOptions;
+  if (options != null && Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(options: options);
+  }
+
+  final config = _fcmBackgroundConfig;
+  if (config == null) {
+    return;
+  }
+
+  await _ensureBackgroundLocalNotifications(config);
+  await displayEdayaPushNotification(message, config);
 }
 
 // --- FCM implementation ------------------------------------------------------
@@ -261,7 +404,7 @@ class FcmPushNotificationService implements PushNotificationService {
       return;
     }
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(_androidForegroundNotificationIcon);
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
@@ -281,14 +424,7 @@ class FcmPushNotificationService implements PushNotificationService {
 
     if (defaultTargetPlatform == TargetPlatform.android) {
       final androidPlugin = _localNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-      await androidPlugin?.createNotificationChannel(
-        AndroidNotificationChannel(
-          _config.androidChannelId,
-          _config.androidChannelName,
-          description: _config.androidChannelDescription,
-          importance: Importance.high,
-        ),
-      );
+      await _ensureAndroidNotificationChannel(_localNotificationsPlugin, _config);
       await androidPlugin?.requestNotificationsPermission();
     }
 
@@ -296,31 +432,38 @@ class FcmPushNotificationService implements PushNotificationService {
   }
 
   Future<void> _showForegroundNotification(RemoteMessage message) async {
-    final notification = message.notification;
-    if (notification == null) {
+    if (!_localNotificationsInitialized) {
+      debugPrint('Foreground push skipped: local notifications not initialized');
       return;
     }
 
-    final payload = message.data.isEmpty ? null : jsonEncode(message.data);
-    final androidDetails = message.notification?.android;
+    try {
+      final content = resolveNotificationDisplayContent(message);
+      if (content == null) {
+        debugPrint('Foreground push skipped: no displayable title/body in message');
+        return;
+      }
 
-    await _localNotificationsPlugin.show(
-      _notificationIdCounter++,
-      notification.title,
-      notification.body,
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          _config.androidChannelId,
-          _config.androidChannelName,
-          channelDescription: _config.androidChannelDescription,
-          importance: Importance.high,
-          priority: Priority.high,
-          icon: androidDetails?.smallIcon ?? '@mipmap/ic_launcher',
+      await _localNotificationsPlugin.show(
+        _notificationIdCounter++,
+        content.title,
+        content.body,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            _config.androidChannelId,
+            _config.androidChannelName,
+            channelDescription: _config.androidChannelDescription,
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: _androidForegroundNotificationIcon,
+          ),
+          iOS: const DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true),
         ),
-        iOS: const DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true),
-      ),
-      payload: payload,
-    );
+        payload: message.data.isEmpty ? null : jsonEncode(message.data),
+      );
+    } on Object catch (error, stackTrace) {
+      debugPrint('Foreground push display failed: $error\n$stackTrace');
+    }
   }
 
   void _handleNotificationOpened(RemoteMessage message) {

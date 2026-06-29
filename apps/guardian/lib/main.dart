@@ -8,6 +8,10 @@ import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  configureEdayaFcm(
+    firebaseOptions: DefaultFirebaseOptions.currentPlatform,
+    notificationConfig: PushNotificationConfigs.guardian,
+  );
   registerEdayaFcmBackgroundHandler();
   await ApiBaseUrlConfig.load();
   await AppSettingsController.preload();
