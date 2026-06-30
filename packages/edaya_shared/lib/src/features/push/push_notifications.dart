@@ -206,10 +206,10 @@ Future<void> displayEdayaPushNotification(
   final payload = message.data.isEmpty ? null : jsonEncode(message.data);
 
   await notificationsPlugin.show(
-    notificationId ?? _backgroundNotificationId++,
-    content.title,
-    content.body,
-    NotificationDetails(
+    id: notificationId ?? _backgroundNotificationId++,
+    title: content.title,
+    body: content.body,
+    notificationDetails: NotificationDetails(
       android: AndroidNotificationDetails(
         config.androidChannelId,
         config.androidChannelName,
@@ -233,7 +233,7 @@ Future<void> _ensureBackgroundLocalNotifications(PushNotificationConfig config) 
   const iosSettings = DarwinInitializationSettings();
 
   await _backgroundLocalNotificationsPlugin.initialize(
-    const InitializationSettings(android: androidSettings, iOS: iosSettings),
+    settings: const InitializationSettings(android: androidSettings, iOS: iosSettings),
   );
   await _ensureAndroidNotificationChannel(_backgroundLocalNotificationsPlugin, config);
   _backgroundLocalNotificationsReady = true;
@@ -412,7 +412,7 @@ class FcmPushNotificationService implements PushNotificationService {
     );
 
     await _localNotificationsPlugin.initialize(
-      const InitializationSettings(android: androidSettings, iOS: iosSettings),
+      settings: const InitializationSettings(android: androidSettings, iOS: iosSettings),
       onDidReceiveNotificationResponse: (response) {
         final payload = response.payload;
         if (payload == null || onNotificationOpened == null) {
@@ -445,10 +445,10 @@ class FcmPushNotificationService implements PushNotificationService {
       }
 
       await _localNotificationsPlugin.show(
-        _notificationIdCounter++,
-        content.title,
-        content.body,
-        NotificationDetails(
+        id: _notificationIdCounter++,
+        title: content.title,
+        body: content.body,
+        notificationDetails: NotificationDetails(
           android: AndroidNotificationDetails(
             _config.androidChannelId,
             _config.androidChannelName,

@@ -17,3 +17,4 @@ packages/**/pubspec.lock
 **/.cxx/
 **/DerivedData/
 .DS_Store
+apps/.DS_Store
