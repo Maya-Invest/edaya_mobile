@@ -1,4 +1,4 @@
-package com.edaya.edaya_teacher
+package com.softilab.edaya.staff
 
 import io.flutter.embedding.android.FlutterActivity
 

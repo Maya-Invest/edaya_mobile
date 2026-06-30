@@ -1,0 +1,8 @@
+# Copy to apps/<app>/android/key.properties and fill in values.
+# Generate the upload keystore with: melos run android:keystore:create
+#
+# storeFile is relative to apps/<app>/android/
+storePassword=YOUR_STORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=guardian
+storeFile=../../../android-signing/edaya-upload.jks

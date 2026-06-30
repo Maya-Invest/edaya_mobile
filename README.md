@@ -21,8 +21,8 @@ edaya_mobile/
 
 | App | Package | Audience | Notes |
 |-----|---------|----------|-------|
-| Guardian | `edaya_guardian` | Parents and guardians | Calendar, academic records, fees, inbox, student switching; Firebase push |
-| Teacher | `edaya_teacher` | Teachers and staff | Calendar, evaluations, attendance; class filter |
+| Guardian | `edaya_guardian` | Parents and guardians | `com.softilab.edaya.guardian` — calendar, academic records, fees, inbox, student switching; Firebase push |
+| Teacher | `edaya_teacher` | Teachers and staff | `com.softilab.edaya.staff` — calendar, evaluations, attendance; class filter |
 
 Both apps share auth, bootstrap, theme, and most UI primitives via `edaya_shared`. Each app keeps a thin layer for routes, domain features, and app-specific preferences.
 
@@ -185,6 +185,8 @@ cd apps/teacher && flutter run
 | `melos run generated:check` | Verify generated Dart matches `spec/client-bindings.json` |
 | `melos run verify` | `generated:check` + analyze + test |
 | `melos run clean:flutter` | Run `flutter clean` in all apps |
+| `melos run android:keystore:create` | Create upload keystore for Play Store signing |
+| `melos run build:play:aab` | Build release AABs for guardian + teacher |
 | `melos list` | List workspace packages |
 
 Run package tests only:

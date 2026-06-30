@@ -1,4 +1,4 @@
-package com.edaya.edaya_guardian
+package com.softilab.edaya.guardian
 
 import io.flutter.embedding.android.FlutterActivity
 

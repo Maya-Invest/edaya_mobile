@@ -58,3 +58,15 @@ melos:
     clean:flutter:
       exec: flutter clean
       description: Run flutter clean in all Flutter apps.
+    android:keystore:create:
+      run: bash scripts/create-android-keystore.sh
+      description: Create upload keystore and key.properties for Play Store signing.
+    build:play:aab:
+      run: bash scripts/build-play-aab.sh
+      description: Build release-signed AABs for guardian and teacher (Google Play).
+    build:guardian:play:
+      run: bash scripts/build-play-aab.sh guardian
+      description: Build guardian Play Store AAB.
+    build:teacher:play:
+      run: bash scripts/build-play-aab.sh teacher
+      description: Build teacher Play Store AAB.

@@ -15,6 +15,7 @@ abstract final class ApiBaseUrlConfig {
   static const localUrl = 'http://localhost:9999';
   static const androidEmulatorUrl = 'http://10.0.2.2:9999';
   static const stagingUrl = 'https://api-staging.edaya.softilab.dev';
+  static const productionUrl = 'https://api.edaya.softilab.dev';
 
   static const _prefKey = 'edaya_api_base_url';
 

@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:839288643279:android:50120e7d55f88830ea61ba",
         "android_client_info": {
-          "package_name": "com.edaya.edaya_guardian"
+          "package_name": "com.softilab.edaya.guardian"
         }
       },
       "oauth_client": [],
@@ -28,7 +28,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:839288643279:android:0730cc09ddd94bf0ea61ba",
         "android_client_info": {
-          "package_name": "com.edaya.edaya_teacher"
+          "package_name": "com.softilab.edaya.staff"
         }
       },
       "oauth_client": [],
