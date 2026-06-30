@@ -254,6 +254,12 @@ abstract class AppLocalizations {
   /// **'Android emulator'**
   String get presetAndroidEmulator;
 
+  /// No description provided for @presetStaging.
+  ///
+  /// In en, this message translates to:
+  /// **'Staging'**
+  String get presetStaging;
+
   /// No description provided for @presetLanEditIp.
   ///
   /// In en, this message translates to:

@@ -46,6 +46,7 @@
   "apiBaseUrlLabel": "API base URL",
   "presetLocalhost": "Localhost",
   "presetAndroidEmulator": "Android emulator",
+  "presetStaging": "Staging",
   "presetLanEditIp": "LAN (edit IP)",
   "resetDefault": "Reset default",
   "save": "Save",

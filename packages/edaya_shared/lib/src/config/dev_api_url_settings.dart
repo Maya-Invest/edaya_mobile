@@ -29,8 +29,9 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
   bool _isSaving = false;
 
   List<({String label, String value})> _presets(BuildContext context) => [
-    (label: context.tr.presetLocalhost, value: 'http://localhost:9999'),
-    (label: context.tr.presetAndroidEmulator, value: 'http://10.0.2.2:9999'),
+    (label: context.tr.presetLocalhost, value: ApiBaseUrlConfig.localUrl),
+    (label: context.tr.presetAndroidEmulator, value: ApiBaseUrlConfig.androidEmulatorUrl),
+    (label: context.tr.presetStaging, value: ApiBaseUrlConfig.stagingUrl),
     (label: context.tr.presetLanEditIp, value: 'http://192.168.1.1:9999'),
   ];
 
@@ -130,7 +131,7 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
           decoration: InputDecoration(
             labelText: context.tr.apiBaseUrlLabel,
             border: const OutlineInputBorder(),
-            hintText: 'http://localhost:9999',
+            hintText: ApiBaseUrlConfig.stagingUrl,
           ),
           enabled: !_isSaving,
         ),

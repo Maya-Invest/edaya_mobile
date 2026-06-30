@@ -96,6 +96,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get presetAndroidEmulator => 'Émulateur Android';
 
   @override
+  String get presetStaging => 'Staging';
+
+  @override
   String get presetLanEditIp => 'LAN (modifier l\'IP)';
 
   @override

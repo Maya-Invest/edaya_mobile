@@ -140,14 +140,22 @@ Guardian and teacher wrap this in `AppSessionController` and `AppBootstrapContro
 
 ### API URL
 
-Default compile-time URL is `http://localhost:9999`. Override at build time:
+Default compile-time URL is `https://api-staging.edaya.softilab.dev`. Override at build time:
 
 ```bash
-flutter run --dart-define=API_URL=http://10.0.2.2:9999   # Android emulator
-flutter run --dart-define=API_URL=http://192.168.1.10:9999 # LAN device
+flutter run --dart-define=API_URL=http://localhost:9999          # local API
+flutter run --dart-define=API_URL=http://10.0.2.2:9999           # Android emulator → local
+flutter run --dart-define=API_URL=http://192.168.1.10:9999       # LAN device → local
 ```
 
-In **debug** builds, the login and account screens also expose **Developer settings** to change the URL at runtime (persisted in `SharedPreferences`). Restart the app after saving.
+Or use Melos shortcuts:
+
+```bash
+melos run run:guardian:local
+melos run run:teacher:local
+```
+
+In **debug** builds, the login and account screens also expose **Developer settings** to change the URL at runtime (persisted in `SharedPreferences`). A **Staging** preset is available there. Restart the app after saving.
 
 ### Dev credentials
 

@@ -11,11 +11,16 @@ import '../l10n/l10n_lookup.dart';
 abstract final class ApiBaseUrlConfig {
   ApiBaseUrlConfig._();
 
+  /// Known API endpoints for developer presets and build-time defines.
+  static const localUrl = 'http://localhost:9999';
+  static const androidEmulatorUrl = 'http://10.0.2.2:9999';
+  static const stagingUrl = 'https://api-staging.edaya.softilab.dev';
+
   static const _prefKey = 'edaya_api_base_url';
 
   static const compileTimeUrl = String.fromEnvironment(
     'API_URL',
-    defaultValue: 'http://localhost:9999',
+    defaultValue: stagingUrl,
   );
 
   static String _resolved = compileTimeUrl;
