@@ -260,6 +260,12 @@ abstract class AppLocalizations {
   /// **'Staging'**
   String get presetStaging;
 
+  /// No description provided for @presetProduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Production'**
+  String get presetProduction;
+
   /// No description provided for @presetLanEditIp.
   ///
   /// In en, this message translates to:

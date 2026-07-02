@@ -1,13 +1,12 @@
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/l10n_lookup.dart';
 
 /// Resolves the API base URL for mobile apps.
 ///
-/// In debug builds, a [SharedPreferences] override takes precedence over the
-/// compile-time `--dart-define=API_URL` value so developers can switch servers
-/// without rebuilding.
+/// A [SharedPreferences] override takes precedence over the compile-time
+/// `--dart-define=API_URL` value so the API endpoint can be switched without
+/// rebuilding. Overrides work in all build modes, including release.
 abstract final class ApiBaseUrlConfig {
   ApiBaseUrlConfig._();
 
@@ -33,14 +32,8 @@ abstract final class ApiBaseUrlConfig {
   /// Whether the current URL comes from a persisted dev override.
   static bool get hasOverride => _hasOverride;
 
-  /// Loads any persisted dev override before dependency injection starts.
+  /// Loads any persisted override before dependency injection starts.
   static Future<void> load() async {
-    if (!kDebugMode) {
-      _resolved = compileTimeUrl;
-      _hasOverride = false;
-      return;
-    }
-
     final prefs = await SharedPreferences.getInstance();
     final override = prefs.getString(_prefKey);
     if (override != null && override.isNotEmpty) {
@@ -53,10 +46,8 @@ abstract final class ApiBaseUrlConfig {
     _hasOverride = false;
   }
 
-  /// Persists a dev override. Returns `true` when the URL changed.
+  /// Persists an override. Returns `true` when the URL changed.
   static Future<bool> saveOverride(String rawUrl) async {
-    assert(kDebugMode, 'API URL overrides are only available in debug builds');
-
     final normalized = _normalizeUrl(rawUrl);
     if (normalized == _resolved) {
       return false;
@@ -71,8 +62,6 @@ abstract final class ApiBaseUrlConfig {
 
   /// Clears the persisted override and reverts to the compile-time URL.
   static Future<bool> clearOverride() async {
-    assert(kDebugMode, 'API URL overrides are only available in debug builds');
-
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_prefKey);
     final changed = _resolved != compileTimeUrl || _hasOverride;

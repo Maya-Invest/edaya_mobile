@@ -99,6 +99,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get presetStaging => 'Staging';
 
   @override
+  String get presetProduction => 'Production';
+
+  @override
   String get presetLanEditIp => 'LAN (modifier l\'IP)';
 
   @override

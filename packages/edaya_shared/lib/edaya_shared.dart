@@ -16,6 +16,7 @@ export 'src/common/widgets/account_sheet_body.dart';
 export 'src/common/widgets/data_state.dart';
 export 'src/common/widgets/route_error_page.dart';
 export 'src/config/api_base_url_config.dart';
+export 'src/config/developer_settings_config.dart';
 export 'src/config/dev_api_url_settings.dart';
 export 'src/di/edaya_module.dart';
 export 'src/features/auth/app_bootstrap_controller.dart';

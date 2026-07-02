@@ -4,7 +4,7 @@ import 'package:edaya_shared/edaya_shared.dart';
 ///
 /// The base URL defaults to staging; override at build time with
 /// `--dart-define=API_URL=http://10.0.2.2:9999` (Android emulator → local), or change
-/// at runtime from Developer settings (debug builds only).
+/// at runtime from Developer settings.
 ///
 /// Flutter web runs in the browser and calls the API directly, so the API must
 /// allow your dev origin via CORS (localhost origins are allowed in development).

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
+import '../../config/developer_settings_config.dart';
 import '../../config/dev_api_url_settings.dart';
 import '../../features/auth/app_session_controller.dart';
 import '../../features/auth/auth_session_storage.dart';
@@ -55,14 +56,16 @@ class AccountSheetBody extends StatelessWidget {
                 context.push('/settings');
               },
             ),
-            const SizedBox(height: 8),
-            DevApiUrlSettings(
-              compact: true,
-              onUrlChanged: () async {
-                await sessionStorage.clearCookies();
-                await sessionStorage.markLoggedOut();
-              },
-            ),
+            if (DeveloperSettingsConfig.enabled) ...[
+              const SizedBox(height: 8),
+              DevApiUrlSettings(
+                compact: true,
+                onUrlChanged: () async {
+                  await sessionStorage.clearCookies();
+                  await sessionStorage.markLoggedOut();
+                },
+              ),
+            ],
             const SizedBox(height: 24),
             LWatch(
               () => OutlinedButton.icon(

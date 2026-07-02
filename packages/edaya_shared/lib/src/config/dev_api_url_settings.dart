@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 
 import '../l10n/l10n_extension.dart';
 import 'api_base_url_config.dart';
+import 'developer_settings_config.dart';
 import 'restart_stub.dart' if (dart.library.io) 'restart_io.dart';
 
-/// Debug-only UI for configuring the API base URL at runtime.
+/// UI for configuring the API base URL at runtime.
 class DevApiUrlSettings extends StatefulWidget {
   const DevApiUrlSettings({
     super.key,
@@ -32,6 +33,7 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
     (label: context.tr.presetLocalhost, value: ApiBaseUrlConfig.localUrl),
     (label: context.tr.presetAndroidEmulator, value: ApiBaseUrlConfig.androidEmulatorUrl),
     (label: context.tr.presetStaging, value: ApiBaseUrlConfig.stagingUrl),
+    (label: context.tr.presetProduction, value: ApiBaseUrlConfig.productionUrl),
     (label: context.tr.presetLanEditIp, value: 'http://192.168.1.1:9999'),
   ];
 
@@ -192,7 +194,7 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
 
   @override
   Widget build(BuildContext context) {
-    if (!kDebugMode) {
+    if (!DeveloperSettingsConfig.enabled) {
       return const SizedBox.shrink();
     }
 

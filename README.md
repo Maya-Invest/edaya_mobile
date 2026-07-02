@@ -46,7 +46,7 @@ melos bootstrap
 
 Cross-app Flutter code used by guardian and teacher:
 
-- **Config** — `ApiBaseUrlConfig` (compile-time `--dart-define=API_URL` plus debug-only runtime override), `DevApiUrlSettings`
+- **Config** — `ApiBaseUrlConfig` (compile-time `--dart-define=API_URL` plus runtime override in all build modes), `DevApiUrlSettings`, `DeveloperSettingsConfig`
 - **UI** — `PersonAvatar`, `DataState`, `RouteErrorPage`, `AccountSheetBody`, `ModalBottomSheetPage`, `AppTheme`
 - **App scaffolding** — `EdayaAppRoot`, `EdayaRootScope`, `EdayaRouterRefresh`, `registerEdayaDependencies`, `createEdayaSchoolClient`
 - **Auth** — `AuthSessionStorage`, `AppSessionController`, `AppBootstrapController`, `LoginPage` / `LoginController`
@@ -155,7 +155,7 @@ melos run run:guardian:local
 melos run run:teacher:local
 ```
 
-In **debug** builds, the login and account screens also expose **Developer settings** to change the URL at runtime (persisted in `SharedPreferences`). A **Staging** preset is available there. Restart the app after saving.
+The login and account screens expose **Developer settings** in all build modes (including production) to change the API URL at runtime (persisted in `SharedPreferences`). Presets include local, staging, and production. Restart the app after saving.
 
 ### Dev credentials
 

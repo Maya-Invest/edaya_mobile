@@ -27,6 +27,7 @@
   "presetLocalhost": "Localhost",
   "presetAndroidEmulator": "Émulateur Android",
   "presetStaging": "Staging",
+  "presetProduction": "Production",
   "presetLanEditIp": "LAN (modifier l'IP)",
   "resetDefault": "Réinitialiser",
   "save": "Enregistrer",

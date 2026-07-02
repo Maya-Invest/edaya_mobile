@@ -4,6 +4,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../l10n/l10n_extension.dart';
 
+import '../../config/developer_settings_config.dart';
 import '../../config/dev_api_url_settings.dart';
 import 'app_session_controller.dart';
 import 'login_controller.dart';
@@ -118,8 +119,10 @@ class LoginPage extends LScopedView<LoginController> {
                             : Text(context.tr.signInButton),
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    const DevApiUrlSettings(compact: true),
+                    if (DeveloperSettingsConfig.enabled) ...[
+                      const SizedBox(height: 24),
+                      const DevApiUrlSettings(compact: true),
+                    ],
                   ],
                 ),
               ),
