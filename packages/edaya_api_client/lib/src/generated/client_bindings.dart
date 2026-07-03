@@ -100,9 +100,19 @@ abstract final class ClientBindings {
       schemaName: "Schedule",
       allowDirectSave: true,
     ),
-    "sessions": EntityBinding(
-      publicName: "sessions",
-      schemaName: "Session",
+    "lessonSessions": EntityBinding(
+      publicName: "lesson-sessions",
+      schemaName: "LessonSession",
+      allowDirectSave: true,
+    ),
+    "activitySessions": EntityBinding(
+      publicName: "activity-sessions",
+      schemaName: "ActivitySession",
+      allowDirectSave: true,
+    ),
+    "attendances": EntityBinding(
+      publicName: "attendances",
+      schemaName: "AttendanceOccurrence",
       allowDirectSave: true,
     ),
     "calendarEvents": EntityBinding(
@@ -145,6 +155,16 @@ abstract final class ClientBindings {
       schemaName: "SubjectMatter",
       allowDirectSave: true,
     ),
+    "gradeLevelSubjects": EntityBinding(
+      publicName: "grade-level-subjects",
+      schemaName: "GradeLevelSubject",
+      allowDirectSave: false,
+    ),
+    "gradeLevelSubjectMatters": EntityBinding(
+      publicName: "grade-level-subject-matters",
+      schemaName: "GradeLevelSubjectMatter",
+      allowDirectSave: false,
+    ),
     "classGroups": EntityBinding(
       publicName: "class-groups",
       schemaName: "ClassGroup",
@@ -153,7 +173,7 @@ abstract final class ClientBindings {
     "classSubjects": EntityBinding(
       publicName: "class-subjects",
       schemaName: "ClassSubject",
-      allowDirectSave: true,
+      allowDirectSave: false,
     ),
     "classSubjectMatters": EntityBinding(
       publicName: "class-subject-matters",
@@ -165,24 +185,9 @@ abstract final class ClientBindings {
       schemaName: "ClassSubjectProgress",
       allowDirectSave: true,
     ),
-    "classLogbookEntries": EntityBinding(
-      publicName: "class-logbook-entries",
-      schemaName: "ClassLogbookEntry",
-      allowDirectSave: true,
-    ),
-    "homeworkAssignments": EntityBinding(
-      publicName: "homework-assignments",
-      schemaName: "HomeworkAssignment",
-      allowDirectSave: true,
-    ),
-    "homeworkSubmissions": EntityBinding(
-      publicName: "homework-submissions",
-      schemaName: "HomeworkSubmission",
-      allowDirectSave: true,
-    ),
     "activities": EntityBinding(
       publicName: "activities",
-      schemaName: "ExtracurricularActivity",
+      schemaName: "Activity",
       allowDirectSave: true,
     ),
     "activityEnrollments": EntityBinding(
@@ -291,9 +296,9 @@ abstract final class ClientBindings {
     "acceptAccountInvitation": "accept-account-invitation",
     "assignStaffToClass": "assign-staff-to-class",
     "assignStaffToClassSubject": "assign-staff-to-class-subject",
-    "assignStaffToSession": "assign-staff-to-session",
+    "assignStaffToLessonSession": "assign-staff-to-lesson-session",
     "assignResourceToClass": "assign-resource-to-class",
-    "assignResourceToSession": "assign-resource-to-session",
+    "assignResourceToLessonSession": "assign-resource-to-lesson-session",
     "removeResourceAssignment": "remove-resource-assignment",
     "registerAttachment": "register-attachment",
     "removeAttachment": "remove-attachment",
@@ -315,7 +320,13 @@ abstract final class ClientBindings {
     "updateGuardianStudentLink": "update-guardian-student-link",
     "offerSubjectToClass": "offer-subject-to-class",
     "assignMatterToClassSubject": "assign-matter-to-class-subject",
-    "recordSessionProgress": "record-session-progress",
+    "offerSubjectToGradeLevel": "offer-subject-to-grade-level",
+    "removeSubjectFromGradeLevel": "remove-subject-from-grade-level",
+    "updateGradeLevelSubject": "update-grade-level-subject",
+    "assignMatterToGradeLevelSubject": "assign-matter-to-grade-level-subject",
+    "addCustomClassSubject": "add-custom-class-subject",
+    "setClassSubjectOffered": "set-class-subject-offered",
+    "recordLessonSessionProgress": "record-lesson-session-progress",
     "createGradeScale": "create-grade-scale",
     "createReportCardDefinition": "create-report-card-definition",
     "createReportCardDefinitionSection": "create-report-card-definition-section",
@@ -339,12 +350,15 @@ abstract final class ClientBindings {
     "adjustStudentFee": "adjust-student-fee",
     "cancelStudentFee": "cancel-student-fee",
     "createSchedule": "create-schedule",
+    "saveSchedule": "save-schedule",
+    "materializeSchedule": "materialize-schedule",
     "createCalendarEvent": "create-calendar-event",
-    "createSession": "create-session",
-    "generateSessions": "generate-sessions",
+    "cancelLessonSession": "cancel-lesson-session",
+    "cancelActivitySession": "cancel-activity-session",
+    "rescheduleOccurrence": "reschedule-occurrence",
     "recordAttendance": "record-attendance",
     "recordDailyAttendance": "record-daily-attendance",
-    "recordSessionAttendance": "record-session-attendance",
+    "recordLessonSessionAttendance": "record-lesson-session-attendance",
     "recordClassDailyAttendance": "record-class-daily-attendance",
     "reviewAttendanceJustification": "review-attendance-justification",
     "createAnnouncement": "create-announcement",
@@ -365,5 +379,6 @@ abstract final class ClientBindings {
     "getOverdueFeeCount": "get-overdue-fee-count",
     "getPublishedReportCardCount": "get-published-report-card-count",
     "getSchoolOverview": "get-school-overview",
+    "getClassGroupTimetable": "get-class-group-timetable",
   };
 }

@@ -16,14 +16,14 @@ EntityQuery sessionsForClassGroups(List<String> classGroupIds) {
   return recordsForField('classGroupId', classGroupIds);
 }
 
-EntityQuery attendanceForSession(String sessionId) {
-  return sessionScope(sessionId);
-}
-
-EntityQuery activeEnrollmentsForClass(String classGroupId) {
+EntityQuery activeEnrollmentsForClass(
+  String classGroupId, {
+  String? academicYearId,
+}) {
   return {
     'classGroupId': classGroupId,
     'status': 'active',
+    'academicYearId': ?academicYearId,
   };
 }
 
@@ -40,6 +40,17 @@ EntityQuery assessmentsForClassPeriod(String classGroupId, String periodId) {
 
 EntityQuery resultsForAssessment(String assessmentId) {
   return {'assessmentId': assessmentId};
+}
+
+EntityQuery publishedReportCardsForClassPeriod(
+  String classGroupId,
+  String periodId,
+) {
+  return {
+    'classGroupId': classGroupId,
+    'periodId': periodId,
+    'status': 'published',
+  };
 }
 
 EntityQuery logbookForClassSubject(String classGroupId, String classSubjectId) {

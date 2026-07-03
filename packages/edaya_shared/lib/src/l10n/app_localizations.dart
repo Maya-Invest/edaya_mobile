@@ -116,6 +116,66 @@ abstract class AppLocalizations {
   /// **'Account'**
   String get accountTitle;
 
+  /// No description provided for @accountProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact profile'**
+  String get accountProfileTitle;
+
+  /// No description provided for @accountProfileDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Update the name and contact details shown to the school.'**
+  String get accountProfileDescription;
+
+  /// No description provided for @accountProfileLoginEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in email: {email}'**
+  String accountProfileLoginEmail(String email);
+
+  /// No description provided for @accountProfileUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Your school profile is not available.'**
+  String get accountProfileUnavailable;
+
+  /// No description provided for @accountProfileLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your profile. {error}'**
+  String accountProfileLoadError(String error);
+
+  /// No description provided for @accountProfileSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save your profile. {error}'**
+  String accountProfileSaveError(String error);
+
+  /// No description provided for @accountProfileUpdateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated.'**
+  String get accountProfileUpdateSuccess;
+
+  /// No description provided for @firstNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get firstNameLabel;
+
+  /// No description provided for @lastNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last name'**
+  String get lastNameLabel;
+
+  /// No description provided for @phoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get phoneLabel;
+
   /// No description provided for @signingOut.
   ///
   /// In en, this message translates to:
@@ -559,6 +619,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Attendance'**
   String get attendance;
+
+  /// No description provided for @timetableSessionKindLesson.
+  ///
+  /// In en, this message translates to:
+  /// **'Lesson'**
+  String get timetableSessionKindLesson;
+
+  /// No description provided for @timetableSessionKindActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get timetableSessionKindActivity;
+
+  /// No description provided for @timetableSessionKindAssessment.
+  ///
+  /// In en, this message translates to:
+  /// **'Assessment'**
+  String get timetableSessionKindAssessment;
 
   /// No description provided for @noAttendanceRecorded.
   ///
@@ -1399,6 +1477,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not save mark: {error}'**
   String couldNotSaveMark(String error);
+
+  /// No description provided for @publishedReportCardImmutable.
+  ///
+  /// In en, this message translates to:
+  /// **'This student's report card has already been published for this period. Marks can no longer be changed.'**
+  String get publishedReportCardImmutable;
+
+  /// No description provided for @marksLockedReportCardPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Report card published'**
+  String get marksLockedReportCardPublished;
+
+  /// No description provided for @marksEntryPeriodLockedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Report cards have been published for this period. Marks can no longer be recorded for these students.'**
+  String get marksEntryPeriodLockedHint;
 
   /// No description provided for @couldNotLoadSubjects.
   ///

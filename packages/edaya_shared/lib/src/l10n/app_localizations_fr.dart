@@ -18,6 +18,44 @@ class AppLocalizationsFr extends AppLocalizations {
   String get accountTitle => 'Compte';
 
   @override
+  String get accountProfileTitle => 'Profil de contact';
+
+  @override
+  String get accountProfileDescription =>
+      'Mettez à jour le nom et les coordonnées visibles par l\'établissement.';
+
+  @override
+  String accountProfileLoginEmail(String email) {
+    return 'E-mail de connexion : $email';
+  }
+
+  @override
+  String get accountProfileUnavailable =>
+      'Votre profil scolaire n\'est pas disponible.';
+
+  @override
+  String accountProfileLoadError(String error) {
+    return 'Impossible de charger votre profil. $error';
+  }
+
+  @override
+  String accountProfileSaveError(String error) {
+    return 'Impossible d\'enregistrer votre profil. $error';
+  }
+
+  @override
+  String get accountProfileUpdateSuccess => 'Profil mis à jour.';
+
+  @override
+  String get firstNameLabel => 'Prénom';
+
+  @override
+  String get lastNameLabel => 'Nom';
+
+  @override
+  String get phoneLabel => 'Téléphone';
+
+  @override
   String get signingOut => 'Déconnexion…';
 
   @override
@@ -280,6 +318,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get attendance => 'Présence';
+
+  @override
+  String get timetableSessionKindLesson => 'Cours';
+
+  @override
+  String get timetableSessionKindActivity => 'Activité';
+
+  @override
+  String get timetableSessionKindAssessment => 'Évaluation';
 
   @override
   String get noAttendanceRecorded => 'Aucune présence enregistrée.';
@@ -813,6 +860,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String couldNotSaveMark(String error) {
     return 'Impossible d\'enregistrer la note : $error';
   }
+
+  @override
+  String get publishedReportCardImmutable =>
+      'Le bulletin de cet élève a déjà été publié pour cette période. Les notes ne peuvent plus être modifiées.';
+
+  @override
+  String get marksLockedReportCardPublished => 'Bulletin publié';
+
+  @override
+  String get marksEntryPeriodLockedHint =>
+      'Les bulletins ont été publiés pour cette période. Les notes ne peuvent plus être saisies pour ces élèves.';
 
   @override
   String couldNotLoadSubjects(String error) {

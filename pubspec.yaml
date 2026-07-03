@@ -38,11 +38,11 @@ melos:
       run: bash scripts/check-api-bindings-drift.sh
       description: Verify committed Dart bindings match spec/client-bindings.json.
     run:guardian:local:
-      run: cd apps/guardian && flutter run --dart-define=API_URL=http://localhost:9999
-      description: Run guardian app against a local API.
+      run: cd apps/guardian && flutter run --dart-define=API_URL=http://10.0.2.2:9999
+      description: Run guardian app against local API (Android emulator).
     run:teacher:local:
       run: cd apps/teacher && flutter run --dart-define=API_URL=http://localhost:9999
-      description: Run teacher app against a local API.
+      description: Run teacher app against local API (localhost).
     run:guardian:staging:
       run: cd apps/guardian && flutter run
       description: Run guardian app (default staging API).

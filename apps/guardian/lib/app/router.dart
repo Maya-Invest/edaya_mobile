@@ -72,6 +72,14 @@ class AppRouter extends LevitController implements EdayaAppRouter {
         ),
         GoRoute(
           parentNavigatorKey: rootNavigatorKey,
+          path: '/account/profile',
+          builder: (context, state) => AccountProfilePage(
+            session: AppRuntime.session,
+            schoolClient: AppRuntime.schoolClient,
+          ),
+        ),
+        GoRoute(
+          parentNavigatorKey: rootNavigatorKey,
           path: '/account',
           pageBuilder: (context, state) {
             return const ModalBottomSheetPage<void>(

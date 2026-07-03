@@ -39,7 +39,11 @@ extension GeneratedSchoolClientEntities on SchoolClient {
 
   EntityResource get schedules => entities["schedules"]!;
 
-  EntityResource get sessions => entities["sessions"]!;
+  EntityResource get lessonSessions => entities["lessonSessions"]!;
+
+  EntityResource get activitySessions => entities["activitySessions"]!;
+
+  EntityResource get attendances => entities["attendances"]!;
 
   EntityResource get calendarEvents => entities["calendarEvents"]!;
 
@@ -57,6 +61,10 @@ extension GeneratedSchoolClientEntities on SchoolClient {
 
   EntityResource get subjectMatters => entities["subjectMatters"]!;
 
+  EntityResource get gradeLevelSubjects => entities["gradeLevelSubjects"]!;
+
+  EntityResource get gradeLevelSubjectMatters => entities["gradeLevelSubjectMatters"]!;
+
   EntityResource get classGroups => entities["classGroups"]!;
 
   EntityResource get classSubjects => entities["classSubjects"]!;
@@ -64,12 +72,6 @@ extension GeneratedSchoolClientEntities on SchoolClient {
   EntityResource get classSubjectMatters => entities["classSubjectMatters"]!;
 
   EntityResource get classSubjectProgress => entities["classSubjectProgress"]!;
-
-  EntityResource get classLogbookEntries => entities["classLogbookEntries"]!;
-
-  EntityResource get homeworkAssignments => entities["homeworkAssignments"]!;
-
-  EntityResource get homeworkSubmissions => entities["homeworkSubmissions"]!;
 
   EntityResource get activities => entities["activities"]!;
 
@@ -163,14 +165,14 @@ extension GeneratedSchoolClientCommands on SchoolClient {
   Future<Map<String, dynamic>> assignStaffToClassSubject(Map<String, dynamic> payload) =>
       runCommand("assign-staff-to-class-subject", payload);
 
-  Future<Map<String, dynamic>> assignStaffToSession(Map<String, dynamic> payload) =>
-      runCommand("assign-staff-to-session", payload);
+  Future<Map<String, dynamic>> assignStaffToLessonSession(Map<String, dynamic> payload) =>
+      runCommand("assign-staff-to-lesson-session", payload);
 
   Future<Map<String, dynamic>> assignResourceToClass(Map<String, dynamic> payload) =>
       runCommand("assign-resource-to-class", payload);
 
-  Future<Map<String, dynamic>> assignResourceToSession(Map<String, dynamic> payload) =>
-      runCommand("assign-resource-to-session", payload);
+  Future<Map<String, dynamic>> assignResourceToLessonSession(Map<String, dynamic> payload) =>
+      runCommand("assign-resource-to-lesson-session", payload);
 
   Future<Map<String, dynamic>> removeResourceAssignment(Map<String, dynamic> payload) =>
       runCommand("remove-resource-assignment", payload);
@@ -235,8 +237,26 @@ extension GeneratedSchoolClientCommands on SchoolClient {
   Future<Map<String, dynamic>> assignMatterToClassSubject(Map<String, dynamic> payload) =>
       runCommand("assign-matter-to-class-subject", payload);
 
-  Future<Map<String, dynamic>> recordSessionProgress(Map<String, dynamic> payload) =>
-      runCommand("record-session-progress", payload);
+  Future<Map<String, dynamic>> offerSubjectToGradeLevel(Map<String, dynamic> payload) =>
+      runCommand("offer-subject-to-grade-level", payload);
+
+  Future<Map<String, dynamic>> removeSubjectFromGradeLevel(Map<String, dynamic> payload) =>
+      runCommand("remove-subject-from-grade-level", payload);
+
+  Future<Map<String, dynamic>> updateGradeLevelSubject(Map<String, dynamic> payload) =>
+      runCommand("update-grade-level-subject", payload);
+
+  Future<Map<String, dynamic>> assignMatterToGradeLevelSubject(Map<String, dynamic> payload) =>
+      runCommand("assign-matter-to-grade-level-subject", payload);
+
+  Future<Map<String, dynamic>> addCustomClassSubject(Map<String, dynamic> payload) =>
+      runCommand("add-custom-class-subject", payload);
+
+  Future<Map<String, dynamic>> setClassSubjectOffered(Map<String, dynamic> payload) =>
+      runCommand("set-class-subject-offered", payload);
+
+  Future<Map<String, dynamic>> recordLessonSessionProgress(Map<String, dynamic> payload) =>
+      runCommand("record-lesson-session-progress", payload);
 
   Future<Map<String, dynamic>> createGradeScale(Map<String, dynamic> payload) =>
       runCommand("create-grade-scale", payload);
@@ -307,14 +327,23 @@ extension GeneratedSchoolClientCommands on SchoolClient {
   Future<Map<String, dynamic>> createSchedule(Map<String, dynamic> payload) =>
       runCommand("create-schedule", payload);
 
+  Future<Map<String, dynamic>> saveSchedule(Map<String, dynamic> payload) =>
+      runCommand("save-schedule", payload);
+
+  Future<Map<String, dynamic>> materializeSchedule(Map<String, dynamic> payload) =>
+      runCommand("materialize-schedule", payload);
+
   Future<Map<String, dynamic>> createCalendarEvent(Map<String, dynamic> payload) =>
       runCommand("create-calendar-event", payload);
 
-  Future<Map<String, dynamic>> createSession(Map<String, dynamic> payload) =>
-      runCommand("create-session", payload);
+  Future<Map<String, dynamic>> cancelLessonSession(Map<String, dynamic> payload) =>
+      runCommand("cancel-lesson-session", payload);
 
-  Future<Map<String, dynamic>> generateSessions(Map<String, dynamic> payload) =>
-      runCommand("generate-sessions", payload);
+  Future<Map<String, dynamic>> cancelActivitySession(Map<String, dynamic> payload) =>
+      runCommand("cancel-activity-session", payload);
+
+  Future<Map<String, dynamic>> rescheduleOccurrence(Map<String, dynamic> payload) =>
+      runCommand("reschedule-occurrence", payload);
 
   Future<Map<String, dynamic>> recordAttendance(Map<String, dynamic> payload) =>
       runCommand("record-attendance", payload);
@@ -322,8 +351,8 @@ extension GeneratedSchoolClientCommands on SchoolClient {
   Future<Map<String, dynamic>> recordDailyAttendance(Map<String, dynamic> payload) =>
       runCommand("record-daily-attendance", payload);
 
-  Future<Map<String, dynamic>> recordSessionAttendance(Map<String, dynamic> payload) =>
-      runCommand("record-session-attendance", payload);
+  Future<Map<String, dynamic>> recordLessonSessionAttendance(Map<String, dynamic> payload) =>
+      runCommand("record-lesson-session-attendance", payload);
 
   Future<Map<String, dynamic>> recordClassDailyAttendance(Map<String, dynamic> payload) =>
       runCommand("record-class-daily-attendance", payload);
@@ -377,4 +406,7 @@ extension GeneratedSchoolClientQueries on SchoolClient {
 
   Future<Map<String, dynamic>> getSchoolOverview(Map<String, dynamic> payload) =>
       runQuery("get-school-overview", payload);
+
+  Future<Map<String, dynamic>> getClassGroupTimetable(Map<String, dynamic> payload) =>
+      runQuery("get-class-group-timetable", payload);
 }

@@ -19,12 +19,15 @@ class SessionTile extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: ListTile(
         onTap: onTap,
-        title: Text(session.title),
+        title: Text(session.subjectLabel ?? session.title),
         subtitle: Text(
-          context.tr.timeRange(
-            context.formatTimeOfDay(session.startsAt),
-            context.formatTimeOfDay(session.endsAt),
-          ),
+          [
+            timetableSessionKindLabel(context.tr, session.kind),
+            context.tr.timeRange(
+              context.formatTimeOfDay(session.startsAt),
+              context.formatTimeOfDay(session.endsAt),
+            ),
+          ].join(' · '),
         ),
         trailing: const Icon(Icons.chevron_right),
       ),

@@ -8,22 +8,20 @@ class CalendarSession {
     required this.startsAt,
     required this.endsAt,
     this.classSubjectId,
+    this.subjectLabel,
+    this.status,
   });
 
-  factory CalendarSession.fromJson(Map<String, dynamic> json) {
-    final startsAt = parseApiDateTime(json['startsAt']);
-    final endsAt = parseApiDateTime(json['endsAt']);
-    if (startsAt == null || endsAt == null) {
-      throw FormatException('Session ${json['id']} has invalid dates');
-    }
-
+  factory CalendarSession.fromOccurrence(TimetableOccurrence occurrence) {
     return CalendarSession(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      kind: json['kind'] as String? ?? 'course',
-      startsAt: startsAt.toLocal(),
-      endsAt: endsAt.toLocal(),
-      classSubjectId: json['classSubjectId'] as String?,
+      id: occurrence.id,
+      title: occurrence.title,
+      kind: occurrence.kind,
+      startsAt: occurrence.startsAt,
+      endsAt: occurrence.endsAt,
+      classSubjectId: occurrence.classSubjectId,
+      subjectLabel: occurrence.subjectLabel,
+      status: occurrence.status,
     );
   }
 
@@ -33,38 +31,8 @@ class CalendarSession {
   final DateTime startsAt;
   final DateTime endsAt;
   final String? classSubjectId;
+  final String? subjectLabel;
+  final String? status;
 
-  /// Projects a recurring timetable slot onto [day] when weekdays match.
-  CalendarSession? projectOntoDay(DateTime day) {
-    if (startsAt.weekday != day.weekday) {
-      return null;
-    }
-
-    return CalendarSession(
-      id: id,
-      title: title,
-      kind: kind,
-      startsAt: DateTime(
-        day.year,
-        day.month,
-        day.day,
-        startsAt.hour,
-        startsAt.minute,
-        startsAt.second,
-        startsAt.millisecond,
-        startsAt.microsecond,
-      ),
-      endsAt: DateTime(
-        day.year,
-        day.month,
-        day.day,
-        endsAt.hour,
-        endsAt.minute,
-        endsAt.second,
-        endsAt.millisecond,
-        endsAt.microsecond,
-      ),
-      classSubjectId: classSubjectId,
-    );
-  }
+  bool occursOn(DateTime day) => isSameCalendarDay(startsAt, day);
 }

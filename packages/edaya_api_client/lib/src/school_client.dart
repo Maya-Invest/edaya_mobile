@@ -45,6 +45,19 @@ class SchoolClient {
     );
     return EffectiveGrantsResponse.fromJson(response);
   }
+
+  /// Lists an entity collection by public API name, including legacy routes
+  /// that are no longer present in generated bindings.
+  Future<List<Map<String, dynamic>>> listEntityByPublicName(
+    String publicName, [
+    EntityQuery? query,
+  ]) {
+    return EntityResource(_transport, publicName).list(query);
+  }
+
+  Future<Map<String, dynamic>> getEntityByPublicName(String publicName, String id) {
+    return EntityResource(_transport, publicName).get(id);
+  }
 }
 
 SchoolClient createSchoolClient(Transport transport) => SchoolClient(transport);

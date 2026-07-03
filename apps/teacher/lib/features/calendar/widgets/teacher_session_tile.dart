@@ -22,6 +22,7 @@ class TeacherSessionTile extends StatelessWidget {
         title: Text(session.title),
         subtitle: Text(
           '${session.classLabel} · ${session.subjectLabel}\n'
+          '${timetableSessionKindLabel(context.tr, session.kind)} · '
           '${context.tr.timeRange(context.formatTimeOfDay(session.startsAt), context.formatTimeOfDay(session.endsAt))}',
         ),
         isThreeLine: true,

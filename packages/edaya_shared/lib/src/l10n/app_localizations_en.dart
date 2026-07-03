@@ -18,6 +18,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountTitle => 'Account';
 
   @override
+  String get accountProfileTitle => 'Contact profile';
+
+  @override
+  String get accountProfileDescription =>
+      'Update the name and contact details shown to the school.';
+
+  @override
+  String accountProfileLoginEmail(String email) {
+    return 'Sign-in email: $email';
+  }
+
+  @override
+  String get accountProfileUnavailable =>
+      'Your school profile is not available.';
+
+  @override
+  String accountProfileLoadError(String error) {
+    return 'Could not load your profile. $error';
+  }
+
+  @override
+  String accountProfileSaveError(String error) {
+    return 'Could not save your profile. $error';
+  }
+
+  @override
+  String get accountProfileUpdateSuccess => 'Profile updated.';
+
+  @override
+  String get firstNameLabel => 'First name';
+
+  @override
+  String get lastNameLabel => 'Last name';
+
+  @override
+  String get phoneLabel => 'Phone';
+
+  @override
   String get signingOut => 'Signing out…';
 
   @override
@@ -276,6 +314,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attendance => 'Attendance';
+
+  @override
+  String get timetableSessionKindLesson => 'Lesson';
+
+  @override
+  String get timetableSessionKindActivity => 'Activity';
+
+  @override
+  String get timetableSessionKindAssessment => 'Assessment';
 
   @override
   String get noAttendanceRecorded => 'No attendance recorded.';
@@ -802,6 +849,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String couldNotSaveMark(String error) {
     return 'Could not save mark: $error';
   }
+
+  @override
+  String get publishedReportCardImmutable =>
+      'This student\'s report card has already been published for this period. Marks can no longer be changed.';
+
+  @override
+  String get marksLockedReportCardPublished => 'Report card published';
+
+  @override
+  String get marksEntryPeriodLockedHint =>
+      'Report cards have been published for this period. Marks can no longer be recorded for these students.';
 
   @override
   String couldNotLoadSubjects(String error) {

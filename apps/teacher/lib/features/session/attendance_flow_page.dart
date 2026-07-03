@@ -194,6 +194,17 @@ class _AttendanceFlowBodyState extends State<_AttendanceFlowBody> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(0, 64),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 18,
+                        ),
+                        textStyle:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
                       onPressed: () => _mark(current, status),
                       child: Text(status.label(context.tr)),
                     ),
@@ -302,9 +313,22 @@ class _AttendanceSummary extends StatelessWidget {
               },
             ),
           ),
-          FilledButton(onPressed: onDone, child: Text(context.tr.done)),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(double.infinity, 56),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              textStyle: Theme.of(context).textTheme.titleMedium,
+            ),
+            onPressed: onDone,
+            child: Text(context.tr.done),
+          ),
           const SizedBox(height: 8),
           OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 52),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              textStyle: Theme.of(context).textTheme.titleMedium,
+            ),
             onPressed: onReviewAgain,
             child: Text(context.tr.reviewAgain),
           ),

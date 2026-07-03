@@ -18,12 +18,29 @@ abstract final class ApiBaseUrlConfig {
 
   static const _prefKey = 'edaya_api_base_url';
 
-  static const compileTimeUrl = String.fromEnvironment(
-    'API_URL',
-    defaultValue: stagingUrl,
-  );
+  static const _dartDefineUrl = String.fromEnvironment('API_URL', defaultValue: '');
 
-  static String _resolved = compileTimeUrl;
+  static String? _appDefaultUrl;
+
+  /// Sets the app-specific default when `--dart-define=API_URL` is not provided.
+  ///
+  /// Call before [load] from each app's `main`.
+  static void configure({required String appDefaultUrl}) {
+    _appDefaultUrl = appDefaultUrl;
+  }
+
+  /// Build-time URL from `--dart-define=API_URL`, else the configured app default.
+  static String get defaultUrl {
+    if (_dartDefineUrl.isNotEmpty) {
+      return _dartDefineUrl;
+    }
+    return _appDefaultUrl ?? stagingUrl;
+  }
+
+  /// Backwards-compatible alias for [defaultUrl].
+  static String get compileTimeUrl => defaultUrl;
+
+  static String _resolved = stagingUrl;
   static bool _hasOverride = false;
 
   /// The resolved API base URL used by HTTP clients.
@@ -42,7 +59,7 @@ abstract final class ApiBaseUrlConfig {
       return;
     }
 
-    _resolved = compileTimeUrl;
+    _resolved = defaultUrl;
     _hasOverride = false;
   }
 
@@ -64,8 +81,8 @@ abstract final class ApiBaseUrlConfig {
   static Future<bool> clearOverride() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_prefKey);
-    final changed = _resolved != compileTimeUrl || _hasOverride;
-    _resolved = compileTimeUrl;
+    final changed = _resolved != defaultUrl || _hasOverride;
+    _resolved = defaultUrl;
     _hasOverride = false;
     return changed;
   }

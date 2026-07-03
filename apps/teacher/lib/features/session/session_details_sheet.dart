@@ -69,24 +69,33 @@ class SessionDetailsSheet extends LScopedView<SessionDetailController> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                SegmentedButton<SessionDetailSegment>(
-                  segments: [
-                    ButtonSegment(
-                      value: SessionDetailSegment.attendance,
-                      label: Text(context.tr.attendance),
-                      icon: Icon(Icons.fact_check_outlined),
+                if (controller.supportsLogbook)
+                  SegmentedButton<SessionDetailSegment>(
+                    segments: [
+                      ButtonSegment(
+                        value: SessionDetailSegment.attendance,
+                        label: Text(context.tr.attendance),
+                        icon: const Icon(Icons.fact_check_outlined),
+                      ),
+                      ButtonSegment(
+                        value: SessionDetailSegment.logbook,
+                        label: Text(context.tr.logbook),
+                        icon: const Icon(Icons.menu_book_outlined),
+                      ),
+                    ],
+                    selected: {controller.segment.value},
+                    onSelectionChanged: (selection) {
+                      controller.segment(selection.first);
+                    },
+                  )
+                else
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      context.tr.attendance,
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    ButtonSegment(
-                      value: SessionDetailSegment.logbook,
-                      label: Text(context.tr.logbook),
-                      icon: Icon(Icons.menu_book_outlined),
-                    ),
-                  ],
-                  selected: {controller.segment.value},
-                  onSelectionChanged: (selection) {
-                    controller.segment(selection.first);
-                  },
-                ),
+                  ),
                 if (controller.errorMessage.value.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Text(

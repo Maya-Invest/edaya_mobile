@@ -15,12 +15,7 @@ abstract class EdayaAppRouter {
 }
 
 class EdayaAppRoot extends StatelessWidget {
-  const EdayaAppRoot({
-    super.key,
-    required this.scopeName,
-    required this.appTitle,
-    required this.registerDependencies,
-  });
+  const EdayaAppRoot({super.key, required this.scopeName, required this.appTitle, required this.registerDependencies});
 
   final String scopeName;
   final String appTitle;
@@ -52,34 +47,19 @@ class EdayaBootstrapGate extends LView<AppBootstrapController> {
   Widget buildView(BuildContext context, AppBootstrapController controller) {
     final settings = EdayaRootScope.find<AppSettingsController>();
 
-    return LWatch(
-      () {
-        settings.theme.value;
-        settings.language.value;
-        settings.timezone.value;
-        settings.dateFormat.value;
-        settings.timeFormat.value;
+    return LWatch(() {
+      settings.theme.value;
+      settings.language.value;
+      settings.timezone.value;
+      settings.dateFormat.value;
+      settings.timeFormat.value;
 
-        final themeMode = settings.themeMode;
-        final locale = settings.locale;
+      final themeMode = settings.themeMode;
+      final locale = settings.locale;
 
-        if (!controller.isReady.value) {
-          return MaterialApp(
-            theme: AppTheme.light,
-            darkTheme: AppTheme.dark,
-            themeMode: themeMode,
-            locale: locale,
-            localeResolutionCallback: settings.resolveLocale,
-            localizationsDelegates: _localizationDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            ),
-          );
-        }
-
-        return MaterialApp.router(
-          title: appTitle,
+      if (!controller.isReady.value) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           themeMode: themeMode,
@@ -87,9 +67,22 @@ class EdayaBootstrapGate extends LView<AppBootstrapController> {
           localeResolutionCallback: settings.resolveLocale,
           localizationsDelegates: _localizationDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          routerConfig: EdayaRootScope.find<EdayaAppRouter>().config(),
+          home: const Scaffold(body: Center(child: CircularProgressIndicator())),
         );
-      },
-    );
+      }
+
+      return MaterialApp.router(
+        debugShowCheckedModeBanner: false,
+        title: appTitle,
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: themeMode,
+        locale: locale,
+        localeResolutionCallback: settings.resolveLocale,
+        localizationsDelegates: _localizationDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        routerConfig: EdayaRootScope.find<EdayaAppRouter>().config(),
+      );
+    });
   }
 }

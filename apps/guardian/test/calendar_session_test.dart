@@ -1,24 +1,21 @@
 import 'package:edaya_shared/edaya_shared.dart';
-import 'package:edaya_guardian/features/calendar/models/calendar_session.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:edaya_guardian/features/calendar/models/calendar_session.dart';
+
 void main() {
-  test('projectOntoDay maps recurring timetable slots by weekday', () {
+  test('occursOn matches materialized timetable dates', () {
     final session = CalendarSession(
       id: 'sess-p1',
       title: 'Algebra basics',
-      kind: 'course',
-      startsAt: DateTime(2026, 5, 11, 8, 30),
-      endsAt: DateTime(2026, 5, 11, 9, 30),
+      kind: 'lesson',
+      startsAt: DateTime(2026, 6, 22, 8, 30),
+      endsAt: DateTime(2026, 6, 22, 9, 30),
       classSubjectId: 'cs-6a-math',
     );
 
-    final projected = session.projectOntoDay(DateTime(2026, 6, 22));
-
-    expect(projected, isNotNull);
-    expect(projected!.startsAt, DateTime(2026, 6, 22, 8, 30));
-    expect(projected.endsAt, DateTime(2026, 6, 22, 9, 30));
-    expect(session.projectOntoDay(DateTime(2026, 6, 23)), isNull);
+    expect(session.occursOn(DateTime(2026, 6, 22)), isTrue);
+    expect(session.occursOn(DateTime(2026, 6, 23)), isFalse);
   });
 
   test('defaultCalendarDay prefers Monday on weekends', () {

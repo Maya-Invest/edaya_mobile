@@ -38,6 +38,8 @@ class SessionDetailController extends LevitController
   int get recordedAttendanceCount =>
       students.value.where((row) => row.status != null).length;
 
+  bool get supportsLogbook => session.kind == 'lesson';
+
   Future<void> loadDetail() async {
     errorMessage('');
     await runTask(() async {
@@ -54,8 +56,10 @@ class SessionDetailController extends LevitController
             ? <Map<String, dynamic>>[]
             : await client.students.list(entitiesByIds(studentIds));
 
-        final attendanceRows = await client.attendance.list(
-          attendanceForSession(session.id),
+        final attendanceRows = await listAttendanceForOccurrence(
+          client.attendance,
+          kind: session.kind,
+          occurrenceId: session.id,
         );
         final attendanceByStudent = {
           for (final row in attendanceRows)
@@ -84,61 +88,105 @@ class SessionDetailController extends LevitController
           ..sort((a, b) => a.studentName.compareTo(b.studentName));
         students(roster);
 
-        if (session.classSubjectId != null) {
-          final matterLinks = await client.classSubjectMatters.list({
-            'classSubjectId': session.classSubjectId,
-          });
-          final matterIds = matterLinks
-              .map((row) => row['subjectMatterId'] as String?)
-              .whereType<String>()
-              .toList();
-          final matters = matterIds.isEmpty
-              ? <Map<String, dynamic>>[]
-              : await client.subjectMatters.list(entitiesByIds(matterIds));
-          final matterNameById = {
-            for (final matter in matters)
-              matter['id'] as String:
-                  matter['name'] as String? ?? systemL10n().chapterFallback,
-          };
-          subjectMatters(
-            matterLinks
-                .map(
-                  (link) => SessionSubjectMatterOption(
-                    id: link['id'] as String,
+        if (!supportsLogbook || session.classSubjectId == null) {
+          if (session.kind == 'activity') {
+            try {
+              final activitySession = await client.activitySessions.get(
+                session.id,
+              );
+              final notes = activitySession['notes'] as String?;
+              if (notes != null && notes.isNotEmpty) {
+                logbook(
+                  SessionLogbook(
+                    id: session.id,
+                    chapter: session.title,
+                    content: notes,
+                    objectives: const [],
+                    progress: 0,
+                  ),
+                );
+              } else {
+                logbook(null);
+              }
+            } on Object {
+              logbook(null);
+            }
+          } else {
+            subjectMatters(const []);
+            logbook(null);
+          }
+          return;
+        }
+
+        final matterLinks = await client.classSubjectMatters.list({
+          'classSubjectId': session.classSubjectId,
+        });
+        final matterIds = matterLinks
+            .map((row) => row['subjectMatterId'] as String?)
+            .whereType<String>()
+            .toList();
+        final matters = matterIds.isEmpty
+            ? <Map<String, dynamic>>[]
+            : await client.subjectMatters.list(entitiesByIds(matterIds));
+        final progressRows = await client.classSubjectProgress.list(
+          progressForLessonSessions([session.id]),
+        );
+        final progressByMatterId = {
+          for (final row in progressRows)
+            row['classSubjectMatterId'] as String: row,
+        };
+        final matterNameById = {
+          for (final matter in matters)
+            matter['id'] as String:
+                matter['name'] as String? ?? systemL10n().chapterFallback,
+        };
+        subjectMatters(
+          matterLinks
+              .map(
+                (link) {
+                  final linkId = link['id'] as String;
+                  final progress = progressByMatterId[linkId];
+                  return SessionSubjectMatterOption(
+                    id: linkId,
                     name:
                         matterNameById[link['subjectMatterId'] as String] ??
                         systemL10n().chapterFallback,
                     completedPercentage:
-                        (link['completedPercentage'] as num?)?.toInt() ?? 0,
-                  ),
-                )
-                .toList(),
-          );
+                        (progress?['completedPercentage'] as num?)?.toInt() ??
+                        (link['completedPercentage'] as num?)?.toInt() ??
+                        0,
+                  );
+                },
+              )
+              .toList(),
+        );
 
-          final logbookRows = await client.classLogbookEntries.list(
-            logbookForClassSubject(
-              session.classGroupId,
-              session.classSubjectId!,
-            ),
-          );
-          final sessionDate = DateTime(
-            session.startsAt.year,
-            session.startsAt.month,
-            session.startsAt.day,
-          );
-          SessionLogbook? matched;
-          for (final row in logbookRows) {
-            final date = parseApiDateTime(row['date']);
-            if (date != null && isSameCalendarDay(date, sessionDate)) {
-              matched = SessionLogbook.fromJson(row);
-              break;
-            }
-          }
-          logbook(matched);
-        } else {
-          subjectMatters(const []);
+        final lessonSession = await client.lessonSessions.get(session.id);
+        final sessionNote = lessonSession['sessionNote'] as String?;
+        final primaryProgress = progressRows.isEmpty ? null : progressRows.first;
+        if (sessionNote == null && primaryProgress == null) {
           logbook(null);
+          return;
         }
+
+        final matterLink = primaryProgress == null
+            ? null
+            : _firstMatterLink(
+                matterLinks,
+                primaryProgress['classSubjectMatterId'] as String?,
+              );
+        logbook(
+          SessionLogbook(
+            id: primaryProgress?['id'] as String? ?? session.id,
+            chapter: matterLink?['id'] as String? ?? session.title,
+            content: sessionNote ?? primaryProgress?['notes'] as String? ?? '',
+            objectives: primaryProgress?['notes'] != null
+                ? [primaryProgress!['notes'] as String]
+                : const [],
+            progress:
+                (primaryProgress?['completedPercentage'] as num?)?.toInt() ?? 0,
+          ),
+        );
       } on api.ApiError catch (error) {
         errorMessage(systemL10n().couldNotLoadSession('$error'));
       } on Object catch (error) {
@@ -155,13 +203,16 @@ class SessionDetailController extends LevitController
     try {
       final client = AppRuntime.schoolClient();
       final attendanceId = row.attendanceId ?? '${row.studentId}-${session.id}';
-      await client.recordAttendance({
-        'id': attendanceId,
-        'studentId': row.studentId,
-        'sessionId': session.id,
-        'status': status.apiValue,
-        'createdAt': DateTime.now().toUtc().toIso8601String(),
-      });
+      await client.recordAttendance(
+        attendanceRecordPayload(
+          kind: session.kind,
+          occurrenceId: session.id,
+          studentId: row.studentId,
+          attendanceId: attendanceId,
+          status: status.apiValue,
+          createdAt: DateTime.now().toUtc().toIso8601String(),
+        ),
+      );
       students(
         students.value
             .map(
@@ -189,41 +240,45 @@ class SessionDetailController extends LevitController
     required int progress,
     String? homework,
   }) async {
-    if (session.classSubjectId == null) {
+    if (!supportsLogbook || session.classSubjectId == null) {
       return false;
     }
 
     saveMessage('');
     try {
       final client = AppRuntime.schoolClient();
-      final grants = AppRuntime.session.grants.value;
-      final schoolId = grants?.schoolId;
-      if (schoolId == null) {
-        return false;
-      }
-
-      final entryId =
+      final progressId =
           logbook.value?.id ??
-          'log-${session.id}-${DateTime.now().millisecondsSinceEpoch}';
-      final sessionDate = DateTime(
-        session.startsAt.year,
-        session.startsAt.month,
-        session.startsAt.day,
-      );
+          'csp-${session.id}-${DateTime.now().millisecondsSinceEpoch}';
 
-      final saved = await client.classLogbookEntries.save({
-        'id': entryId,
-        'schoolId': schoolId,
-        'classGroupId': session.classGroupId,
-        'classSubjectId': session.classSubjectId,
-        'date': sessionDate.toIso8601String().substring(0, 10),
-        'chapter': chapter,
-        'content': content,
-        'objectives': objectives,
-        if (homework != null && homework.isNotEmpty) 'homework': homework,
-        'progress': progress,
+      final lessonSession = await client.lessonSessions.get(session.id);
+      await client.lessonSessions.save({
+        ...lessonSession,
+        'displayLabel':
+            lessonSession['displayLabel'] as String? ?? session.title,
+        'sessionNote': content.trim().isEmpty ? null : content.trim(),
       });
-      logbook(SessionLogbook.fromJson(saved));
+      await client.recordLessonSessionProgress({
+        'id': progressId,
+        'classSubjectMatterId': classSubjectMatterId,
+        'lessonSessionId': session.id,
+        'completedPercentage': progress,
+        'notes': objectives.join('\n').trim().isEmpty
+            ? null
+            : objectives.join('\n').trim(),
+        'recordedAt': DateTime.now().toUtc().toIso8601String(),
+      });
+
+      logbook(
+        SessionLogbook(
+          id: progressId,
+          chapter: chapter.trim(),
+          content: content.trim(),
+          objectives: objectives,
+          homework: homework?.trim().isEmpty ?? true ? null : homework?.trim(),
+          progress: progress,
+        ),
+      );
       return true;
     } on Object catch (error) {
       saveMessage(systemL10n().couldNotSaveLogbook('$error'));
@@ -245,3 +300,18 @@ class SessionDetailController extends LevitController
 }
 
 enum SessionDetailSegment { attendance, logbook }
+
+Map<String, dynamic>? _firstMatterLink(
+  List<Map<String, dynamic>> matterLinks,
+  String? matterId,
+) {
+  if (matterId == null) {
+    return null;
+  }
+  for (final link in matterLinks) {
+    if (link['id'] == matterId) {
+      return link;
+    }
+  }
+  return null;
+}

@@ -77,7 +77,7 @@ class AttendanceListPage extends LScopedView<AttendanceListController> {
                   itemBuilder: (context, index) {
                     final record = records[index];
                     final sessionTitle =
-                        titles[record.sessionId] ?? record.sessionId;
+                        titles[record.occurrenceId] ?? record.occurrenceId;
 
                     return Card(
                       child: ListTile(

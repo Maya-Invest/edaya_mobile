@@ -69,7 +69,7 @@ Mirrors the TypeScript `@edaya/api-client` package:
 - `HttpTransport` for cookie-aware requests against the API
 - Typed `EffectiveGrantsResponse` for `/core/authorization/effective-grants`
 
-Bindings are generated from the published OpenAPI document (`info.x-edaya-client-bindings`).
+Bindings are generated from the published OpenAPI document (`x-edaya-*` operation extensions on core routes).
 
 From a URL (CI-friendly — no `edaya` checkout required):
 
@@ -140,19 +140,27 @@ Guardian and teacher wrap this in `AppSessionController` and `AppBootstrapContro
 
 ### API URL
 
-Default compile-time URL is `https://api-staging.edaya.softilab.dev`. Override at build time:
+Default API URL depends on the app (no `--dart-define` needed for local dev):
+
+| App | Default | Use when |
+|-----|---------|----------|
+| Guardian | `http://10.0.2.2:9999` | Android emulator → machine-local API |
+| Teacher | `http://localhost:9999` | iOS simulator / desktop → local API |
+
+Override at build time:
 
 ```bash
 flutter run --dart-define=API_URL=http://localhost:9999          # local API
 flutter run --dart-define=API_URL=http://10.0.2.2:9999           # Android emulator → local
 flutter run --dart-define=API_URL=http://192.168.1.10:9999       # LAN device → local
+flutter run --dart-define=API_URL=https://api-staging.edaya.softilab.dev
 ```
 
 Or use Melos shortcuts:
 
 ```bash
-melos run run:guardian:local
-melos run run:teacher:local
+melos run run:guardian:local   # explicit Android emulator URL
+melos run run:teacher:local    # explicit localhost
 ```
 
 The login and account screens expose **Developer settings** in all build modes (including production) to change the API URL at runtime (persisted in `SharedPreferences`). Presets include local, staging, and production. Restart the app after saving.

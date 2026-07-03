@@ -3,6 +3,31 @@
   "appTitleGuardian": "Edaya",
   "appTitleTeacher": "Edaya Staff",
   "accountTitle": "Account",
+  "accountProfileTitle": "Contact profile",
+  "accountProfileDescription": "Update the name and contact details shown to the school.",
+  "accountProfileLoginEmail": "Sign-in email: {email}",
+  "@accountProfileLoginEmail": {
+    "placeholders": {
+      "email": {"type": "String"}
+    }
+  },
+  "accountProfileUnavailable": "Your school profile is not available.",
+  "accountProfileLoadError": "Could not load your profile. {error}",
+  "@accountProfileLoadError": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "accountProfileSaveError": "Could not save your profile. {error}",
+  "@accountProfileSaveError": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "accountProfileUpdateSuccess": "Profile updated.",
+  "firstNameLabel": "First name",
+  "lastNameLabel": "Last name",
+  "phoneLabel": "Phone",
   "signingOut": "Signing out…",
   "signOut": "Sign out",
   "nothingToShowYet": "Nothing to show yet.",
@@ -142,6 +167,9 @@
     }
   },
   "attendance": "Attendance",
+  "timetableSessionKindLesson": "Lesson",
+  "timetableSessionKindActivity": "Activity",
+  "timetableSessionKindAssessment": "Assessment",
   "noAttendanceRecorded": "No attendance recorded.",
   "classLogbook": "Class logbook",
   "noLogbookEntryForSession": "No logbook entry for this session.",
@@ -458,6 +486,9 @@
       "error": {"type": "String"}
     }
   },
+  "publishedReportCardImmutable": "This student's report card has already been published for this period. Marks can no longer be changed.",
+  "marksLockedReportCardPublished": "Report card published",
+  "marksEntryPeriodLockedHint": "Report cards have been published for this period. Marks can no longer be recorded for these students.",
   "couldNotLoadSubjects": "Could not load subjects: {error}",
   "@couldNotLoadSubjects": {
     "placeholders": {

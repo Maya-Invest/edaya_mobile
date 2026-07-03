@@ -38,7 +38,7 @@ class SessionDetailsDialog extends LScopedView<SessionDetailsController> {
               children: [
                 Expanded(
                   child: Text(
-                    session.title,
+                    session.subjectLabel ?? session.title,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
@@ -49,7 +49,10 @@ class SessionDetailsDialog extends LScopedView<SessionDetailsController> {
               ],
             ),
             Text(
-              context.formatLongDate(session.startsAt),
+              [
+                timetableSessionKindLabel(context.tr, session.kind),
+                context.formatLongDate(session.startsAt),
+              ].join(' · '),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             Text(
@@ -69,7 +72,10 @@ class SessionDetailsDialog extends LScopedView<SessionDetailsController> {
                 }
 
                 final error = controller.errorMessage.value;
-                if (error.isNotEmpty) {
+                final attendance = controller.attendance.value;
+                final logbook = controller.logbook.value;
+
+                if (error.isNotEmpty && attendance == null && logbook == null) {
                   return Text(
                     error,
                     style: TextStyle(
@@ -78,12 +84,18 @@ class SessionDetailsDialog extends LScopedView<SessionDetailsController> {
                   );
                 }
 
-                final attendance = controller.attendance.value;
-                final logbook = controller.logbook.value;
-
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (error.isNotEmpty) ...[
+                      Text(
+                        error,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     Text(
                       context.tr.attendance,
                       style: Theme.of(context).textTheme.titleMedium,

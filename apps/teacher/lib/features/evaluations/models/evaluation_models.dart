@@ -4,6 +4,7 @@ class EvaluationSummary {
     required this.title,
     required this.classGroupId,
     required this.classSubjectId,
+    required this.periodId,
     required this.classLabel,
     required this.subjectLabel,
     required this.date,
@@ -16,6 +17,7 @@ class EvaluationSummary {
   final String title;
   final String classGroupId;
   final String classSubjectId;
+  final String periodId;
   final String classLabel;
   final String subjectLabel;
   final String date;
@@ -35,6 +37,7 @@ class StudentMarkRow {
     this.photoUrl,
     this.resultId,
     this.score,
+    this.marksLocked = false,
   });
 
   final String studentId;
@@ -43,8 +46,9 @@ class StudentMarkRow {
   final String? photoUrl;
   final String? resultId;
   final double? score;
+  final bool marksLocked;
 
-  StudentMarkRow copyWith({String? resultId, double? score}) {
+  StudentMarkRow copyWith({String? resultId, double? score, bool? marksLocked}) {
     return StudentMarkRow(
       studentId: studentId,
       studentName: studentName,
@@ -52,6 +56,7 @@ class StudentMarkRow {
       photoUrl: photoUrl,
       resultId: resultId ?? this.resultId,
       score: score ?? this.score,
+      marksLocked: marksLocked ?? this.marksLocked,
     );
   }
 }

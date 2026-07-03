@@ -85,9 +85,19 @@
       "schemaName": "Schedule",
       "allowDirectSave": true
     },
-    "sessions": {
-      "publicName": "sessions",
-      "schemaName": "Session",
+    "lessonSessions": {
+      "publicName": "lesson-sessions",
+      "schemaName": "LessonSession",
+      "allowDirectSave": true
+    },
+    "activitySessions": {
+      "publicName": "activity-sessions",
+      "schemaName": "ActivitySession",
+      "allowDirectSave": true
+    },
+    "attendances": {
+      "publicName": "attendances",
+      "schemaName": "AttendanceOccurrence",
       "allowDirectSave": true
     },
     "calendarEvents": {
@@ -130,6 +140,16 @@
       "schemaName": "SubjectMatter",
       "allowDirectSave": true
     },
+    "gradeLevelSubjects": {
+      "publicName": "grade-level-subjects",
+      "schemaName": "GradeLevelSubject",
+      "allowDirectSave": false
+    },
+    "gradeLevelSubjectMatters": {
+      "publicName": "grade-level-subject-matters",
+      "schemaName": "GradeLevelSubjectMatter",
+      "allowDirectSave": false
+    },
     "classGroups": {
       "publicName": "class-groups",
       "schemaName": "ClassGroup",
@@ -138,7 +158,7 @@
     "classSubjects": {
       "publicName": "class-subjects",
       "schemaName": "ClassSubject",
-      "allowDirectSave": true
+      "allowDirectSave": false
     },
     "classSubjectMatters": {
       "publicName": "class-subject-matters",
@@ -150,24 +170,9 @@
       "schemaName": "ClassSubjectProgress",
       "allowDirectSave": true
     },
-    "classLogbookEntries": {
-      "publicName": "class-logbook-entries",
-      "schemaName": "ClassLogbookEntry",
-      "allowDirectSave": true
-    },
-    "homeworkAssignments": {
-      "publicName": "homework-assignments",
-      "schemaName": "HomeworkAssignment",
-      "allowDirectSave": true
-    },
-    "homeworkSubmissions": {
-      "publicName": "homework-submissions",
-      "schemaName": "HomeworkSubmission",
-      "allowDirectSave": true
-    },
     "activities": {
       "publicName": "activities",
-      "schemaName": "ExtracurricularActivity",
+      "schemaName": "Activity",
       "allowDirectSave": true
     },
     "activityEnrollments": {
@@ -347,9 +352,9 @@
       "requestSchemaName": "AssignStaffToClassSubjectCommand",
       "responseSchemaName": "StaffAssignment"
     },
-    "assignStaffToSession": {
-      "publicName": "assign-staff-to-session",
-      "requestSchemaName": "AssignStaffToSessionCommand",
+    "assignStaffToLessonSession": {
+      "publicName": "assign-staff-to-lesson-session",
+      "requestSchemaName": "AssignStaffToLessonSessionCommand",
       "responseSchemaName": "StaffAssignment"
     },
     "assignResourceToClass": {
@@ -357,9 +362,9 @@
       "requestSchemaName": "AssignResourceToClassCommand",
       "responseSchemaName": "ResourceAssignment"
     },
-    "assignResourceToSession": {
-      "publicName": "assign-resource-to-session",
-      "requestSchemaName": "AssignResourceToSessionCommand",
+    "assignResourceToLessonSession": {
+      "publicName": "assign-resource-to-lesson-session",
+      "requestSchemaName": "AssignResourceToLessonSessionCommand",
       "responseSchemaName": "ResourceAssignment"
     },
     "removeResourceAssignment": {
@@ -467,9 +472,39 @@
       "requestSchemaName": "AssignMatterToClassSubjectCommand",
       "responseSchemaName": "ClassSubjectMatter"
     },
-    "recordSessionProgress": {
-      "publicName": "record-session-progress",
-      "requestSchemaName": "RecordSessionProgressCommand",
+    "offerSubjectToGradeLevel": {
+      "publicName": "offer-subject-to-grade-level",
+      "requestSchemaName": "OfferSubjectToGradeLevelCommand",
+      "responseSchemaName": "GradeLevelSubject"
+    },
+    "removeSubjectFromGradeLevel": {
+      "publicName": "remove-subject-from-grade-level",
+      "requestSchemaName": "RemoveSubjectFromGradeLevelCommand",
+      "responseSchemaName": "CommandMessageResponse"
+    },
+    "updateGradeLevelSubject": {
+      "publicName": "update-grade-level-subject",
+      "requestSchemaName": "UpdateGradeLevelSubjectCommand",
+      "responseSchemaName": "GradeLevelSubject"
+    },
+    "assignMatterToGradeLevelSubject": {
+      "publicName": "assign-matter-to-grade-level-subject",
+      "requestSchemaName": "AssignMatterToGradeLevelSubjectCommand",
+      "responseSchemaName": "GradeLevelSubjectMatter"
+    },
+    "addCustomClassSubject": {
+      "publicName": "add-custom-class-subject",
+      "requestSchemaName": "AddCustomClassSubjectCommand",
+      "responseSchemaName": "ClassSubject"
+    },
+    "setClassSubjectOffered": {
+      "publicName": "set-class-subject-offered",
+      "requestSchemaName": "SetClassSubjectOfferedCommand",
+      "responseSchemaName": "ClassSubject"
+    },
+    "recordLessonSessionProgress": {
+      "publicName": "record-lesson-session-progress",
+      "requestSchemaName": "RecordLessonSessionProgressCommand",
       "responseSchemaName": "ClassSubjectProgress"
     },
     "createGradeScale": {
@@ -587,20 +622,35 @@
       "requestSchemaName": "CreateScheduleCommand",
       "responseSchemaName": "Schedule"
     },
+    "saveSchedule": {
+      "publicName": "save-schedule",
+      "requestSchemaName": "SaveScheduleCommand",
+      "responseSchemaName": "Schedule"
+    },
+    "materializeSchedule": {
+      "publicName": "materialize-schedule",
+      "requestSchemaName": "MaterializeScheduleCommand",
+      "responseSchemaName": "MaterializedOccurrenceCommandListResponse"
+    },
     "createCalendarEvent": {
       "publicName": "create-calendar-event",
       "requestSchemaName": "CreateCalendarEventCommand",
       "responseSchemaName": "CalendarEvent"
     },
-    "createSession": {
-      "publicName": "create-session",
-      "requestSchemaName": "CreateSessionCommand",
-      "responseSchemaName": "Session"
+    "cancelLessonSession": {
+      "publicName": "cancel-lesson-session",
+      "requestSchemaName": "CancelLessonSessionCommand",
+      "responseSchemaName": "LessonSession"
     },
-    "generateSessions": {
-      "publicName": "generate-sessions",
-      "requestSchemaName": "GenerateSessionsCommand",
-      "responseSchemaName": "SessionCommandListResponse"
+    "cancelActivitySession": {
+      "publicName": "cancel-activity-session",
+      "requestSchemaName": "CancelActivitySessionCommand",
+      "responseSchemaName": "ActivitySession"
+    },
+    "rescheduleOccurrence": {
+      "publicName": "reschedule-occurrence",
+      "requestSchemaName": "RescheduleOccurrenceCommand",
+      "responseSchemaName": "MaterializedOccurrenceCommandResponse"
     },
     "recordAttendance": {
       "publicName": "record-attendance",
@@ -612,9 +662,9 @@
       "requestSchemaName": "RecordDailyAttendanceCommand",
       "responseSchemaName": "Attendance"
     },
-    "recordSessionAttendance": {
-      "publicName": "record-session-attendance",
-      "requestSchemaName": "RecordSessionAttendanceCommand",
+    "recordLessonSessionAttendance": {
+      "publicName": "record-lesson-session-attendance",
+      "requestSchemaName": "RecordLessonSessionAttendanceCommand",
       "responseSchemaName": "AttendanceCommandListResponse"
     },
     "recordClassDailyAttendance": {
@@ -703,6 +753,144 @@
       "publicName": "get-school-overview",
       "requestSchemaName": "GetSchoolOverviewQuery",
       "responseSchemaName": "SchoolOverviewResponse"
+    },
+    "getClassGroupTimetable": {
+      "publicName": "get-class-group-timetable",
+      "requestSchemaName": "GetClassGroupTimetableQuery",
+      "responseSchemaName": "ClassGroupTimetableResponse"
+    }
+  },
+  "authorization": {
+    "effectiveGrants": {
+      "method": "GET",
+      "path": "authorization/effective-grants",
+      "responseSchemaName": "EffectiveGrantsResponse"
+    }
+  },
+  "onboarding": {
+    "registerSchool": {
+      "method": "POST",
+      "path": "onboarding/register-school",
+      "requestSchemaName": "OnboardingRegisterSchoolRequest",
+      "responseSchemaName": "School"
+    },
+    "listStructureTemplates": {
+      "method": "GET",
+      "path": "onboarding/structure-templates",
+      "responseSchemaName": "OnboardingListStructureTemplatesResponse"
+    },
+    "accountStatus": {
+      "method": "GET",
+      "path": "onboarding/account-status",
+      "responseSchemaName": "OnboardingAccountStatusResponse"
+    },
+    "applyStructureTemplate": {
+      "method": "POST",
+      "path": "onboarding/apply-structure-template",
+      "requestSchemaName": "OnboardingApplyStructureTemplateRequest",
+      "responseSchemaName": "OnboardingApplyStructureTemplateResponse"
+    },
+    "completeWizard": {
+      "method": "POST",
+      "path": "onboarding/complete-wizard",
+      "requestSchemaName": "OnboardingCompleteWizardRequest",
+      "responseSchemaName": "OnboardingAccountStatusResponse"
+    },
+    "inviteStaffMembers": {
+      "method": "POST",
+      "path": "onboarding/invite-staff-members",
+      "requestSchemaName": "OnboardingInviteStaffMembersRequest",
+      "responseSchemaName": "OnboardingInviteStaffMembersResponse"
+    }
+  },
+  "serviceAccounts": {
+    "list": {
+      "method": "GET",
+      "path": "service-accounts",
+      "responseSchemaName": "ServiceAccountResponse",
+      "responseIsArray": true
+    },
+    "create": {
+      "method": "POST",
+      "path": "service-accounts",
+      "requestSchemaName": "CreateServiceAccountRequest",
+      "responseSchemaName": "CreateServiceAccountResponse"
+    },
+    "update": {
+      "method": "PATCH",
+      "path": "service-accounts/{id}",
+      "pathParams": [
+        "id"
+      ],
+      "requestSchemaName": "UpdateServiceAccountRequest",
+      "responseSchemaName": "ServiceAccountResponse"
+    },
+    "revoke": {
+      "method": "POST",
+      "path": "service-accounts/{id}/revoke",
+      "pathParams": [
+        "id"
+      ],
+      "responseSchemaName": "ServiceAccountResponse"
+    },
+    "rotateKey": {
+      "method": "POST",
+      "path": "service-accounts/{id}/rotate-key",
+      "pathParams": [
+        "id"
+      ],
+      "responseSchemaName": "RotateServiceAccountKeyResponse"
+    }
+  },
+  "webhooks": {
+    "notificationDelivery": {
+      "method": "POST",
+      "path": "webhooks/notification-delivery",
+      "responseSchemaName": "NotificationDeliveryWebhookResponse",
+      "basePath": "root"
+    }
+  },
+  "public": {
+    "previewInvitation": {
+      "method": "GET",
+      "path": "public/invitations/{token}",
+      "pathParams": [
+        "token"
+      ],
+      "responseSchemaName": "InvitationPreviewResponse",
+      "basePath": "root"
+    },
+    "acceptInvitation": {
+      "method": "POST",
+      "path": "public/invitations/{token}/accept",
+      "pathParams": [
+        "token"
+      ],
+      "responseSchemaName": "AcceptInvitationResponse",
+      "basePath": "root"
+    }
+  },
+  "files": {
+    "createUploadIntent": {
+      "method": "POST",
+      "path": "files/upload-intents",
+      "requestSchemaName": "CreateFileUploadIntentRequest",
+      "responseSchemaName": "CreateFileUploadIntentResponse"
+    },
+    "getDownloadUrl": {
+      "method": "GET",
+      "path": "files/{attachmentId}/download-url",
+      "pathParams": [
+        "attachmentId"
+      ],
+      "responseSchemaName": "FileDownloadUrlResponse"
+    },
+    "getContent": {
+      "method": "GET",
+      "path": "files/{attachmentId}/content",
+      "pathParams": [
+        "attachmentId"
+      ]
     }
   }
 }

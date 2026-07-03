@@ -34,7 +34,12 @@ class AttendanceRowTile extends StatelessWidget {
         subtitle: Text(
           row.status?.label(context.tr) ?? context.tr.notRecorded,
         ),
-        trailing: TextButton(
+        trailing: FilledButton.tonal(
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(88, 44),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            textStyle: Theme.of(context).textTheme.labelLarge,
+          ),
           onPressed: onStatusTap,
           child: Text(
             row.status == null ? context.tr.record : context.tr.edit,

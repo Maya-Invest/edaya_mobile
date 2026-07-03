@@ -48,6 +48,15 @@ class AccountSheetBody extends StatelessWidget {
               const SizedBox(height: 24),
             ],
             ListTile(
+              leading: const Icon(Icons.person_outline),
+              title: Text(context.tr.accountProfileTitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                context.pop();
+                context.push('/account/profile');
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.settings_outlined),
               title: Text(context.tr.settingsTitle),
               trailing: const Icon(Icons.chevron_right),

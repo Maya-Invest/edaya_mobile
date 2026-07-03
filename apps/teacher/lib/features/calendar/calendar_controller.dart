@@ -40,6 +40,7 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
       _staffContext.assignedClassGroupIds.stream,
       _staffContext.isLoading.stream,
       _academicYear.selectedYearId.stream,
+      weekStart.stream,
     ]) {
       autoDispose(subscription.listen((_) => unawaited(loadCalendarData())));
     }
@@ -83,8 +84,7 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
   List<TeacherSession> get sessionsForSelectedDay {
     final day = selectedDay.value;
     return sessions.value
-        .map((session) => session.projectOntoDay(day))
-        .whereType<TeacherSession>()
+        .where((session) => session.occursOn(day))
         .toList()
       ..sort((a, b) => a.startsAt.compareTo(b.startsAt));
   }
@@ -137,58 +137,29 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
           for (final assigned in _staffContext.assignedClasses.value)
             assigned.id: assigned.label,
         };
-
-        final taughtIds = _staffContext.taughtClassSubjectIds.value.toList();
-        final classSubjectRows = taughtIds.isEmpty
-            ? <Map<String, dynamic>>[]
-            : await client.classSubjects.list(entitiesByIds(taughtIds));
-        final subjectLabelByClassSubjectId = <String, String>{};
-        final subjectIds = classSubjectRows
-            .map((row) => row['subjectId'] as String?)
-            .whereType<String>()
-            .toSet()
-            .toList();
-        final subjectRows = subjectIds.isEmpty
-            ? <Map<String, dynamic>>[]
-            : await client.subjects.list(entitiesByIds(subjectIds));
-        final subjectNameById = {
-          for (final subject in subjectRows)
-            subject['id'] as String:
-                subject['name'] as String? ?? systemL10n().subjectFallback,
-        };
-        for (final row in classSubjectRows) {
-          final id = row['id'] as String;
-          final subjectId = row['subjectId'] as String?;
-          subjectLabelByClassSubjectId[id] = subjectId == null
-              ? systemL10n().subjectFallback
-              : subjectNameById[subjectId] ?? systemL10n().subjectFallback;
-        }
-
+        final range = planningDateRangeForWeek(weekStart.value);
         final parsedSessions = <TeacherSession>[];
+
         for (final classGroupId in classGroupIds) {
-          final sessionRows = await client.sessions.list(
-            classGroupScope(classGroupId),
+          final occurrences = await fetchClassTimetableOccurrences(
+            client,
+            classGroupId,
+            range: range,
+            unassignedTeacherLabel: systemL10n().teacherFallbackName,
           );
-          for (final row in sessionRows) {
-            final sessionId = row['id'] as String;
-            final classSubjectId = row['classSubjectId'] as String?;
+          for (final occurrence in occurrences) {
             if (!_staffContext.canTeachSession(
-              sessionId: sessionId,
+              sessionId: occurrence.id,
               classGroupId: classGroupId,
-              classSubjectId: classSubjectId,
+              classSubjectId: occurrence.classSubjectId,
             )) {
               continue;
             }
 
             parsedSessions.add(
-              TeacherSession.fromJson(
-                row,
-                classGroupId: classGroupId,
+              TeacherSession.fromOccurrence(
+                occurrence,
                 classLabel: classLabelById[classGroupId] ?? classGroupId,
-                subjectLabel: classSubjectId == null
-                    ? systemL10n().classSessionFallback
-                    : subjectLabelByClassSubjectId[classSubjectId] ??
-                          systemL10n().subjectFallback,
               ),
             );
           }

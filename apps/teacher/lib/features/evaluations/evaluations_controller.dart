@@ -26,6 +26,10 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
   final periods = LxVar<List<Map<String, dynamic>>>(const []);
   final selectedPeriodId = LxVar<String?>(null);
   final errorMessage = LxVar('');
+  final marksStudents = LxVar<List<StudentMarkRow>>(const []);
+  final marksErrorMessage = LxVar('');
+  final marksSaveMessage = LxVar('');
+  final marksEvaluationId = LxVar<String?>(null);
 
   @override
   void onInit() {
@@ -34,6 +38,10 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
     autoDispose(periods);
     autoDispose(selectedPeriodId);
     autoDispose(errorMessage);
+    autoDispose(marksStudents);
+    autoDispose(marksErrorMessage);
+    autoDispose(marksSaveMessage);
+    autoDispose(marksEvaluationId);
 
     for (final subscription in [
       _staffContext.assignedClasses.stream,
@@ -139,7 +147,10 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
             assessmentsForClassPeriod(classGroupId, periodId),
           );
           final enrollments = await client.enrollments.list(
-            activeEnrollmentsForClass(classGroupId),
+            activeEnrollmentsForClass(
+              classGroupId,
+              academicYearId: _academicYear.selectedYearId.value,
+            ),
           );
           final totalStudents = enrollments.length;
 
@@ -175,9 +186,11 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
                 title: assessment['title'] as String? ?? assessmentId,
                 classGroupId: classGroupId,
                 classSubjectId: classSubjectId,
+                periodId: assessment['periodId'] as String? ?? periodId,
                 classLabel: classLabelById[classGroupId] ?? classGroupId,
                 subjectLabel: subjectLabel,
                 date: (assessment['dueAt'] as String?)?.substring(0, 10) ??
+                    (assessment['startsAt'] as String?)?.substring(0, 10) ??
                     '',
                 maxScore: (assessment['maxScore'] as num?)?.toDouble() ?? 20,
                 gradedCount: graded,
@@ -198,102 +211,119 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
       }
     });
   }
-}
 
-class MarksEntryController extends LevitController with LevitReactiveTasksMixin {
-  MarksEntryController({required this.evaluation});
-
-  final EvaluationSummary evaluation;
-
-  final students = LxVar<List<StudentMarkRow>>(const []);
-  final errorMessage = LxVar('');
-  final saveMessage = LxVar('');
-
-  @override
-  void onInit() {
-    super.onInit();
-    autoDispose(students);
-    autoDispose(errorMessage);
-    autoDispose(saveMessage);
-    unawaited(loadMarks());
-  }
-
-  Future<void> loadMarks() async {
+  Future<void> loadMarks(EvaluationSummary evaluation) async {
+    marksEvaluationId(evaluation.id);
+    marksSaveMessage('');
+    marksErrorMessage('');
     await runTask(() async {
-      try {
-        final client = AppRuntime.schoolClient();
-        final enrollmentRows = await client.enrollments.list(
-          activeEnrollmentsForClass(evaluation.classGroupId),
-        );
-        final studentIds = enrollmentRows
-            .map((row) => row['studentId'] as String?)
-            .whereType<String>()
-            .toList();
-        final studentRows = studentIds.isEmpty
-            ? <Map<String, dynamic>>[]
-            : await client.students.list(entitiesByIds(studentIds));
-        final studentById = {
-          for (final row in studentRows)
-            row['id'] as String: row,
-        };
-        final results = await client.assessmentResults.list(
-          resultsForAssessment(evaluation.id),
-        );
-        final scoreByStudent = {
-          for (final row in results)
-            row['studentId'] as String: row,
-        };
-
-        final roster = studentIds
-            .map((studentId) {
-              final row = studentById[studentId];
-              final firstName = row?['firstName'] as String? ?? '';
-              final lastName = row?['lastName'] as String? ?? '';
-              final fullName = '$firstName $lastName'.trim();
-              final displayName = fullName.isEmpty ? studentId : fullName;
-              final result = scoreByStudent[studentId];
-              return StudentMarkRow(
-                studentId: studentId,
-                studentName: displayName,
-                studentInitials: _initials(displayName),
-                photoUrl: row?['photoUrl'] as String?,
-                resultId: result?['id'] as String?,
-                score: (result?['score'] as num?)?.toDouble(),
-              );
-            })
-            .toList()
-          ..sort((a, b) => a.studentName.compareTo(b.studentName));
-        students(roster);
-      } on Object catch (error) {
-        errorMessage(systemL10n().couldNotLoadMarks('$error'));
-      }
+      final result = await fetchMarksRoster(evaluation);
+      marksStudents(result.students);
+      marksErrorMessage(result.errorMessage);
     });
   }
 
-  Future<bool> saveScore(StudentMarkRow row, double score) async {
-    saveMessage('');
+  Future<({List<StudentMarkRow> students, String errorMessage})> fetchMarksRoster(
+    EvaluationSummary evaluation,
+  ) async {
+    try {
+      final client = AppRuntime.schoolClient();
+      final enrollmentRows = await client.enrollments.list(
+        activeEnrollmentsForClass(evaluation.classGroupId),
+      );
+      final studentIds = enrollmentRows
+          .map((row) => row['studentId'] as String?)
+          .whereType<String>()
+          .toList();
+      final studentRows = studentIds.isEmpty
+          ? <Map<String, dynamic>>[]
+          : await client.students.list(entitiesByIds(studentIds));
+      final results = await client.assessmentResults.list(
+        resultsForAssessment(evaluation.id),
+      );
+      final lockedStudentIds = await _publishedReportCardStudentIds(
+        client,
+        classGroupId: evaluation.classGroupId,
+        periodId: evaluation.periodId,
+      );
+      final scoreByStudent = <String, Map<String, dynamic>>{};
+      for (final row in results) {
+        final studentId = row['studentId'] as String?;
+        if (studentId != null) {
+          scoreByStudent[studentId] = row;
+        }
+      }
+
+      final roster = studentRows
+          .map((row) {
+            final studentId = row['id'] as String;
+            final firstName = row['firstName'] as String? ?? '';
+            final lastName = row['lastName'] as String? ?? '';
+            final fullName = '$firstName $lastName'.trim();
+            final displayName = fullName.isEmpty ? studentId : fullName;
+            final result = scoreByStudent[studentId];
+            return StudentMarkRow(
+              studentId: studentId,
+              studentName: displayName,
+              studentInitials: _initials(displayName),
+              photoUrl: row['photoUrl'] as String?,
+              resultId: result?['id'] as String?,
+              score: (result?['score'] as num?)?.toDouble(),
+              marksLocked: lockedStudentIds.contains(studentId),
+            );
+          })
+          .toList()
+        ..sort((a, b) => a.studentName.compareTo(b.studentName));
+      return (students: roster, errorMessage: '');
+    } on api.ApiError catch (error) {
+      return (
+        students: const <StudentMarkRow>[],
+        errorMessage: systemL10n().couldNotLoadMarks('$error'),
+      );
+    } on Object catch (error) {
+      return (
+        students: const <StudentMarkRow>[],
+        errorMessage: systemL10n().couldNotLoadMarks('$error'),
+      );
+    }
+  }
+
+  Future<bool> saveMark(
+    EvaluationSummary evaluation,
+    StudentMarkRow row,
+    double score,
+  ) async {
+    if (row.marksLocked) {
+      marksSaveMessage(systemL10n().publishedReportCardImmutable);
+      return false;
+    }
+
+    marksSaveMessage('');
     try {
       final client = AppRuntime.schoolClient();
       final resultId = row.resultId ?? 'ar-${evaluation.id}-${row.studentId}';
-      await client.recordAssessmentResult({
+      final payload = <String, dynamic>{
         'id': resultId,
         'studentId': row.studentId,
         'assessmentId': evaluation.id,
         'score': score,
         'createdAt': DateTime.now().toUtc().toIso8601String(),
-      });
-      students(
-        students.value
-            .map(
-              (entry) => entry.studentId == row.studentId
-                  ? entry.copyWith(resultId: resultId, score: score)
-                  : entry,
-            )
-            .toList(),
-      );
+      };
+
+      await client.recordAssessmentResult(payload);
+
+      final roster = await fetchMarksRoster(evaluation);
+      marksStudents(roster.students);
+      marksErrorMessage(roster.errorMessage);
+      await loadEvaluations();
       return true;
+    } on api.ApiError catch (error) {
+      marksSaveMessage(
+        systemL10n().couldNotSaveMark(_formatApiError(error)),
+      );
+      return false;
     } on Object catch (error) {
-      saveMessage(systemL10n().couldNotSaveMark('$error'));
+      marksSaveMessage(systemL10n().couldNotSaveMark('$error'));
       return false;
     }
   }
@@ -442,8 +472,9 @@ class EvaluationCreateController extends LevitController
     try {
       final client = AppRuntime.schoolClient();
       final id = 'asm-${DateTime.now().millisecondsSinceEpoch}';
-      final today = DateTime.now().toIso8601String().substring(0, 10);
-      await client.createAssessment({
+      final now = DateTime.now().toUtc();
+      final today = now.toIso8601String().substring(0, 10);
+      final payload = <String, dynamic>{
         'id': id,
         'classGroupId': classGroupId,
         'classSubjectId': classSubjectId,
@@ -452,9 +483,16 @@ class EvaluationCreateController extends LevitController
         'kind': kind,
         'maxScore': maxScore,
         'coefficient': 1,
-        'dueAt': today,
-        'createdAt': DateTime.now().toUtc().toIso8601String(),
-      });
+        'createdAt': now.toIso8601String(),
+      };
+      if (kind == 'homework') {
+        payload['dueAt'] = today;
+      } else {
+        final startsAt = DateTime.utc(now.year, now.month, now.day, 9);
+        payload['startsAt'] = startsAt.toIso8601String();
+        payload['endsAt'] = startsAt.add(const Duration(hours: 1)).toIso8601String();
+      }
+      await client.createAssessment(payload);
       await _evaluations.loadEvaluations();
       _evaluations.selectPeriod(periodId);
       return null;
@@ -475,4 +513,40 @@ String _initials(String name) {
     return parts.first.substring(0, 1).toUpperCase();
   }
   return '${parts.first.substring(0, 1)}${parts.last.substring(0, 1)}'.toUpperCase();
+}
+
+String _formatApiError(api.ApiError error) {
+  final body = error.body;
+  if (body is Map) {
+    final code = body['code'];
+    if (code == 'PUBLISHED_REPORT_CARD_IMMUTABLE') {
+      return systemL10n().publishedReportCardImmutable;
+    }
+    final message = body['message'] ?? body['error'];
+    if (message is String && message.isNotEmpty) {
+      return message;
+    }
+    if (code is String && code.isNotEmpty) {
+      return code;
+    }
+  }
+  return error.message;
+}
+
+Future<Set<String>> _publishedReportCardStudentIds(
+  api.SchoolClient client, {
+  required String classGroupId,
+  required String periodId,
+}) async {
+  try {
+    final rows = await client.results.list(
+      publishedReportCardsForClassPeriod(classGroupId, periodId),
+    );
+    return rows
+        .map((row) => row['studentId'] as String?)
+        .whereType<String>()
+        .toSet();
+  } on Object {
+    return const {};
+  }
 }

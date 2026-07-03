@@ -13,6 +13,9 @@ Future<void> main() async {
     notificationConfig: PushNotificationConfigs.guardian,
   );
   registerEdayaFcmBackgroundHandler();
+  ApiBaseUrlConfig.configure(
+    appDefaultUrl: ApiBaseUrlConfig.androidEmulatorUrl,
+  );
   await ApiBaseUrlConfig.load();
   await AppSettingsController.preload();
   await Firebase.initializeApp(

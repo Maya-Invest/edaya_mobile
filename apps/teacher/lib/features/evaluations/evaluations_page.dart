@@ -83,7 +83,13 @@ class _EvaluationCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: ListTile(
-        onTap: () => context.push('/evaluations/marks', extra: evaluation),
+        onTap: () async {
+          await AppRuntime.evaluations.loadMarks(evaluation);
+          if (!context.mounted) {
+            return;
+          }
+          context.push('/evaluations/marks', extra: evaluation);
+        },
         title: Text(evaluation.title),
         subtitle: Text(
           '${evaluation.classLabel} · ${evaluation.subjectLabel}\n'

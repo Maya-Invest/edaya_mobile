@@ -11,30 +11,28 @@ class TeacherSession {
     required this.classLabel,
     required this.subjectLabel,
     this.classSubjectId,
+    this.status,
+    this.room,
+    this.teacherName,
   });
 
-  factory TeacherSession.fromJson(
-    Map<String, dynamic> json, {
-    required String classGroupId,
+  factory TeacherSession.fromOccurrence(
+    TimetableOccurrence occurrence, {
     required String classLabel,
-    required String subjectLabel,
   }) {
-    final startsAt = parseApiDateTime(json['startsAt']);
-    final endsAt = parseApiDateTime(json['endsAt']);
-    if (startsAt == null || endsAt == null) {
-      throw FormatException('Session ${json['id']} has invalid dates');
-    }
-
     return TeacherSession(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      kind: json['kind'] as String? ?? 'course',
-      startsAt: startsAt.toLocal(),
-      endsAt: endsAt.toLocal(),
-      classGroupId: classGroupId,
+      id: occurrence.id,
+      title: occurrence.title,
+      kind: occurrence.kind,
+      startsAt: occurrence.startsAt,
+      endsAt: occurrence.endsAt,
+      classGroupId: occurrence.classGroupId,
       classLabel: classLabel,
-      subjectLabel: subjectLabel,
-      classSubjectId: json['classSubjectId'] as String?,
+      subjectLabel: occurrence.subjectLabel,
+      classSubjectId: occurrence.classSubjectId,
+      status: occurrence.status,
+      room: occurrence.room,
+      teacherName: occurrence.teacherName,
     );
   }
 
@@ -47,34 +45,9 @@ class TeacherSession {
   final String classLabel;
   final String subjectLabel;
   final String? classSubjectId;
+  final String? status;
+  final String? room;
+  final String? teacherName;
 
-  TeacherSession? projectOntoDay(DateTime day) {
-    if (startsAt.weekday != day.weekday) {
-      return null;
-    }
-
-    return TeacherSession(
-      id: id,
-      title: title,
-      kind: kind,
-      startsAt: DateTime(
-        day.year,
-        day.month,
-        day.day,
-        startsAt.hour,
-        startsAt.minute,
-      ),
-      endsAt: DateTime(
-        day.year,
-        day.month,
-        day.day,
-        endsAt.hour,
-        endsAt.minute,
-      ),
-      classGroupId: classGroupId,
-      classLabel: classLabel,
-      subjectLabel: subjectLabel,
-      classSubjectId: classSubjectId,
-    );
-  }
+  bool occursOn(DateTime day) => isSameCalendarDay(startsAt, day);
 }
