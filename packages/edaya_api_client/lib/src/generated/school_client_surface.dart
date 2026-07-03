@@ -19,11 +19,7 @@ extension GeneratedSchoolClientEntities on SchoolClient {
 
   EntityResource get staffAssignments => entities["staffAssignments"]!;
 
-  EntityResource get accessRoles => entities["accessRoles"]!;
-
   EntityResource get accountInvitations => entities["accountInvitations"]!;
-
-  EntityResource get staffRoleAssignments => entities["staffRoleAssignments"]!;
 
   EntityResource get attachments => entities["attachments"]!;
 

@@ -21,12 +21,14 @@ class AppSessionController extends LevitController {
     required EdayaRouterRefresh routerRefresh,
     required GrantValidator validateGrants,
     required String Function() unauthorizedProfileMessage,
+    Future<String?> Function()? resolveAcademicYearId,
   }) : _authClient = authClient,
        _sessionStorage = sessionStorage,
        _pushNotifications = pushNotifications,
        _routerRefresh = routerRefresh,
        _validateGrants = validateGrants,
-       _unauthorizedProfileMessage = unauthorizedProfileMessage;
+       _unauthorizedProfileMessage = unauthorizedProfileMessage,
+       _resolveAcademicYearId = resolveAcademicYearId;
 
   final AuthClient _authClient;
   final AuthSessionStorage _sessionStorage;
@@ -34,6 +36,9 @@ class AppSessionController extends LevitController {
   final EdayaRouterRefresh _routerRefresh;
   final GrantValidator _validateGrants;
   final String Function() _unauthorizedProfileMessage;
+  final Future<String?> Function()? _resolveAcademicYearId;
+
+  String? _academicYearIdHeader;
 
   final user = LxVar<AuthUser?>(null);
   final grants = LxVar<api.EffectiveGrantsResponse?>(null);
@@ -105,8 +110,17 @@ class AppSessionController extends LevitController {
     }
   }
 
+  /// Re-fetches effective grants (e.g. after academic year selection for staff).
+  Future<String?> refreshGrants() async {
+    if (user.value == null) {
+      return null;
+    }
+
+    return _loadSchoolSession(user.value!);
+  }
+
   Future<String?> _loadSchoolSession(AuthUser signedInUser) async {
-    final schoolClient = createEdayaSchoolClient(_authClient);
+    final schoolClient = await _createSchoolClient();
     try {
       final effectiveGrants = await schoolClient.effectiveGrants();
       final validationError = _validateGrants(effectiveGrants);
@@ -127,9 +141,20 @@ class AppSessionController extends LevitController {
     }
   }
 
+  Future<api.SchoolClient> _createSchoolClient() async {
+    if (_resolveAcademicYearId != null) {
+      _academicYearIdHeader = await _resolveAcademicYearId();
+    }
+    return createEdayaSchoolClient(
+      _authClient,
+      getAcademicYearId: () => _academicYearIdHeader,
+    );
+  }
+
   Future<void> _clearLocalSession({bool persistCookies = true}) async {
     user(null);
     grants(null);
+    _academicYearIdHeader = null;
     if (persistCookies) {
       await _sessionStorage.clearCookies();
       _authClient.cookieJar.clear();

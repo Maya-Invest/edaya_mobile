@@ -1,4 +1,4 @@
-import 'package:edaya_api_client/edaya_api_client.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 
 class TeachingScope {
   const TeachingScope({
@@ -12,20 +12,43 @@ class TeachingScope {
   final Set<String> sessionIds;
 }
 
-TeachingScope teachingScopeFromScopeGrants(List<ScopeGrant> scopeGrants) {
+EntityQuery staffAssignmentsForStaffAndYear({
+  required String staffId,
+  required String academicYearId,
+}) {
+  return {
+    'staffId': staffId,
+    'academicYearId': academicYearId,
+  };
+}
+
+TeachingScope teachingScopeFromStaffAssignments(
+  List<Map<String, dynamic>> assignments,
+) {
   final classGroupIds = <String>{};
   final classSubjectIds = <String>{};
   final sessionIds = <String>{};
-  for (final grant in scopeGrants) {
-    switch (grant.scopeType) {
-      case 'class_group':
-        classGroupIds.addAll(grant.scopeEntityIds);
-      case 'course_assignment':
-        classSubjectIds.addAll(grant.scopeEntityIds);
-      case 'session':
-        sessionIds.addAll(grant.scopeEntityIds);
+
+  for (final assignment in assignments) {
+    final classGroupId = assignment['classGroupId'] as String?;
+    final classSubjectId = assignment['classSubjectId'] as String?;
+    final lessonSessionId = assignment['lessonSessionId'] as String?;
+    final activitySessionId = assignment['activitySessionId'] as String?;
+
+    if (classGroupId != null && classGroupId.isNotEmpty) {
+      classGroupIds.add(classGroupId);
+    }
+    if (classSubjectId != null && classSubjectId.isNotEmpty) {
+      classSubjectIds.add(classSubjectId);
+    }
+    if (lessonSessionId != null && lessonSessionId.isNotEmpty) {
+      sessionIds.add(lessonSessionId);
+    }
+    if (activitySessionId != null && activitySessionId.isNotEmpty) {
+      sessionIds.add(activitySessionId);
     }
   }
+
   return TeachingScope(
     classGroupIds: classGroupIds,
     classSubjectIds: classSubjectIds,

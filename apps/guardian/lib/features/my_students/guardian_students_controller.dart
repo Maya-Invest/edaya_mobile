@@ -6,7 +6,8 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
-import 'linked_student.dart';
+import '../auth/session_storage.dart';
+import '../my_students/linked_student.dart';
 
 class GuardianStudentsController extends LevitController
     with LevitReactiveTasksMixin {
@@ -31,21 +32,22 @@ class GuardianStudentsController extends LevitController
     errorMessage('');
     await runTask(() async {
       final grants = _session.grants.value;
-      if (grants == null) {
-        students(const []);
-        return;
-      }
-
-      final studentIds = studentIdsFromScopeGrants(
-        grants.effectiveGrants.scopeGrants,
-      );
-
-      if (studentIds.isEmpty) {
+      if (grants == null || grants.kind != 'guardian') {
         students(const []);
         return;
       }
 
       try {
+        final studentIds = await loadGuardianLinkedStudentIds(
+          AppRuntime.schoolClient(),
+          grants.actorId,
+        );
+
+        if (studentIds.isEmpty) {
+          students(const []);
+          return;
+        }
+
         final rows = await AppRuntime.schoolClient().students.list(
           entitiesByIds(studentIds),
         );

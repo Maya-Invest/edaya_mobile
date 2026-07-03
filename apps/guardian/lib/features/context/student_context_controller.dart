@@ -58,12 +58,13 @@ class StudentContextController extends LevitController
     }
 
     final grants = _session.grants.value;
-    if (grants == null) {
+    if (grants == null || grants.kind != 'guardian') {
       return;
     }
 
-    final scopedStudentIds = studentIdsFromScopeGrants(
-      grants.effectiveGrants.scopeGrants,
+    final scopedStudentIds = await loadGuardianLinkedStudentIds(
+      AppRuntime.schoolClient(),
+      grants.actorId,
     );
     if (scopedStudentIds.isEmpty) {
       return;

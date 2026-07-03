@@ -15,6 +15,7 @@ export 'src/common/models/timetable_occurrence.dart';
 export 'src/common/utils/date_time_parse.dart';
 export 'src/common/utils/timetable_session_kind_label.dart';
 export 'src/common/utils/entity_query.dart';
+export 'src/common/utils/guardian_linked_students.dart';
 export 'src/common/models/modal_bottom_sheet_page.dart';
 export 'src/common/widgets/account_sheet_body.dart';
 export 'src/common/widgets/data_state.dart';

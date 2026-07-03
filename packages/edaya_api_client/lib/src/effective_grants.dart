@@ -38,11 +38,13 @@ class EffectiveGrants {
   const EffectiveGrants({
     required this.permissions,
     required this.scopeGrants,
+    required this.scopeIdsByPermission,
     required this.isElevated,
     this.expiresAt,
   });
 
   factory EffectiveGrants.fromJson(Map<String, dynamic> json) {
+    final scopeIdsRaw = json['scopeIdsByPermission'];
     return EffectiveGrants(
       permissions: (json['permissions'] as List<dynamic>)
           .map((entry) => entry as String)
@@ -54,6 +56,13 @@ class EffectiveGrants {
             ),
           )
           .toList(),
+      scopeIdsByPermission: scopeIdsRaw is Map
+          ? Map<String, String>.from(
+              scopeIdsRaw.map(
+                (key, value) => MapEntry('$key', '$value'),
+              ),
+            )
+          : const {},
       isElevated: json['isElevated'] as bool,
       expiresAt: json['expiresAt'] as String?,
     );
@@ -61,12 +70,14 @@ class EffectiveGrants {
 
   final List<String> permissions;
   final List<ScopeGrant> scopeGrants;
+  final Map<String, String> scopeIdsByPermission;
   final bool isElevated;
   final String? expiresAt;
 
   Map<String, dynamic> toJson() => {
     'permissions': permissions,
     'scopeGrants': scopeGrants.map((entry) => entry.toJson()).toList(),
+    'scopeIdsByPermission': scopeIdsByPermission,
     'isElevated': isElevated,
     if (expiresAt != null) 'expiresAt': expiresAt,
   };

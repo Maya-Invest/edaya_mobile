@@ -58,9 +58,14 @@ class StaffContextController extends LevitController
 
     autoDispose(
       _academicYear.selectedYearId.stream.listen((_) {
-        unawaited(reloadContext());
+        unawaited(_reloadOnAcademicYearChange());
       }),
     );
+  }
+
+  Future<void> _reloadOnAcademicYearChange() async {
+    await _session.refreshGrants();
+    await reloadContext();
   }
 
   List<String> get visibleClassGroupIds {
@@ -112,6 +117,16 @@ class StaffContextController extends LevitController
     staffId(resolvedStaffId);
     errorMessage('');
 
+    final yearId = _academicYear.selectedYearId.value;
+    if (yearId == null) {
+      staffName(_session.user.value?.name ?? systemL10n().teacherFallbackName);
+      assignedClasses(const []);
+      taughtClassSubjectIds({});
+      assignedSessionIds({});
+      assignedClassGroupIds({});
+      return;
+    }
+
     await runTask(() async {
       isLoading(true);
       try {
@@ -132,9 +147,13 @@ class StaffContextController extends LevitController
           staffPhotoUrl(null);
         }
 
-        final teachingScope = teachingScopeFromScopeGrants(
-          grants.effectiveGrants.scopeGrants,
+        final assignments = await client.staffAssignments.list(
+          staffAssignmentsForStaffAndYear(
+            staffId: resolvedStaffId,
+            academicYearId: yearId,
+          ),
         );
+        final teachingScope = teachingScopeFromStaffAssignments(assignments);
         final sessionIds = teachingScope.sessionIds;
         final classGroupIds = teachingScope.classGroupIds;
         final taughtSubjectIds = teachingScope.classSubjectIds;

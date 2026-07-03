@@ -120,12 +120,13 @@ class AcademicYearController extends LevitController
 
   Future<List<Map<String, dynamic>>> _loadYearsFromEnrollments() async {
     final grants = _session.grants.value;
-    if (grants == null) {
+    if (grants == null || grants.kind != 'guardian') {
       return const [];
     }
 
-    final studentIds = studentIdsFromScopeGrants(
-      grants.effectiveGrants.scopeGrants,
+    final studentIds = await loadGuardianLinkedStudentIds(
+      AppRuntime.schoolClient(),
+      grants.actorId,
     );
     if (studentIds.isEmpty) {
       return const [];

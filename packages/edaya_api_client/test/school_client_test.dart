@@ -77,8 +77,11 @@ void main() {
         'schoolId': 'school-1',
         'assuranceLevel': 'standard',
         'effectiveGrants': {
-          'permissions': ['students:read'],
+          'permissions': ['STUDENT_READ'],
           'scopeGrants': [],
+          'scopeIdsByPermission': {
+            'QUERY_STUDENT_DETAIL_READ': 'student-1',
+          },
           'isElevated': false,
         },
       },
@@ -116,5 +119,6 @@ void main() {
     ]);
     expect(grants.kind, 'staff');
     expect(grants.actorId, 'actor-1');
+    expect(grants.effectiveGrants.scopeIdsByPermission['QUERY_STUDENT_DETAIL_READ'], 'student-1');
   });
 }

@@ -42,6 +42,14 @@ void registerTeacherDependencies(LevitScope scope) {
         return null;
       },
       unauthorizedProfileMessage: () => systemL10n().signedInNoStaffProfile,
+      resolveAcademicYearId: () async {
+        final academicYear = scope.find<AcademicYearController>();
+        final selected = academicYear.selectedYearId.value;
+        if (selected != null && selected.isNotEmpty) {
+          return selected;
+        }
+        return scope.find<SessionStorage>().readAcademicYearId();
+      },
     ),
     permanent: true,
   );
@@ -93,6 +101,7 @@ void registerTeacherDependencies(LevitScope scope) {
       pushNotifications: scope.find<PushNotificationService>(),
       initializeAuthenticatedContext: () async {
         await scope.find<AcademicYearController>().loadYears();
+        await scope.find<AppSessionController>().refreshGrants();
         await scope.find<StaffContextController>().initializeFromSession();
       },
     ),

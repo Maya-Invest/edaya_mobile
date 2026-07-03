@@ -50,20 +50,10 @@ abstract final class ClientBindings {
       schemaName: "StaffAssignment",
       allowDirectSave: true,
     ),
-    "accessRoles": EntityBinding(
-      publicName: "access-roles",
-      schemaName: "AccessRole",
-      allowDirectSave: true,
-    ),
     "accountInvitations": EntityBinding(
       publicName: "account-invitations",
       schemaName: "AccountInvitation",
       allowDirectSave: false,
-    ),
-    "staffRoleAssignments": EntityBinding(
-      publicName: "staff-role-assignments",
-      schemaName: "StaffRoleAssignment",
-      allowDirectSave: true,
     ),
     "attachments": EntityBinding(
       publicName: "attachments",
