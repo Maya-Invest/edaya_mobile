@@ -17,7 +17,7 @@ dependencies:
     path: ../../packages/edaya_auth
   edaya_shared:
     path: ../../packages/edaya_shared
-  levit_flutter: ^0.0.7
+  levit_flutter: ^0.0.8
   shared_preferences: ^2.5.5
   cupertino_icons: ^1.0.9
   firebase_core: ^4.11.0

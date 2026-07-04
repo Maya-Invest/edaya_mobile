@@ -18,7 +18,7 @@ dependencies:
     path: ../edaya_api_client
   edaya_auth:
     path: ../edaya_auth
-  levit_flutter: ^0.0.7
+  levit_flutter: ^0.0.8
   shared_preferences: ^2.5.5
   firebase_core: ^4.11.0
   firebase_messaging: ^16.4.1
