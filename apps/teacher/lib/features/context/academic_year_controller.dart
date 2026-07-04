@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../auth/session_storage.dart';
@@ -13,11 +12,14 @@ class AcademicYearController extends LevitController
   AcademicYearController({
     required SessionStorage sessionStorage,
     required AppSessionController session,
+    required SchoolClientFactory schoolClient,
   }) : _sessionStorage = sessionStorage,
-       _session = session;
+       _session = session,
+       _schoolClient = schoolClient;
 
   final SessionStorage _sessionStorage;
   final AppSessionController _session;
+  final SchoolClientFactory _schoolClient;
 
   final years = LxVar<List<Map<String, dynamic>>>(const []);
   final selectedYearId = LxVar<String?>(null);
@@ -54,7 +56,7 @@ class AcademicYearController extends LevitController
     errorMessage('');
     await runTask(() async {
       try {
-        final rows = await AppRuntime.schoolClient().academicYears.list();
+        final rows = await _schoolClient().academicYears.list();
         final sorted = rows.toList(growable: true)
           ..sort((a, b) {
             final aName = a['name'] as String? ?? '';

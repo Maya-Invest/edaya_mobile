@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../access/app_runtime.dart';
+import '../features/context/academic_year_controller.dart';
+import '../features/context/staff_context_controller.dart';
 import '../config/api_config.dart';
 import '../features/account/account_sheet.dart';
 import '../features/app_shell/app_shell_page.dart';
@@ -51,9 +52,10 @@ class AppRouter extends LevitController implements EdayaAppRouter {
             defaultEmail: ApiConfig.devStaffEmail,
             defaultPassword: ApiConfig.devPassword,
             onSignInSuccess: () async {
-              await AppRuntime.academicYear.loadYears();
-              await AppRuntime.staffContext.initializeFromSession();
-              find.router.go('/calendar');
+              await EdayaRootScope.find<AcademicYearController>().loadYears();
+              await EdayaRootScope.find<StaffContextController>()
+                  .initializeFromSession();
+              AppRouter.find.router.go('/calendar');
             },
           ),
         ),
@@ -66,9 +68,10 @@ class AppRouter extends LevitController implements EdayaAppRouter {
           parentNavigatorKey: rootNavigatorKey,
           path: '/account/profile',
           builder: (context, state) => AccountProfilePage(
-            session: AppRuntime.session,
-            schoolClient: AppRuntime.schoolClient,
-            onProfileSaved: (_) => AppRuntime.staffContext.reloadContext(),
+            session: context.levit.find<AppSessionController>(),
+            schoolClient: context.levit.find<SchoolClientFactory>(),
+            onProfileSaved: (_) =>
+                context.levit.find<StaffContextController>().reloadContext(),
           ),
         ),
         GoRoute(

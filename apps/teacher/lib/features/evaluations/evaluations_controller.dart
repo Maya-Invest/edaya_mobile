@@ -3,11 +3,10 @@ import 'dart:async';
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
-import '../../common/utils/academic_period.dart';
-import '../../common/utils/entity_filters.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
+import '../../common/utils/academic_period.dart';
+import '../../common/utils/entity_filters.dart';
 import '../context/academic_year_controller.dart';
 import '../context/staff_context_controller.dart';
 import 'models/evaluation_models.dart';
@@ -16,11 +15,14 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
   EvaluationsController({
     required StaffContextController staffContext,
     required AcademicYearController academicYear,
+    required SchoolClientFactory schoolClient,
   }) : _staffContext = staffContext,
-       _academicYear = academicYear;
+       _academicYear = academicYear,
+       _schoolClient = schoolClient;
 
   final StaffContextController _staffContext;
   final AcademicYearController _academicYear;
+  final SchoolClientFactory _schoolClient;
 
   final evaluations = LxVar<List<EvaluationSummary>>(const []);
   final periods = LxVar<List<Map<String, dynamic>>>(const []);
@@ -83,7 +85,7 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
     }
 
     try {
-      final client = AppRuntime.schoolClient();
+      final client = _schoolClient();
       final rows = sortAcademicPeriods(
         await client.academicPeriods.list(academicPeriodsForYear(yearId)),
       );
@@ -135,7 +137,7 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
     errorMessage('');
     await runTask(() async {
       try {
-        final client = AppRuntime.schoolClient();
+        final client = _schoolClient();
         final classLabelById = {
           for (final assigned in _staffContext.assignedClasses.value)
             assigned.id: assigned.label,
@@ -227,7 +229,7 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
     EvaluationSummary evaluation,
   ) async {
     try {
-      final client = AppRuntime.schoolClient();
+      final client = _schoolClient();
       final enrollmentRows = await client.enrollments.list(
         activeEnrollmentsForClass(evaluation.classGroupId),
       );
@@ -300,7 +302,7 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
 
     marksSaveMessage('');
     try {
-      final client = AppRuntime.schoolClient();
+      final client = _schoolClient();
       final resultId = row.resultId ?? 'ar-${evaluation.id}-${row.studentId}';
       final payload = <String, dynamic>{
         'id': resultId,
@@ -347,13 +349,16 @@ class EvaluationCreateController extends LevitController
     required StaffContextController staffContext,
     required AcademicYearController academicYear,
     required EvaluationsController evaluations,
+    required SchoolClientFactory schoolClient,
   }) : _staffContext = staffContext,
        _academicYear = academicYear,
-       _evaluations = evaluations;
+       _evaluations = evaluations,
+       _schoolClient = schoolClient;
 
   final StaffContextController _staffContext;
   final AcademicYearController _academicYear;
   final EvaluationsController _evaluations;
+  final SchoolClientFactory _schoolClient;
 
   final classSubjects = LxVar<List<ClassSubjectOption>>(const []);
   final periods = LxVar<List<Map<String, dynamic>>>(const []);
@@ -380,7 +385,7 @@ class EvaluationCreateController extends LevitController
 
     await runTask(() async {
       try {
-        final client = AppRuntime.schoolClient();
+        final client = _schoolClient();
         final classLabelById = {
           for (final assigned in _staffContext.assignedClasses.value)
             assigned.id: assigned.label,
@@ -434,7 +439,7 @@ class EvaluationCreateController extends LevitController
     }
 
     try {
-      final client = AppRuntime.schoolClient();
+      final client = _schoolClient();
       final rows = sortAcademicPeriods(
         await client.academicPeriods.list(academicPeriodsForYear(yearId)),
       );
@@ -470,7 +475,7 @@ class EvaluationCreateController extends LevitController
 
     errorMessage('');
     try {
-      final client = AppRuntime.schoolClient();
+      final client = _schoolClient();
       final id = 'asm-${DateTime.now().millisecondsSinceEpoch}';
       final now = DateTime.now().toUtc();
       final today = now.toIso8601String().substring(0, 10);

@@ -5,9 +5,8 @@ import 'package:edaya_shared/edaya_shared.dart';
 import '../features/context/academic_year_controller.dart';
 import '../features/context/student_context_controller.dart';
 
-class AppRuntime {
-  AppRuntime._();
-
+/// App-wide dependency lookup for code outside the widget tree.
+abstract final class AppRuntime {
   static AppSessionController get session =>
       EdayaRootScope.find<AppSessionController>();
 
@@ -19,8 +18,8 @@ class AppRuntime {
 
   static AuthClient get auth => EdayaRootScope.find<AuthClient>();
 
-  static api.SchoolClient schoolClient() => createEdayaSchoolClient(
-    auth,
-    getAcademicYearId: () => academicYear.selectedYearId.value,
-  );
+  static SchoolClientFactory get schoolClient =>
+      EdayaRootScope.find<SchoolClientFactory>();
+
+  static api.SchoolClient schoolClientInstance() => schoolClient();
 }

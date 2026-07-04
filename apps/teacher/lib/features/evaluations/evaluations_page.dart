@@ -2,19 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'evaluations_controller.dart';
 import 'models/evaluation_models.dart';
 import 'widgets/academic_period_picker.dart';
 
-class EvaluationsPage extends LScopedView<EvaluationsController> {
+class EvaluationsPage extends LView<EvaluationsController> {
   const EvaluationsPage({super.key});
-
-  @override
-  EvaluationsController onConfigScope(LevitScope scope) {
-    return AppRuntime.evaluations;
-  }
 
   @override
   Widget buildView(BuildContext context, EvaluationsController controller) {
@@ -65,7 +59,10 @@ class _EvaluationsBody extends StatelessWidget {
           ...[
             for (var index = 0; index < items.length; index++) ...[
               if (index > 0) const SizedBox(height: 8),
-              _EvaluationCard(evaluation: items[index]),
+              _EvaluationCard(
+                controller: controller,
+                evaluation: items[index],
+              ),
             ],
           ],
       ],
@@ -74,8 +71,12 @@ class _EvaluationsBody extends StatelessWidget {
 }
 
 class _EvaluationCard extends StatelessWidget {
-  const _EvaluationCard({required this.evaluation});
+  const _EvaluationCard({
+    required this.controller,
+    required this.evaluation,
+  });
 
+  final EvaluationsController controller;
   final EvaluationSummary evaluation;
 
   @override
@@ -84,7 +85,7 @@ class _EvaluationCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: ListTile(
         onTap: () async {
-          await AppRuntime.evaluations.loadMarks(evaluation);
+          await controller.loadMarks(evaluation);
           if (!context.mounted) {
             return;
           }

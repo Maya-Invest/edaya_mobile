@@ -3,10 +3,9 @@ import 'dart:async';
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
-import '../../common/utils/entity_filters.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
+import '../../common/utils/entity_filters.dart';
 import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
 import 'models/payment_record.dart';
@@ -16,11 +15,14 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
   FeesController({
     required StudentContextController studentContext,
     required AcademicYearController academicYear,
+    required SchoolClientFactory schoolClient,
   }) : _studentContext = studentContext,
-       _academicYear = academicYear;
+       _academicYear = academicYear,
+       _schoolClient = schoolClient;
 
   final StudentContextController _studentContext;
   final AcademicYearController _academicYear;
+  final SchoolClientFactory _schoolClient;
 
   final feeLines = LxVar<List<StudentFeeLine>>(const []);
   final payments = LxVar<List<PaymentRecord>>(const []);
@@ -88,7 +90,7 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
     errorMessage('');
     await runTask(() async {
       try {
-        final client = AppRuntime.schoolClient();
+        final client = _schoolClient();
         final studentFeeRows = await client.studentFees.list(
           studentFeesForStudent(studentId),
         );

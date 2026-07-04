@@ -5,17 +5,20 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import 'models/inbox_delivery.dart';
 
 class MessageDetailsController extends LevitController
     with LevitReactiveTasksMixin {
-  MessageDetailsController({required InboxDelivery delivery})
-    : delivery = LxVar(delivery);
+  MessageDetailsController({
+    required InboxDelivery delivery,
+    required SchoolClientFactory schoolClient,
+  }) : delivery = LxVar(delivery),
+       _schoolClient = schoolClient;
 
   final LxVar<InboxDelivery> delivery;
+  final SchoolClientFactory _schoolClient;
   final isMarkingRead = LxVar(false);
   final errorMessage = LxVar('');
 
@@ -36,7 +39,7 @@ class MessageDetailsController extends LevitController
     isMarkingRead(true);
     errorMessage('');
     try {
-      final result = await AppRuntime.schoolClient().markDeliveryRead({
+      final result = await _schoolClient().markDeliveryRead({
         'deliveryId': delivery.value.id,
       });
       delivery(InboxDelivery.fromJson(result));
@@ -58,7 +61,10 @@ class MessageDetailsDialog extends LScopedView<MessageDetailsController> {
   @override
   MessageDetailsController onConfigScope(LevitScope scope) {
     return scope.put(
-      () => MessageDetailsController(delivery: initialDelivery),
+      () => MessageDetailsController(
+        delivery: initialDelivery,
+        schoolClient: scope.find<SchoolClientFactory>(),
+      ),
     );
   }
 

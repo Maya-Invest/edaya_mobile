@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../auth/session_storage.dart';
@@ -13,9 +12,12 @@ class GuardianStudentsController extends LevitController
     with LevitReactiveTasksMixin {
   GuardianStudentsController({
     required AppSessionController session,
-  }) : _session = session;
+    required SchoolClientFactory schoolClient,
+  }) : _session = session,
+       _schoolClient = schoolClient;
 
   final AppSessionController _session;
+  final SchoolClientFactory _schoolClient;
 
   final students = LxVar<List<LinkedStudent>>(const []);
   final errorMessage = LxVar('');
@@ -39,7 +41,7 @@ class GuardianStudentsController extends LevitController
 
       try {
         final studentIds = await loadGuardianLinkedStudentIds(
-          AppRuntime.schoolClient(),
+          _schoolClient(),
           grants.actorId,
         );
 
@@ -48,7 +50,7 @@ class GuardianStudentsController extends LevitController
           return;
         }
 
-        final rows = await AppRuntime.schoolClient().students.list(
+        final rows = await _schoolClient().students.list(
           entitiesByIds(studentIds),
         );
         final linkedStudents = rows

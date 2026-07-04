@@ -4,10 +4,8 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import '../app/router.dart';
 import '../features/auth/session_storage.dart';
-import '../features/calendar/calendar_controller.dart';
 import '../features/context/academic_year_controller.dart';
 import '../features/context/staff_context_controller.dart';
-import '../features/evaluations/evaluations_controller.dart';
 import '../navigation/notification_navigation.dart';
 
 void registerTeacherDependencies(LevitScope scope) {
@@ -20,10 +18,14 @@ void registerTeacherDependencies(LevitScope scope) {
     permanent: true,
   );
   registerEdayaDependencies(scope, cookieJar: cookieJar);
+  registerSchoolClientFactory(
+    scope,
+    getAcademicYearId: () =>
+        scope.find<AcademicYearController>().selectedYearId.value,
+  );
   scope.put<PushNotificationService>(
     () => FcmPushNotificationService(
-      schoolClientFactory: () =>
-          createEdayaSchoolClient(scope.find<AuthClient>()),
+      schoolClientFactory: scope.find<SchoolClientFactory>(),
       config: PushNotificationConfigs.teacher,
       onNotificationOpened: handleTeacherNotificationOpened,
     ),
@@ -57,6 +59,7 @@ void registerTeacherDependencies(LevitScope scope) {
     () => AcademicYearController(
       sessionStorage: scope.find<SessionStorage>(),
       session: scope.find<AppSessionController>(),
+      schoolClient: scope.find<SchoolClientFactory>(),
     ),
     permanent: true,
   );
@@ -65,20 +68,7 @@ void registerTeacherDependencies(LevitScope scope) {
       sessionStorage: scope.find<SessionStorage>(),
       session: scope.find<AppSessionController>(),
       academicYear: scope.find<AcademicYearController>(),
-    ),
-    permanent: true,
-  );
-  scope.put<CalendarController>(
-    () => CalendarController(
-      staffContext: scope.find<StaffContextController>(),
-      academicYear: scope.find<AcademicYearController>(),
-    ),
-    permanent: true,
-  );
-  scope.put<EvaluationsController>(
-    () => EvaluationsController(
-      staffContext: scope.find<StaffContextController>(),
-      academicYear: scope.find<AcademicYearController>(),
+      schoolClient: scope.find<SchoolClientFactory>(),
     ),
     permanent: true,
   );

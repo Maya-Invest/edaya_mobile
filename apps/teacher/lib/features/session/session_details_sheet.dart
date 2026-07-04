@@ -15,7 +15,12 @@ class SessionDetailsSheet extends LScopedView<SessionDetailController> {
 
   @override
   SessionDetailController onConfigScope(LevitScope scope) {
-    return scope.put(() => SessionDetailController(session: session));
+    return scope.put(
+      () => SessionDetailController(
+        session: session,
+        schoolClient: scope.find<SchoolClientFactory>(),
+      ),
+    );
   }
 
   @override

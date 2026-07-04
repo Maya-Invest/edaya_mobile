@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../../common/utils/entity_filters.dart';
@@ -12,9 +11,13 @@ import 'models/session_detail_models.dart';
 
 class SessionDetailController extends LevitController
     with LevitReactiveTasksMixin {
-  SessionDetailController({required this.session});
+  SessionDetailController({
+    required this.session,
+    required SchoolClientFactory schoolClient,
+  }) : _schoolClient = schoolClient;
 
   final TeacherSession session;
+  final SchoolClientFactory _schoolClient;
 
   final segment = LxVar(SessionDetailSegment.attendance);
   final students = LxVar<List<SessionStudentRow>>(const []);
@@ -44,7 +47,7 @@ class SessionDetailController extends LevitController
     errorMessage('');
     await runTask(() async {
       try {
-        final client = AppRuntime.schoolClient();
+        final client = _schoolClient();
         final enrollmentRows = await client.enrollments.list(
           activeEnrollmentsForClass(session.classGroupId),
         );
@@ -201,7 +204,7 @@ class SessionDetailController extends LevitController
   ) async {
     saveMessage('');
     try {
-      final client = AppRuntime.schoolClient();
+      final client = _schoolClient();
       final attendanceId = row.attendanceId ?? '${row.studentId}-${session.id}';
       await client.recordAttendance(
         attendanceRecordPayload(
@@ -246,7 +249,7 @@ class SessionDetailController extends LevitController
 
     saveMessage('');
     try {
-      final client = AppRuntime.schoolClient();
+      final client = _schoolClient();
       final progressId =
           logbook.value?.id ??
           'csp-${session.id}-${DateTime.now().millisecondsSinceEpoch}';

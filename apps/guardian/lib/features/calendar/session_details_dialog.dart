@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
+import '../context/student_context_controller.dart';
 import 'calendar_controller.dart';
 import 'models/calendar_session.dart';
 
@@ -17,7 +17,8 @@ class SessionDetailsDialog extends LScopedView<SessionDetailsController> {
     return scope.put(
       () => SessionDetailsController(
         session: session,
-        studentContext: AppRuntime.studentContext,
+        studentContext: scope.find<StudentContextController>(),
+        schoolClient: scope.find<SchoolClientFactory>(),
       ),
     );
   }

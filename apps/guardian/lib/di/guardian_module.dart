@@ -15,10 +15,14 @@ void registerGuardianDependencies(LevitScope scope) {
   scope.put<SessionStorage>(() => SessionStorage(), permanent: true);
   scope.put<EdayaRouterRefresh>(() => EdayaRouterRefresh(), permanent: true);
   registerEdayaDependencies(scope, cookieJar: cookieJar);
+  registerSchoolClientFactory(
+    scope,
+    getAcademicYearId: () =>
+        scope.find<AcademicYearController>().selectedYearId.value,
+  );
   scope.put<PushNotificationService>(
     () => FcmPushNotificationService(
-      schoolClientFactory: () =>
-          createEdayaSchoolClient(scope.find<AuthClient>()),
+      schoolClientFactory: scope.find<SchoolClientFactory>(),
       config: PushNotificationConfigs.guardian,
       onNotificationOpened: handleGuardianNotificationOpened,
     ),
@@ -36,7 +40,11 @@ void registerGuardianDependencies(LevitScope scope) {
     permanent: true,
   );
   scope.put<AcademicYearController>(
-    () => AcademicYearController(sessionStorage: scope.find<SessionStorage>(), session: scope.find<AppSessionController>()),
+    () => AcademicYearController(
+      sessionStorage: scope.find<SessionStorage>(),
+      session: scope.find<AppSessionController>(),
+      schoolClient: scope.find<SchoolClientFactory>(),
+    ),
     permanent: true,
   );
   scope.put<StudentContextController>(
@@ -44,11 +52,15 @@ void registerGuardianDependencies(LevitScope scope) {
       sessionStorage: scope.find<SessionStorage>(),
       session: scope.find<AppSessionController>(),
       academicYear: scope.find<AcademicYearController>(),
+      schoolClient: scope.find<SchoolClientFactory>(),
     ),
     permanent: true,
   );
   scope.put<AppRouter>(
-    () => AppRouter(session: scope.find<AppSessionController>(), routerRefresh: scope.find<EdayaRouterRefresh>()),
+    () => AppRouter(
+      session: scope.find<AppSessionController>(),
+      routerRefresh: scope.find<EdayaRouterRefresh>(),
+    ),
     permanent: true,
   );
   scope.put<EdayaAppRouter>(() => scope.find<AppRouter>(), permanent: true);

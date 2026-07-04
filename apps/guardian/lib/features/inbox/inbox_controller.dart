@@ -3,16 +3,20 @@ import 'dart:async';
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
-import '../../common/utils/entity_filters.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
+import '../../common/utils/entity_filters.dart';
 import 'models/inbox_delivery.dart';
 
 class InboxController extends LevitController with LevitReactiveTasksMixin {
-  InboxController({required AppSessionController session}) : _session = session;
+  InboxController({
+    required AppSessionController session,
+    required SchoolClientFactory schoolClient,
+  }) : _session = session,
+       _schoolClient = schoolClient;
 
   final AppSessionController _session;
+  final SchoolClientFactory _schoolClient;
 
   final deliveries = LxVar<List<InboxDelivery>>(const []);
   final errorMessage = LxVar('');
@@ -62,7 +66,7 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
     errorMessage('');
     await runTask(() async {
       try {
-        final rows = await AppRuntime.schoolClient().messageDeliveries.list(
+        final rows = await _schoolClient().messageDeliveries.list(
           deliveriesForSubject(subjectId),
         );
         final parsed = rows.map(InboxDelivery.fromJson).toList()

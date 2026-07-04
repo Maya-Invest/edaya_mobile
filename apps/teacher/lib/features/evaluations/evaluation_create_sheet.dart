@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
+import '../context/academic_year_controller.dart';
+import '../context/staff_context_controller.dart';
 import 'evaluations_controller.dart';
 import 'widgets/academic_period_picker.dart';
 
@@ -14,9 +15,10 @@ class EvaluationCreateSheet extends LScopedView<EvaluationCreateController> {
   EvaluationCreateController onConfigScope(LevitScope scope) {
     return scope.put(
       () => EvaluationCreateController(
-        staffContext: AppRuntime.staffContext,
-        academicYear: AppRuntime.academicYear,
-        evaluations: AppRuntime.evaluations,
+        staffContext: scope.find<StaffContextController>(),
+        academicYear: scope.find<AcademicYearController>(),
+        evaluations: scope.find<EvaluationsController>(),
+        schoolClient: scope.find<SchoolClientFactory>(),
       ),
     );
   }
@@ -68,9 +70,10 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
       () {
         final subjects = widget.controller.classSubjects.value;
         final periods = widget.controller.periods.value;
+        final evaluations = context.levit.find<EvaluationsController>();
         _classSubjectId ??= subjects.isNotEmpty ? subjects.first.id : null;
         _periodId ??=
-            AppRuntime.evaluations.selectedPeriodId.value ??
+            evaluations.selectedPeriodId.value ??
             widget.controller.defaultPeriodId() ??
             (periods.isNotEmpty ? periods.first['id'] as String : null);
         final selectedSubject = subjects.cast<ClassSubjectOption?>().firstWhere(

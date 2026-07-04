@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
+import '../context/academic_year_controller.dart';
+import '../context/student_context_controller.dart';
 import 'fees_controller.dart';
 import 'models/payment_record.dart';
 import 'widgets/fee_tiles.dart';
@@ -16,8 +17,9 @@ class FeesPage extends LScopedView<FeesController> {
   FeesController onConfigScope(LevitScope scope) {
     return scope.put(
       () => FeesController(
-        studentContext: AppRuntime.studentContext,
-        academicYear: AppRuntime.academicYear,
+        studentContext: scope.find<StudentContextController>(),
+        academicYear: scope.find<AcademicYearController>(),
+        schoolClient: scope.find<SchoolClientFactory>(),
       ),
     );
   }

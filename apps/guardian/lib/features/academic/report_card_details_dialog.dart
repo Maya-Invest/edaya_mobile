@@ -20,6 +20,7 @@ class ReportCardDetailsDialog extends LScopedView<ReportCardDetailsController> {
       () => ReportCardDetailsController(
         reportCardId: reportCard.id,
         periodName: reportCard.periodName,
+        schoolClient: scope.find<SchoolClientFactory>(),
       ),
     );
   }

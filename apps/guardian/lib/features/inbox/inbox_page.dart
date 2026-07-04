@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'inbox_controller.dart';
 import 'models/inbox_delivery.dart';
@@ -14,7 +13,10 @@ class InboxPage extends LScopedView<InboxController> {
   @override
   InboxController onConfigScope(LevitScope scope) {
     return scope.put(
-      () => InboxController(session: AppRuntime.session),
+      () => InboxController(
+        session: scope.find<AppSessionController>(),
+        schoolClient: scope.find<SchoolClientFactory>(),
+      ),
     );
   }
 

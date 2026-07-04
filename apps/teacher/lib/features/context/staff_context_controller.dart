@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
 import '../../common/utils/entity_query.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
@@ -23,13 +22,16 @@ class StaffContextController extends LevitController
     required SessionStorage sessionStorage,
     required AppSessionController session,
     required AcademicYearController academicYear,
+    required SchoolClientFactory schoolClient,
   }) : _sessionStorage = sessionStorage,
        _session = session,
-       _academicYear = academicYear;
+       _academicYear = academicYear,
+       _schoolClient = schoolClient;
 
   final SessionStorage _sessionStorage;
   final AppSessionController _session;
   final AcademicYearController _academicYear;
+  final SchoolClientFactory _schoolClient;
 
   final staffName = LxVar<String?>(null);
   final staffPhotoUrl = LxVar<String?>(null);
@@ -130,7 +132,7 @@ class StaffContextController extends LevitController
     await runTask(() async {
       isLoading(true);
       try {
-        final client = AppRuntime.schoolClient();
+        final client = _schoolClient();
         try {
           final staff = await client.staffMembers.get(resolvedStaffId);
           final firstName = staff['firstName'] as String? ?? '';

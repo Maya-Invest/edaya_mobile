@@ -2,19 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'calendar_controller.dart';
 import 'widgets/teacher_session_tile.dart';
 import 'widgets/week_day_selector.dart';
 
-class CalendarPage extends LScopedView<CalendarController> {
+class CalendarPage extends LView<CalendarController> {
   const CalendarPage({super.key});
-
-  @override
-  CalendarController onConfigScope(LevitScope scope) {
-    return AppRuntime.calendar;
-  }
 
   @override
   Widget buildView(BuildContext context, CalendarController controller) {

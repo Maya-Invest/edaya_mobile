@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
+import '../../access/school_client.dart';
 import '../../common/widgets/data_state.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../ui/person_avatar.dart';

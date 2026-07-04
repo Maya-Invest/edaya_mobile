@@ -3,10 +3,9 @@ import 'dart:async';
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
-import '../../common/utils/entity_filters.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
+import '../../common/utils/entity_filters.dart';
 import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
 import 'models/academic_period.dart';
@@ -20,11 +19,14 @@ class AcademicController extends LevitController with LevitReactiveTasksMixin {
   AcademicController({
     required StudentContextController studentContext,
     required AcademicYearController academicYear,
+    required SchoolClientFactory schoolClient,
   }) : _studentContext = studentContext,
-       _academicYear = academicYear;
+       _academicYear = academicYear,
+       _schoolClient = schoolClient;
 
   final StudentContextController _studentContext;
   final AcademicYearController _academicYear;
+  final SchoolClientFactory _schoolClient;
 
   final view = LxVar(AcademicView.grades);
   final selectedPeriodId = LxVar<String?>(null);
@@ -161,7 +163,7 @@ class AcademicController extends LevitController with LevitReactiveTasksMixin {
     errorMessage('');
     await runTask(() async {
       try {
-        final client = AppRuntime.schoolClient();
+        final client = _schoolClient();
         final periodRows = await client.academicPeriods.list(
           academicYearScope(yearId),
         );
@@ -406,10 +408,12 @@ class ReportCardDetailsController extends LevitController
   ReportCardDetailsController({
     required this.reportCardId,
     required this.periodName,
-  });
+    required SchoolClientFactory schoolClient,
+  }) : _schoolClient = schoolClient;
 
   final String reportCardId;
   final String periodName;
+  final SchoolClientFactory _schoolClient;
 
   final detail = LxVar<ReportCardDetail?>(null);
   final errorMessage = LxVar('');
@@ -425,7 +429,7 @@ class ReportCardDetailsController extends LevitController
   Future<void> loadDetail() async {
     await runTask(() async {
       try {
-        final row = await AppRuntime.schoolClient().results.get(reportCardId);
+        final row = await _schoolClient().results.get(reportCardId);
         detail(
           ReportCardDetail.fromJson(
             row,

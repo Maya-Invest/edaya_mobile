@@ -5,32 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
 import 'evaluations_controller.dart';
 import 'models/evaluation_models.dart';
 import 'widgets/mark_row_tile.dart';
 
-class MarksEntrySheet extends StatefulWidget {
+class MarksEntrySheet extends LView<EvaluationsController> {
   const MarksEntrySheet({super.key, required this.evaluation});
 
   final EvaluationSummary evaluation;
 
   @override
-  State<MarksEntrySheet> createState() => _MarksEntrySheetState();
-}
-
-class _MarksEntrySheetState extends State<MarksEntrySheet> {
-  @override
-  void initState() {
-    super.initState();
-    final controller = AppRuntime.evaluations;
-    if (controller.marksEvaluationId.value != widget.evaluation.id) {
-      unawaited(controller.loadMarks(widget.evaluation));
+  Widget buildView(BuildContext context, EvaluationsController controller) {
+    if (controller.marksEvaluationId.value != evaluation.id) {
+      unawaited(controller.loadMarks(evaluation));
     }
-  }
 
-  @override
-  Widget build(BuildContext context) {
     return DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.92,
@@ -43,7 +32,7 @@ class _MarksEntrySheetState extends State<MarksEntrySheet> {
             () => _buildContent(
               context,
               scrollController,
-              AppRuntime.evaluations,
+              controller,
             ),
           ),
         );
@@ -57,14 +46,15 @@ class _MarksEntrySheetState extends State<MarksEntrySheet> {
     EvaluationsController controller,
   ) {
     final isCurrentEvaluation =
-        controller.marksEvaluationId.value == widget.evaluation.id;
+        controller.marksEvaluationId.value == evaluation.id;
     final students = isCurrentEvaluation
         ? controller.marksStudents.value
         : const <StudentMarkRow>[];
     final errorMessage = isCurrentEvaluation
         ? controller.marksErrorMessage.value
         : '';
-    final saveMessage = isCurrentEvaluation ? controller.marksSaveMessage.value : '';
+    final saveMessage =
+        isCurrentEvaluation ? controller.marksSaveMessage.value : '';
     final loading = controller.isBusy.value &&
         isCurrentEvaluation &&
         students.isEmpty &&
@@ -81,15 +71,15 @@ class _MarksEntrySheetState extends State<MarksEntrySheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.evaluation.title,
+                    evaluation.title,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   Text(
-                    '${widget.evaluation.classLabel} · ${widget.evaluation.subjectLabel}',
+                    '${evaluation.classLabel} · ${evaluation.subjectLabel}',
                   ),
                   Text(
                     context.tr.outOfMaxScore(
-                      widget.evaluation.maxScore.toString(),
+                      evaluation.maxScore.toString(),
                     ),
                   ),
                 ],
@@ -112,7 +102,7 @@ class _MarksEntrySheetState extends State<MarksEntrySheet> {
             style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
           TextButton(
-            onPressed: () => controller.loadMarks(widget.evaluation),
+            onPressed: () => controller.loadMarks(evaluation),
             child: Text(context.tr.retry),
           ),
         ],
@@ -147,7 +137,8 @@ class _MarksEntrySheetState extends State<MarksEntrySheet> {
               MarkRowTile(
                 key: ValueKey(students[index].studentId),
                 row: students[index],
-                onEditScore: () => _editScore(context, controller, students[index]),
+                onEditScore: () =>
+                    _editScore(context, controller, students[index]),
               ),
             ],
         ],
@@ -167,22 +158,22 @@ class _MarksEntrySheetState extends State<MarksEntrySheet> {
           studentName: row.studentName,
           initialScore: row.score?.toString() ?? '',
           maxScoreLabel: context.tr.outOfMaxScore(
-            widget.evaluation.maxScore.toString(),
+            evaluation.maxScore.toString(),
           ),
           scoreHint: context.tr.scoreHintOutOf(
-            widget.evaluation.maxScore.toString(),
+            evaluation.maxScore.toString(),
           ),
           saveLabel: context.tr.save,
         );
       },
     );
 
-    if (!mounted || score == null) {
+    if (!context.mounted || score == null) {
       return;
     }
 
-    final saved = await controller.saveMark(widget.evaluation, row, score);
-    if (!mounted) {
+    final saved = await controller.saveMark(evaluation, row, score);
+    if (!context.mounted) {
       return;
     }
 

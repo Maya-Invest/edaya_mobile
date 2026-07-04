@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../auth/session_storage.dart';
@@ -16,13 +15,16 @@ class StudentContextController extends LevitController
     required SessionStorage sessionStorage,
     required AppSessionController session,
     required AcademicYearController academicYear,
+    required SchoolClientFactory schoolClient,
   }) : _sessionStorage = sessionStorage,
        _session = session,
-       _academicYear = academicYear;
+       _academicYear = academicYear,
+       _schoolClient = schoolClient;
 
   final SessionStorage _sessionStorage;
   final AppSessionController _session;
   final AcademicYearController _academicYear;
+  final SchoolClientFactory _schoolClient;
 
   final activeStudent = LxVar<LinkedStudent?>(null);
   final classGroupId = LxVar<String?>(null);
@@ -63,7 +65,7 @@ class StudentContextController extends LevitController
     }
 
     final scopedStudentIds = await loadGuardianLinkedStudentIds(
-      AppRuntime.schoolClient(),
+      _schoolClient(),
       grants.actorId,
     );
     if (scopedStudentIds.isEmpty) {
@@ -121,7 +123,7 @@ class StudentContextController extends LevitController
     await runTask(() async {
       isLoading(true);
       try {
-        final schoolClient = AppRuntime.schoolClient();
+        final schoolClient = _schoolClient();
         final studentJson = await schoolClient.students.get(studentId);
         activeStudent(LinkedStudent.fromJson(studentJson));
 

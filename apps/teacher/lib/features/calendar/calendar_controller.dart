@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../context/academic_year_controller.dart';
@@ -14,11 +13,14 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
   CalendarController({
     required StaffContextController staffContext,
     required AcademicYearController academicYear,
+    required SchoolClientFactory schoolClient,
   }) : _staffContext = staffContext,
-       _academicYear = academicYear;
+       _academicYear = academicYear,
+       _schoolClient = schoolClient;
 
   final StaffContextController _staffContext;
   final AcademicYearController _academicYear;
+  final SchoolClientFactory _schoolClient;
 
   final weekStart = LxVar(startOfWeek(defaultCalendarDay()));
   final selectedDay = LxVar(defaultCalendarDay());
@@ -132,7 +134,7 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
     errorMessage('');
     await runTask(() async {
       try {
-        final client = AppRuntime.schoolClient();
+        final client = _schoolClient();
         final classLabelById = {
           for (final assigned in _staffContext.assignedClasses.value)
             assigned.id: assigned.label,

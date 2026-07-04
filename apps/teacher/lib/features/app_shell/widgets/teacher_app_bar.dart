@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../../access/app_runtime.dart';
+import '../../calendar/calendar_controller.dart';
+import '../../context/staff_context_controller.dart';
+import '../../evaluations/evaluations_controller.dart';
 
 class TeacherAppBar extends StatelessWidget implements PreferredSizeWidget {
   const TeacherAppBar({super.key});
@@ -24,12 +26,12 @@ class TeacherAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       title: LWatch(
         () {
-          final staffContext = AppRuntime.staffContext;
+          final staffContext = context.levit.find<StaffContextController>();
           final classLabel =
               staffContext.classFilterLabel ?? context.tr.allClasses;
 
           if (isEvaluations) {
-            final evaluations = AppRuntime.evaluations;
+            final evaluations = context.levit.find<EvaluationsController>();
             final count = evaluations.evaluations.value.length;
             final countLabel = context.tr.evaluationCount(count);
             final periodLabel = evaluations.selectedPeriodLabel;
@@ -41,7 +43,7 @@ class TeacherAppBar extends StatelessWidget implements PreferredSizeWidget {
             );
           }
 
-          final calendar = AppRuntime.calendar;
+          final calendar = context.levit.find<CalendarController>();
           final dayLabel = context.formatShortDate(calendar.selectedDay.value);
           final sessionCount = calendar.sessionsForSelectedDay.length;
           final sessionLabel = context.tr.sessionCount(sessionCount);

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
+import '../context/student_context_controller.dart';
 import 'guardian_students_controller.dart';
 import 'linked_student.dart';
 
@@ -12,7 +12,12 @@ class MyStudentsSheet extends LScopedView<GuardianStudentsController> {
 
   @override
   GuardianStudentsController onConfigScope(LevitScope scope) {
-    return scope.put(() => GuardianStudentsController(session: AppRuntime.session));
+    return scope.put(
+      () => GuardianStudentsController(
+        session: scope.find<AppSessionController>(),
+        schoolClient: scope.find<SchoolClientFactory>(),
+      ),
+    );
   }
 
   @override
@@ -66,8 +71,10 @@ class MyStudentsSheet extends LScopedView<GuardianStudentsController> {
                     return Text(context.tr.noLinkedStudentsFound);
                   }
 
+                  final studentContext =
+                      context.levit.find<StudentContextController>();
                   final activeStudentId =
-                      AppRuntime.studentContext.activeStudent.value?.id;
+                      studentContext.activeStudent.value?.id;
 
                   return ListView.separated(
                     shrinkWrap: true,
@@ -80,7 +87,7 @@ class MyStudentsSheet extends LScopedView<GuardianStudentsController> {
                         student: student,
                         isSelected: isSelected,
                         onSelect: () async {
-                          await AppRuntime.studentContext.selectStudent(
+                          await studentContext.selectStudent(
                             student.id,
                           );
                           if (context.mounted) {

@@ -4,7 +4,6 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:edaya_api_client/edaya_api_client.dart' show SchoolClient;
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../context/academic_year_controller.dart';
@@ -20,11 +19,14 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
   CalendarController({
     required StudentContextController studentContext,
     required AcademicYearController academicYear,
+    required SchoolClientFactory schoolClient,
   }) : _studentContext = studentContext,
-       _academicYear = academicYear;
+       _academicYear = academicYear,
+       _schoolClient = schoolClient;
 
   final StudentContextController _studentContext;
   final AcademicYearController _academicYear;
+  final SchoolClientFactory _schoolClient;
 
   final view = LxVar(CalendarView.timetable);
   final weekStart = LxVar(startOfWeek(defaultCalendarDay()));
@@ -150,7 +152,7 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
 
     errorMessage('');
     await runTask(() async {
-      final client = AppRuntime.schoolClient();
+      final client = _schoolClient();
       final range = planningDateRangeForWeek(weekStart.value);
       Object? sessionsError;
       Object? eventsError;
@@ -205,10 +207,13 @@ class SessionDetailsController extends LevitController
   SessionDetailsController({
     required this.session,
     required StudentContextController studentContext,
-  }) : _studentContext = studentContext;
+    required SchoolClientFactory schoolClient,
+  }) : _studentContext = studentContext,
+       _schoolClient = schoolClient;
 
   final CalendarSession session;
   final StudentContextController _studentContext;
+  final SchoolClientFactory _schoolClient;
 
   final attendance = LxVar<AttendanceRecord?>(null);
   final logbook = LxVar<LogbookEntry?>(null);
@@ -232,7 +237,7 @@ class SessionDetailsController extends LevitController
 
     await runTask(() async {
       try {
-        final client = AppRuntime.schoolClient();
+        final client = _schoolClient();
         final attendanceRows = await client.attendance.list({
           ...attendanceForOccurrence(
             kind: session.kind,
@@ -349,9 +354,12 @@ class AttendanceListController extends LevitController
     with LevitReactiveTasksMixin {
   AttendanceListController({
     required StudentContextController studentContext,
-  }) : _studentContext = studentContext;
+    required SchoolClientFactory schoolClient,
+  }) : _studentContext = studentContext,
+       _schoolClient = schoolClient;
 
   final StudentContextController _studentContext;
+  final SchoolClientFactory _schoolClient;
 
   final records = LxVar<List<AttendanceRecord>>(const []);
   final sessionTitles = LxVar<Map<String, String>>(const {});
@@ -374,7 +382,7 @@ class AttendanceListController extends LevitController
 
     await runTask(() async {
       try {
-        final client = AppRuntime.schoolClient();
+        final client = _schoolClient();
         final rows = await client.attendance.list(studentScope(studentId));
         final parsed = rows.map(AttendanceRecord.fromJson).toList()
           ..sort((a, b) => b.date.compareTo(a.date));

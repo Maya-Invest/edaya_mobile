@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
 import 'package:edaya_shared/edaya_shared.dart';
+import '../context/student_context_controller.dart';
 import 'calendar_controller.dart';
 
 class AttendanceListPage extends LScopedView<AttendanceListController> {
@@ -12,7 +12,8 @@ class AttendanceListPage extends LScopedView<AttendanceListController> {
   AttendanceListController onConfigScope(LevitScope scope) {
     return scope.put(
       () => AttendanceListController(
-        studentContext: AppRuntime.studentContext,
+        studentContext: scope.find<StudentContextController>(),
+        schoolClient: scope.find<SchoolClientFactory>(),
       ),
     );
   }

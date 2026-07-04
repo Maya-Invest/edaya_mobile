@@ -5,23 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../access/app_runtime.dart';
 import 'academic_year_controller.dart';
 import 'staff_context_controller.dart';
 
-class ClassFilterSheet extends StatefulWidget {
+class ClassFilterSheet extends StatelessWidget {
   const ClassFilterSheet({super.key});
-
-  @override
-  State<ClassFilterSheet> createState() => _ClassFilterSheetState();
-}
-
-class _ClassFilterSheetState extends State<ClassFilterSheet> {
-  @override
-  void initState() {
-    super.initState();
-    unawaited(AppRuntime.academicYear.loadYears());
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +17,32 @@ class _ClassFilterSheetState extends State<ClassFilterSheet> {
       builder: (context, staffContext) {
         return LView<AcademicYearController>(
           builder: (context, academicYear) {
+            if (academicYear.years.value.isEmpty && !academicYear.isBusy.value) {
+              unawaited(academicYear.loadYears());
+            }
+
+            return _ClassFilterBody(
+              staffContext: staffContext,
+              academicYear: academicYear,
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _ClassFilterBody extends StatelessWidget {
+  const _ClassFilterBody({
+    required this.staffContext,
+    required this.academicYear,
+  });
+
+  final StaffContextController staffContext;
+  final AcademicYearController academicYear;
+
+  @override
+  Widget build(BuildContext context) {
             return SafeArea(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
@@ -55,7 +69,10 @@ class _ClassFilterSheetState extends State<ClassFilterSheet> {
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
                     const SizedBox(height: 4),
-                    _SchoolYearSection(academicYear: academicYear),
+                    _SchoolYearSection(
+                      academicYear: academicYear,
+                      staffContext: staffContext,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       context.tr.classLabel,
@@ -106,17 +123,17 @@ class _ClassFilterSheetState extends State<ClassFilterSheet> {
                 ),
               ),
             );
-          },
-        );
-      },
-    );
   }
 }
 
 class _SchoolYearSection extends StatelessWidget {
-  const _SchoolYearSection({required this.academicYear});
+  const _SchoolYearSection({
+    required this.academicYear,
+    required this.staffContext,
+  });
 
   final AcademicYearController academicYear;
+  final StaffContextController staffContext;
 
   @override
   Widget build(BuildContext context) {
@@ -172,7 +189,7 @@ class _SchoolYearSection extends StatelessWidget {
                     trailing: isSelected ? const Icon(Icons.check) : null,
                     onTap: () async {
                       await academicYear.selectYear(yearId);
-                      await AppRuntime.staffContext.reloadContext();
+                      await staffContext.reloadContext();
                     },
                   );
                 },

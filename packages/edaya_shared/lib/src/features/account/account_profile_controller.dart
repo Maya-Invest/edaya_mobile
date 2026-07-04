@@ -4,13 +4,12 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
+import '../../access/school_client.dart';
 import '../../common/widgets/data_state.dart';
 import '../../l10n/l10n_lookup.dart';
 import '../auth/app_session_controller.dart';
 import 'account_profile_data.dart';
 import 'account_profile_models.dart';
-
-typedef SchoolClientFactory = api.SchoolClient Function();
 
 class AccountProfileController extends LevitController
     with LevitReactiveTasksMixin {

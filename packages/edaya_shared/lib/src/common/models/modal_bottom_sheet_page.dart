@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:levit_flutter/levit_flutter.dart';
 
 class ModalBottomSheetPage<T> extends Page<T> {
   const ModalBottomSheetPage({
@@ -32,7 +33,7 @@ class ModalBottomSheetPage<T> extends Page<T> {
   @override
   Route<T> createRoute(BuildContext context) {
     return ModalBottomSheetRoute<T>(
-      builder: (_) => child,
+      builder: (_) => LScope.capture(context, child: child),
       settings: this,
       isScrollControlled: isScrollControlled,
       showDragHandle: showDragHandle,
