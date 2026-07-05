@@ -186,11 +186,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signedInNoGuardianProfile =>
-      'Signed in, but no linked guardian/staff profile. Run: bun run seed:auth:link';
+      'Signed in, but no linked guardian/staff profile. Run: bun seed --scope auth:link';
 
   @override
   String get signedInNoStaffProfile =>
-      'Signed in, but no linked staff profile. Run: bun run seed:auth:link';
+      'Signed in, but no linked staff profile. Run: bun seed --scope auth:link';
 
   @override
   String get accountNotLinkedToStaff =>

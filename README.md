@@ -171,8 +171,8 @@ Optional `--dart-define` values pre-fill the login form:
 
 | App | Email define | Default |
 |-----|--------------|---------|
-| Guardian | `DEV_GUARDIAN_EMAIL` | `c.laurent@mail.com` |
-| Teacher | `DEV_STAFF_EMAIL` | `m.dupont@school.edu` |
+| Guardian | `DEV_GUARDIAN_EMAIL` | `m.kone@mail.ci` |
+| Teacher | `DEV_STAFF_EMAIL` | `a.toure@ecole-ci.edaya.dev` |
 | Both | `DEV_PASSWORD` | `DevPassword1!` |
 
 ### Run an app

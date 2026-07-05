@@ -13,7 +13,7 @@ abstract final class ApiConfig {
 
   static const devGuardianEmail = String.fromEnvironment(
     'DEV_GUARDIAN_EMAIL',
-    defaultValue: 'c.laurent@mail.com',
+    defaultValue: 'm.kone@mail.ci',
   );
 
   static const devPassword = String.fromEnvironment(

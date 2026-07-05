@@ -189,11 +189,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get signedInNoGuardianProfile =>
-      'Connecté, mais aucun profil tuteur/personnel lié. Exécutez : bun run seed:auth:link';
+      'Connecté, mais aucun profil tuteur/personnel lié. Exécutez : bun seed --scope auth:link';
 
   @override
   String get signedInNoStaffProfile =>
-      'Connecté, mais aucun profil personnel lié. Exécutez : bun run seed:auth:link';
+      'Connecté, mais aucun profil personnel lié. Exécutez : bun seed --scope auth:link';
 
   @override
   String get accountNotLinkedToStaff =>
