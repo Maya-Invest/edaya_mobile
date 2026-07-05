@@ -4,7 +4,6 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
-import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../auth/session_storage.dart';
 import '../my_students/linked_student.dart';
 import 'academic_year_controller.dart';
@@ -52,6 +51,13 @@ class StudentContextController extends LevitController
         unawaited(reloadContext());
       }),
     );
+    autoDispose(
+      _session.grants.stream.listen((grants) {
+        if (grants == null || grants.kind != 'guardian') {
+          _clearContext();
+        }
+      }),
+    );
   }
 
   Future<void> initializeFromSession() async {
@@ -93,11 +99,16 @@ class StudentContextController extends LevitController
 
   Future<void> clearStudent() async {
     await _sessionStorage.writeActiveStudentId(null);
+    _clearContext();
+  }
+
+  void _clearContext() {
     activeStudent(null);
     classGroupId(null);
     classLabel(null);
     isEnrolled(false);
     errorMessage('');
+    isLoading(false);
   }
 
   Future<void> reloadContext() {
@@ -110,10 +121,7 @@ class StudentContextController extends LevitController
   Future<void> _reloadContext() async {
     final studentId = await _sessionStorage.readActiveStudentId();
     if (studentId == null) {
-      activeStudent(null);
-      classGroupId(null);
-      classLabel(null);
-      isEnrolled(false);
+      _clearContext();
       return;
     }
 

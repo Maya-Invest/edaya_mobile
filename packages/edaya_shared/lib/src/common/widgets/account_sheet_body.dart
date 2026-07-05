@@ -5,19 +5,16 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../../config/developer_settings_config.dart';
 import '../../config/dev_api_url_settings.dart';
 import '../../features/auth/app_session_controller.dart';
-import '../../features/auth/auth_session_storage.dart';
 import '../../l10n/l10n_extension.dart';
 
 class AccountSheetBody extends StatelessWidget {
   const AccountSheetBody({
     super.key,
     required this.session,
-    required this.sessionStorage,
     this.profileHeader,
   });
 
   final AppSessionController session;
-  final AuthSessionStorage sessionStorage;
   final Widget? profileHeader;
 
   @override
@@ -70,8 +67,10 @@ class AccountSheetBody extends StatelessWidget {
               DevApiUrlSettings(
                 compact: true,
                 onUrlChanged: () async {
-                  await sessionStorage.clearCookies();
-                  await sessionStorage.markLoggedOut();
+                  await session.clearForApiUrlChange();
+                  if (context.mounted) {
+                    context.go('/login');
+                  }
                 },
               ),
             ],

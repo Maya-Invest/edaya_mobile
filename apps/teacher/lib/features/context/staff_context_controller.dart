@@ -16,8 +16,7 @@ class AssignedClass {
   final String label;
 }
 
-class StaffContextController extends LevitController
-    with LevitReactiveTasksMixin {
+class StaffContextController extends LevitController with LevitReactiveTasksMixin {
   StaffContextController({
     required SessionStorage sessionStorage,
     required AppSessionController session,
@@ -59,8 +58,15 @@ class StaffContextController extends LevitController
     autoDispose(errorMessage);
 
     autoDispose(
-      _academicYear.selectedYearId.stream.listen((_) {
+      _academicYear.selectedYearId.listen((_) {
         unawaited(_reloadOnAcademicYearChange());
+      }),
+    );
+    autoDispose(
+      _session.grants.stream.listen((grants) {
+        if (grants == null || grants.kind != 'staff') {
+          _clearContext();
+        }
       }),
     );
   }
@@ -105,13 +111,7 @@ class StaffContextController extends LevitController
   Future<void> reloadContext() async {
     final grants = _session.grants.value;
     if (grants == null || grants.kind != 'staff') {
-      staffId(null);
-      staffName(null);
-      staffPhotoUrl(null);
-      assignedClasses(const []);
-      taughtClassSubjectIds({});
-      assignedSessionIds({});
-      assignedClassGroupIds({});
+      _clearContext();
       return;
     }
 
@@ -138,11 +138,7 @@ class StaffContextController extends LevitController
           final firstName = staff['firstName'] as String? ?? '';
           final lastName = staff['lastName'] as String? ?? '';
           final fullName = '$firstName $lastName'.trim();
-          staffName(
-            fullName.isEmpty
-                ? (_session.user.value?.name ?? systemL10n().teacherFallbackName)
-                : fullName,
-          );
+          staffName(fullName.isEmpty ? (_session.user.value?.name ?? systemL10n().teacherFallbackName) : fullName);
           staffPhotoUrl(staff['photoUrl'] as String?);
         } on Object {
           staffName(_session.user.value?.name ?? systemL10n().teacherFallbackName);
@@ -150,10 +146,7 @@ class StaffContextController extends LevitController
         }
 
         final assignments = await client.staffAssignments.list(
-          staffAssignmentsForStaffAndYear(
-            staffId: resolvedStaffId,
-            academicYearId: yearId,
-          ),
+          staffAssignmentsForStaffAndYear(staffId: resolvedStaffId, academicYearId: yearId),
         );
         final teachingScope = teachingScopeFromStaffAssignments(assignments);
         final sessionIds = teachingScope.sessionIds;
@@ -162,28 +155,18 @@ class StaffContextController extends LevitController
 
         final classSubjectRows = taughtSubjectIds.isEmpty
             ? <Map<String, dynamic>>[]
-            : await client.classSubjects.list(
-                entitiesByIds(taughtSubjectIds.toList()),
-              );
+            : await client.classSubjects.list(entitiesByIds(taughtSubjectIds.toList()));
         taughtClassSubjectIds(taughtSubjectIds);
         assignedSessionIds(sessionIds);
         assignedClassGroupIds(classGroupIds);
 
-        final allClassGroupIds = {
-          ...classGroupIds,
-          ...classSubjectRows.map((row) => row['classGroupId'] as String),
-        };
+        final allClassGroupIds = {...classGroupIds, ...classSubjectRows.map((row) => row['classGroupId'] as String)};
 
         final classes = <AssignedClass>[];
         for (final classGroupId in allClassGroupIds) {
           try {
             final classGroup = await client.classGroups.get(classGroupId);
-            classes.add(
-              AssignedClass(
-                id: classGroupId,
-                label: classGroup['name'] as String? ?? classGroupId,
-              ),
-            );
+            classes.add(AssignedClass(id: classGroupId, label: classGroup['name'] as String? ?? classGroupId));
           } on Object {
             classes.add(AssignedClass(id: classGroupId, label: classGroupId));
           }
@@ -192,8 +175,7 @@ class StaffContextController extends LevitController
         assignedClasses(classes);
 
         final persistedFilter = await _sessionStorage.readClassFilterId();
-        if (persistedFilter != null &&
-            !classes.any((entry) => entry.id == persistedFilter)) {
+        if (persistedFilter != null && !classes.any((entry) => entry.id == persistedFilter)) {
           await selectClassFilter(null);
         }
       } on api.ApiError catch (error) {
@@ -206,27 +188,31 @@ class StaffContextController extends LevitController
     });
   }
 
-  bool canTeachSession({
-    required String sessionId,
-    required String? classGroupId,
-    required String? classSubjectId,
-  }) {
+  bool canTeachSession({required String sessionId, required String? classGroupId, required String? classSubjectId}) {
     if (assignedSessionIds.value.contains(sessionId)) {
       return true;
     }
-    if (classGroupId != null &&
-        assignedClassGroupIds.value.contains(classGroupId) &&
-        classSubjectId == null) {
+    if (classGroupId != null && assignedClassGroupIds.value.contains(classGroupId) && classSubjectId == null) {
       return true;
     }
-    if (classSubjectId != null &&
-        taughtClassSubjectIds.value.contains(classSubjectId)) {
+    if (classSubjectId != null && taughtClassSubjectIds.value.contains(classSubjectId)) {
       return true;
     }
-    if (classGroupId != null &&
-        assignedClassGroupIds.value.contains(classGroupId)) {
+    if (classGroupId != null && assignedClassGroupIds.value.contains(classGroupId)) {
       return true;
     }
     return false;
+  }
+
+  void _clearContext() {
+    staffId(null);
+    staffName(null);
+    staffPhotoUrl(null);
+    assignedClasses(const []);
+    taughtClassSubjectIds({});
+    assignedSessionIds({});
+    assignedClassGroupIds({});
+    errorMessage('');
+    isLoading(false);
   }
 }

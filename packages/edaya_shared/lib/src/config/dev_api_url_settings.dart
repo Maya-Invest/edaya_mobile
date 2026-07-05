@@ -1,20 +1,14 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../l10n/l10n_extension.dart';
 import 'api_base_url_config.dart';
 import 'developer_settings_config.dart';
-import 'restart_stub.dart' if (dart.library.io) 'restart_io.dart';
 
 /// UI for configuring the API base URL at runtime.
 class DevApiUrlSettings extends StatefulWidget {
-  const DevApiUrlSettings({
-    super.key,
-    this.onUrlChanged,
-    this.compact = false,
-  });
+  const DevApiUrlSettings({super.key, this.onUrlChanged, this.compact = false});
 
-  /// Called after the URL changes so the app can clear auth state.
+  /// Called after the URL changes so the app can clear stale auth/session state.
   final Future<void> Function()? onUrlChanged;
 
   /// When `true`, renders as a compact expansion tile instead of a full card.
@@ -31,7 +25,10 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
 
   List<({String label, String value})> _presets(BuildContext context) => [
     (label: context.tr.presetLocalhost, value: ApiBaseUrlConfig.localUrl),
-    (label: context.tr.presetAndroidEmulator, value: ApiBaseUrlConfig.androidEmulatorUrl),
+    (
+      label: context.tr.presetAndroidEmulator,
+      value: ApiBaseUrlConfig.androidEmulatorUrl,
+    ),
     (label: context.tr.presetStaging, value: ApiBaseUrlConfig.stagingUrl),
     (label: context.tr.presetProduction, value: ApiBaseUrlConfig.productionUrl),
     (label: context.tr.presetLanEditIp, value: 'http://192.168.1.1:9999'),
@@ -66,7 +63,7 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
         if (!mounted) {
           return;
         }
-        await _showRestartDialog();
+        _showUpdatedMessage();
       }
     } on FormatException catch (error) {
       if (mounted) {
@@ -79,31 +76,11 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
     }
   }
 
-  Future<void> _showRestartDialog() async {
+  void _showUpdatedMessage() {
     final url = ApiBaseUrlConfig.baseUrl;
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(dialogContext.tr.restartRequired),
-        content: Text(
-          kIsWeb
-              ? dialogContext.tr.apiUrlUpdatedReloadPage(url)
-              : dialogContext.tr.apiUrlUpdatedRestartApp(url),
-        ),
-        actions: [
-          if (!kIsWeb)
-            FilledButton(
-              onPressed: restartApp,
-              child: Text(dialogContext.tr.restartApp),
-            )
-          else
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(dialogContext.tr.ok),
-            ),
-        ],
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(context.tr.currentApiUrl(url))));
   }
 
   Widget _buildBody(BuildContext context) {

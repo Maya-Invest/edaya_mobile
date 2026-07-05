@@ -8,22 +8,32 @@ import 'auth_session.dart';
 import 'auth_user.dart';
 import 'cookie_jar.dart';
 
+typedef AuthBaseUrlProvider = String Function();
+
 class AuthClient {
   AuthClient({
-    required this.baseUrl,
+    required String baseUrl,
     this.basePath = '/auth',
     String? origin,
+    AuthBaseUrlProvider? baseUrlProvider,
     http.Client? client,
     CookieJar? cookieJar,
-  }) : _client = client ?? http.Client(),
+  }) : _baseUrl = baseUrl,
+       _baseUrlProvider = baseUrlProvider,
+       _client = client ?? http.Client(),
        _cookieJar = cookieJar ?? CookieJar(),
-       _origin = origin ?? Uri.parse(baseUrl).origin;
+       _originOverride = origin;
 
-  final String baseUrl;
+  final String _baseUrl;
+  final AuthBaseUrlProvider? _baseUrlProvider;
   final String basePath;
-  final String _origin;
+  final String? _originOverride;
   final http.Client _client;
   final CookieJar _cookieJar;
+
+  String get baseUrl => _baseUrlProvider?.call() ?? _baseUrl;
+
+  String get _origin => _originOverride ?? Uri.parse(baseUrl).origin;
 
   CookieJar get cookieJar => _cookieJar;
 
@@ -84,10 +94,7 @@ class AuthClient {
     required String email,
     required String otp,
   }) {
-    return _postAuthUser('/sign-in/email-otp', {
-      'email': email,
-      'otp': otp,
-    });
+    return _postAuthUser('/sign-in/email-otp', {'email': email, 'otp': otp});
   }
 
   Future<AuthResult<AuthUser>> signUpWithEmail({

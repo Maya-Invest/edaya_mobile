@@ -17,6 +17,7 @@ void registerEdayaDependencies(
   scope.put<AuthClient>(
     () => AuthClient(
       baseUrl: ApiBaseUrlConfig.baseUrl,
+      baseUrlProvider: () => ApiBaseUrlConfig.baseUrl,
       client: createEdayaHttpClient(),
       cookieJar: cookieJar,
     ),

@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../auth/session_storage.dart';
-
 class AccountSheet extends StatelessWidget {
   const AccountSheet({super.key});
 
@@ -15,7 +13,6 @@ class AccountSheet extends StatelessWidget {
 
     return AccountSheetBody(
       session: session,
-      sessionStorage: SessionStorage(),
       profileHeader: AccountProfileHeader(
         session: session,
         schoolClient: schoolClient,

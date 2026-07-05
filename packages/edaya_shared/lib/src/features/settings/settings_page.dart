@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../app/edaya_root_scope.dart';
 import '../../l10n/l10n_extension.dart';
 import 'app_settings_controller.dart';
 import 'app_settings_models.dart';
@@ -11,12 +10,10 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final settings = EdayaRootScope.find<AppSettingsController>();
+    final settings = context.levit.find<AppSettingsController>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.tr.settingsTitle),
-      ),
+      appBar: AppBar(title: Text(context.tr.settingsTitle)),
       body: ListView(
         children: [
           _SectionHeader(title: context.tr.settingsTheme),

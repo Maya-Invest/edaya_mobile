@@ -6,7 +6,6 @@ import '../features/auth/app_bootstrap_controller.dart';
 import '../features/settings/app_settings_controller.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/l10n_extension.dart';
-import 'edaya_root_scope.dart';
 import 'theme.dart';
 
 /// Provides the [RouterConfig] for [MaterialApp.router].
@@ -15,7 +14,12 @@ abstract class EdayaAppRouter {
 }
 
 class EdayaAppRoot extends StatelessWidget {
-  const EdayaAppRoot({super.key, required this.scopeName, required this.appTitle, required this.registerDependencies});
+  const EdayaAppRoot({
+    super.key,
+    required this.scopeName,
+    required this.appTitle,
+    required this.registerDependencies,
+  });
 
   final String scopeName;
   final String appTitle;
@@ -45,7 +49,7 @@ class EdayaBootstrapGate extends LView<AppBootstrapController> {
 
   @override
   Widget buildView(BuildContext context, AppBootstrapController controller) {
-    final settings = EdayaRootScope.find<AppSettingsController>();
+    final settings = context.levit.find<AppSettingsController>();
 
     return LWatch(() {
       settings.theme.value;
@@ -67,7 +71,9 @@ class EdayaBootstrapGate extends LView<AppBootstrapController> {
           localeResolutionCallback: settings.resolveLocale,
           localizationsDelegates: _localizationDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: Center(child: CircularProgressIndicator())),
+          home: const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          ),
         );
       }
 
@@ -81,7 +87,7 @@ class EdayaBootstrapGate extends LView<AppBootstrapController> {
         localeResolutionCallback: settings.resolveLocale,
         localizationsDelegates: _localizationDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        routerConfig: EdayaRootScope.find<EdayaAppRouter>().config(),
+        routerConfig: context.levit.find<EdayaAppRouter>().config(),
       );
     });
   }

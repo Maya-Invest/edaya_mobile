@@ -110,6 +110,16 @@ class AppSessionController extends LevitController {
     }
   }
 
+  /// Clears local auth state after switching API endpoints.
+  ///
+  /// This intentionally does not call the remote sign-out endpoint because the
+  /// app may already be pointing at a different server.
+  Future<void> clearForApiUrlChange() async {
+    await _sessionStorage.markLoggedOut();
+    await _clearLocalSession();
+    _routerRefresh.refresh();
+  }
+
   /// Re-fetches effective grants (e.g. after academic year selection for staff).
   Future<String?> refreshGrants() async {
     if (user.value == null) {

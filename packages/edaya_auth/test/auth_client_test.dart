@@ -25,7 +25,9 @@ void main() {
             },
           }),
           200,
-          headers: {'set-cookie': 'better-auth.session_token=abc123; Path=/; HttpOnly'},
+          headers: {
+            'set-cookie': 'better-auth.session_token=abc123; Path=/; HttpOnly',
+          },
         );
       }),
     );
@@ -87,4 +89,29 @@ void main() {
     final result = await client.sendEmailOtp(email: 'parent@school.edu');
     expect(result.isSuccess, isTrue);
   });
+
+  test(
+    'baseUrlProvider switches request origin without rebuilding client',
+    () async {
+      var baseUrl = 'http://localhost:9999';
+      final requestedHosts = <String>[];
+      final origins = <String?>[];
+      final client = AuthClient(
+        baseUrl: baseUrl,
+        baseUrlProvider: () => baseUrl,
+        client: MockClient((request) async {
+          requestedHosts.add(request.url.origin);
+          origins.add(request.headers['origin']);
+          return http.Response('', 401);
+        }),
+      );
+
+      await client.getSession();
+      baseUrl = 'http://10.0.2.2:9999';
+      await client.getSession();
+
+      expect(requestedHosts, ['http://localhost:9999', 'http://10.0.2.2:9999']);
+      expect(origins, requestedHosts);
+    },
+  );
 }

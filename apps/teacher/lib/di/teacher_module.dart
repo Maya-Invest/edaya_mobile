@@ -6,17 +6,14 @@ import '../app/router.dart';
 import '../features/auth/session_storage.dart';
 import '../features/context/academic_year_controller.dart';
 import '../features/context/staff_context_controller.dart';
+import '../features/evaluations/evaluations_controller.dart';
 import '../navigation/notification_navigation.dart';
 
 void registerTeacherDependencies(LevitScope scope) {
   EdayaRootScope.bind(scope, appName: systemL10n().appTitleTeacher);
   final cookieJar = CookieJar();
-  scope.put<CookieJar>(() => cookieJar, permanent: true);
   scope.put<SessionStorage>(() => SessionStorage(), permanent: true);
-  scope.put<EdayaRouterRefresh>(
-    () => EdayaRouterRefresh(),
-    permanent: true,
-  );
+  scope.put<EdayaRouterRefresh>(() => EdayaRouterRefresh(), permanent: true);
   registerEdayaDependencies(scope, cookieJar: cookieJar);
   registerSchoolClientFactory(
     scope,
@@ -72,6 +69,14 @@ void registerTeacherDependencies(LevitScope scope) {
     ),
     permanent: true,
   );
+  scope.put<EvaluationsController>(
+    () => EvaluationsController(
+      staffContext: scope.find<StaffContextController>(),
+      academicYear: scope.find<AcademicYearController>(),
+      schoolClient: scope.find<SchoolClientFactory>(),
+    ),
+    permanent: true,
+  );
   scope.put<AppRouter>(
     () => AppRouter(
       session: scope.find<AppSessionController>(),
@@ -79,10 +84,7 @@ void registerTeacherDependencies(LevitScope scope) {
     ),
     permanent: true,
   );
-  scope.put<EdayaAppRouter>(
-    () => scope.find<AppRouter>(),
-    permanent: true,
-  );
+  scope.put<EdayaAppRouter>(() => scope.find<AppRouter>(), permanent: true);
   scope.put<AppBootstrapController>(
     () => AppBootstrapController(
       cookieJar: scope.find<CookieJar>(),

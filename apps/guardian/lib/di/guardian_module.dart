@@ -11,7 +11,6 @@ import '../navigation/notification_navigation.dart';
 void registerGuardianDependencies(LevitScope scope) {
   EdayaRootScope.bind(scope, appName: systemL10n().appTitleGuardian);
   final cookieJar = CookieJar();
-  scope.put<CookieJar>(() => cookieJar, permanent: true);
   scope.put<SessionStorage>(() => SessionStorage(), permanent: true);
   scope.put<EdayaRouterRefresh>(() => EdayaRouterRefresh(), permanent: true);
   registerEdayaDependencies(scope, cookieJar: cookieJar);
