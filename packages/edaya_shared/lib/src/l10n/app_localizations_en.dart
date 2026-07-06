@@ -220,6 +220,55 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navEvaluations => 'Evaluations';
 
   @override
+  String get navTeaching => 'Teaching';
+
+  @override
+  String get navReportCards => 'Report cards';
+
+  @override
+  String get teachingTitle => 'Teaching';
+
+  @override
+  String get reportCardsTitle => 'Report cards';
+
+  @override
+  String get teachingSelectClass => 'Class';
+
+  @override
+  String get teachingSelectSubject => 'Subject';
+
+  @override
+  String get teachingProgressTab => 'Progress';
+
+  @override
+  String get teachingLogbookTab => 'Logbook';
+
+  @override
+  String get noTeachingLogEntries => 'No logbook entries for this subject yet.';
+
+  @override
+  String couldNotLoadTeachingData(String error) {
+    return 'Could not load teaching data: $error';
+  }
+
+  @override
+  String couldNotLoadReportCards(String error) {
+    return 'Could not load report cards: $error';
+  }
+
+  @override
+  String get reportCardClassNoResults =>
+      'No report cards generated for this period.';
+
+  @override
+  String reportCardClassProgress(int filled, int total) {
+    return '$filled / $total comments filled';
+  }
+
+  @override
+  String get reportCardRosterComingSoon => 'Student roster coming soon.';
+
+  @override
   String get tooltipAccount => 'Account';
 
   @override

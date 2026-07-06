@@ -464,6 +464,90 @@ abstract class AppLocalizations {
   /// **'Evaluations'**
   String get navEvaluations;
 
+  /// No description provided for @navTeaching.
+  ///
+  /// In en, this message translates to:
+  /// **'Teaching'**
+  String get navTeaching;
+
+  /// No description provided for @navReportCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Report cards'**
+  String get navReportCards;
+
+  /// No description provided for @teachingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Teaching'**
+  String get teachingTitle;
+
+  /// No description provided for @reportCardsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report cards'**
+  String get reportCardsTitle;
+
+  /// No description provided for @teachingSelectClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Class'**
+  String get teachingSelectClass;
+
+  /// No description provided for @teachingSelectSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject'**
+  String get teachingSelectSubject;
+
+  /// No description provided for @teachingProgressTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress'**
+  String get teachingProgressTab;
+
+  /// No description provided for @teachingLogbookTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Logbook'**
+  String get teachingLogbookTab;
+
+  /// No description provided for @noTeachingLogEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'No logbook entries for this subject yet.'**
+  String get noTeachingLogEntries;
+
+  /// No description provided for @couldNotLoadTeachingData.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load teaching data: {error}'**
+  String couldNotLoadTeachingData(String error);
+
+  /// No description provided for @couldNotLoadReportCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load report cards: {error}'**
+  String couldNotLoadReportCards(String error);
+
+  /// No description provided for @reportCardClassNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No report cards generated for this period.'**
+  String get reportCardClassNoResults;
+
+  /// No description provided for @reportCardClassProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{filled} / {total} comments filled'**
+  String reportCardClassProgress(int filled, int total);
+
+  /// No description provided for @reportCardRosterComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Student roster coming soon.'**
+  String get reportCardRosterComingSoon;
+
   /// No description provided for @tooltipAccount.
   ///
   /// In en, this message translates to:

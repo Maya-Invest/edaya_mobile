@@ -51,6 +51,16 @@ class AppShellPage extends LScopedView<AppShellController> {
             selectedIcon: Icon(Icons.grade),
             label: context.tr.navEvaluations,
           ),
+          NavigationDestination(
+            icon: Icon(Icons.school_outlined),
+            selectedIcon: Icon(Icons.school),
+            label: context.tr.navTeaching,
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.description_outlined),
+            selectedIcon: Icon(Icons.description),
+            label: context.tr.navReportCards,
+          ),
         ],
       ),
     );

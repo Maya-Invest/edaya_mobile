@@ -6,6 +6,8 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../../calendar/calendar_controller.dart';
 import '../../context/teacher_context_controller.dart';
 import '../../evaluations/evaluations_controller.dart';
+import '../../report_cards/report_cards_controller.dart';
+import '../../teaching/teaching_controller.dart';
 
 class TeacherAppBar extends StatelessWidget implements PreferredSizeWidget {
   const TeacherAppBar({super.key});
@@ -15,8 +17,10 @@ class TeacherAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isEvaluations =
-        GoRouterState.of(context).uri.toString().startsWith('/evaluations');
+    final location = GoRouterState.of(context).uri.toString();
+    final isEvaluations = location.startsWith('/evaluations');
+    final isTeaching = location.startsWith('/teaching');
+    final isReportCards = location.startsWith('/report-cards');
 
     return AppBar(
       leading: IconButton(
@@ -27,6 +31,24 @@ class TeacherAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: LWatch(
         () {
           final teacherContext = context.levit.find<TeacherContextController>();
+
+          if (isTeaching) {
+            final teaching = context.levit.find<TeachingController>();
+            return _AppBarTitle(
+              title: context.tr.teachingTitle,
+              subtitle: teaching.selectedScopeLabel ?? '—',
+            );
+          }
+
+          if (isReportCards) {
+            final reportCards = context.levit.find<ReportCardsController>();
+            final periodLabel = reportCards.selectedPeriodLabel ?? '—';
+            return _AppBarTitle(
+              title: context.tr.reportCardsTitle,
+              subtitle: periodLabel,
+            );
+          }
+
           final classLabel =
               teacherContext.classFilterLabel ?? context.tr.allClasses;
 
@@ -61,11 +83,12 @@ class TeacherAppBar extends StatelessWidget implements PreferredSizeWidget {
             icon: const Icon(Icons.add),
             onPressed: () => context.push('/evaluations/create'),
           ),
-        IconButton(
-          tooltip: context.tr.tooltipFilter,
-          icon: const Icon(Icons.filter_list),
-          onPressed: () => context.push('/class-filter'),
-        ),
+        if (!isTeaching && !isReportCards)
+          IconButton(
+            tooltip: context.tr.tooltipFilter,
+            icon: const Icon(Icons.filter_list),
+            onPressed: () => context.push('/class-filter'),
+          ),
       ],
     );
   }

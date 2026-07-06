@@ -7,6 +7,8 @@ import '../features/auth/session_storage.dart';
 import '../features/context/academic_year_controller.dart';
 import '../features/context/teacher_context_controller.dart';
 import '../features/evaluations/evaluations_controller.dart';
+import '../features/report_cards/report_cards_controller.dart';
+import '../features/teaching/teaching_controller.dart';
 import '../navigation/notification_navigation.dart';
 
 void registerTeacherDependencies(LevitScope scope) {
@@ -74,6 +76,23 @@ void registerTeacherDependencies(LevitScope scope) {
     () => EvaluationsController(
       teacherContext: scope.find<TeacherContextController>(),
       academicYear: scope.find<AcademicYearController>(),
+      schoolClient: scope.find<SchoolClientFactory>(),
+    ),
+    permanent: true,
+  );
+  scope.put<TeachingController>(
+    () => TeachingController(
+      teacherContext: scope.find<TeacherContextController>(),
+      academicYear: scope.find<AcademicYearController>(),
+      schoolClient: scope.find<SchoolClientFactory>(),
+    ),
+    permanent: true,
+  );
+  scope.put<ReportCardsController>(
+    () => ReportCardsController(
+      teacherContext: scope.find<TeacherContextController>(),
+      academicYear: scope.find<AcademicYearController>(),
+      evaluations: scope.find<EvaluationsController>(),
       schoolClient: scope.find<SchoolClientFactory>(),
     ),
     permanent: true,

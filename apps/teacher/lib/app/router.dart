@@ -15,6 +15,8 @@ import '../features/evaluations/evaluation_create_sheet.dart';
 import '../features/evaluations/evaluations_page.dart';
 import '../features/evaluations/marks_entry_sheet.dart';
 import '../features/evaluations/models/evaluation_models.dart';
+import '../features/report_cards/report_cards_page.dart';
+import '../features/teaching/teaching_page.dart';
 import '../features/session/attendance_flow_page.dart';
 import '../features/session/session_details_sheet.dart';
 import '../features/session/session_route_args.dart';
@@ -183,6 +185,14 @@ class AppRouter extends LevitController implements EdayaAppRouter {
                   },
                 ),
               ],
+            ),
+            GoRoute(
+              path: '/teaching',
+              builder: (context, state) => const TeachingPage(),
+            ),
+            GoRoute(
+              path: '/report-cards',
+              builder: (context, state) => const ReportCardsPage(),
             ),
           ],
         ),

@@ -223,6 +223,57 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navEvaluations => 'Évaluations';
 
   @override
+  String get navTeaching => 'Enseignement';
+
+  @override
+  String get navReportCards => 'Bulletins';
+
+  @override
+  String get teachingTitle => 'Enseignement';
+
+  @override
+  String get reportCardsTitle => 'Bulletins';
+
+  @override
+  String get teachingSelectClass => 'Classe';
+
+  @override
+  String get teachingSelectSubject => 'Matière';
+
+  @override
+  String get teachingProgressTab => 'Progression';
+
+  @override
+  String get teachingLogbookTab => 'Cahier';
+
+  @override
+  String get noTeachingLogEntries =>
+      'Aucune entrée de cahier pour cette matière.';
+
+  @override
+  String couldNotLoadTeachingData(String error) {
+    return 'Impossible de charger les données d\'enseignement : $error';
+  }
+
+  @override
+  String couldNotLoadReportCards(String error) {
+    return 'Impossible de charger les bulletins : $error';
+  }
+
+  @override
+  String get reportCardClassNoResults =>
+      'Aucun bulletin généré pour cette période.';
+
+  @override
+  String reportCardClassProgress(int filled, int total) {
+    return '$filled / $total commentaires renseignés';
+  }
+
+  @override
+  String get reportCardRosterComingSoon =>
+      'Liste des élèves bientôt disponible.';
+
+  @override
   String get tooltipAccount => 'Compte';
 
   @override
