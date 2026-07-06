@@ -190,7 +190,7 @@ void _teacherPortalSuite(TeacherPortalProfile profile) {
         if (profile.kind != TeacherPortalKind.subject) {
           return;
         }
-        final periodId = context.firstPeriodId;
+        final periodId = context.writeProbePeriodId;
         final classSubjectId = profile.expectedClassSubjectIds.first;
         if (periodId == null) {
           markTestSkipped('no academic period configured');

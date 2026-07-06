@@ -146,6 +146,19 @@ void _guardianPortalSuite(GuardianPortalProfile profile) {
         expect(feesProbe.payments, isA<List<Map<String, dynamic>>>());
       });
 
+      test('primary student has billed fees for configured academic year', () {
+        if (profile.primaryStudentId != GuardianPortalProfile.mariamKone.primaryStudentId) {
+          return;
+        }
+        expect(feesProbe.studentFees, isNotEmpty);
+        expect(
+          feesProbe.studentFees.every(
+            (row) => row['academicYearId'] == profile.academicYearId,
+          ),
+          isTrue,
+        );
+      });
+
       test('fee names resolve when student fees exist', () async {
         if (feesProbe.studentFees.isEmpty) {
           return;

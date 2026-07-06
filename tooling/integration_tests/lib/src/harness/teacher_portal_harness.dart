@@ -44,6 +44,14 @@ class TeacherPortalContext {
     return academicPeriods.first['id'] as String?;
   }
 
+  /// Period used for grade write probes — avoids T1 where demo-ci seeds published report cards.
+  String? get writeProbePeriodId {
+    if (academicPeriods.isEmpty) {
+      return null;
+    }
+    return academicPeriods.last['id'] as String?;
+  }
+
   String get primaryClassGroupId => profile.primaryClassGroupId;
 }
 

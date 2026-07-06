@@ -1,3 +1,4 @@
+import 'package:edaya_api_client/edaya_api_client.dart';
 import 'package:edaya_integration_tests/edaya_integration_tests.dart';
 import 'package:test/test.dart';
 
@@ -35,6 +36,40 @@ void main() {
 
   test('IntegrationConfig.defaultGuardianEmail matches guardian app dev default', () {
     expect(IntegrationConfig.defaultGuardianEmail, 'm.kone@mail.ci');
+  });
+
+  test('TeacherPortalContext.writeProbePeriodId prefers last academic period', () {
+    const context = TeacherPortalContext(
+      profile: TeacherPortalProfile.subjectTeacher,
+      grants: EffectiveGrantsResponse(
+        kind: 'teacher',
+        actorId: 'ci-t1',
+        schoolId: 'ci-school',
+        assuranceLevel: 'standard',
+        effectiveGrants: const EffectiveGrants(
+          permissions: [],
+          scopeGrants: [],
+          scopeIdsByPermission: {},
+          isElevated: false,
+        ),
+      ),
+      academicYears: const [],
+      teacherAssignments: const [],
+      academicPeriods: const [
+        {'id': 'ci-2025-t1'},
+        {'id': 'ci-2025-t2'},
+        {'id': 'ci-2025-t3'},
+      ],
+      teachingScope: TeacherTeachingScope(
+        classGroupIds: const {},
+        classSubjectIds: const {},
+      ),
+      assignedClassGroups: const [],
+      classSubjects: const [],
+    );
+
+    expect(context.firstPeriodId, 'ci-2025-t1');
+    expect(context.writeProbePeriodId, 'ci-2025-t3');
   });
 
   test('teachingScopeFromAssignments derives homeroom and subject ids', () {

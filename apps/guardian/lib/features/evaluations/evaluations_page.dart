@@ -151,21 +151,12 @@ class _ReportCardsBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return LWatch(
       () {
-        final periods = controller.periods.value;
         final cards = controller.filteredReportCards;
 
         return ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(16),
           children: [
-            if (periods.isNotEmpty) ...[
-              AcademicPeriodPicker(
-                periods: periods,
-                selectedPeriodId: controller.selectedPeriodId.value,
-                onPeriodSelected: controller.selectPeriod,
-              ),
-              const SizedBox(height: 16),
-            ],
             if (cards.isEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 32),

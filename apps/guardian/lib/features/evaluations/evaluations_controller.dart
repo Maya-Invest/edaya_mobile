@@ -120,15 +120,15 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
   }
 
   List<ReportCardSummary> get filteredReportCards {
-    final periodId = selectedPeriodId.value;
     final yearPeriodIds = periods.value
         .map((period) => period['id'] as String)
         .toSet();
-    var cards = reportCards.value
-        .where((card) => yearPeriodIds.contains(card.periodId));
-    if (periodId != null) {
-      cards = cards.where((card) => card.periodId == periodId);
-    }
+    final cards = reportCards.value.where((card) {
+      if (yearPeriodIds.isEmpty) {
+        return true;
+      }
+      return yearPeriodIds.contains(card.periodId);
+    });
     return cards.toList();
   }
 
@@ -191,7 +191,7 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
     final classGroupId = _studentContext.classGroupId.value;
     final yearId = _academicYear.selectedYearId.value;
 
-    if (studentId == null || classGroupId == null || yearId == null) {
+    if (studentId == null || yearId == null) {
       gradeGroups(const []);
       reportCards(const []);
       errorMessage('');
@@ -207,98 +207,104 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
             period['id'] as String: academicPeriodLabel(period),
         };
 
-        final classSubjectRows = await client.classSubjects.list(
-          classGroupScope(classGroupId),
-        );
-        final subjectIds = classSubjectRows
-            .map((row) => row['subjectId'] as String?)
-            .whereType<String>()
-            .toSet()
-            .toList();
-        final subjectRows = subjectIds.isEmpty
-            ? <Map<String, dynamic>>[]
-            : await client.subjects.list(entitiesByIds(subjectIds));
-        final subjectNameById = {
-          for (final subject in subjectRows)
-            subject['id'] as String:
-                subject['name'] as String? ?? subject['id'] as String,
-        };
-        final subjectNameByClassSubjectId = {
-          for (final classSubject in classSubjectRows)
-            classSubject['id'] as String: subjectNameById[
-                    classSubject['subjectId'] as String] ??
-                classSubject['subjectId'] as String,
-        };
-
-        final assessmentRows = await client.assessments.list(
-          classGroupScope(classGroupId),
-        );
-        final assessmentById = {
-          for (final assessment in assessmentRows)
-            assessment['id'] as String: assessment,
-        };
-        final assessmentIds = assessmentById.keys.toList();
-        final resultRows = assessmentIds.isEmpty
-            ? <Map<String, dynamic>>[]
-            : await client.assessmentResults.list({
-                'studentId': studentId,
-                ...recordsForField('assessmentId', assessmentIds),
-              });
-
-        final entries = <GradeEntry>[];
-        for (final result in resultRows) {
-          final assessmentId = result['assessmentId'] as String?;
-          final assessment = assessmentId == null
-              ? null
-              : assessmentById[assessmentId];
-          if (assessment == null) {
-            continue;
-          }
-          final classSubjectId = assessment['classSubjectId'] as String?;
-          entries.add(
-            GradeEntry.fromMaps(
-              result: result,
-              assessment: assessment,
-              subjectName: subjectNameByClassSubjectId[classSubjectId] ??
-                  systemL10n().subjectFallback,
-              periodName:
-                  periodNameById[assessment['periodId'] as String?] ??
-                  assessment['periodId'] as String? ??
-                  systemL10n().periodFallback,
-            ),
+        if (classGroupId == null) {
+          gradeGroups(const []);
+        } else {
+          final classSubjectRows = await client.classSubjects.list(
+            classGroupScope(classGroupId),
           );
-        }
-        entries.sort((a, b) {
-          final aDate = a.date;
-          final bDate = b.date;
-          if (aDate == null && bDate == null) {
-            return a.title.compareTo(b.title);
-          }
-          if (aDate == null) {
-            return 1;
-          }
-          if (bDate == null) {
-            return -1;
-          }
-          return bDate.compareTo(aDate);
-        });
+          final subjectIds = classSubjectRows
+              .map((row) => row['subjectId'] as String?)
+              .whereType<String>()
+              .toSet()
+              .toList();
+          final subjectRows = subjectIds.isEmpty
+              ? <Map<String, dynamic>>[]
+              : await client.subjects.list(entitiesByIds(subjectIds));
+          final subjectNameById = {
+            for (final subject in subjectRows)
+              subject['id'] as String:
+                  subject['name'] as String? ?? subject['id'] as String,
+          };
+          final subjectNameByClassSubjectId = {
+            for (final classSubject in classSubjectRows)
+              classSubject['id'] as String: subjectNameById[
+                      classSubject['subjectId'] as String] ??
+                  classSubject['subjectId'] as String,
+          };
 
-        final grouped = <String, List<GradeEntry>>{};
-        for (final entry in entries) {
-          grouped.putIfAbsent(entry.subjectName, () => []).add(entry);
-        }
-        final groups = grouped.entries
-            .map(
-              (entry) => SubjectGradeGroup(
-                subjectName: entry.key,
-                entries: entry.value,
-                average: _weightedAverage(
-                  entry.value.where((grade) => grade.hasScore),
-                ),
+          final assessmentRows = await client.assessments.list(
+            classGroupScope(classGroupId),
+          );
+          final assessmentById = {
+            for (final assessment in assessmentRows)
+              assessment['id'] as String: assessment,
+          };
+          final assessmentIds = assessmentById.keys.toList();
+          final resultRows = assessmentIds.isEmpty
+              ? <Map<String, dynamic>>[]
+              : await client.assessmentResults.list({
+                  'studentId': studentId,
+                  ...recordsForField('assessmentId', assessmentIds),
+                });
+
+          final entries = <GradeEntry>[];
+          for (final result in resultRows) {
+            final assessmentId = result['assessmentId'] as String?;
+            final assessment = assessmentId == null
+                ? null
+                : assessmentById[assessmentId];
+            if (assessment == null) {
+              continue;
+            }
+            final classSubjectId = assessment['classSubjectId'] as String?;
+            entries.add(
+              GradeEntry.fromMaps(
+                result: result,
+                assessment: assessment,
+                subjectName: subjectNameByClassSubjectId[classSubjectId] ??
+                    systemL10n().subjectFallback,
+                periodName:
+                    periodNameById[assessment['periodId'] as String?] ??
+                    assessment['periodId'] as String? ??
+                    systemL10n().periodFallback,
               ),
-            )
-            .toList()
-          ..sort((a, b) => a.subjectName.compareTo(b.subjectName));
+            );
+          }
+          entries.sort((a, b) {
+            final aDate = a.date;
+            final bDate = b.date;
+            if (aDate == null && bDate == null) {
+              return a.title.compareTo(b.title);
+            }
+            if (aDate == null) {
+              return 1;
+            }
+            if (bDate == null) {
+              return -1;
+            }
+            return bDate.compareTo(aDate);
+          });
+
+          final grouped = <String, List<GradeEntry>>{};
+          for (final entry in entries) {
+            grouped.putIfAbsent(entry.subjectName, () => []).add(entry);
+          }
+          final groups = grouped.entries
+              .map(
+                (entry) => SubjectGradeGroup(
+                  subjectName: entry.key,
+                  entries: entry.value,
+                  average: _weightedAverage(
+                    entry.value.where((grade) => grade.hasScore),
+                  ),
+                ),
+              )
+              .toList()
+            ..sort((a, b) => a.subjectName.compareTo(b.subjectName));
+
+          gradeGroups(groups);
+        }
 
         final reportCardRows = await client.results.list(
           publishedReportCardsForStudent(studentId),
@@ -317,7 +323,6 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
               .toList(),
         );
 
-        gradeGroups(groups);
         reportCards(cards);
       } on api.ApiError catch (error) {
         errorMessage(systemL10n().couldNotLoadAcademicData(error.toString()));

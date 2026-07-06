@@ -44,6 +44,13 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
     ]) {
       autoDispose(subscription.listen((_) => unawaited(loadFeesData())));
     }
+    autoDispose(
+      _studentContext.isLoading.stream.listen((loading) {
+        if (!loading) {
+          unawaited(loadFeesData());
+        }
+      }),
+    );
 
     unawaited(loadFeesData());
   }
