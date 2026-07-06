@@ -23,6 +23,20 @@ void main() {
     );
   });
 
+  test('GuardianPortalProfile.demoCiProfiles includes single and multi-child guardians', () {
+    expect(GuardianPortalProfile.demoCiProfiles, hasLength(2));
+    expect(
+      GuardianPortalProfile.demoCiProfiles.map((profile) => profile.guardianId),
+      containsAll(['ci-g1', 'ci-g4']),
+    );
+    expect(GuardianPortalProfile.mariamKone.expectedStudentIds, ['ci-s1', 'ci-s10']);
+    expect(GuardianPortalProfile.koffiYao.expectedStudentIds, ['ci-s4', 'ci-s7', 'ci-s8']);
+  });
+
+  test('IntegrationConfig.defaultGuardianEmail matches guardian app dev default', () {
+    expect(IntegrationConfig.defaultGuardianEmail, 'm.kone@mail.ci');
+  });
+
   test('teachingScopeFromAssignments derives homeroom and subject ids', () {
     final scope = teachingScopeFromAssignments([
       {

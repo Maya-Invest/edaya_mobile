@@ -132,7 +132,8 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
   Future<void> loadEvaluations() async {
     final classGroupIds = _teacherContext.visibleClassGroupIds;
     final periodId = selectedPeriodId.value;
-    if (classGroupIds.isEmpty || periodId == null) {
+    final taughtSubjectIds = _teacherContext.taughtClassSubjectIds.value;
+    if (classGroupIds.isEmpty || periodId == null || taughtSubjectIds.isEmpty) {
       evaluations(const []);
       return;
     }
@@ -146,19 +147,50 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
             assigned.id: assigned.label,
         };
 
-        final taughtSubjectIds = _teacherContext.taughtClassSubjectIds.value;
+        final classSubjectRows = await client.classSubjects.list(
+          entitiesByIds(taughtSubjectIds.toList()),
+        );
+        final subjectIds = classSubjectRows
+            .map((row) => row['subjectId'] as String?)
+            .whereType<String>()
+            .toSet()
+            .toList();
+        final subjectRows = subjectIds.isEmpty
+            ? <Map<String, dynamic>>[]
+            : await client.subjects.list(entitiesByIds(subjectIds));
+        final subjectNameById = {
+          for (final subject in subjectRows)
+            subject['id'] as String:
+                subject['name'] as String? ?? systemL10n().subjectFallback,
+        };
+
+        final enrollmentCountByClass = <String, int>{};
         final summaries = <EvaluationSummary>[];
-        for (final classGroupId in classGroupIds) {
+        for (final classSubjectRow in classSubjectRows) {
+          final classSubjectId = classSubjectRow['id'] as String;
+          final classGroupId = classSubjectRow['classGroupId'] as String;
+          if (!classGroupIds.contains(classGroupId)) {
+            continue;
+          }
+
           final assessmentRows = await client.assessments.list(
-            assessmentsForClassPeriod(classGroupId, periodId),
+            assessmentsForClassSubjectPeriod(classSubjectId, periodId),
           );
-          final enrollments = await client.enrollments.list(
-            activeEnrollmentsForClass(
-              classGroupId,
-              academicYearId: _academicYear.selectedYearId.value,
-            ),
+          if (assessmentRows.isEmpty) {
+            continue;
+          }
+
+          final totalStudents = await _activeEnrollmentCount(
+            client,
+            classGroupId: classGroupId,
+            academicYearId: _academicYear.selectedYearId.value,
+            cache: enrollmentCountByClass,
           );
-          final totalStudents = enrollments.length;
+
+          final subjectId = classSubjectRow['subjectId'] as String?;
+          final subjectLabel = subjectId == null
+              ? systemL10n().subjectFallback
+              : subjectNameById[subjectId] ?? systemL10n().subjectFallback;
 
           for (final assessment in assessmentRows) {
             final assessmentId = assessment['id'] as String;
@@ -168,30 +200,6 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
             final graded = results
                 .where((row) => row['score'] != null)
                 .length;
-            final classSubjectId = assessment['classSubjectId'] as String?;
-            if (classSubjectId == null) {
-              continue;
-            }
-            if (taughtSubjectIds.isNotEmpty &&
-                !shouldIncludeAssessmentForTeacher(
-                  classSubjectId: classSubjectId,
-                  taughtSubjectIds: taughtSubjectIds,
-                )) {
-              continue;
-            }
-            var subjectLabel = systemL10n().subjectFallback;
-            try {
-              final classSubject = await client.classSubjects.get(
-                classSubjectId,
-              );
-              final subjectId = classSubject['subjectId'] as String?;
-              if (subjectId != null) {
-                final subject = await client.subjects.get(subjectId);
-                subjectLabel = subject['name'] as String? ?? subjectLabel;
-              }
-            } on Object {
-              subjectLabel = systemL10n().subjectFallback;
-            }
 
             summaries.add(
               EvaluationSummary(
@@ -594,6 +602,26 @@ String _formatApiError(api.ApiError error) {
     }
   }
   return error.message;
+}
+
+Future<int> _activeEnrollmentCount(
+  api.SchoolClient client, {
+  required String classGroupId,
+  required String? academicYearId,
+  required Map<String, int> cache,
+}) async {
+  final cached = cache[classGroupId];
+  if (cached != null) {
+    return cached;
+  }
+  final enrollments = await client.enrollments.list(
+    activeEnrollmentsForClass(
+      classGroupId,
+      academicYearId: academicYearId,
+    ),
+  );
+  cache[classGroupId] = enrollments.length;
+  return enrollments.length;
 }
 
 Future<Set<String>> _publishedReportCardStudentIds(

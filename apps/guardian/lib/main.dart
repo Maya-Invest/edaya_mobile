@@ -14,7 +14,7 @@ Future<void> main() async {
   );
   registerEdayaFcmBackgroundHandler();
   ApiBaseUrlConfig.configure(
-    appDefaultUrl: ApiBaseUrlConfig.androidEmulatorUrl,
+    appDefaultUrl: ApiBaseUrlConfig.defaultForCurrentPlatform,
   );
   await ApiBaseUrlConfig.load();
   await AppSettingsController.preload();

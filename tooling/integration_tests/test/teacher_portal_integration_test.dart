@@ -78,6 +78,7 @@ void _teacherPortalSuite(TeacherPortalProfile profile) {
           classGroupId: profile.primaryClassGroupId,
           periodId: periodId,
           academicYearId: profile.academicYearId,
+          classSubjectIds: profile.expectedClassSubjectIds,
         );
       }
     });

@@ -84,9 +84,7 @@ class StudentContextController extends LevitController
       return;
     }
 
-    if (scopedStudentIds.length == 1) {
-      await selectStudent(scopedStudentIds.first);
-    }
+    await selectStudent(scopedStudentIds.first);
   }
 
   Future<void> selectStudent(String studentId) async {

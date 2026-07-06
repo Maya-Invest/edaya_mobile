@@ -38,6 +38,16 @@ EntityQuery assessmentsForClassPeriod(String classGroupId, String periodId) {
   };
 }
 
+EntityQuery assessmentsForClassSubjectPeriod(
+  String classSubjectId,
+  String periodId,
+) {
+  return {
+    'classSubjectId': classSubjectId,
+    'periodId': periodId,
+  };
+}
+
 EntityQuery resultsForAssessment(String assessmentId) {
   return {'assessmentId': assessmentId};
 }

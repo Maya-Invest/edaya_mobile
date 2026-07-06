@@ -1,8 +1,10 @@
 # Mobile portal integration tests
 
-Live API tests in `tooling/integration_tests` exercise the same HTTP commands and entity reads that the teacher app controllers call. They catch backend auth regressions, missing seed data, and payload mismatches at the API boundary.
+Live API tests in `tooling/integration_tests` exercise the same HTTP commands and entity reads that the **teacher** and **guardian** app controllers call. They catch backend auth regressions, missing seed data, and payload mismatches at the API boundary.
 
 ## What these tests cover
+
+### Teacher (`teacher_portal_integration_test.dart`)
 
 - Sign-in and portal bootstrap (`effectiveGrants`, assignments, academic years/periods, class groups)
 - Calendar/timetable reads and enrichment
@@ -10,9 +12,31 @@ Live API tests in `tooling/integration_tests` exercise the same HTTP commands an
 - Session detail reads plus attendance write (subject teacher) / 403 (homeroom on subject lessons)
 - Negative authorization probes (`staffMembers.get`)
 
+Demo accounts: `a.toure@ecole-ci.edaya.dev` (subject), `k.diomande@ecole-ci.edaya.dev` (homeroom).
+
+### Guardian (`guardian_portal_integration_test.dart`)
+
+- Sign-in and bootstrap (`effectiveGrants`, `guardianLinks`, linked students, enrollment, class group)
+- Academic reads (periods, assessments, curriculum, **published report cards**)
+- Fees reads (`studentFees`, `payments`, `fees.get`)
+- Calendar/timetable + school events + student attendance list
+- Inbox list + **`markDeliveryRead`** write probe (when unread delivery is seeded)
+- Negative authorization (`createAssessment`, `staffMembers.get`, `teachers.list`)
+
+Demo accounts: `m.kone@mail.ci` (children `ci-s1` + `ci-s10`), `k.yao@mail.ci` (`ci-s4`, `ci-s7`, `ci-s8`).
+
 Run:
 
 ```bash
+melos run test:integration
+```
+
+Optional env overrides:
+
+```bash
+EDAYA_GUARDIAN_EMAIL=m.kone@mail.ci \
+EDAYA_GUARDIAN_PASSWORD=DevPassword1! \
+EDAYA_ACADEMIC_YEAR_ID=2025-ci \
 melos run test:integration
 ```
 
@@ -24,6 +48,6 @@ Integration tests do **not** run Flutter controllers, widgets, or Levit task orc
 - `runTask` / in-flight load races
 - drawer/sheet navigation and local state refresh
 
-belong in `apps/teacher/test/` (pure logic) or widget/controller tests. The evaluations persistence issue was an example: the API write probe passed while `loadMarks` could overwrite `saveMark` in the app layer.
+belong in `apps/teacher/test/` or `apps/guardian/test/` (pure logic) or widget/controller tests.
 
-When adding a new teacher feature API surface, add a matching integration probe **and** a focused unit test for any non-trivial client-side merge/invalidation logic.
+When adding a new portal feature API surface, add a matching integration probe **and** a focused unit test for any non-trivial client-side merge/invalidation logic.

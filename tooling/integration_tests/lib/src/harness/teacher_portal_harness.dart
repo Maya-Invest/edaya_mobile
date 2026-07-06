@@ -139,6 +139,16 @@ EntityQuery assessmentsForClassPeriod(String classGroupId, String periodId) {
   };
 }
 
+EntityQuery assessmentsForClassSubjectPeriod(
+  String classSubjectId,
+  String periodId,
+) {
+  return {
+    'classSubjectId': classSubjectId,
+    'periodId': periodId,
+  };
+}
+
 EntityQuery resultsForAssessment(String assessmentId) {
   return {'assessmentId': assessmentId};
 }
@@ -421,16 +431,21 @@ Future<TeacherSessionProbe> loadTeacherSessionDetail(
   );
 }
 
-/// Mirrors [EvaluationsController.loadEvaluations] reads for one class/period.
+/// Mirrors [EvaluationsController.loadEvaluations] reads for taught subjects.
 Future<TeacherEvaluationsProbe> loadTeacherEvaluations(
   SchoolClient client, {
   required String classGroupId,
   required String periodId,
   required String academicYearId,
+  required List<String> classSubjectIds,
 }) async {
-  final assessments = await client.assessments.list(
-    assessmentsForClassPeriod(classGroupId, periodId),
-  );
+  final assessments = <Map<String, dynamic>>[];
+  for (final classSubjectId in classSubjectIds) {
+    final rows = await client.assessments.list(
+      assessmentsForClassSubjectPeriod(classSubjectId, periodId),
+    );
+    assessments.addAll(rows);
+  }
   final enrollments = await client.enrollments.list(
     activeEnrollmentsForClass(classGroupId, academicYearId: academicYearId),
   );
@@ -519,7 +534,7 @@ Future<void> probeTeacherEvaluationWrites(
   });
 
   final listed = await client.assessments.list(
-    assessmentsForClassPeriod(classGroupId, periodId),
+    assessmentsForClassSubjectPeriod(classSubjectId, periodId),
   );
   if (!listed.any((row) => row['id'] == asmId)) {
     throw StateError('createAssessment did not appear in assessments.list');

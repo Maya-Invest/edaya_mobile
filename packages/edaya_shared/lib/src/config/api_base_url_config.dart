@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/l10n_lookup.dart';
@@ -15,6 +16,17 @@ abstract final class ApiBaseUrlConfig {
   static const androidEmulatorUrl = 'http://10.0.2.2:9999';
   static const stagingUrl = 'https://api-staging.edaya.softilab.dev';
   static const productionUrl = 'https://api.edaya.softilab.dev';
+
+  /// Default API origin for the current runtime (iOS/macOS → localhost, Android → 10.0.2.2).
+  static String get defaultForCurrentPlatform {
+    if (kIsWeb) {
+      return localUrl;
+    }
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return androidEmulatorUrl;
+    }
+    return localUrl;
+  }
 
   static const _prefKey = 'edaya_api_base_url';
 
@@ -54,12 +66,16 @@ abstract final class ApiBaseUrlConfig {
     final prefs = await SharedPreferences.getInstance();
     final override = prefs.getString(_prefKey);
     if (override != null && override.isNotEmpty) {
-      _resolved = override;
+      final coerced = _coerceUrlForPlatform(override);
+      _resolved = coerced;
       _hasOverride = true;
+      if (coerced != override) {
+        await prefs.setString(_prefKey, coerced);
+      }
       return;
     }
 
-    _resolved = defaultUrl;
+    _resolved = _coerceUrlForPlatform(defaultUrl);
     _hasOverride = false;
   }
 
@@ -103,5 +119,16 @@ abstract final class ApiBaseUrlConfig {
     }
 
     return uri.replace(path: uri.path.replaceAll(RegExp(r'/+$'), '')).toString();
+  }
+
+  /// Maps Android loopback (`10.0.2.2`) to localhost on iOS/desktop simulators.
+  static String _coerceUrlForPlatform(String url) {
+    if (kIsWeb || defaultTargetPlatform == TargetPlatform.android) {
+      return url;
+    }
+    if (url == androidEmulatorUrl) {
+      return localUrl;
+    }
+    return url;
   }
 }

@@ -44,24 +44,60 @@ class ReportCardSectionMark {
     this.subjects = const [],
   });
 
-  factory ReportCardSectionMark.fromJson(Map<String, dynamic> json) {
-    final subResults = json['subResults'];
-    final subjects = <ReportCardSubjectMark>[];
-    if (subResults is List) {
-      for (final entry in subResults) {
-        if (entry is Map<String, dynamic> &&
-            entry['sectionKind'] == 'subject') {
-          subjects.add(ReportCardSubjectMark.fromJson(entry));
-        }
-      }
-    }
-
+  factory ReportCardSectionMark.fromJson(
+    Map<String, dynamic> json, {
+    Map<String, String> subjectNameByClassSubjectId = const {},
+    Set<String>? globalSeenClassSubjectIds,
+  }) {
     return ReportCardSectionMark(
       name: json['name'] as String? ?? 'Section',
       average: (json['average'] as num?)?.toDouble() ?? 0,
       comment: json['comment'] as String?,
-      subjects: subjects,
+      subjects: _collectSubjectMarks(
+        json['subResults'],
+        subjectNameByClassSubjectId,
+        globalSeenClassSubjectIds: globalSeenClassSubjectIds,
+      ),
     );
+  }
+
+  static List<ReportCardSubjectMark> _collectSubjectMarks(
+    dynamic subResults,
+    Map<String, String> subjectNameByClassSubjectId, {
+    Set<String>? globalSeenClassSubjectIds,
+  }) {
+    final subjects = <ReportCardSubjectMark>[];
+    final seenClassSubjectIds = globalSeenClassSubjectIds ?? <String>{};
+
+    void visit(dynamic nodes) {
+      if (nodes is! List) {
+        return;
+      }
+      for (final node in nodes) {
+        if (node is! Map<String, dynamic>) {
+          continue;
+        }
+        final kind = node['sectionKind'];
+        if (kind == 'subject') {
+          final classSubjectId = node['classSubjectId'] as String?;
+          if (classSubjectId == null ||
+              !seenClassSubjectIds.add(classSubjectId)) {
+            continue;
+          }
+          subjects.add(
+            ReportCardSubjectMark.fromJson(
+              node,
+              resolvedName: subjectNameByClassSubjectId[classSubjectId],
+            ),
+          );
+        } else if (kind == 'group') {
+          visit(node['subResults']);
+        }
+      }
+    }
+
+    visit(subResults);
+    return subjects;
   }
 
   final String name;
@@ -77,9 +113,14 @@ class ReportCardSubjectMark {
     this.comment,
   });
 
-  factory ReportCardSubjectMark.fromJson(Map<String, dynamic> json) {
+  factory ReportCardSubjectMark.fromJson(
+    Map<String, dynamic> json, {
+    String? resolvedName,
+  }) {
     return ReportCardSubjectMark(
-      name: json['name'] as String? ?? systemL10n().subjectFallback,
+      name: resolvedName ??
+          json['name'] as String? ??
+          systemL10n().subjectFallback,
       average: (json['average'] as num?)?.toDouble() ?? 0,
       comment: json['comment'] as String?,
     );
@@ -106,15 +147,36 @@ class ReportCardDetail {
   factory ReportCardDetail.fromJson(
     Map<String, dynamic> json, {
     required String periodName,
+    Map<String, String> subjectNameByClassSubjectId = const {},
   }) {
     final sectionResults = json['sectionResults'];
     final sections = <ReportCardSectionMark>[];
+    final seenSectionIds = <String>{};
+    final seenSectionNames = <String>{};
+    final globalSeenClassSubjectIds = <String>{};
     if (sectionResults is List) {
       for (final entry in sectionResults) {
-        if (entry is Map<String, dynamic> &&
-            entry['sectionKind'] == 'group') {
-          sections.add(ReportCardSectionMark.fromJson(entry));
+        if (entry is! Map<String, dynamic> ||
+            entry['sectionKind'] != 'group') {
+          continue;
         }
+        final sectionId = entry['sectionId'] as String?;
+        final sectionName = (entry['name'] as String? ?? '').trim();
+        if (sectionId == null ||
+            sectionName.isEmpty ||
+            !seenSectionIds.add(sectionId) ||
+            !seenSectionNames.add(sectionName)) {
+          continue;
+        }
+        final section = ReportCardSectionMark.fromJson(
+          entry,
+          subjectNameByClassSubjectId: subjectNameByClassSubjectId,
+          globalSeenClassSubjectIds: globalSeenClassSubjectIds,
+        );
+        if (section.subjects.isEmpty) {
+          continue;
+        }
+        sections.add(section);
       }
     }
 

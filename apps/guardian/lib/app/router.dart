@@ -7,6 +7,7 @@ import '../features/context/academic_year_controller.dart';
 import '../features/context/student_context_controller.dart';
 import '../config/api_config.dart';
 import '../features/academic/academic_page.dart';
+import '../features/evaluations/evaluations_page.dart';
 import '../features/academic/grade_details_dialog.dart';
 import '../features/academic/models/grade_entry.dart';
 import '../features/academic/models/report_card_summary.dart';
@@ -150,6 +151,10 @@ class AppRouter extends LevitController implements EdayaAppRouter {
             GoRoute(
               path: '/academic',
               builder: (context, state) => const AcademicPage(),
+            ),
+            GoRoute(
+              path: '/evaluations',
+              builder: (context, state) => const EvaluationsPage(),
               routes: [
                 GoRoute(
                   parentNavigatorKey: rootNavigatorKey,

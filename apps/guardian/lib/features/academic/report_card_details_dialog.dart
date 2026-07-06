@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
-import 'academic_controller.dart';
+import '../evaluations/evaluations_controller.dart';
 import 'models/report_card_summary.dart';
 
 class ReportCardDetailsDialog extends LScopedView<ReportCardDetailsController> {

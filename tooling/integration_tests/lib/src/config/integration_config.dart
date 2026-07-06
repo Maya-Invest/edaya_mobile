@@ -56,6 +56,13 @@ class IntegrationConfig {
     );
   }
 
+  IntegrationConfig withGuardianEmail(String email) {
+    return withTeacherEmail(email);
+  }
+
+  /// Default guardian demo account (`ci-g1` parent of `ci-s1` in 6ème A).
+  static const defaultGuardianEmail = 'm.kone@mail.ci';
+
   static bool get isEnabled {
     final flag = Platform.environment['EDAYA_INTEGRATION_TESTS']
         ?? Platform.environment['RUN_INTEGRATION_TESTS'];

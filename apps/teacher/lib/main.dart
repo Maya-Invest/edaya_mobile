@@ -13,7 +13,9 @@ Future<void> main() async {
     notificationConfig: PushNotificationConfigs.teacher,
   );
   registerEdayaFcmBackgroundHandler();
-  ApiBaseUrlConfig.configure(appDefaultUrl: ApiBaseUrlConfig.localUrl);
+  ApiBaseUrlConfig.configure(
+    appDefaultUrl: ApiBaseUrlConfig.defaultForCurrentPlatform,
+  );
   await ApiBaseUrlConfig.load();
   await AppSettingsController.preload();
   await Firebase.initializeApp(

@@ -14,8 +14,10 @@ class AppShellController extends LevitController {
       case 1:
         _appRouter.router.go('/academic');
       case 2:
-        _appRouter.router.go('/fees');
+        _appRouter.router.go('/evaluations');
       case 3:
+        _appRouter.router.go('/fees');
+      case 4:
         _appRouter.router.go('/inbox');
     }
   }
@@ -27,11 +29,14 @@ class AppShellController extends LevitController {
     if (location.startsWith('/academic')) {
       return 1;
     }
-    if (location.startsWith('/fees')) {
+    if (location.startsWith('/evaluations')) {
       return 2;
     }
-    if (location.startsWith('/inbox')) {
+    if (location.startsWith('/fees')) {
       return 3;
+    }
+    if (location.startsWith('/inbox')) {
+      return 4;
     }
     return 0;
   }
