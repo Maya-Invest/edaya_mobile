@@ -185,7 +185,7 @@ class _SegmentBody extends StatelessWidget {
           ],
         );
       case SessionDetailSegment.logbook:
-        return _LogbookForm(controller: controller);
+        return _LogbookPanel(controller: controller);
     }
   }
 
@@ -216,159 +216,555 @@ class _SegmentBody extends StatelessWidget {
   }
 }
 
-class _LogbookForm extends StatefulWidget {
-  const _LogbookForm({required this.controller});
+class _LogbookPanel extends StatefulWidget {
+  const _LogbookPanel({required this.controller});
 
   final SessionDetailController controller;
 
   @override
-  State<_LogbookForm> createState() => _LogbookFormState();
+  State<_LogbookPanel> createState() => _LogbookPanelState();
 }
 
-class _LogbookFormState extends State<_LogbookForm> {
-  late final TextEditingController _contentController;
-  late final TextEditingController _objectivesController;
-  late final TextEditingController _homeworkController;
-  late final TextEditingController _progressController;
-  String? _selectedMatterId;
+class _LogbookPanelState extends State<_LogbookPanel> {
+  late final TextEditingController _sessionNoteController;
+  final List<_DraftEntryState> _draftEntries = [];
   bool _saving = false;
 
   @override
   void initState() {
     super.initState();
-    final logbook = widget.controller.logbook.value;
-    _contentController = TextEditingController(text: logbook?.content ?? '');
-    _objectivesController = TextEditingController(
-      text: logbook?.objectives.join('\n') ?? '',
+    _sessionNoteController = TextEditingController(
+      text: widget.controller.sessionNote.value,
     );
-    _homeworkController = TextEditingController(text: logbook?.homework ?? '');
-    _progressController = TextEditingController(
-      text: '${logbook?.progress ?? 0}',
-    );
-    final matters = widget.controller.subjectMatters.value;
-    _selectedMatterId = matters.isNotEmpty ? matters.first.id : null;
   }
 
   @override
   void dispose() {
-    _contentController.dispose();
-    _objectivesController.dispose();
-    _homeworkController.dispose();
-    _progressController.dispose();
+    _sessionNoteController.dispose();
+    for (final entry in _draftEntries) {
+      entry.dispose();
+    }
     super.dispose();
+  }
+
+  Set<String> get _draftMatterIds => _draftEntries
+      .map((entry) => entry.matterId)
+      .whereType<String>()
+      .toSet();
+
+  void _addDraftEntry({SessionSubjectMatterOption? matter}) {
+    final usedIds = _draftMatterIds;
+    final pickable = widget.controller.pickableMatters
+        .where((entry) => !usedIds.contains(entry.id))
+        .toList();
+    final selected = matter ?? pickable.firstOrNull;
+    if (selected == null && matter == null) {
+      return;
+    }
+
+    setState(() {
+      _draftEntries.add(
+        _DraftEntryState(
+          matterId: selected?.id ?? matter!.id,
+          completedPercentage:
+              matter?.sessionProgress?.completedPercentage ??
+              selected?.cumulativePercentage ??
+              matter?.cumulativePercentage ??
+              0,
+          notes: matter?.sessionProgress?.notes ?? '',
+          isEditingExisting: matter?.hasSessionProgress ?? false,
+        ),
+      );
+    });
+  }
+
+  void _removeDraftEntry(_DraftEntryState entry) {
+    setState(() {
+      entry.dispose();
+      _draftEntries.remove(entry);
+    });
+  }
+
+  List<SessionSubjectMatterOption> _matterChoicesForDraft(
+    _DraftEntryState draft,
+    List<SessionSubjectMatterOption> allMatters,
+  ) {
+    final usedByOthers = _draftEntries
+        .where((entry) => !identical(entry, draft))
+        .map((entry) => entry.matterId)
+        .whereType<String>()
+        .toSet();
+
+    if (draft.isEditingExisting && draft.matterId != null) {
+      return allMatters.where((matter) => matter.id == draft.matterId).toList();
+    }
+
+    return widget.controller.pickableMatters
+        .where((matter) => !usedByOthers.contains(matter.id))
+        .toList();
+  }
+
+  bool _canAddAnotherDraft(List<SessionSubjectMatterOption> allMatters) {
+    final usedIds = _draftMatterIds;
+    return widget.controller.pickableMatters
+        .any((matter) => !usedIds.contains(matter.id));
+  }
+
+  SessionSubjectMatterOption? _matterById(
+    List<SessionSubjectMatterOption> allMatters,
+    String? matterId,
+  ) {
+    if (matterId == null) {
+      return null;
+    }
+    for (final matter in allMatters) {
+      if (matter.id == matterId) {
+        return matter;
+      }
+    }
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
-    final matters = widget.controller.subjectMatters.value;
+    if (!widget.controller.supportsLogbook) {
+      final notes = widget.controller.activityNotes.value;
+      if (notes == null || notes.isEmpty) {
+        return Center(child: Text(context.tr.noLogbookEntryForSession));
+      }
+      return ListView(
+        children: [
+          Text(
+            context.tr.sessionNotesLabel,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+          Text(notes),
+        ],
+      );
+    }
+
     if (widget.controller.session.classSubjectId == null) {
       return Center(
         child: Text(context.tr.logbookNotAvailableForSession),
       );
     }
-    if (matters.isEmpty) {
-      return Center(
-        child: Text(context.tr.noCurriculumChaptersLinked),
+
+    return LWatch(() {
+      final allMatters = widget.controller.subjectMatters.value;
+      final recordedMatters = widget.controller.recordedMatters
+          .where((matter) => !_draftMatterIds.contains(matter.id))
+          .toList();
+      final canAddDraft = _canAddAnotherDraft(allMatters);
+      final subjectProgress =
+          widget.controller.classSubjectCompletedPercentage.value;
+      final saveMessage = widget.controller.saveMessage.value;
+      final isBusy = widget.controller.isBusy.value;
+
+      if (isBusy && allMatters.isEmpty) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      if (allMatters.isEmpty) {
+        return Center(
+          child: Text(context.tr.noCurriculumChaptersLinked),
+        );
+      }
+
+      if (_sessionNoteController.text != widget.controller.sessionNote.value) {
+        _sessionNoteController.text = widget.controller.sessionNote.value;
+      }
+
+      return ListView(
+        children: [
+          if (saveMessage.isNotEmpty) ...[
+            Text(
+              saveMessage,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+          Text(
+            context.tr.curriculumProgressTitle,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            context.tr.curriculumProgressDescription,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          if (subjectProgress != null) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: LinearProgressIndicator(
+                    value: subjectProgress / 100,
+                    minHeight: 6,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  context.tr.subjectProgressSummary(subjectProgress),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 12),
+          for (final entry in _draftEntries)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _ProgressDraftCard(
+                matterChoices: _matterChoicesForDraft(entry, allMatters),
+                draft: entry,
+                selectedMatter: _matterById(allMatters, entry.matterId),
+                onMatterChanged: (value) {
+                  setState(() {
+                    entry.matterId = value;
+                    final matter = _matterById(allMatters, value);
+                    if (matter != null && !entry.isEditingExisting) {
+                      entry.progressController.text =
+                          '${matter.cumulativePercentage}';
+                      entry.notesController.clear();
+                    }
+                  });
+                },
+                onRemove: () => _removeDraftEntry(entry),
+              ),
+            ),
+          FilledButton.icon(
+            onPressed: canAddDraft ? () => _addDraftEntry() : null,
+            icon: const Icon(Icons.add),
+            label: Text(
+              _draftEntries.isEmpty
+                  ? context.tr.addCurriculumProgress
+                  : context.tr.addAnotherCurriculumProgress,
+            ),
+          ),
+          if (!canAddDraft && recordedMatters.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                context.tr.allMattersRecordedForSession,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          const SizedBox(height: 12),
+          if (recordedMatters.isEmpty && _draftEntries.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Text(
+                context.tr.noRecordedMatterProgress,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            )
+          else
+            for (final matter in recordedMatters)
+              _MatterProgressCard(
+                matter: matter,
+                onEdit: _draftMatterIds.contains(matter.id)
+                    ? null
+                    : () => _addDraftEntry(matter: matter),
+              ),
+          const SizedBox(height: 20),
+          Text(
+            context.tr.sessionNotesLabel,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            context.tr.sessionNotesDescription,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _sessionNoteController,
+            decoration: InputDecoration(
+              hintText: context.tr.sessionNotesHint,
+              border: const OutlineInputBorder(),
+            ),
+            maxLines: 4,
+          ),
+          const SizedBox(height: 16),
+          FilledButton(
+            onPressed: _saving ? null : _saveLogbook,
+            child: _saving
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(context.tr.saveLogbook),
+          ),
+        ],
+      );
+    });
+  }
+
+  Future<void> _saveLogbook() async {
+    final progressEntries = <LogbookProgressDraft>[];
+
+    for (final draft in _draftEntries) {
+      final matterId = draft.matterId;
+      if (matterId == null) {
+        widget.controller.saveMessage(context.tr.pickSubjectMatterTitle);
+        return;
+      }
+      final completedPercentage = int.tryParse(
+        draft.progressController.text.trim(),
+      );
+      if (completedPercentage == null) {
+        widget.controller.saveMessage(context.tr.progressPercentLabel);
+        return;
+      }
+      progressEntries.add(
+        LogbookProgressDraft(
+          matterId: matterId,
+          completedPercentage: completedPercentage,
+          notes: draft.notesController.text,
+        ),
       );
     }
 
-    return ListView(
-      children: [
-        DropdownButtonFormField<String>(
-          initialValue: _selectedMatterId,
-          decoration: InputDecoration(
-            labelText: context.tr.chapterLabel,
-            border: OutlineInputBorder(),
-          ),
-          items: [
-            for (final matter in matters)
-              DropdownMenuItem(
-                value: matter.id,
-                child: Text(matter.name),
-              ),
-          ],
-          onChanged: (value) => setState(() => _selectedMatterId = value),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _contentController,
-          decoration: InputDecoration(
-            labelText: context.tr.contentLabel,
-            border: OutlineInputBorder(),
-          ),
-          maxLines: 4,
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _objectivesController,
-          decoration: InputDecoration(
-            labelText: context.tr.objectivesLabel,
-            border: OutlineInputBorder(),
-          ),
-          maxLines: 3,
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _homeworkController,
-          decoration: InputDecoration(
-            labelText: context.tr.homeworkLabel,
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _progressController,
-          decoration: InputDecoration(
-            labelText: context.tr.progressPercentLabel,
-            border: OutlineInputBorder(),
-          ),
-          keyboardType: TextInputType.number,
-        ),
-        const SizedBox(height: 16),
-        FilledButton(
-          onPressed: _saving ? null : _save,
-          child: _saving
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(context.tr.saveLogbook),
-        ),
-      ],
-    );
-  }
-
-  TeacherSession get session => widget.controller.session;
-
-  Future<void> _save() async {
-    final matterId = _selectedMatterId;
-    if (matterId == null) {
-      return;
-    }
-    final matter = widget.controller.subjectMatters.value.firstWhere(
-      (entry) => entry.id == matterId,
-    );
     setState(() => _saving = true);
     final ok = await widget.controller.saveLogbook(
-      classSubjectMatterId: matterId,
-      chapter: matter.name,
-      content: _contentController.text.trim(),
-      objectives: _objectivesController.text
-          .split('\n')
-          .map((line) => line.trim())
-          .where((line) => line.isNotEmpty)
-          .toList(),
-      homework: _homeworkController.text.trim(),
-      progress: int.tryParse(_progressController.text.trim()) ?? 0,
+      sessionNoteText: _sessionNoteController.text,
+      progressEntries: progressEntries,
     );
     if (mounted) {
       setState(() => _saving = false);
       if (ok) {
+        for (final entry in List<_DraftEntryState>.from(_draftEntries)) {
+          _removeDraftEntry(entry);
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(context.tr.logbookSaved)),
         );
       }
     }
+  }
+}
+
+class _DraftEntryState {
+  _DraftEntryState({
+    required this.matterId,
+    required int completedPercentage,
+    required String notes,
+    required this.isEditingExisting,
+  })  : progressController = TextEditingController(
+          text: '$completedPercentage',
+        ),
+        notesController = TextEditingController(text: notes);
+
+  String? matterId;
+  final TextEditingController progressController;
+  final TextEditingController notesController;
+  final bool isEditingExisting;
+
+  void dispose() {
+    progressController.dispose();
+    notesController.dispose();
+  }
+}
+
+class _ProgressDraftCard extends StatelessWidget {
+  const _ProgressDraftCard({
+    required this.matterChoices,
+    required this.draft,
+    required this.selectedMatter,
+    required this.onMatterChanged,
+    required this.onRemove,
+  });
+
+  final List<SessionSubjectMatterOption> matterChoices;
+  final _DraftEntryState draft;
+  final SessionSubjectMatterOption? selectedMatter;
+  final ValueChanged<String?> onMatterChanged;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final minimum = selectedMatter == null
+        ? 0
+        : (selectedMatter!.sessionProgress?.completedPercentage ??
+            selectedMatter!.cumulativePercentage);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    draft.isEditingExisting
+                        ? context.tr.editMatterProgress
+                        : context.tr.addCurriculumProgress,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+                IconButton(
+                  onPressed: onRemove,
+                  icon: const Icon(Icons.close),
+                  tooltip: context.tr.cancel,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (draft.isEditingExisting && selectedMatter != null)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(selectedMatter!.name),
+                subtitle: Text(
+                  context.tr.cumulativeProgressLabel(
+                    selectedMatter!.cumulativePercentage,
+                  ),
+                ),
+              )
+            else
+              DropdownButtonFormField<String>(
+                initialValue: draft.matterId,
+                decoration: InputDecoration(
+                  labelText: context.tr.pickSubjectMatterTitle,
+                  border: const OutlineInputBorder(),
+                ),
+                items: [
+                  for (final matter in matterChoices)
+                    DropdownMenuItem(
+                      value: matter.id,
+                      child: Text(matter.name),
+                    ),
+                ],
+                onChanged: onMatterChanged,
+              ),
+            if (selectedMatter != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                context.tr.matterProgressMinimum(minimum),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: draft.progressController,
+                decoration: InputDecoration(
+                  labelText: context.tr.lessonProgressPercentLabel,
+                  border: const OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: draft.notesController,
+                decoration: InputDecoration(
+                  labelText: context.tr.matterNotesLabel,
+                  border: const OutlineInputBorder(),
+                ),
+                maxLines: 3,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MatterProgressCard extends StatelessWidget {
+  const _MatterProgressCard({
+    required this.matter,
+    required this.onEdit,
+  });
+
+  final SessionSubjectMatterOption matter;
+  final VoidCallback? onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final sessionProgress = matter.sessionProgress!;
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    matter.name,
+                    style: theme.textTheme.titleSmall,
+                  ),
+                ),
+                Chip(
+                  label: Text(matter.status.label(context.tr)),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        context.tr.cumulativeProgressLabel(
+                          matter.cumulativePercentage,
+                        ),
+                        style: theme.textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 4),
+                      LinearProgressIndicator(
+                        value: matter.cumulativePercentage / 100,
+                        minHeight: 5,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  context.tr.lessonProgressLabel(
+                    sessionProgress.completedPercentage,
+                  ),
+                  style: theme.textTheme.labelLarge,
+                ),
+              ],
+            ),
+            if (sessionProgress.notes != null &&
+                sessionProgress.notes!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                sessionProgress.notes!,
+                style: theme.textTheme.bodyMedium,
+              ),
+            ],
+            if (onEdit != null) ...[
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton.tonal(
+                  onPressed: onEdit,
+                  child: Text(context.tr.editMatterProgress),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }

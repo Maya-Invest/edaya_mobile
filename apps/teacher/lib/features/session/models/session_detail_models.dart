@@ -55,45 +55,65 @@ class SessionStudentRow {
   }
 }
 
-class SessionLogbook {
-  const SessionLogbook({
-    required this.id,
-    required this.chapter,
-    required this.content,
-    required this.objectives,
-    required this.progress,
-    this.homework,
-  });
+enum ClassSubjectMatterStatus {
+  notStarted,
+  inProgress,
+  completed;
 
-  factory SessionLogbook.fromJson(Map<String, dynamic> json) {
-    return SessionLogbook(
-      id: json['id'] as String,
-      chapter: json['chapter'] as String? ?? '',
-      content: json['content'] as String? ?? '',
-      objectives: (json['objectives'] as List<dynamic>? ?? const [])
-          .map((entry) => entry as String)
-          .toList(),
-      homework: json['homework'] as String?,
-      progress: (json['progress'] as num?)?.toInt() ?? 0,
-    );
-  }
-
-  final String id;
-  final String chapter;
-  final String content;
-  final List<String> objectives;
-  final String? homework;
-  final int progress;
+  String label(AppLocalizations l10n) => switch (this) {
+    ClassSubjectMatterStatus.notStarted => l10n.matterStatusNotStarted,
+    ClassSubjectMatterStatus.inProgress => l10n.matterStatusInProgress,
+    ClassSubjectMatterStatus.completed => l10n.matterStatusCompleted,
+  };
 }
 
+/// Per-lesson progress snapshot for one curriculum matter.
+class SessionMatterProgress {
+  const SessionMatterProgress({
+    required this.id,
+    required this.classSubjectMatterId,
+    required this.completedPercentage,
+    this.notes,
+    this.recordedAt,
+  });
+
+  final String id;
+  final String classSubjectMatterId;
+  final int completedPercentage;
+  final String? notes;
+  final DateTime? recordedAt;
+}
+
+/// Curriculum matter linked to the class subject, with cumulative and session progress.
 class SessionSubjectMatterOption {
   const SessionSubjectMatterOption({
     required this.id,
     required this.name,
-    required this.completedPercentage,
+    required this.sequenceOrder,
+    required this.status,
+    required this.cumulativePercentage,
+    this.sessionProgress,
   });
 
   final String id;
   final String name;
+  final int sequenceOrder;
+  final ClassSubjectMatterStatus status;
+  final int cumulativePercentage;
+  final SessionMatterProgress? sessionProgress;
+
+  bool get hasSessionProgress => sessionProgress != null;
+}
+
+/// Pending progress entry to save with the session note.
+class LogbookProgressDraft {
+  const LogbookProgressDraft({
+    required this.matterId,
+    required this.completedPercentage,
+    this.notes,
+  });
+
+  final String matterId;
   final int completedPercentage;
+  final String? notes;
 }

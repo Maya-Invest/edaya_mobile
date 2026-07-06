@@ -778,6 +778,116 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logbookSaved => 'Logbook saved';
 
   @override
+  String get sessionNotesLabel => 'Lesson notes';
+
+  @override
+  String get sessionNotesDescription =>
+      'Session-wide narrative for this lesson.';
+
+  @override
+  String get sessionNotesHint => 'What was covered in this lesson?';
+
+  @override
+  String get saveSessionNotes => 'Save notes';
+
+  @override
+  String get sessionNotesSaved => 'Lesson notes saved';
+
+  @override
+  String couldNotSaveSessionNote(String error) {
+    return 'Could not save lesson notes: $error';
+  }
+
+  @override
+  String get curriculumProgressTitle => 'Curriculum progress';
+
+  @override
+  String get curriculumProgressDescription =>
+      'Record how far each curriculum matter advanced in this lesson.';
+
+  @override
+  String subjectProgressSummary(int percent) {
+    return 'Subject $percent%';
+  }
+
+  @override
+  String cumulativeProgressLabel(int percent) {
+    return 'Overall $percent%';
+  }
+
+  @override
+  String lessonProgressLabel(int percent) {
+    return 'This lesson $percent%';
+  }
+
+  @override
+  String get lessonProgressPercentLabel => 'Progress for this lesson (%)';
+
+  @override
+  String get matterNotesLabel => 'Matter notes';
+
+  @override
+  String get noMatterProgressForSession =>
+      'No progress recorded for this matter in this lesson yet.';
+
+  @override
+  String get recordMatterProgress => 'Record progress';
+
+  @override
+  String get editMatterProgress => 'Edit progress';
+
+  @override
+  String get saveMatterProgress => 'Save progress';
+
+  @override
+  String get matterProgressSaved => 'Curriculum progress saved';
+
+  @override
+  String couldNotSaveMatterProgress(String error) {
+    return 'Could not save curriculum progress: $error';
+  }
+
+  @override
+  String matterProgressMinimum(int percent) {
+    return 'Must be at least $percent%';
+  }
+
+  @override
+  String progressMustNotDecrease(int percent) {
+    return 'Progress must be at least $percent%';
+  }
+
+  @override
+  String get matterStatusNotStarted => 'Not started';
+
+  @override
+  String get matterStatusInProgress => 'In progress';
+
+  @override
+  String get matterStatusCompleted => 'Completed';
+
+  @override
+  String get addCurriculumProgress => 'Add curriculum progress';
+
+  @override
+  String get addAnotherCurriculumProgress => 'Add another matter';
+
+  @override
+  String get pickSubjectMatterTitle => 'Select curriculum matter';
+
+  @override
+  String get pickSubjectMatterDescription =>
+      'Choose the matter you covered in this lesson.';
+
+  @override
+  String get noRecordedMatterProgress =>
+      'No curriculum progress recorded for this lesson yet.';
+
+  @override
+  String get allMattersRecordedForSession =>
+      'All linked curriculum matters have been recorded for this lesson.';
+
+  @override
   String get notRecorded => 'Not recorded';
 
   @override
@@ -813,6 +923,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get done => 'Done';
+
+  @override
+  String get cancel => 'Cancel';
 
   @override
   String get reviewAgain => 'Review again';

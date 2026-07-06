@@ -420,6 +420,71 @@
   "progressPercentLabel": "Progress %",
   "saveLogbook": "Save logbook",
   "logbookSaved": "Logbook saved",
+  "sessionNotesLabel": "Lesson notes",
+  "sessionNotesDescription": "Session-wide narrative for this lesson.",
+  "sessionNotesHint": "What was covered in this lesson?",
+  "saveSessionNotes": "Save notes",
+  "sessionNotesSaved": "Lesson notes saved",
+  "couldNotSaveSessionNote": "Could not save lesson notes: {error}",
+  "@couldNotSaveSessionNote": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "curriculumProgressTitle": "Curriculum progress",
+  "curriculumProgressDescription": "Record how far each curriculum matter advanced in this lesson.",
+  "subjectProgressSummary": "Subject {percent}%",
+  "@subjectProgressSummary": {
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "cumulativeProgressLabel": "Overall {percent}%",
+  "@cumulativeProgressLabel": {
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "lessonProgressLabel": "This lesson {percent}%",
+  "@lessonProgressLabel": {
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "lessonProgressPercentLabel": "Progress for this lesson (%)",
+  "matterNotesLabel": "Matter notes",
+  "noMatterProgressForSession": "No progress recorded for this matter in this lesson yet.",
+  "recordMatterProgress": "Record progress",
+  "editMatterProgress": "Edit progress",
+  "saveMatterProgress": "Save progress",
+  "matterProgressSaved": "Curriculum progress saved",
+  "couldNotSaveMatterProgress": "Could not save curriculum progress: {error}",
+  "@couldNotSaveMatterProgress": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "matterProgressMinimum": "Must be at least {percent}%",
+  "@matterProgressMinimum": {
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "progressMustNotDecrease": "Progress must be at least {percent}%",
+  "@progressMustNotDecrease": {
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "matterStatusNotStarted": "Not started",
+  "matterStatusInProgress": "In progress",
+  "matterStatusCompleted": "Completed",
+  "addCurriculumProgress": "Add curriculum progress",
+  "addAnotherCurriculumProgress": "Add another matter",
+  "pickSubjectMatterTitle": "Select curriculum matter",
+  "pickSubjectMatterDescription": "Choose the matter you covered in this lesson.",
+  "noRecordedMatterProgress": "No curriculum progress recorded for this lesson yet.",
+  "allMattersRecordedForSession": "All linked curriculum matters have been recorded for this lesson.",
   "notRecorded": "Not recorded",
   "record": "Record",
   "edit": "Edit",
@@ -442,6 +507,7 @@
   },
   "attendanceComplete": "Attendance complete",
   "done": "Done",
+  "cancel": "Cancel",
   "reviewAgain": "Review again",
   "couldNotLoadSession": "Could not load session: {error}",
   "@couldNotLoadSession": {

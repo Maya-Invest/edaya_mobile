@@ -1364,6 +1364,186 @@ abstract class AppLocalizations {
   /// **'Logbook saved'**
   String get logbookSaved;
 
+  /// No description provided for @sessionNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lesson notes'**
+  String get sessionNotesLabel;
+
+  /// No description provided for @sessionNotesDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Session-wide narrative for this lesson.'**
+  String get sessionNotesDescription;
+
+  /// No description provided for @sessionNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What was covered in this lesson?'**
+  String get sessionNotesHint;
+
+  /// No description provided for @saveSessionNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Save notes'**
+  String get saveSessionNotes;
+
+  /// No description provided for @sessionNotesSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Lesson notes saved'**
+  String get sessionNotesSaved;
+
+  /// No description provided for @couldNotSaveSessionNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save lesson notes: {error}'**
+  String couldNotSaveSessionNote(String error);
+
+  /// No description provided for @curriculumProgressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Curriculum progress'**
+  String get curriculumProgressTitle;
+
+  /// No description provided for @curriculumProgressDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Record how far each curriculum matter advanced in this lesson.'**
+  String get curriculumProgressDescription;
+
+  /// No description provided for @subjectProgressSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject {percent}%'**
+  String subjectProgressSummary(int percent);
+
+  /// No description provided for @cumulativeProgressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall {percent}%'**
+  String cumulativeProgressLabel(int percent);
+
+  /// No description provided for @lessonProgressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'This lesson {percent}%'**
+  String lessonProgressLabel(int percent);
+
+  /// No description provided for @lessonProgressPercentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress for this lesson (%)'**
+  String get lessonProgressPercentLabel;
+
+  /// No description provided for @matterNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Matter notes'**
+  String get matterNotesLabel;
+
+  /// No description provided for @noMatterProgressForSession.
+  ///
+  /// In en, this message translates to:
+  /// **'No progress recorded for this matter in this lesson yet.'**
+  String get noMatterProgressForSession;
+
+  /// No description provided for @recordMatterProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Record progress'**
+  String get recordMatterProgress;
+
+  /// No description provided for @editMatterProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit progress'**
+  String get editMatterProgress;
+
+  /// No description provided for @saveMatterProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Save progress'**
+  String get saveMatterProgress;
+
+  /// No description provided for @matterProgressSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Curriculum progress saved'**
+  String get matterProgressSaved;
+
+  /// No description provided for @couldNotSaveMatterProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save curriculum progress: {error}'**
+  String couldNotSaveMatterProgress(String error);
+
+  /// No description provided for @matterProgressMinimum.
+  ///
+  /// In en, this message translates to:
+  /// **'Must be at least {percent}%'**
+  String matterProgressMinimum(int percent);
+
+  /// No description provided for @progressMustNotDecrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress must be at least {percent}%'**
+  String progressMustNotDecrease(int percent);
+
+  /// No description provided for @matterStatusNotStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not started'**
+  String get matterStatusNotStarted;
+
+  /// No description provided for @matterStatusInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get matterStatusInProgress;
+
+  /// No description provided for @matterStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get matterStatusCompleted;
+
+  /// No description provided for @addCurriculumProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Add curriculum progress'**
+  String get addCurriculumProgress;
+
+  /// No description provided for @addAnotherCurriculumProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Add another matter'**
+  String get addAnotherCurriculumProgress;
+
+  /// No description provided for @pickSubjectMatterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select curriculum matter'**
+  String get pickSubjectMatterTitle;
+
+  /// No description provided for @pickSubjectMatterDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the matter you covered in this lesson.'**
+  String get pickSubjectMatterDescription;
+
+  /// No description provided for @noRecordedMatterProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'No curriculum progress recorded for this lesson yet.'**
+  String get noRecordedMatterProgress;
+
+  /// No description provided for @allMattersRecordedForSession.
+  ///
+  /// In en, this message translates to:
+  /// **'All linked curriculum matters have been recorded for this lesson.'**
+  String get allMattersRecordedForSession;
+
   /// No description provided for @notRecorded.
   ///
   /// In en, this message translates to:
@@ -1429,6 +1609,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get done;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
 
   /// No description provided for @reviewAgain.
   ///

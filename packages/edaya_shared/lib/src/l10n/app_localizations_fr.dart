@@ -789,6 +789,115 @@ class AppLocalizationsFr extends AppLocalizations {
   String get logbookSaved => 'Cahier enregistré';
 
   @override
+  String get sessionNotesLabel => 'Notes de séance';
+
+  @override
+  String get sessionNotesDescription => 'Compte rendu global de cette séance.';
+
+  @override
+  String get sessionNotesHint => 'Qu\'avez-vous traité pendant ce cours ?';
+
+  @override
+  String get saveSessionNotes => 'Enregistrer les notes';
+
+  @override
+  String get sessionNotesSaved => 'Notes de séance enregistrées';
+
+  @override
+  String couldNotSaveSessionNote(String error) {
+    return 'Impossible d\'enregistrer les notes : $error';
+  }
+
+  @override
+  String get curriculumProgressTitle => 'Avancement du programme';
+
+  @override
+  String get curriculumProgressDescription =>
+      'Indiquez l\'avancement de chaque notion couverte pendant cette séance.';
+
+  @override
+  String subjectProgressSummary(int percent) {
+    return 'Matière $percent %';
+  }
+
+  @override
+  String cumulativeProgressLabel(int percent) {
+    return 'Global $percent %';
+  }
+
+  @override
+  String lessonProgressLabel(int percent) {
+    return 'Cette séance $percent %';
+  }
+
+  @override
+  String get lessonProgressPercentLabel => 'Progression pour cette séance (%)';
+
+  @override
+  String get matterNotesLabel => 'Notes sur la notion';
+
+  @override
+  String get noMatterProgressForSession =>
+      'Aucun avancement enregistré pour cette notion dans cette séance.';
+
+  @override
+  String get recordMatterProgress => 'Enregistrer l\'avancement';
+
+  @override
+  String get editMatterProgress => 'Modifier l\'avancement';
+
+  @override
+  String get saveMatterProgress => 'Enregistrer l\'avancement';
+
+  @override
+  String get matterProgressSaved => 'Avancement enregistré';
+
+  @override
+  String couldNotSaveMatterProgress(String error) {
+    return 'Impossible d\'enregistrer l\'avancement : $error';
+  }
+
+  @override
+  String matterProgressMinimum(int percent) {
+    return 'Doit être au moins $percent %';
+  }
+
+  @override
+  String progressMustNotDecrease(int percent) {
+    return 'La progression doit être d\'au moins $percent %';
+  }
+
+  @override
+  String get matterStatusNotStarted => 'Non commencé';
+
+  @override
+  String get matterStatusInProgress => 'En cours';
+
+  @override
+  String get matterStatusCompleted => 'Terminé';
+
+  @override
+  String get addCurriculumProgress => 'Ajouter un avancement';
+
+  @override
+  String get addAnotherCurriculumProgress => 'Ajouter une autre notion';
+
+  @override
+  String get pickSubjectMatterTitle => 'Choisir une notion';
+
+  @override
+  String get pickSubjectMatterDescription =>
+      'Sélectionnez la notion couverte pendant cette séance.';
+
+  @override
+  String get noRecordedMatterProgress =>
+      'Aucun avancement enregistré pour cette séance.';
+
+  @override
+  String get allMattersRecordedForSession =>
+      'Toutes les notions liées ont été enregistrées pour cette séance.';
+
+  @override
   String get notRecorded => 'Non enregistré';
 
   @override
@@ -824,6 +933,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get done => 'Terminé';
+
+  @override
+  String get cancel => 'Annuler';
 
   @override
   String get reviewAgain => 'Revoir';
