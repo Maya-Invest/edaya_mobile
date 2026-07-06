@@ -9,6 +9,7 @@ typedef SchoolClientFactory = api.SchoolClient Function();
 api.SchoolClient createEdayaSchoolClient(
   AuthClient authClient, {
   String? Function()? getAcademicYearId,
+  String? Function()? getActorKind,
 }) {
   return api.createSchoolClient(
     api.HttpTransport(
@@ -18,6 +19,7 @@ api.SchoolClient createEdayaSchoolClient(
           ? null
           : () => authClient.cookieHeader,
       getAcademicYearId: getAcademicYearId,
+      getActorKind: getActorKind,
     ),
   );
 }
@@ -27,11 +29,13 @@ api.SchoolClient createEdayaSchoolClient(
 void registerSchoolClientFactory(
   LevitScope scope, {
   required String? Function() getAcademicYearId,
+  String? Function()? getActorKind,
 }) {
   scope.put<SchoolClientFactory>(
     () => () => createEdayaSchoolClient(
       scope.find<AuthClient>(),
       getAcademicYearId: getAcademicYearId,
+      getActorKind: getActorKind,
     ),
     permanent: true,
   );

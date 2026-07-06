@@ -416,11 +416,17 @@ abstract class AppLocalizations {
   /// **'Signed in, but no linked staff profile. Run: bun run seed:auth:link'**
   String get signedInNoStaffProfile;
 
+  /// No description provided for @signedInNoTeacherProfile.
+  String get signedInNoTeacherProfile;
+
   /// No description provided for @accountNotLinkedToStaff.
   ///
   /// In en, this message translates to:
   /// **'This account is not linked to a staff profile.'**
   String get accountNotLinkedToStaff;
+
+  /// No description provided for @accountNotLinkedToTeacher.
+  String get accountNotLinkedToTeacher;
 
   /// No description provided for @navCalendar.
   ///

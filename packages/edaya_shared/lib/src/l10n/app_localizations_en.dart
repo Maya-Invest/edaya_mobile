@@ -193,8 +193,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Signed in, but no linked staff profile. Run: bun seed --scope auth:link';
 
   @override
+  String get signedInNoTeacherProfile =>
+      'Signed in, but no linked teacher profile. Run: bun seed --scope auth:link';
+
+  @override
   String get accountNotLinkedToStaff =>
       'This account is not linked to a staff profile.';
+
+  @override
+  String get accountNotLinkedToTeacher =>
+      'This account is not linked to a teacher profile.';
 
   @override
   String get navCalendar => 'Calendar';

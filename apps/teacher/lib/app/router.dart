@@ -49,7 +49,7 @@ class AppRouter extends LevitController implements EdayaAppRouter {
           builder: (context, state) => LoginPage(
             appTitle: context.tr.appTitleTeacher,
             subtitle: context.tr.loginSubtitleStaffDev,
-            defaultEmail: ApiConfig.devStaffEmail,
+            defaultEmail: ApiConfig.devTeacherEmail,
             defaultPassword: ApiConfig.devPassword,
             onSignInSuccess: () async {
               await EdayaRootScope.find<AcademicYearController>().loadYears();

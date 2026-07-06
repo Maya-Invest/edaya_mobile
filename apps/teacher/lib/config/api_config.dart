@@ -7,8 +7,8 @@ import 'package:edaya_shared/edaya_shared.dart';
 abstract final class ApiConfig {
   static String get baseUrl => ApiBaseUrlConfig.baseUrl;
 
-  static const devStaffEmail = String.fromEnvironment(
-    'DEV_STAFF_EMAIL',
+  static const devTeacherEmail = String.fromEnvironment(
+    'DEV_TEACHER_EMAIL',
     defaultValue: 'a.toure@ecole-ci.edaya.dev',
   );
 

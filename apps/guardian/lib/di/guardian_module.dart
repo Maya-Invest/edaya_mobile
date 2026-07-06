@@ -18,6 +18,7 @@ void registerGuardianDependencies(LevitScope scope) {
     scope,
     getAcademicYearId: () =>
         scope.find<AcademicYearController>().selectedYearId.value,
+    getActorKind: () => 'guardian',
   );
   scope.put<PushNotificationService>(
     () => FcmPushNotificationService(

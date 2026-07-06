@@ -19,6 +19,7 @@ void registerTeacherDependencies(LevitScope scope) {
     scope,
     getAcademicYearId: () =>
         scope.find<AcademicYearController>().selectedYearId.value,
+    getActorKind: () => 'teacher',
   );
   scope.put<PushNotificationService>(
     () => FcmPushNotificationService(
@@ -35,12 +36,12 @@ void registerTeacherDependencies(LevitScope scope) {
       pushNotifications: scope.find<PushNotificationService>(),
       routerRefresh: scope.find<EdayaRouterRefresh>(),
       validateGrants: (grants) {
-        if (grants.kind != 'staff') {
-          return systemL10n().accountNotLinkedToStaff;
+        if (grants.kind != 'teacher') {
+          return systemL10n().accountNotLinkedToTeacher;
         }
         return null;
       },
-      unauthorizedProfileMessage: () => systemL10n().signedInNoStaffProfile,
+      unauthorizedProfileMessage: () => systemL10n().signedInNoTeacherProfile,
       resolveAcademicYearId: () async {
         final academicYear = scope.find<AcademicYearController>();
         final selected = academicYear.selectedYearId.value;

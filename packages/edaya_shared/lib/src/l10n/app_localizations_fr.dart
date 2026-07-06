@@ -196,8 +196,16 @@ class AppLocalizationsFr extends AppLocalizations {
       'Connecté, mais aucun profil personnel lié. Exécutez : bun seed --scope auth:link';
 
   @override
+  String get signedInNoTeacherProfile =>
+      'Connecté, mais aucun profil enseignant lié. Exécutez : bun seed --scope auth:link';
+
+  @override
   String get accountNotLinkedToStaff =>
       'Ce compte n\'est pas lié à un profil personnel.';
+
+  @override
+  String get accountNotLinkedToTeacher =>
+      'Ce compte n\'est pas lié à un profil enseignant.';
 
   @override
   String get navCalendar => 'Calendrier';
