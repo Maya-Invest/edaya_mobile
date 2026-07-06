@@ -8,19 +8,20 @@ import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../../common/utils/academic_period.dart';
 import '../../common/utils/entity_filters.dart';
 import '../context/academic_year_controller.dart';
-import '../context/staff_context_controller.dart';
+import '../context/teacher_context_controller.dart';
+import 'evaluations_marks_logic.dart';
 import 'models/evaluation_models.dart';
 
 class EvaluationsController extends LevitController with LevitReactiveTasksMixin {
   EvaluationsController({
-    required StaffContextController staffContext,
+    required TeacherContextController teacherContext,
     required AcademicYearController academicYear,
     required SchoolClientFactory schoolClient,
-  }) : _staffContext = staffContext,
+  }) : _teacherContext = teacherContext,
        _academicYear = academicYear,
        _schoolClient = schoolClient;
 
-  final StaffContextController _staffContext;
+  final TeacherContextController _teacherContext;
   final AcademicYearController _academicYear;
   final SchoolClientFactory _schoolClient;
 
@@ -32,6 +33,8 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
   final marksErrorMessage = LxVar('');
   final marksSaveMessage = LxVar('');
   final marksEvaluationId = LxVar<String?>(null);
+
+  int _marksLoadGeneration = 0;
 
   @override
   void onInit() {
@@ -46,8 +49,8 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
     autoDispose(marksEvaluationId);
 
     for (final subscription in [
-      _staffContext.assignedClasses.stream,
-      _staffContext.classFilterId.stream,
+      _teacherContext.assignedClasses.stream,
+      _teacherContext.classFilterId.stream,
       _academicYear.selectedYearId.stream,
     ]) {
       autoDispose(subscription.listen((_) {
@@ -113,7 +116,7 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
     if (errorMessage.value.isNotEmpty && evaluations.value.isEmpty) {
       return DataStatus.error;
     }
-    if (_staffContext.assignedClasses.value.isEmpty) {
+    if (_teacherContext.assignedClasses.value.isEmpty) {
       return DataStatus.empty;
     }
     return DataStatus.ready;
@@ -127,7 +130,7 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
   }
 
   Future<void> loadEvaluations() async {
-    final classGroupIds = _staffContext.visibleClassGroupIds;
+    final classGroupIds = _teacherContext.visibleClassGroupIds;
     final periodId = selectedPeriodId.value;
     if (classGroupIds.isEmpty || periodId == null) {
       evaluations(const []);
@@ -139,10 +142,11 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
       try {
         final client = _schoolClient();
         final classLabelById = {
-          for (final assigned in _staffContext.assignedClasses.value)
+          for (final assigned in _teacherContext.assignedClasses.value)
             assigned.id: assigned.label,
         };
 
+        final taughtSubjectIds = _teacherContext.taughtClassSubjectIds.value;
         final summaries = <EvaluationSummary>[];
         for (final classGroupId in classGroupIds) {
           final assessmentRows = await client.assessments.list(
@@ -166,6 +170,13 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
                 .length;
             final classSubjectId = assessment['classSubjectId'] as String?;
             if (classSubjectId == null) {
+              continue;
+            }
+            if (taughtSubjectIds.isNotEmpty &&
+                !shouldIncludeAssessmentForTeacher(
+                  classSubjectId: classSubjectId,
+                  taughtSubjectIds: taughtSubjectIds,
+                )) {
               continue;
             }
             var subjectLabel = systemL10n().subjectFallback;
@@ -215,14 +226,18 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
   }
 
   Future<void> loadMarks(EvaluationSummary evaluation) async {
+    final generation = ++_marksLoadGeneration;
     marksEvaluationId(evaluation.id);
     marksSaveMessage('');
     marksErrorMessage('');
     await runTask(() async {
       final result = await fetchMarksRoster(evaluation);
+      if (!shouldApplyMarksLoad(generation, _marksLoadGeneration)) {
+        return;
+      }
       marksStudents(result.students);
       marksErrorMessage(result.errorMessage);
-    });
+    }, id: 'load-marks');
   }
 
   Future<({List<StudentMarkRow> students, String errorMessage})> fetchMarksRoster(
@@ -231,7 +246,10 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
     try {
       final client = _schoolClient();
       final enrollmentRows = await client.enrollments.list(
-        activeEnrollmentsForClass(evaluation.classGroupId),
+        activeEnrollmentsForClass(
+          evaluation.classGroupId,
+          academicYearId: _academicYear.selectedYearId.value,
+        ),
       );
       final studentIds = enrollmentRows
           .map((row) => row['studentId'] as String?)
@@ -300,34 +318,84 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
       return false;
     }
 
+    final taughtSubjectIds = _teacherContext.taughtClassSubjectIds.value;
+    if (!canInputGradeForSubject(
+      classSubjectId: evaluation.classSubjectId,
+      taughtSubjectIds: taughtSubjectIds,
+    )) {
+      marksSaveMessage(systemL10n().couldNotSaveMark('403'));
+      return false;
+    }
+
     marksSaveMessage('');
+    final resultId = row.resultId ?? 'ar-${evaluation.id}-${row.studentId}';
+    final previousScore = row.score;
+    final previousResultId = row.resultId;
+
+    marksStudents(
+      applyStudentMark(
+        marksStudents.value,
+        studentId: row.studentId,
+        resultId: resultId,
+        score: score,
+      ),
+    );
+
     try {
       final client = _schoolClient();
-      final resultId = row.resultId ?? 'ar-${evaluation.id}-${row.studentId}';
-      final payload = <String, dynamic>{
-        'id': resultId,
-        'studentId': row.studentId,
-        'assessmentId': evaluation.id,
-        'score': score,
-        'createdAt': DateTime.now().toUtc().toIso8601String(),
-      };
+      await client.recordAssessmentResult(
+        assessmentResultPayload(
+          assessmentId: evaluation.id,
+          studentId: row.studentId,
+          score: score,
+          resultId: resultId,
+        ),
+      );
 
-      await client.recordAssessmentResult(payload);
-
+      _marksLoadGeneration++;
       final roster = await fetchMarksRoster(evaluation);
       marksStudents(roster.students);
       marksErrorMessage(roster.errorMessage);
-      await loadEvaluations();
+      _patchEvaluationSummary(evaluation.id, roster.students);
       return true;
     } on api.ApiError catch (error) {
+      marksStudents(
+        applyStudentMark(
+          marksStudents.value,
+          studentId: row.studentId,
+          resultId: previousResultId,
+          score: previousScore,
+        ),
+      );
       marksSaveMessage(
         systemL10n().couldNotSaveMark(_formatApiError(error)),
       );
       return false;
     } on Object catch (error) {
+      marksStudents(
+        applyStudentMark(
+          marksStudents.value,
+          studentId: row.studentId,
+          resultId: previousResultId,
+          score: previousScore,
+        ),
+      );
       marksSaveMessage(systemL10n().couldNotSaveMark('$error'));
       return false;
     }
+  }
+
+  void _patchEvaluationSummary(
+    String evaluationId,
+    List<StudentMarkRow> students,
+  ) {
+    evaluations(
+      patchEvaluationGradedCount(
+        summaries: evaluations.value,
+        evaluationId: evaluationId,
+        students: students,
+      ),
+    );
   }
 }
 
@@ -346,16 +414,16 @@ class ClassSubjectOption {
 class EvaluationCreateController extends LevitController
     with LevitReactiveTasksMixin {
   EvaluationCreateController({
-    required StaffContextController staffContext,
+    required TeacherContextController teacherContext,
     required AcademicYearController academicYear,
     required EvaluationsController evaluations,
     required SchoolClientFactory schoolClient,
-  }) : _staffContext = staffContext,
+  }) : _teacherContext = teacherContext,
        _academicYear = academicYear,
        _evaluations = evaluations,
        _schoolClient = schoolClient;
 
-  final StaffContextController _staffContext;
+  final TeacherContextController _teacherContext;
   final AcademicYearController _academicYear;
   final EvaluationsController _evaluations;
   final SchoolClientFactory _schoolClient;
@@ -374,10 +442,10 @@ class EvaluationCreateController extends LevitController
     unawaited(loadPeriods());
   }
 
-  List<AssignedClass> get assignedClasses => _staffContext.assignedClasses.value;
+  List<AssignedClass> get assignedClasses => _teacherContext.assignedClasses.value;
 
   Future<void> loadClassSubjects() async {
-    final taughtIds = _staffContext.taughtClassSubjectIds.value;
+    final taughtIds = _teacherContext.taughtClassSubjectIds.value;
     if (taughtIds.isEmpty) {
       classSubjects(const []);
       return;
@@ -387,7 +455,7 @@ class EvaluationCreateController extends LevitController
       try {
         final client = _schoolClient();
         final classLabelById = {
-          for (final assigned in _staffContext.assignedClasses.value)
+          for (final assigned in _teacherContext.assignedClasses.value)
             assigned.id: assigned.label,
         };
         final rows = await client.classSubjects.list(
@@ -477,27 +545,17 @@ class EvaluationCreateController extends LevitController
     try {
       final client = _schoolClient();
       final id = 'asm-${DateTime.now().millisecondsSinceEpoch}';
-      final now = DateTime.now().toUtc();
-      final today = now.toIso8601String().substring(0, 10);
-      final payload = <String, dynamic>{
-        'id': id,
-        'classGroupId': classGroupId,
-        'classSubjectId': classSubjectId,
-        'periodId': periodId,
-        'title': trimmedTitle,
-        'kind': kind,
-        'maxScore': maxScore,
-        'coefficient': 1,
-        'createdAt': now.toIso8601String(),
-      };
-      if (kind == 'homework') {
-        payload['dueAt'] = today;
-      } else {
-        final startsAt = DateTime.utc(now.year, now.month, now.day, 9);
-        payload['startsAt'] = startsAt.toIso8601String();
-        payload['endsAt'] = startsAt.add(const Duration(hours: 1)).toIso8601String();
-      }
-      await client.createAssessment(payload);
+      await client.createAssessment(
+        createAssessmentPayload(
+          id: id,
+          classGroupId: classGroupId,
+          classSubjectId: classSubjectId,
+          periodId: periodId,
+          title: trimmedTitle,
+          maxScore: maxScore,
+          kind: kind,
+        ),
+      );
       await _evaluations.loadEvaluations();
       _evaluations.selectPeriod(periodId);
       return null;

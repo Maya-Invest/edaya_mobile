@@ -752,6 +752,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Logbook is not available for this session.';
 
   @override
+  String get attendanceRecordingLessonOnly =>
+      'Attendance can only be recorded for lesson sessions.';
+
+  @override
   String get noCurriculumChaptersLinked =>
       'No curriculum chapters linked to this subject.';
 

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -9,8 +7,34 @@ import '../calendar/models/teacher_session.dart';
 import 'models/session_detail_models.dart';
 import 'session_detail_controller.dart';
 
-class AttendanceFlowPage extends LScopedView<SessionDetailController> {
-  const AttendanceFlowPage({super.key, required this.session});
+class AttendanceFlowPage extends StatelessWidget {
+  const AttendanceFlowPage({
+    super.key,
+    required this.session,
+    this.controller,
+  });
+
+  final TeacherSession session;
+  final SessionDetailController? controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final sharedController = controller;
+    if (sharedController != null) {
+      return LView<SessionDetailController>(
+        resolver: (_) => sharedController,
+        builder: (context, resolved) => _AttendanceFlowScaffold(
+          controller: resolved,
+        ),
+      );
+    }
+
+    return _AttendanceFlowScopedPage(session: session);
+  }
+}
+
+class _AttendanceFlowScopedPage extends LScopedView<SessionDetailController> {
+  const _AttendanceFlowScopedPage({required this.session});
 
   final TeacherSession session;
 
@@ -26,9 +50,20 @@ class AttendanceFlowPage extends LScopedView<SessionDetailController> {
 
   @override
   Widget buildView(BuildContext context, SessionDetailController controller) {
+    return _AttendanceFlowScaffold(controller: controller);
+  }
+}
+
+class _AttendanceFlowScaffold extends StatelessWidget {
+  const _AttendanceFlowScaffold({required this.controller});
+
+  final SessionDetailController controller;
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.tr.attendanceFlowTitle(session.classLabel)),
+        title: Text(context.tr.attendanceFlowTitle(controller.session.classLabel)),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => context.pop(),
@@ -36,6 +71,18 @@ class AttendanceFlowPage extends LScopedView<SessionDetailController> {
       ),
       body: LWatch(
         () {
+          if (!controller.supportsAttendanceRecording) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  context.tr.attendanceRecordingLessonOnly,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          }
+
           if (controller.isBusy.value && controller.students.value.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -226,13 +273,31 @@ class _AttendanceFlowBodyState extends State<_AttendanceFlowBody> {
     SessionStudentRow row,
     SessionAttendanceStatus status,
   ) async {
+    final previousStatus = _marks[row.studentId] ?? row.status;
     setState(() {
       _marks[row.studentId] = status;
     });
 
-    unawaited(widget.controller.recordAttendance(row, status));
-
+    final saved = await widget.controller.recordAttendance(row, status);
     if (!mounted) {
+      return;
+    }
+
+    if (!saved) {
+      setState(() {
+        if (previousStatus == null) {
+          _marks.remove(row.studentId);
+        } else {
+          _marks[row.studentId] = previousStatus;
+        }
+        _showSummary = false;
+      });
+      final message = widget.controller.saveMessage.value;
+      if (message.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      }
       return;
     }
 

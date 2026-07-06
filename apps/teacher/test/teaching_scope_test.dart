@@ -1,34 +1,50 @@
+import 'package:edaya_api_client/edaya_api_client.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:edaya_teacher/common/utils/entity_query.dart';
 
 void main() {
-  test('teachingScopeFromStaffAssignments collects class, subject, and session targets', () {
-    final scope = teachingScopeFromStaffAssignments([
+  test('teachingScopeFromTeacherAssignments collects homeroom and subject targets', () {
+    final scope = teachingScopeFromTeacherAssignments([
       {
-        'id': 'sa-class',
-        'staffId': 'st1',
+        'id': 'ta-homeroom',
+        'teacherId': 't1',
         'academicYearId': '2025',
+        'kind': 'homeroom',
         'classGroupId': 'cg-6a',
-        'responsibility': 'Mathematics',
+        'status': 'active',
       },
       {
-        'id': 'sa-subject',
-        'staffId': 'st1',
+        'id': 'ta-subject',
+        'teacherId': 't1',
         'academicYearId': '2025',
+        'kind': 'subject',
         'classSubjectId': 'cs-maths-6a',
-        'responsibility': 'Mathematics',
+        'status': 'active',
       },
       {
-        'id': 'sa-session',
-        'staffId': 'st1',
+        'id': 'ta-ended',
+        'teacherId': 't1',
         'academicYearId': '2025',
-        'lessonSessionId': 'sess-extra',
-        'responsibility': 'Mathematics',
+        'kind': 'subject',
+        'classSubjectId': 'cs-history-6a',
+        'status': 'ended',
       },
     ]);
 
     expect(scope.classGroupIds, {'cg-6a'});
     expect(scope.classSubjectIds, {'cs-maths-6a'});
-    expect(scope.sessionIds, {'sess-extra'});
+    expect(scope.sessionIds, isEmpty);
+  });
+
+  test('teachingScopeFromTeacherPortalScope reads grants scope payload', () {
+    final scope = teachingScopeFromTeacherPortalScope(
+      const TeacherPortalScope(
+        classSubjectIds: ['cs-maths-6a'],
+        homeroomClassGroupIds: ['cg-6a'],
+      ),
+    );
+
+    expect(scope.classGroupIds, {'cg-6a'});
+    expect(scope.classSubjectIds, {'cs-maths-6a'});
   });
 }

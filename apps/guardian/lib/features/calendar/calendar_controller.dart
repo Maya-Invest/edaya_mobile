@@ -431,12 +431,7 @@ Future<String> _resolveOccurrenceTitle(
           rethrow;
         }
       }
-      try {
-        final session = await client.getEntityByPublicName('sessions', occurrenceId);
-        return session['title'] as String? ?? occurrenceId;
-      } on Object {
-        return occurrenceId;
-      }
+      return occurrenceId;
     case 'assessment':
       final assessment = await client.assessments.get(occurrenceId);
       return assessment['title'] as String? ?? occurrenceId;
@@ -451,12 +446,7 @@ Future<String> _resolveOccurrenceTitle(
           rethrow;
         }
       }
-      try {
-        final session = await client.getEntityByPublicName('sessions', occurrenceId);
-        return session['title'] as String? ?? occurrenceId;
-      } on Object {
-        return occurrenceId;
-      }
+      return occurrenceId;
   }
 }
 

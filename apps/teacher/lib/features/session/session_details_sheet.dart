@@ -6,6 +6,7 @@ import 'package:edaya_shared/edaya_shared.dart';
 import '../calendar/models/teacher_session.dart';
 import 'models/session_detail_models.dart';
 import 'session_detail_controller.dart';
+import 'session_route_args.dart';
 import 'widgets/attendance_row_tile.dart';
 
 class SessionDetailsSheet extends LScopedView<SessionDetailController> {
@@ -145,6 +146,11 @@ class _SegmentBody extends StatelessWidget {
 
     switch (controller.segment.value) {
       case SessionDetailSegment.attendance:
+        if (!controller.supportsAttendanceRecording) {
+          return Center(
+            child: Text(context.tr.attendanceRecordingLessonOnly),
+          );
+        }
         return Column(
           children: [
             Align(
@@ -152,7 +158,10 @@ class _SegmentBody extends StatelessWidget {
               child: FilledButton.icon(
                 onPressed: () => context.push(
                   '/calendar/attendance-flow',
-                  extra: session,
+                  extra: AttendanceFlowArgs(
+                    session: session,
+                    controller: controller,
+                  ),
                 ),
                 icon: const Icon(Icons.swipe),
                 label: Text(context.tr.takeAttendance),

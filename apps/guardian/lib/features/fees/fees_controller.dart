@@ -4,7 +4,6 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
-import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../../common/utils/entity_filters.dart';
 import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
@@ -53,9 +52,7 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
     if (isBusy.value && feeLines.value.isEmpty && payments.value.isEmpty) {
       return DataStatus.loading;
     }
-    if (errorMessage.value.isNotEmpty &&
-        feeLines.value.isEmpty &&
-        payments.value.isEmpty) {
+    if (errorMessage.value.isNotEmpty && feeLines.value.isEmpty && payments.value.isEmpty) {
       return DataStatus.error;
     }
     if (_studentContext.activeStudent.value == null) {
@@ -91,29 +88,19 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
     await runTask(() async {
       try {
         final client = _schoolClient();
-        final studentFeeRows = await client.studentFees.list(
-          studentFeesForStudent(studentId),
-        );
+        final studentFeeRows = await client.studentFees.list(studentFeesForStudent(studentId));
         final yearFees = studentFeeRows
             .where((row) => row['academicYearId'] == yearId)
             .where((row) => row['status'] != 'cancelled')
             .toList();
 
-        final feeIds = yearFees
-            .map((row) => row['feeId'] as String?)
-            .whereType<String>()
-            .toSet()
-            .toList();
+        final feeIds = yearFees.map((row) => row['feeId'] as String?).whereType<String>().toSet().toList();
         final feeNameById = await _loadFeeNames(client, feeIds);
 
-        final studentFeeIds = yearFees
-            .map((row) => row['id'] as String)
-            .toList();
+        final studentFeeIds = yearFees.map((row) => row['id'] as String).toList();
         final paymentRows = studentFeeIds.isEmpty
             ? <Map<String, dynamic>>[]
-            : await client.payments.list(
-                paymentsForStudentFees(studentFeeIds),
-              );
+            : await client.payments.list(paymentsForStudentFees(studentFeeIds));
 
         final paymentsByFeeId = <String, List<Map<String, dynamic>>>{};
         for (final payment in paymentRows) {
@@ -121,13 +108,11 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
             continue;
           }
           final studentFeeId = payment['studentFeeId'] as String;
-          paymentsByFeeId
-              .putIfAbsent(studentFeeId, () => [])
-              .add(payment);
+          paymentsByFeeId.putIfAbsent(studentFeeId, () => []).add(payment);
         }
 
-        final lines = yearFees
-            .map((row) {
+        final lines =
+            yearFees.map((row) {
               final id = row['id'] as String;
               final feeId = row['feeId'] as String;
               return StudentFeeLine.fromJson(
@@ -135,52 +120,37 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
                 label: feeNameById[feeId] ?? systemL10n().schoolFee,
                 paymentCount: paymentsByFeeId[id]?.length ?? 0,
               );
-            })
-            .toList()
-          ..sort((a, b) {
-            final aDate = a.dueDate;
-            final bDate = b.dueDate;
-            if (aDate == null && bDate == null) {
-              return a.label.compareTo(b.label);
-            }
-            if (aDate == null) {
-              return 1;
-            }
-            if (bDate == null) {
-              return -1;
-            }
-            return aDate.compareTo(bDate);
-          });
+            }).toList()..sort((a, b) {
+              final aDate = a.dueDate;
+              final bDate = b.dueDate;
+              if (aDate == null && bDate == null) {
+                return a.label.compareTo(b.label);
+              }
+              if (aDate == null) {
+                return 1;
+              }
+              if (bDate == null) {
+                return -1;
+              }
+              return aDate.compareTo(bDate);
+            });
 
         final feeLabelById = {for (final line in lines) line.id: line.label};
-        final parsedPayments = paymentRows
-            .where((row) => row['status'] == 'recorded')
-            .map(
-              (row) => PaymentRecord.fromJson(
-                row,
-                feeLabel: feeLabelById[row['studentFeeId'] as String] ??
-                    systemL10n().schoolFee,
-              ),
-            )
-            .toList()
-          ..sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
+        final parsedPayments =
+            paymentRows
+                .where((row) => row['status'] == 'recorded')
+                .map((row) => PaymentRecord.fromJson(row, feeLabel: feeLabelById[row['studentFeeId'] as String] ?? systemL10n().schoolFee))
+                .toList()
+              ..sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
 
         final currency = lines.isNotEmpty
             ? lines.first.currency
             : parsedPayments.isNotEmpty
             ? parsedPayments.first.currency
             : 'EUR';
-        final totalExpected = lines.fold<double>(
-          0,
-          (sum, line) => sum + line.expectedAmount,
-        );
-        final totalPaid = lines.fold<double>(
-          0,
-          (sum, line) => sum + line.paidAmount,
-        );
-        final overdueCount = lines
-            .where((line) => line.status == StudentFeeStatus.overdue)
-            .length;
+        final totalExpected = lines.fold<double>(0, (sum, line) => sum + line.expectedAmount);
+        final totalPaid = lines.fold<double>(0, (sum, line) => sum + line.paidAmount);
+        final overdueCount = lines.where((line) => line.status == StudentFeeStatus.overdue).length;
 
         feeLines(lines);
         payments(parsedPayments);
@@ -207,10 +177,7 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
     });
   }
 
-  Future<Map<String, String>> _loadFeeNames(
-    api.SchoolClient client,
-    List<String> feeIds,
-  ) async {
+  Future<Map<String, String>> _loadFeeNames(api.SchoolClient client, List<String> feeIds) async {
     final names = <String, String>{};
     for (final feeId in feeIds) {
       try {

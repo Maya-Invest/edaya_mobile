@@ -763,6 +763,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Le cahier de textes n\'est pas disponible pour cette séance.';
 
   @override
+  String get attendanceRecordingLessonOnly =>
+      'La présence ne peut être enregistrée que pour les cours.';
+
+  @override
   String get noCurriculumChaptersLinked =>
       'Aucun chapitre de programme lié à cette matière.';
 

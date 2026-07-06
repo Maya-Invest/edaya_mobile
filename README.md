@@ -13,6 +13,8 @@ edaya_mobile/
 │   ├── edaya_api_client/      domain-shaped Core API client
 │   ├── edaya_auth/            Better Auth HTTP client
 │   └── edaya_shared/          shared config, UI, auth scaffolding, and utilities
+├── tooling/
+│   └── integration_tests/     live API integration tests (teacher portal, shared harness)
 ├── scripts/                   OpenAPI binding generation helpers
 └── pubspec.yaml               workspace root (Melos config lives here)
 ```
@@ -192,6 +194,7 @@ cd apps/teacher && flutter run
 | `melos run generated:update` | Regenerate bindings (`EDAYA_OPENAPI_URL` or `EDAYA_OPENAPI_SPEC`) |
 | `melos run generated:check` | Verify generated Dart matches `spec/client-bindings.json` |
 | `melos run verify` | `generated:check` + analyze + test |
+| `melos run test:integration` | Live API integration tests (`EDAYA_INTEGRATION_TESTS=1`) |
 | `melos run clean:flutter` | Run `flutter clean` in all apps |
 | `melos run android:keystore:create` | Create upload keystore for Play Store signing |
 | `melos run build:play:aab` | Build release AABs for guardian + teacher |
@@ -203,3 +206,36 @@ Run package tests only:
 melos exec --scope=edaya_api_client -- flutter test
 melos exec --scope=edaya_auth -- flutter test
 ```
+
+### Live API integration tests
+
+Shared integration tests live in `tooling/integration_tests`. They use `edaya_auth` + `edaya_api_client` against a running API (local seed or staging).
+
+```bash
+# With local API on :9999 and demo teacher seeded
+melos run test:integration
+
+# Or via the legacy shell entrypoint
+./scripts/teacher-mobile-smoke.sh
+```
+
+Environment variables:
+
+| Variable | Fallback | Default |
+|----------|----------|---------|
+| `EDAYA_API_URL` | `BASE_URL` | `http://localhost:9999` |
+| `EDAYA_TEACHER_EMAIL` | `TEACHER_EMAIL` | `a.toure@ecole-ci.edaya.dev` |
+| `EDAYA_TEACHER_PASSWORD` | `TEACHER_PASSWORD` | `DevPassword1!` |
+| `EDAYA_ACADEMIC_YEAR_ID` | `ACADEMIC_YEAR_ID` | `2025-ci` |
+| `EDAYA_CLASS_GROUP_ID` | `CLASS_GROUP_ID` | `ci-6a` |
+
+Set `EDAYA_INTEGRATION_TESTS=1` (done automatically by `melos run test:integration`). Unit test runs skip tagged integration tests.
+
+Integration tests run against two demo-ci teacher profiles automatically:
+
+| Profile | Email | Primary class |
+|---------|-------|---------------|
+| Subject teacher (ci-t1) | `a.toure@ecole-ci.edaya.dev` | `ci-6a` |
+| Homeroom teacher (ci-t2) | `k.diomande@ecole-ci.edaya.dev` | `ci-6b` |
+
+Covered API chains mirror the teacher app: bootstrap/context, calendar/timetable enrichment, evaluations, session detail (enrollments, students, attendance, logbook reads), and `recordAttendance` write-back. `EDAYA_TEACHER_EMAIL` only overrides the subject-teacher defaults when running a single profile manually.

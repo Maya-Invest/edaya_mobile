@@ -52,6 +52,16 @@ Future<AccountContactProfile> loadAccountContactProfile(
         email: staff['email'] as String?,
         photoUrl: staff['photoUrl'] as String?,
       );
+    case 'teacher':
+      final teacher = await client.teachers.get(actorId);
+      return AccountContactProfile(
+        id: actorId,
+        firstName: teacher['firstName'] as String? ?? '',
+        lastName: teacher['lastName'] as String? ?? '',
+        email: teacher['email'] as String?,
+        phone: teacher['phone'] as String?,
+        photoUrl: teacher['photoUrl'] as String?,
+      );
     default:
       throw UnsupportedError('Unsupported profile kind: $kind');
   }
@@ -87,6 +97,14 @@ Future<void> saveAccountContactProfile(
         'firstName': firstName,
         'lastName': lastName,
         'email': email.isEmpty ? null : email,
+      });
+    case 'teacher':
+      await client.teachers.save({
+        'id': profile.id,
+        'firstName': firstName,
+        'lastName': lastName,
+        if (email.isNotEmpty) 'email': email,
+        if (phone.isNotEmpty) 'phone': phone,
       });
     default:
       throw UnsupportedError('Unsupported profile kind: $kind');

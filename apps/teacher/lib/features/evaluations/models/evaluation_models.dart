@@ -48,14 +48,20 @@ class StudentMarkRow {
   final double? score;
   final bool marksLocked;
 
-  StudentMarkRow copyWith({String? resultId, double? score, bool? marksLocked}) {
+  static const Object _unset = Object();
+
+  StudentMarkRow copyWith({
+    Object? resultId = _unset,
+    Object? score = _unset,
+    bool? marksLocked,
+  }) {
     return StudentMarkRow(
       studentId: studentId,
       studentName: studentName,
       studentInitials: studentInitials,
       photoUrl: photoUrl,
-      resultId: resultId ?? this.resultId,
-      score: score ?? this.score,
+      resultId: identical(resultId, _unset) ? this.resultId : resultId as String?,
+      score: identical(score, _unset) ? this.score : score as double?,
       marksLocked: marksLocked ?? this.marksLocked,
     );
   }

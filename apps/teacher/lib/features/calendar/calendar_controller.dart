@@ -6,19 +6,19 @@ import 'package:levit_flutter/levit_flutter.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../context/academic_year_controller.dart';
-import '../context/staff_context_controller.dart';
+import '../context/teacher_context_controller.dart';
 import 'models/teacher_session.dart';
 
 class CalendarController extends LevitController with LevitReactiveTasksMixin {
   CalendarController({
-    required StaffContextController staffContext,
+    required TeacherContextController teacherContext,
     required AcademicYearController academicYear,
     required SchoolClientFactory schoolClient,
-  }) : _staffContext = staffContext,
+  }) : _teacherContext = teacherContext,
        _academicYear = academicYear,
        _schoolClient = schoolClient;
 
-  final StaffContextController _staffContext;
+  final TeacherContextController _teacherContext;
   final AcademicYearController _academicYear;
   final SchoolClientFactory _schoolClient;
 
@@ -36,11 +36,11 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
     autoDispose(errorMessage);
 
     for (final subscription in [
-      _staffContext.assignedClasses.stream,
-      _staffContext.classFilterId.stream,
-      _staffContext.taughtClassSubjectIds.stream,
-      _staffContext.assignedClassGroupIds.stream,
-      _staffContext.isLoading.stream,
+      _teacherContext.assignedClasses.stream,
+      _teacherContext.classFilterId.stream,
+      _teacherContext.taughtClassSubjectIds.stream,
+      _teacherContext.assignedClassGroupIds.stream,
+      _teacherContext.isLoading.stream,
       _academicYear.selectedYearId.stream,
       weekStart.stream,
     ]) {
@@ -51,7 +51,7 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
   }
 
   DataStatus get dataStatus {
-    if (_staffContext.isLoading.value && sessions.value.isEmpty) {
+    if (_teacherContext.isLoading.value && sessions.value.isEmpty) {
       return DataStatus.loading;
     }
     if (isBusy.value && sessions.value.isEmpty) {
@@ -60,24 +60,24 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
     if (errorMessage.value.isNotEmpty && sessions.value.isEmpty) {
       return DataStatus.error;
     }
-    if (_staffContext.errorMessage.value.isNotEmpty &&
+    if (_teacherContext.errorMessage.value.isNotEmpty &&
         sessions.value.isEmpty) {
       return DataStatus.error;
     }
-    if (_staffContext.staffId.value == null) {
+    if (_teacherContext.teacherId.value == null) {
       return DataStatus.empty;
     }
-    if (_staffContext.assignedClasses.value.isEmpty) {
+    if (_teacherContext.assignedClasses.value.isEmpty) {
       return DataStatus.empty;
     }
     return DataStatus.ready;
   }
 
   String get emptyMessage {
-    if (_staffContext.staffId.value == null) {
+    if (_teacherContext.teacherId.value == null) {
       return systemL10n().signInToViewCalendar;
     }
-    if (_staffContext.assignedClasses.value.isEmpty) {
+    if (_teacherContext.assignedClasses.value.isEmpty) {
       return systemL10n().noClassesAssignedForYear;
     }
     return systemL10n().noClassesScheduledForDay;
@@ -95,7 +95,7 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
     if (errorMessage.value.isNotEmpty) {
       return errorMessage.value;
     }
-    return _staffContext.errorMessage.value;
+    return _teacherContext.errorMessage.value;
   }
 
   List<DateTime> get weekDays {
@@ -120,11 +120,11 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
   }
 
   Future<void> loadCalendarData() async {
-    if (_staffContext.isLoading.value || _staffContext.staffId.value == null) {
+    if (_teacherContext.isLoading.value || _teacherContext.teacherId.value == null) {
       return;
     }
 
-    final classGroupIds = _staffContext.visibleClassGroupIds;
+    final classGroupIds = _teacherContext.visibleClassGroupIds;
     if (classGroupIds.isEmpty) {
       sessions(const []);
       errorMessage('');
@@ -136,7 +136,7 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
       try {
         final client = _schoolClient();
         final classLabelById = {
-          for (final assigned in _staffContext.assignedClasses.value)
+          for (final assigned in _teacherContext.assignedClasses.value)
             assigned.id: assigned.label,
         };
         final range = planningDateRangeForWeek(weekStart.value);
@@ -150,7 +150,7 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
             unassignedTeacherLabel: systemL10n().teacherFallbackName,
           );
           for (final occurrence in occurrences) {
-            if (!_staffContext.canTeachSession(
+            if (!_teacherContext.canTeachSession(
               sessionId: occurrence.id,
               classGroupId: classGroupId,
               classSubjectId: occurrence.classSubjectId,

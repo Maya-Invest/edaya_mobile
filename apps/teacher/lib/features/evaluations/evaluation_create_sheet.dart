@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../context/academic_year_controller.dart';
-import '../context/staff_context_controller.dart';
+import '../context/teacher_context_controller.dart';
 import 'evaluations_controller.dart';
 import 'widgets/academic_period_picker.dart';
 
@@ -15,7 +15,7 @@ class EvaluationCreateSheet extends LScopedView<EvaluationCreateController> {
   EvaluationCreateController onConfigScope(LevitScope scope) {
     return scope.put(
       () => EvaluationCreateController(
-        staffContext: scope.find<StaffContextController>(),
+        teacherContext: scope.find<TeacherContextController>(),
         academicYear: scope.find<AcademicYearController>(),
         evaluations: scope.find<EvaluationsController>(),
         schoolClient: scope.find<SchoolClientFactory>(),

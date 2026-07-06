@@ -203,6 +203,7 @@
   "attendanceProgress": "Présence {recorded} / {total}",
   "takeAttendance": "Faire l'appel",
   "logbookNotAvailableForSession": "Le cahier de textes n'est pas disponible pour cette séance.",
+  "attendanceRecordingLessonOnly": "La présence ne peut être enregistrée que pour les cours.",
   "noCurriculumChaptersLinked": "Aucun chapitre de programme lié à cette matière.",
   "chapterLabel": "Chapitre",
   "contentLabel": "Contenu",

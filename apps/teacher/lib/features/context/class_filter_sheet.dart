@@ -6,15 +6,15 @@ import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'academic_year_controller.dart';
-import 'staff_context_controller.dart';
+import 'teacher_context_controller.dart';
 
 class ClassFilterSheet extends StatelessWidget {
   const ClassFilterSheet({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return LView<StaffContextController>(
-      builder: (context, staffContext) {
+    return LView<TeacherContextController>(
+      builder: (context, teacherContext) {
         return LView<AcademicYearController>(
           builder: (context, academicYear) {
             if (academicYear.years.value.isEmpty && !academicYear.isBusy.value) {
@@ -22,7 +22,7 @@ class ClassFilterSheet extends StatelessWidget {
             }
 
             return _ClassFilterBody(
-              staffContext: staffContext,
+              teacherContext: teacherContext,
               academicYear: academicYear,
             );
           },
@@ -34,11 +34,11 @@ class ClassFilterSheet extends StatelessWidget {
 
 class _ClassFilterBody extends StatelessWidget {
   const _ClassFilterBody({
-    required this.staffContext,
+    required this.teacherContext,
     required this.academicYear,
   });
 
-  final StaffContextController staffContext;
+  final TeacherContextController teacherContext;
   final AcademicYearController academicYear;
 
   @override
@@ -71,7 +71,7 @@ class _ClassFilterBody extends StatelessWidget {
                     const SizedBox(height: 4),
                     _SchoolYearSection(
                       academicYear: academicYear,
-                      staffContext: staffContext,
+                      teacherContext: teacherContext,
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -81,8 +81,8 @@ class _ClassFilterBody extends StatelessWidget {
                     const SizedBox(height: 4),
                     LWatch(
                       () {
-                        final classes = staffContext.assignedClasses.value;
-                        final selected = staffContext.classFilterId.value;
+                        final classes = teacherContext.assignedClasses.value;
+                        final selected = teacherContext.classFilterId.value;
 
                         return Column(
                           children: [
@@ -93,7 +93,7 @@ class _ClassFilterBody extends StatelessWidget {
                                   ? const Icon(Icons.check)
                                   : null,
                               onTap: () async {
-                                await staffContext.selectClassFilter(null);
+                                await teacherContext.selectClassFilter(null);
                                 if (context.mounted) {
                                   context.pop();
                                 }
@@ -107,7 +107,7 @@ class _ClassFilterBody extends StatelessWidget {
                                     ? const Icon(Icons.check)
                                     : null,
                                 onTap: () async {
-                                  await staffContext.selectClassFilter(
+                                  await teacherContext.selectClassFilter(
                                     assigned.id,
                                   );
                                   if (context.mounted) {
@@ -129,11 +129,11 @@ class _ClassFilterBody extends StatelessWidget {
 class _SchoolYearSection extends StatelessWidget {
   const _SchoolYearSection({
     required this.academicYear,
-    required this.staffContext,
+    required this.teacherContext,
   });
 
   final AcademicYearController academicYear;
-  final StaffContextController staffContext;
+  final TeacherContextController teacherContext;
 
   @override
   Widget build(BuildContext context) {
@@ -189,7 +189,7 @@ class _SchoolYearSection extends StatelessWidget {
                     trailing: isSelected ? const Icon(Icons.check) : null,
                     onTap: () async {
                       await academicYear.selectYear(yearId);
-                      await staffContext.reloadContext();
+                      await teacherContext.reloadContext();
                     },
                   );
                 },

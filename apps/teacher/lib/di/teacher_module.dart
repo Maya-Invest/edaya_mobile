@@ -5,7 +5,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../app/router.dart';
 import '../features/auth/session_storage.dart';
 import '../features/context/academic_year_controller.dart';
-import '../features/context/staff_context_controller.dart';
+import '../features/context/teacher_context_controller.dart';
 import '../features/evaluations/evaluations_controller.dart';
 import '../navigation/notification_navigation.dart';
 
@@ -61,8 +61,8 @@ void registerTeacherDependencies(LevitScope scope) {
     ),
     permanent: true,
   );
-  scope.put<StaffContextController>(
-    () => StaffContextController(
+  scope.put<TeacherContextController>(
+    () => TeacherContextController(
       sessionStorage: scope.find<SessionStorage>(),
       session: scope.find<AppSessionController>(),
       academicYear: scope.find<AcademicYearController>(),
@@ -72,7 +72,7 @@ void registerTeacherDependencies(LevitScope scope) {
   );
   scope.put<EvaluationsController>(
     () => EvaluationsController(
-      staffContext: scope.find<StaffContextController>(),
+      teacherContext: scope.find<TeacherContextController>(),
       academicYear: scope.find<AcademicYearController>(),
       schoolClient: scope.find<SchoolClientFactory>(),
     ),
@@ -95,7 +95,7 @@ void registerTeacherDependencies(LevitScope scope) {
       initializeAuthenticatedContext: () async {
         await scope.find<AcademicYearController>().loadYears();
         await scope.find<AppSessionController>().refreshGrants();
-        await scope.find<StaffContextController>().initializeFromSession();
+        await scope.find<TeacherContextController>().initializeFromSession();
       },
     ),
     permanent: true,

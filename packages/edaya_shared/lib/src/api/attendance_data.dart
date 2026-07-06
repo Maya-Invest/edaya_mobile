@@ -41,9 +41,6 @@ Map<String, dynamic> attendanceAnchorPayload({
   return switch (kind) {
     'activity' => {'activitySessionId': occurrenceId},
     'assessment' => {'assessmentId': occurrenceId},
-    _ => {
-      'lessonSessionId': occurrenceId,
-      'sessionId': occurrenceId,
-    },
+    _ => {'lessonSessionId': occurrenceId},
   };
 }

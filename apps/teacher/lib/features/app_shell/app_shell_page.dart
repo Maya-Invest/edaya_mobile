@@ -6,7 +6,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../../app/router.dart';
 import '../calendar/calendar_controller.dart';
 import '../context/academic_year_controller.dart';
-import '../context/staff_context_controller.dart';
+import '../context/teacher_context_controller.dart';
 import 'app_shell_controller.dart';
 import 'widgets/teacher_app_bar.dart';
 
@@ -19,7 +19,7 @@ class AppShellPage extends LScopedView<AppShellController> {
   AppShellController onConfigScope(LevitScope scope) {
     scope.put(
       () => CalendarController(
-        staffContext: scope.find<StaffContextController>(),
+        teacherContext: scope.find<TeacherContextController>(),
         academicYear: scope.find<AcademicYearController>(),
         schoolClient: scope.find<SchoolClientFactory>(),
       ),

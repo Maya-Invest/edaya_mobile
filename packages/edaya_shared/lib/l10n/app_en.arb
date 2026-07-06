@@ -412,6 +412,7 @@
   },
   "takeAttendance": "Take attendance",
   "logbookNotAvailableForSession": "Logbook is not available for this session.",
+  "attendanceRecordingLessonOnly": "Attendance can only be recorded for lesson sessions.",
   "noCurriculumChaptersLinked": "No curriculum chapters linked to this subject.",
   "chapterLabel": "Chapter",
   "contentLabel": "Content",

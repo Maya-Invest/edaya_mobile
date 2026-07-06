@@ -190,11 +190,16 @@ class AuthClient {
 
       final message = body['message'];
       if (message is String) {
-        return AuthError(message: message, code: body['code'] as String?);
+        return AuthError(
+          message: normalizeAuthErrorMessage(message),
+          code: body['code'] as String?,
+        );
       }
     }
 
-    return AuthError(message: body?.toString() ?? 'Authentication failed');
+    return AuthError(
+      message: normalizeAuthErrorMessage(body?.toString() ?? 'Authentication failed'),
+    );
   }
 
   AuthError _networkError(http.ClientException error) {

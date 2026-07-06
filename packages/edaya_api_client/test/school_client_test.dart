@@ -121,4 +121,34 @@ void main() {
     expect(grants.actorId, 'actor-1');
     expect(grants.effectiveGrants.scopeIdsByPermission['QUERY_STUDENT_DETAIL_READ'], 'student-1');
   });
+
+  test('parses portal actor capabilities and scope', () async {
+    final transport = RecordingTransport([
+      {
+        'kind': 'teacher',
+        'actorId': 'teacher-1',
+        'schoolId': 'school-1',
+        'assuranceLevel': 'standard',
+        'effectiveGrants': {
+          'permissions': [],
+          'scopeGrants': [],
+          'scopeIdsByPermission': {},
+          'isElevated': false,
+        },
+        'capabilities': ['RecordSessionAttendance'],
+        'scope': {
+          'teaching': {'classSubjectIds': ['cs-1']},
+          'homeroom': {'classGroupIds': ['cg-1']},
+        },
+      },
+    ]);
+    final client = createSchoolClient(transport);
+
+    final grants = await client.effectiveGrants();
+
+    expect(grants.kind, 'teacher');
+    expect(grants.capabilities, ['RecordSessionAttendance']);
+    expect(grants.teacherScope?.classSubjectIds, ['cs-1']);
+    expect(grants.teacherScope?.homeroomClassGroupIds, ['cg-1']);
+  });
 }

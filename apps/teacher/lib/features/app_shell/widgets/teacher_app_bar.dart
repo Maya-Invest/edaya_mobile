@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../calendar/calendar_controller.dart';
-import '../../context/staff_context_controller.dart';
+import '../../context/teacher_context_controller.dart';
 import '../../evaluations/evaluations_controller.dart';
 
 class TeacherAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -26,9 +26,9 @@ class TeacherAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       title: LWatch(
         () {
-          final staffContext = context.levit.find<StaffContextController>();
+          final teacherContext = context.levit.find<TeacherContextController>();
           final classLabel =
-              staffContext.classFilterLabel ?? context.tr.allClasses;
+              teacherContext.classFilterLabel ?? context.tr.allClasses;
 
           if (isEvaluations) {
             final evaluations = context.levit.find<EvaluationsController>();

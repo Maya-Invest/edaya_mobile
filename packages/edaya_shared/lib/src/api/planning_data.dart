@@ -94,6 +94,60 @@ String? _assessmentIdForEvent(Map<String, dynamic> event) {
   return event['assessmentId'] as String? ?? event['id'] as String?;
 }
 
+String _teacherName(
+  List<Map<String, dynamic>> teacherAssignments,
+  Map<String, Map<String, dynamic>> teachersById,
+  bool Function(Map<String, dynamic> assignment) match,
+  String fallback,
+) {
+  for (final assignment in teacherAssignments) {
+    if (assignment['status'] != 'active') {
+      continue;
+    }
+    if (!match(assignment)) {
+      continue;
+    }
+    final teacherId = assignment['teacherId'] as String?;
+    final teacher = teacherId == null ? null : teachersById[teacherId];
+    if (teacher == null) {
+      continue;
+    }
+    final firstName = teacher['firstName'] as String? ?? '';
+    final lastName = teacher['lastName'] as String? ?? '';
+    final fullName = '$firstName $lastName'.trim();
+    if (fullName.isNotEmpty) {
+      return fullName;
+    }
+  }
+  return fallback;
+}
+
+String _resolveInstructorName({
+  required List<Map<String, dynamic>> teacherAssignments,
+  required Map<String, Map<String, dynamic>> teachersById,
+  required List<Map<String, dynamic>> staffAssignments,
+  required Map<String, Map<String, dynamic>> staffById,
+  required bool Function(Map<String, dynamic> assignment) matchTeacher,
+  required bool Function(Map<String, dynamic> assignment) matchStaff,
+  required String fallback,
+}) {
+  final teacherLabel = _teacherName(
+    teacherAssignments,
+    teachersById,
+    matchTeacher,
+    '',
+  );
+  if (teacherLabel.isNotEmpty) {
+    return teacherLabel;
+  }
+  return _staffName(
+    staffAssignments,
+    staffById,
+    matchStaff,
+    fallback,
+  );
+}
+
 String _staffName(
   List<Map<String, dynamic>> staffAssignments,
   Map<String, Map<String, dynamic>> staffById,
@@ -171,7 +225,7 @@ Future<List<TimetableOccurrence>> fetchClassTimetableOccurrences(
     }
   }
 
-  return _fetchFromLegacySessions(client, classGroupId, resolvedRange);
+  return const [];
 }
 
 Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
@@ -257,6 +311,7 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
     sessionResourceAssignmentsRaw,
     activityResourceAssignmentsRaw,
     subjectsRaw,
+    teacherAssignmentsRaw,
   ] = await Future.wait([
     activityIds.isEmpty
         ? Future.value(<Map<String, dynamic>>[])
@@ -301,6 +356,13 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
         : _optionalEntityList(
             client.subjects.list(entitiesByIds(subjectIds)),
           ),
+    classSubjectIds.isEmpty
+        ? Future.value(<Map<String, dynamic>>[])
+        : _optionalEntityList(
+            client.teacherAssignments.list(
+              assignmentsForClassSubjects(classSubjectIds),
+            ),
+          ),
   ]);
 
   final staffAssignmentsRaw = _dedupeById([
@@ -318,17 +380,27 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
   final staffIds = _uniqueIds(
     staffAssignmentsRaw.map((assignment) => assignment['staffId'] as String?),
   );
+  final teacherIds = _uniqueIds(
+    teacherAssignmentsRaw.map(
+      (assignment) => assignment['teacherId'] as String?,
+    ),
+  );
   final resourceIds = _uniqueIds(
     resourceAssignmentsRaw.map(
       (assignment) => assignment['resourceId'] as String?,
     ),
   );
 
-  final [staffMembersRaw, resourcesRaw] = await Future.wait([
+  final [staffMembersRaw, teachersRaw, resourcesRaw] = await Future.wait([
     staffIds.isEmpty
         ? Future.value(<Map<String, dynamic>>[])
         : _optionalEntityList(
             client.staffMembers.list(entitiesByIds(staffIds)),
+          ),
+    teacherIds.isEmpty
+        ? Future.value(<Map<String, dynamic>>[])
+        : _optionalEntityList(
+            client.teachers.list(entitiesByIds(teacherIds)),
           ),
     resourceIds.isEmpty
         ? Future.value(<Map<String, dynamic>>[])
@@ -339,6 +411,9 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
 
   final staffById = {
     for (final member in staffMembersRaw) member['id'] as String: member,
+  };
+  final teachersById = {
+    for (final teacher in teachersRaw) teacher['id'] as String: teacher,
   };
   final resourceById = {
     for (final resource in resourcesRaw) resource['id'] as String: resource,
@@ -393,14 +468,20 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
               resourceById,
               (entry) => entry['lessonSessionId'] == lessonSessionId,
             ),
-            teacherName: _staffName(
-              staffAssignmentsRaw,
-              staffById,
-              (entry) =>
+            teacherName: _resolveInstructorName(
+              teacherAssignments: teacherAssignmentsRaw,
+              teachersById: teachersById,
+              staffAssignments: staffAssignmentsRaw,
+              staffById: staffById,
+              matchTeacher: (entry) =>
+                  entry['kind'] == 'subject' &&
+                  classSubjectId != null &&
+                  entry['classSubjectId'] == classSubjectId,
+              matchStaff: (entry) =>
                   entry['lessonSessionId'] == lessonSessionId ||
                   (classSubjectId != null &&
                       entry['classSubjectId'] == classSubjectId),
-              unassignedTeacherLabel,
+              fallback: unassignedTeacherLabel,
             ),
           ),
         );
@@ -413,11 +494,14 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
             activitySession?['activityId'] as String?;
         final activity =
             activityId == null ? null : activitiesById[activityId];
-        final staffLabel = _staffName(
-          staffAssignmentsRaw,
-          staffById,
-          (entry) => entry['activitySessionId'] == activitySessionId,
-          unassignedTeacherLabel,
+        final staffLabel = _resolveInstructorName(
+          teacherAssignments: teacherAssignmentsRaw,
+          teachersById: teachersById,
+          staffAssignments: staffAssignmentsRaw,
+          staffById: staffById,
+          matchTeacher: (_) => false,
+          matchStaff: (entry) => entry['activitySessionId'] == activitySessionId,
+          fallback: unassignedTeacherLabel,
         );
         occurrences.add(
           TimetableOccurrence(
@@ -467,14 +551,20 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
               resourceById,
               (entry) => entry['assessmentId'] == assessmentId,
             ),
-            teacherName: _staffName(
-              staffAssignmentsRaw,
-              staffById,
-              (entry) =>
+            teacherName: _resolveInstructorName(
+              teacherAssignments: teacherAssignmentsRaw,
+              teachersById: teachersById,
+              staffAssignments: staffAssignmentsRaw,
+              staffById: staffById,
+              matchTeacher: (entry) =>
+                  entry['kind'] == 'subject' &&
+                  classSubjectId != null &&
+                  entry['classSubjectId'] == classSubjectId,
+              matchStaff: (entry) =>
                   entry['assessmentId'] == assessmentId ||
                   (classSubjectId != null &&
                       entry['classSubjectId'] == classSubjectId),
-              unassignedTeacherLabel,
+              fallback: unassignedTeacherLabel,
             ),
           ),
         );
@@ -509,18 +599,6 @@ Future<List<TimetableOccurrence>> _fetchFromMaterializedSessions(
     activityRows: results[1],
     classGroupId: classGroupId,
   );
-}
-
-Future<List<TimetableOccurrence>> _fetchFromLegacySessions(
-  SchoolClient client,
-  String classGroupId,
-  PlanningDateRange range,
-) async {
-  final rows = await client.listEntityByPublicName(
-    'sessions',
-    classGroupScope(classGroupId),
-  );
-  return _legacySessionsToOccurrences(rows, classGroupId, range);
 }
 
 List<TimetableOccurrence> _materializedSessionsToOccurrences({
@@ -578,66 +656,4 @@ TimetableOccurrence _occurrenceFromSessionRow(
     classSubjectId: row['classSubjectId'] as String?,
     status: row['status'] as String?,
   );
-}
-
-List<TimetableOccurrence> _legacySessionsToOccurrences(
-  List<Map<String, dynamic>> rows,
-  String classGroupId,
-  PlanningDateRange range,
-) {
-  final rangeStart = DateTime.parse('${range.startDate}T00:00:00.000Z').toLocal();
-  final rangeEnd = DateTime.parse('${range.endDate}T23:59:59.999Z').toLocal();
-  final occurrences = <TimetableOccurrence>[];
-
-  for (final row in rows) {
-    final templateStart = parseApiDateTime(row['startsAt']);
-    final templateEnd = parseApiDateTime(row['endsAt']);
-    if (templateStart == null || templateEnd == null) {
-      continue;
-    }
-
-    final title =
-        row['title'] as String? ?? row['displayLabel'] as String? ?? 'Session';
-    final id = row['id'] as String;
-    final rawKind = row['kind'] as String? ?? 'lesson';
-    final kind = rawKind == 'course' ? 'lesson' : rawKind;
-    final classSubjectId = row['classSubjectId'] as String?;
-
-    var day = DateTime(rangeStart.year, rangeStart.month, rangeStart.day);
-    final lastDay = DateTime(rangeEnd.year, rangeEnd.month, rangeEnd.day);
-    while (!day.isAfter(lastDay)) {
-      if (templateStart.weekday == day.weekday) {
-        occurrences.add(
-          TimetableOccurrence(
-            id: id,
-            kind: kind,
-            title: title,
-            subjectLabel: title,
-            startsAt: DateTime(
-              day.year,
-              day.month,
-              day.day,
-              templateStart.hour,
-              templateStart.minute,
-              templateStart.second,
-            ),
-            endsAt: DateTime(
-              day.year,
-              day.month,
-              day.day,
-              templateEnd.hour,
-              templateEnd.minute,
-              templateEnd.second,
-            ),
-            classGroupId: classGroupId,
-            classSubjectId: classSubjectId,
-          ),
-        );
-      }
-      day = day.add(const Duration(days: 1));
-    }
-  }
-
-  occurrences.sort((a, b) => a.startsAt.compareTo(b.startsAt));
-  return occurrences;
 }

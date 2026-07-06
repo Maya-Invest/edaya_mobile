@@ -43,6 +43,8 @@ class SessionDetailController extends LevitController
 
   bool get supportsLogbook => session.kind == 'lesson';
 
+  bool get supportsAttendanceRecording => session.kind == 'lesson';
+
   Future<void> loadDetail() async {
     errorMessage('');
     await runTask(() async {
@@ -202,6 +204,11 @@ class SessionDetailController extends LevitController
     SessionStudentRow row,
     SessionAttendanceStatus status,
   ) async {
+    if (!supportsAttendanceRecording) {
+      saveMessage(systemL10n().attendanceRecordingLessonOnly);
+      return false;
+    }
+
     saveMessage('');
     try {
       final client = _schoolClient();
@@ -229,6 +236,9 @@ class SessionDetailController extends LevitController
             .toList(),
       );
       return true;
+    } on api.ApiError catch (error) {
+      saveMessage(systemL10n().couldNotSaveAttendance('$error'));
+      return false;
     } on Object catch (error) {
       saveMessage(systemL10n().couldNotSaveAttendance('$error'));
       return false;

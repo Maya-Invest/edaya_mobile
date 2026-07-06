@@ -10,6 +10,7 @@ export 'src/app/edaya_colors.dart';
 export 'src/app/edaya_typography.dart';
 export 'src/app/theme.dart';
 export 'src/api/attendance_data.dart';
+export 'src/api/evaluation_data.dart';
 export 'src/api/planning_data.dart';
 export 'src/common/models/timetable_occurrence.dart';
 export 'src/common/utils/date_time_parse.dart';

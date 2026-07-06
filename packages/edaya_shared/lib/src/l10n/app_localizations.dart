@@ -407,16 +407,19 @@ abstract class AppLocalizations {
   /// No description provided for @signedInNoGuardianProfile.
   ///
   /// In en, this message translates to:
-  /// **'Signed in, but no linked guardian/staff profile. Run: bun run seed:auth:link'**
+  /// **'Signed in, but no linked guardian/staff profile. Run: bun seed --scope auth:link'**
   String get signedInNoGuardianProfile;
 
   /// No description provided for @signedInNoStaffProfile.
   ///
   /// In en, this message translates to:
-  /// **'Signed in, but no linked staff profile. Run: bun run seed:auth:link'**
+  /// **'Signed in, but no linked staff profile. Run: bun seed --scope auth:link'**
   String get signedInNoStaffProfile;
 
   /// No description provided for @signedInNoTeacherProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in, but no linked teacher profile. Run: bun seed --scope auth:link'**
   String get signedInNoTeacherProfile;
 
   /// No description provided for @accountNotLinkedToStaff.
@@ -426,6 +429,9 @@ abstract class AppLocalizations {
   String get accountNotLinkedToStaff;
 
   /// No description provided for @accountNotLinkedToTeacher.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is not linked to a teacher profile.'**
   String get accountNotLinkedToTeacher;
 
   /// No description provided for @navCalendar.
@@ -1310,6 +1316,12 @@ abstract class AppLocalizations {
   /// **'Logbook is not available for this session.'**
   String get logbookNotAvailableForSession;
 
+  /// No description provided for @attendanceRecordingLessonOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance can only be recorded for lesson sessions.'**
+  String get attendanceRecordingLessonOnly;
+
   /// No description provided for @noCurriculumChaptersLinked.
   ///
   /// In en, this message translates to:
@@ -1487,7 +1499,7 @@ abstract class AppLocalizations {
   /// No description provided for @publishedReportCardImmutable.
   ///
   /// In en, this message translates to:
-  /// **'This student's report card has already been published for this period. Marks can no longer be changed.'**
+  /// **'This student\'s report card has already been published for this period. Marks can no longer be changed.'**
   String get publishedReportCardImmutable;
 
   /// No description provided for @marksLockedReportCardPublished.

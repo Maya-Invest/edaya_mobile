@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../features/context/academic_year_controller.dart';
-import '../features/context/staff_context_controller.dart';
+import '../features/context/teacher_context_controller.dart';
 import '../config/api_config.dart';
 import '../features/account/account_sheet.dart';
 import '../features/app_shell/app_shell_page.dart';
@@ -17,6 +17,7 @@ import '../features/evaluations/marks_entry_sheet.dart';
 import '../features/evaluations/models/evaluation_models.dart';
 import '../features/session/attendance_flow_page.dart';
 import '../features/session/session_details_sheet.dart';
+import '../features/session/session_route_args.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 final shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -53,7 +54,7 @@ class AppRouter extends LevitController implements EdayaAppRouter {
             defaultPassword: ApiConfig.devPassword,
             onSignInSuccess: () async {
               await EdayaRootScope.find<AcademicYearController>().loadYears();
-              await EdayaRootScope.find<StaffContextController>()
+              await EdayaRootScope.find<TeacherContextController>()
                   .initializeFromSession();
               AppRouter.find.router.go('/calendar');
             },
@@ -71,7 +72,7 @@ class AppRouter extends LevitController implements EdayaAppRouter {
             session: context.levit.find<AppSessionController>(),
             schoolClient: context.levit.find<SchoolClientFactory>(),
             onProfileSaved: (_) =>
-                context.levit.find<StaffContextController>().reloadContext(),
+                context.levit.find<TeacherContextController>().reloadContext(),
           ),
         ),
         GoRoute(
@@ -129,13 +130,19 @@ class AppRouter extends LevitController implements EdayaAppRouter {
                   path: 'attendance-flow',
                   builder: (context, state) {
                     final extra = state.extra;
-                    if (extra is! TeacherSession) {
-                      return RouteErrorPage(
-                        message: context.tr.missingAttendanceFlowRouteData,
+                    if (extra is AttendanceFlowArgs) {
+                      return AttendanceFlowPage(
+                        session: extra.session,
+                        controller: extra.controller,
                       );
                     }
+                    if (extra is TeacherSession) {
+                      return AttendanceFlowPage(session: extra);
+                    }
 
-                    return AttendanceFlowPage(session: extra);
+                    return RouteErrorPage(
+                      message: context.tr.missingAttendanceFlowRouteData,
+                    );
                   },
                 ),
               ],

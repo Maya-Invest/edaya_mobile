@@ -35,10 +35,25 @@
       "schemaName": "StaffAssignment",
       "allowDirectSave": true
     },
+    "teachers": {
+      "publicName": "teachers",
+      "schemaName": "Teacher",
+      "allowDirectSave": true
+    },
+    "teacherAssignments": {
+      "publicName": "teacher-assignments",
+      "schemaName": "TeacherAssignment",
+      "allowDirectSave": true
+    },
     "accountInvitations": {
       "publicName": "account-invitations",
       "schemaName": "AccountInvitation",
       "allowDirectSave": false
+    },
+    "staffPermissionAssignments": {
+      "publicName": "staff-permission-assignments",
+      "schemaName": "StaffPermissionAssignment",
+      "allowDirectSave": true
     },
     "attachments": {
       "publicName": "attachments",
@@ -170,6 +185,11 @@
       "schemaName": "ActivityEnrollment",
       "allowDirectSave": true
     },
+    "classActivityEnrollments": {
+      "publicName": "class-activity-enrollments",
+      "schemaName": "ClassActivityEnrollment",
+      "allowDirectSave": true
+    },
     "assessments": {
       "publicName": "assessments",
       "schemaName": "Assessment",
@@ -282,6 +302,31 @@
       "requestSchemaName": "PublishAcademicPeriodCommand",
       "responseSchemaName": "AcademicPeriod"
     },
+    "configureGradeLevel": {
+      "publicName": "configure-grade-level",
+      "requestSchemaName": "GradeLevelConfigCommand",
+      "responseSchemaName": "GradeLevel"
+    },
+    "configurePeriodDefinition": {
+      "publicName": "configure-period-definition",
+      "requestSchemaName": "PeriodDefinitionConfigCommand",
+      "responseSchemaName": "PeriodDefinition"
+    },
+    "configureResource": {
+      "publicName": "configure-resource",
+      "requestSchemaName": "ResourceConfigCommand",
+      "responseSchemaName": "Resource"
+    },
+    "configureActivity": {
+      "publicName": "configure-activity",
+      "requestSchemaName": "ActivityConfigCommand",
+      "responseSchemaName": "Activity"
+    },
+    "enrollStudentInActivity": {
+      "publicName": "enroll-student-in-activity",
+      "requestSchemaName": "ActivityEnrollmentConfigCommand",
+      "responseSchemaName": "ActivityEnrollment"
+    },
     "createClassGroup": {
       "publicName": "create-class-group",
       "requestSchemaName": "CreateClassGroupCommand",
@@ -311,6 +356,11 @@
       "publicName": "link-actor-subject",
       "requestSchemaName": "LinkActorSubjectCommand",
       "responseSchemaName": "LinkActorSubjectResponse"
+    },
+    "relinkActorSubject": {
+      "publicName": "relink-actor-subject",
+      "requestSchemaName": "RelinkActorSubjectCommand",
+      "responseSchemaName": "RelinkActorSubjectResponse"
     },
     "sendAccountInvitation": {
       "publicName": "send-account-invitation",
@@ -346,6 +396,11 @@
       "publicName": "assign-staff-to-lesson-session",
       "requestSchemaName": "AssignStaffToLessonSessionCommand",
       "responseSchemaName": "StaffAssignment"
+    },
+    "assignStaffPermission": {
+      "publicName": "assign-staff-permission",
+      "requestSchemaName": "StaffPermissionAssignmentConfigCommand",
+      "responseSchemaName": "StaffPermissionAssignment"
     },
     "assignResourceToClass": {
       "publicName": "assign-resource-to-class",
@@ -452,6 +507,16 @@
       "requestSchemaName": "UpdateGuardianStudentLinkCommand",
       "responseSchemaName": "GuardianStudentLink"
     },
+    "configureSubject": {
+      "publicName": "configure-subject",
+      "requestSchemaName": "SubjectConfigCommand",
+      "responseSchemaName": "Subject"
+    },
+    "configureSubjectMatter": {
+      "publicName": "configure-subject-matter",
+      "requestSchemaName": "SubjectMatterConfigCommand",
+      "responseSchemaName": "SubjectMatter"
+    },
     "offerSubjectToClass": {
       "publicName": "offer-subject-to-class",
       "requestSchemaName": "OfferSubjectToClassCommand",
@@ -557,6 +622,11 @@
       "requestSchemaName": "AddStudentInvolvementCommand",
       "responseSchemaName": "StudentIncidentInvolvement"
     },
+    "configureDisciplinaryAction": {
+      "publicName": "configure-disciplinary-action",
+      "requestSchemaName": "DisciplinaryActionConfigCommand",
+      "responseSchemaName": "DisciplinaryAction"
+    },
     "applyDisciplinaryAction": {
       "publicName": "apply-disciplinary-action",
       "requestSchemaName": "ApplyDisciplinaryActionCommand",
@@ -571,6 +641,11 @@
       "publicName": "resolve-incident",
       "requestSchemaName": "ResolveIncidentCommand",
       "responseSchemaName": "Incident"
+    },
+    "resolveIncidentWithOutcomes": {
+      "publicName": "resolve-incident-with-outcomes",
+      "requestSchemaName": "ResolveIncidentWithOutcomesCommand",
+      "responseSchemaName": "ResolveIncidentWithOutcomesResponse"
     },
     "createFee": {
       "publicName": "create-fee",
@@ -667,6 +742,11 @@
       "requestSchemaName": "ReviewAttendanceJustificationCommand",
       "responseSchemaName": "Attendance"
     },
+    "requestAttendanceJustification": {
+      "publicName": "request-attendance-justification",
+      "requestSchemaName": "RequestAttendanceJustificationCommand",
+      "responseSchemaName": "Attendance"
+    },
     "createAnnouncement": {
       "publicName": "create-announcement",
       "requestSchemaName": "CreateAnnouncementCommand",
@@ -755,6 +835,17 @@
       "method": "GET",
       "path": "authorization/effective-grants",
       "responseSchemaName": "EffectiveGrantsResponse"
+    },
+    "permissionCatalog": {
+      "method": "GET",
+      "path": "authorization/permission-catalog",
+      "responseSchemaName": "PermissionCatalogResponse"
+    },
+    "scopeRender": {
+      "method": "POST",
+      "path": "authorization/scope/render",
+      "requestSchemaName": "ScopeRenderRequest",
+      "responseSchemaName": "ScopeRenderResponse"
     }
   },
   "onboarding": {

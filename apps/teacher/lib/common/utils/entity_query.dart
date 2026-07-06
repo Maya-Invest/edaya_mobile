@@ -1,4 +1,4 @@
-import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_api_client/edaya_api_client.dart';
 
 class TeachingScope {
   const TeachingScope({
@@ -12,46 +12,59 @@ class TeachingScope {
   final Set<String> sessionIds;
 }
 
-EntityQuery staffAssignmentsForStaffAndYear({
-  required String staffId,
+EntityQuery teacherAssignmentsForTeacherAndYear({
+  required String teacherId,
   required String academicYearId,
 }) {
   return {
-    'staffId': staffId,
+    'teacherId': teacherId,
     'academicYearId': academicYearId,
   };
 }
 
-TeachingScope teachingScopeFromStaffAssignments(
+TeachingScope teachingScopeFromTeacherPortalScope(TeacherPortalScope? scope) {
+  if (scope == null) {
+    return const TeachingScope();
+  }
+
+  return TeachingScope(
+    classGroupIds: scope.homeroomClassGroupIds.toSet(),
+    classSubjectIds: scope.classSubjectIds.toSet(),
+  );
+}
+
+TeachingScope teachingScopeFromTeacherAssignments(
   List<Map<String, dynamic>> assignments,
 ) {
   final classGroupIds = <String>{};
   final classSubjectIds = <String>{};
-  final sessionIds = <String>{};
 
   for (final assignment in assignments) {
+    if (assignment['status'] != 'active') {
+      continue;
+    }
+
+    final kind = assignment['kind'] as String?;
     final classGroupId = assignment['classGroupId'] as String?;
     final classSubjectId = assignment['classSubjectId'] as String?;
-    final lessonSessionId = assignment['lessonSessionId'] as String?;
-    final activitySessionId = assignment['activitySessionId'] as String?;
 
-    if (classGroupId != null && classGroupId.isNotEmpty) {
+    if (kind == 'homeroom' && classGroupId != null && classGroupId.isNotEmpty) {
       classGroupIds.add(classGroupId);
     }
-    if (classSubjectId != null && classSubjectId.isNotEmpty) {
+    if (kind == 'subject' && classSubjectId != null && classSubjectId.isNotEmpty) {
       classSubjectIds.add(classSubjectId);
-    }
-    if (lessonSessionId != null && lessonSessionId.isNotEmpty) {
-      sessionIds.add(lessonSessionId);
-    }
-    if (activitySessionId != null && activitySessionId.isNotEmpty) {
-      sessionIds.add(activitySessionId);
     }
   }
 
   return TeachingScope(
     classGroupIds: classGroupIds,
     classSubjectIds: classSubjectIds,
-    sessionIds: sessionIds,
   );
+}
+
+TeachingScope mergeTeachingScopes(TeachingScope primary, TeachingScope fallback) {
+  if (primary.classGroupIds.isNotEmpty || primary.classSubjectIds.isNotEmpty) {
+    return primary;
+  }
+  return fallback;
 }
