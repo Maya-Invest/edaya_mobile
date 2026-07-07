@@ -106,7 +106,9 @@ class SessionDetailsSheet extends LScopedView<SessionDetailController> {
                   const SizedBox(height: 8),
                   Text(
                     controller.errorMessage.value,
-                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   ),
                 ],
                 if (controller.saveMessage.value.isNotEmpty) ...[
@@ -115,10 +117,7 @@ class SessionDetailsSheet extends LScopedView<SessionDetailController> {
                 ],
                 const SizedBox(height: 8),
                 Expanded(
-                  child: _SegmentBody(
-                    controller: controller,
-                    session: session,
-                  ),
+                  child: _SegmentBody(controller: controller, session: session),
                 ),
               ],
             ),
@@ -130,10 +129,7 @@ class SessionDetailsSheet extends LScopedView<SessionDetailController> {
 }
 
 class _SegmentBody extends StatelessWidget {
-  const _SegmentBody({
-    required this.controller,
-    required this.session,
-  });
+  const _SegmentBody({required this.controller, required this.session});
 
   final SessionDetailController controller;
   final TeacherSession session;
@@ -147,9 +143,7 @@ class _SegmentBody extends StatelessWidget {
     switch (controller.segment.value) {
       case SessionDetailSegment.attendance:
         if (!controller.supportsAttendanceRecording) {
-          return Center(
-            child: Text(context.tr.attendanceRecordingLessonOnly),
-          );
+          return Center(child: Text(context.tr.attendanceRecordingLessonOnly));
         }
         return Column(
           children: [
@@ -247,10 +241,8 @@ class _LogbookPanelState extends State<_LogbookPanel> {
     super.dispose();
   }
 
-  Set<String> get _draftMatterIds => _draftEntries
-      .map((entry) => entry.matterId)
-      .whereType<String>()
-      .toSet();
+  Set<String> get _draftMatterIds =>
+      _draftEntries.map((entry) => entry.matterId).whereType<String>().toSet();
 
   void _addDraftEntry({SessionSubjectMatterOption? matter}) {
     final usedIds = _draftMatterIds;
@@ -306,8 +298,9 @@ class _LogbookPanelState extends State<_LogbookPanel> {
 
   bool _canAddAnotherDraft(List<SessionSubjectMatterOption> allMatters) {
     final usedIds = _draftMatterIds;
-    return widget.controller.pickableMatters
-        .any((matter) => !usedIds.contains(matter.id));
+    return widget.controller.pickableMatters.any(
+      (matter) => !usedIds.contains(matter.id),
+    );
   }
 
   SessionSubjectMatterOption? _matterById(
@@ -345,9 +338,7 @@ class _LogbookPanelState extends State<_LogbookPanel> {
     }
 
     if (widget.controller.session.classSubjectId == null) {
-      return Center(
-        child: Text(context.tr.logbookNotAvailableForSession),
-      );
+      return Center(child: Text(context.tr.logbookNotAvailableForSession));
     }
 
     return LWatch(() {
@@ -366,9 +357,7 @@ class _LogbookPanelState extends State<_LogbookPanel> {
       }
 
       if (allMatters.isEmpty) {
-        return Center(
-          child: Text(context.tr.noCurriculumChaptersLinked),
-        );
+        return Center(child: Text(context.tr.noCurriculumChaptersLinked));
       }
 
       if (_sessionNoteController.text != widget.controller.sessionNote.value) {
@@ -380,9 +369,7 @@ class _LogbookPanelState extends State<_LogbookPanel> {
           if (saveMessage.isNotEmpty) ...[
             Text(
               saveMessage,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.error,
-              ),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
             const SizedBox(height: 8),
           ],
@@ -544,9 +531,9 @@ class _LogbookPanelState extends State<_LogbookPanel> {
         for (final entry in List<_DraftEntryState>.from(_draftEntries)) {
           _removeDraftEntry(entry);
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.tr.logbookSaved)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.tr.logbookSaved)));
       }
     }
   }
@@ -558,10 +545,8 @@ class _DraftEntryState {
     required int completedPercentage,
     required String notes,
     required this.isEditingExisting,
-  })  : progressController = TextEditingController(
-          text: '$completedPercentage',
-        ),
-        notesController = TextEditingController(text: notes);
+  }) : progressController = TextEditingController(text: '$completedPercentage'),
+       notesController = TextEditingController(text: notes);
 
   String? matterId;
   final TextEditingController progressController;
@@ -594,7 +579,7 @@ class _ProgressDraftCard extends StatelessWidget {
     final minimum = selectedMatter == null
         ? 0
         : (selectedMatter!.sessionProgress?.completedPercentage ??
-            selectedMatter!.cumulativePercentage);
+              selectedMatter!.cumulativePercentage);
 
     return Card(
       child: Padding(
@@ -679,10 +664,7 @@ class _ProgressDraftCard extends StatelessWidget {
 }
 
 class _MatterProgressCard extends StatelessWidget {
-  const _MatterProgressCard({
-    required this.matter,
-    required this.onEdit,
-  });
+  const _MatterProgressCard({required this.matter, required this.onEdit});
 
   final SessionSubjectMatterOption matter;
   final VoidCallback? onEdit;
@@ -702,10 +684,7 @@ class _MatterProgressCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    matter.name,
-                    style: theme.textTheme.titleSmall,
-                  ),
+                  child: Text(matter.name, style: theme.textTheme.titleSmall),
                 ),
                 Chip(
                   label: Text(matter.status.label(context.tr)),
@@ -747,10 +726,7 @@ class _MatterProgressCard extends StatelessWidget {
             if (sessionProgress.notes != null &&
                 sessionProgress.notes!.isNotEmpty) ...[
               const SizedBox(height: 8),
-              Text(
-                sessionProgress.notes!,
-                style: theme.textTheme.bodyMedium,
-              ),
+              Text(sessionProgress.notes!, style: theme.textTheme.bodyMedium),
             ],
             if (onEdit != null) ...[
               const SizedBox(height: 8),

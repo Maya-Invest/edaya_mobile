@@ -1,4 +1,4 @@
-import 'package:edaya_shared/src/l10n/app_localizations.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 
 import 'student_fee_line.dart';
 

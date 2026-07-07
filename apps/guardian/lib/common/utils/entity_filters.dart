@@ -1,10 +1,7 @@
 import 'package:edaya_shared/edaya_shared.dart';
 
 EntityQuery publishedReportCardsForStudent(String studentId) {
-  return {
-    'studentId': studentId,
-    'status': 'published',
-  };
+  return {'studentId': studentId, 'status': 'published'};
 }
 
 EntityQuery studentFeesForStudent(String studentId) {

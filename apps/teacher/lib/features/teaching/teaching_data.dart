@@ -19,21 +19,18 @@ List<TeachingClassSubjectOption> buildTeachingClassSubjectOptions({
   required Map<String, String> classLabelById,
   required String subjectFallback,
 }) {
-  return classSubjectRows
-      .map((row) {
-        final classGroupId = row['classGroupId'] as String;
-        final subjectId = row['subjectId'] as String?;
-        return TeachingClassSubjectOption(
-          id: row['id'] as String,
-          classGroupId: classGroupId,
-          subjectName: subjectId == null
-              ? subjectFallback
-              : subjectNameById[subjectId] ?? subjectFallback,
-          classLabel: classLabelById[classGroupId] ?? classGroupId,
-        );
-      })
-      .toList()
-    ..sort((left, right) => left.label.compareTo(right.label));
+  return classSubjectRows.map((row) {
+    final classGroupId = row['classGroupId'] as String;
+    final subjectId = row['subjectId'] as String?;
+    return TeachingClassSubjectOption(
+      id: row['id'] as String,
+      classGroupId: classGroupId,
+      subjectName: subjectId == null
+          ? subjectFallback
+          : subjectNameById[subjectId] ?? subjectFallback,
+      classLabel: classLabelById[classGroupId] ?? classGroupId,
+    );
+  }).toList()..sort((left, right) => left.label.compareTo(right.label));
 }
 
 TeachingProgressOverview buildTeachingProgressOverview({
@@ -51,8 +48,8 @@ TeachingProgressOverview buildTeachingProgressOverview({
       matter['id'] as String: (matter['sequenceOrder'] as num?)?.toInt() ?? 0,
   };
 
-  final matters = matterLinks
-      .map((link) {
+  final matters =
+      matterLinks.map((link) {
         final subjectMatterId = link['subjectMatterId'] as String;
         return TeachingMatterProgress(
           id: link['id'] as String,
@@ -63,15 +60,13 @@ TeachingProgressOverview buildTeachingProgressOverview({
               (link['completedPercentage'] as num?)?.toInt() ?? 0,
           notes: link['notes'] as String?,
         );
-      })
-      .toList()
-    ..sort((left, right) {
-      final order = left.sequenceOrder.compareTo(right.sequenceOrder);
-      if (order != 0) {
-        return order;
-      }
-      return left.name.compareTo(right.name);
-    });
+      }).toList()..sort((left, right) {
+        final order = left.sequenceOrder.compareTo(right.sequenceOrder);
+        if (order != 0) {
+          return order;
+        }
+        return left.name.compareTo(right.name);
+      });
 
   return TeachingProgressOverview(
     classSubjectCompletedPercentage:
@@ -97,8 +92,8 @@ List<TeachingLogEntry> buildTeachingLogEntries({
   for (final link in matterLinks) {
     final linkId = link['id'] as String;
     final subjectMatterId = link['subjectMatterId'] as String;
-    matterNameByLinkId[linkId] = matterNameBySubjectMatterId[subjectMatterId] ??
-        matterFallback;
+    matterNameByLinkId[linkId] =
+        matterNameBySubjectMatterId[subjectMatterId] ?? matterFallback;
   }
 
   final progressBySessionId = <String, List<Map<String, dynamic>>>{};
@@ -109,17 +104,14 @@ List<TeachingLogEntry> buildTeachingLogEntries({
 
   final entries = lessonSessions.map((session) {
     final sessionId = session['id'] as String;
-    final snapshots = (progressBySessionId[sessionId] ?? const [])
-        .map((row) {
-          final linkId = row['classSubjectMatterId'] as String;
-          return TeachingLogMatterSnapshot(
-            matterName: matterNameByLinkId[linkId] ?? matterFallback,
-            completedPercentage:
-                (row['completedPercentage'] as num?)?.toInt() ?? 0,
-            notes: row['notes'] as String?,
-          );
-        })
-        .toList();
+    final snapshots = (progressBySessionId[sessionId] ?? const []).map((row) {
+      final linkId = row['classSubjectMatterId'] as String;
+      return TeachingLogMatterSnapshot(
+        matterName: matterNameByLinkId[linkId] ?? matterFallback,
+        completedPercentage: (row['completedPercentage'] as num?)?.toInt() ?? 0,
+        notes: row['notes'] as String?,
+      );
+    }).toList();
 
     return TeachingLogEntry(
       lessonSessionId: sessionId,
@@ -133,8 +125,7 @@ List<TeachingLogEntry> buildTeachingLogEntries({
       sessionNote: session['sessionNote'] as String?,
       matterSnapshots: snapshots,
     );
-  }).toList()
-    ..sort((left, right) => right.startsAt.compareTo(left.startsAt));
+  }).toList()..sort((left, right) => right.startsAt.compareTo(left.startsAt));
 
   return entries;
 }
@@ -225,8 +216,7 @@ Future<List<TeachingClassSubjectOption>> fetchTeachingSubjectsForClass({
       : await client.subjects.list(entitiesByIds(subjectIds));
   final subjectNameById = {
     for (final subject in subjectRows)
-      subject['id'] as String:
-          subject['name'] as String? ?? subjectFallback,
+      subject['id'] as String: subject['name'] as String? ?? subjectFallback,
   };
 
   return buildTeachingClassSubjectOptions(

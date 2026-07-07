@@ -24,7 +24,9 @@ abstract final class EdayaTypography {
       titleMedium: theme.titleMedium?.copyWith(color: colorScheme.onSurface),
       titleSmall: theme.titleSmall?.copyWith(color: colorScheme.onSurface),
       bodySmall: theme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-      labelSmall: theme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant),
+      labelSmall: theme.labelSmall?.copyWith(
+        color: colorScheme.onSurfaceVariant,
+      ),
     );
   }
 

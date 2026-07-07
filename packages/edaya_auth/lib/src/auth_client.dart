@@ -198,7 +198,9 @@ class AuthClient {
     }
 
     return AuthError(
-      message: normalizeAuthErrorMessage(body?.toString() ?? 'Authentication failed'),
+      message: normalizeAuthErrorMessage(
+        body?.toString() ?? 'Authentication failed',
+      ),
     );
   }
 

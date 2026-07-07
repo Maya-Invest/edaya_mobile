@@ -2,9 +2,7 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 
-import '../auth/app_session_controller.dart';
 import 'account_profile_data.dart';
-import 'account_profile_models.dart';
 
 class AccountProfileHeader extends StatefulWidget {
   const AccountProfileHeader({
@@ -67,7 +65,8 @@ class _AccountProfileHeaderState extends State<AccountProfileHeader> {
     }
 
     final profile = _profile;
-    final loginEmail = widget.session.user.value?.email ?? context.tr.unknownUser;
+    final loginEmail =
+        widget.session.user.value?.email ?? context.tr.unknownUser;
     final displayName = profile?.fullName.isNotEmpty == true
         ? profile!.fullName
         : loginEmail;

@@ -4,11 +4,7 @@ import 'package:edaya_shared/edaya_shared.dart';
 import '../models/calendar_session.dart';
 
 class SessionTile extends StatelessWidget {
-  const SessionTile({
-    super.key,
-    required this.session,
-    required this.onTap,
-  });
+  const SessionTile({super.key, required this.session, required this.onTap});
 
   final CalendarSession session;
   final VoidCallback onTap;

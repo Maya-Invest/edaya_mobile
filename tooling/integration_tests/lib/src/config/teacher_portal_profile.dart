@@ -1,8 +1,5 @@
 /// Demo-ci teacher portal accounts used by live integration tests.
-enum TeacherPortalKind {
-  subject,
-  homeroom,
-}
+enum TeacherPortalKind { subject, homeroom }
 
 class TeacherPortalProfile {
   const TeacherPortalProfile({

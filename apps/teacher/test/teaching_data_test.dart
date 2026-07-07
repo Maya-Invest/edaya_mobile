@@ -7,21 +7,10 @@ void main() {
     test('sorts by label and resolves subject names', () {
       final options = buildTeachingClassSubjectOptions(
         classSubjectRows: [
-          {
-            'id': 'cs-b',
-            'classGroupId': 'cg-6a',
-            'subjectId': 'sub-b',
-          },
-          {
-            'id': 'cs-a',
-            'classGroupId': 'cg-6a',
-            'subjectId': 'sub-a',
-          },
+          {'id': 'cs-b', 'classGroupId': 'cg-6a', 'subjectId': 'sub-b'},
+          {'id': 'cs-a', 'classGroupId': 'cg-6a', 'subjectId': 'sub-a'},
         ],
-        subjectNameById: {
-          'sub-a': 'Maths',
-          'sub-b': 'French',
-        },
+        subjectNameById: {'sub-a': 'Maths', 'sub-b': 'French'},
         classLabelById: {'cg-6a': '6ème A'},
         subjectFallback: 'Subject',
       );

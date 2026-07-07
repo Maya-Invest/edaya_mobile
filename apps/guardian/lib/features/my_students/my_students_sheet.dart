@@ -50,55 +50,51 @@ class MyStudentsSheet extends LScopedView<GuardianStudentsController> {
               constraints: BoxConstraints(
                 maxHeight: MediaQuery.sizeOf(context).height * 0.55,
               ),
-              child: LWatch(
-                () {
-                  if (controller.isBusy.value && controller.students.value.isEmpty) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+              child: LWatch(() {
+                if (controller.isBusy.value &&
+                    controller.students.value.isEmpty) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                  final error = controller.errorMessage.value;
-                  if (error.isNotEmpty) {
-                    return Text(
-                      error,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                    );
-                  }
-
-                  final students = controller.students.value;
-                  if (students.isEmpty) {
-                    return Text(context.tr.noLinkedStudentsFound);
-                  }
-
-                  final studentContext =
-                      context.levit.find<StudentContextController>();
-                  final activeStudentId =
-                      studentContext.activeStudent.value?.id;
-
-                  return ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: students.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final student = students[index];
-                      final isSelected = student.id == activeStudentId;
-                      return _StudentRow(
-                        student: student,
-                        isSelected: isSelected,
-                        onSelect: () async {
-                          await studentContext.selectStudent(
-                            student.id,
-                          );
-                          if (context.mounted) {
-                            context.pop();
-                          }
-                        },
-                      );
-                    },
+                final error = controller.errorMessage.value;
+                if (error.isNotEmpty) {
+                  return Text(
+                    error,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   );
-                },
-              ),
+                }
+
+                final students = controller.students.value;
+                if (students.isEmpty) {
+                  return Text(context.tr.noLinkedStudentsFound);
+                }
+
+                final studentContext = context.levit
+                    .find<StudentContextController>();
+                final activeStudentId = studentContext.activeStudent.value?.id;
+
+                return ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: students.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final student = students[index];
+                    final isSelected = student.id == activeStudentId;
+                    return _StudentRow(
+                      student: student,
+                      isSelected: isSelected,
+                      onSelect: () async {
+                        await studentContext.selectStudent(student.id);
+                        if (context.mounted) {
+                          context.pop();
+                        }
+                      },
+                    );
+                  },
+                );
+              }),
             ),
           ],
         ),

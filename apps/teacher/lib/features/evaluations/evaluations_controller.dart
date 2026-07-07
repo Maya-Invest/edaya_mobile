@@ -4,7 +4,6 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
-import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../../common/utils/academic_period.dart';
 import '../../common/utils/entity_filters.dart';
 import '../context/academic_year_controller.dart';
@@ -12,7 +11,8 @@ import '../context/teacher_context_controller.dart';
 import 'evaluations_marks_logic.dart';
 import 'models/evaluation_models.dart';
 
-class EvaluationsController extends LevitController with LevitReactiveTasksMixin {
+class EvaluationsController extends LevitController
+    with LevitReactiveTasksMixin {
   EvaluationsController({
     required TeacherContextController teacherContext,
     required AcademicYearController academicYear,
@@ -53,9 +53,11 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
       _teacherContext.classFilterId.stream,
       _academicYear.selectedYearId.stream,
     ]) {
-      autoDispose(subscription.listen((_) {
-        unawaited(reloadPeriodsAndEvaluations());
-      }));
+      autoDispose(
+        subscription.listen((_) {
+          unawaited(reloadPeriodsAndEvaluations());
+        }),
+      );
     }
 
     unawaited(reloadPeriodsAndEvaluations());
@@ -197,9 +199,7 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
             final results = await client.assessmentResults.list(
               resultsForAssessment(assessmentId),
             );
-            final graded = results
-                .where((row) => row['score'] != null)
-                .length;
+            final graded = results.where((row) => row['score'] != null).length;
 
             summaries.add(
               EvaluationSummary(
@@ -210,7 +210,8 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
                 periodId: assessment['periodId'] as String? ?? periodId,
                 classLabel: classLabelById[classGroupId] ?? classGroupId,
                 subjectLabel: subjectLabel,
-                date: (assessment['dueAt'] as String?)?.substring(0, 10) ??
+                date:
+                    (assessment['dueAt'] as String?)?.substring(0, 10) ??
                     (assessment['startsAt'] as String?)?.substring(0, 10) ??
                     '',
                 maxScore: (assessment['maxScore'] as num?)?.toDouble() ?? 20,
@@ -248,9 +249,8 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
     }, id: 'load-marks');
   }
 
-  Future<({List<StudentMarkRow> students, String errorMessage})> fetchMarksRoster(
-    EvaluationSummary evaluation,
-  ) async {
+  Future<({List<StudentMarkRow> students, String errorMessage})>
+  fetchMarksRoster(EvaluationSummary evaluation) async {
     try {
       final client = _schoolClient();
       final enrollmentRows = await client.enrollments.list(
@@ -282,26 +282,23 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
         }
       }
 
-      final roster = studentRows
-          .map((row) {
-            final studentId = row['id'] as String;
-            final firstName = row['firstName'] as String? ?? '';
-            final lastName = row['lastName'] as String? ?? '';
-            final fullName = '$firstName $lastName'.trim();
-            final displayName = fullName.isEmpty ? studentId : fullName;
-            final result = scoreByStudent[studentId];
-            return StudentMarkRow(
-              studentId: studentId,
-              studentName: displayName,
-              studentInitials: _initials(displayName),
-              photoUrl: row['photoUrl'] as String?,
-              resultId: result?['id'] as String?,
-              score: (result?['score'] as num?)?.toDouble(),
-              marksLocked: lockedStudentIds.contains(studentId),
-            );
-          })
-          .toList()
-        ..sort((a, b) => a.studentName.compareTo(b.studentName));
+      final roster = studentRows.map((row) {
+        final studentId = row['id'] as String;
+        final firstName = row['firstName'] as String? ?? '';
+        final lastName = row['lastName'] as String? ?? '';
+        final fullName = '$firstName $lastName'.trim();
+        final displayName = fullName.isEmpty ? studentId : fullName;
+        final result = scoreByStudent[studentId];
+        return StudentMarkRow(
+          studentId: studentId,
+          studentName: displayName,
+          studentInitials: _initials(displayName),
+          photoUrl: row['photoUrl'] as String?,
+          resultId: result?['id'] as String?,
+          score: (result?['score'] as num?)?.toDouble(),
+          marksLocked: lockedStudentIds.contains(studentId),
+        );
+      }).toList()..sort((a, b) => a.studentName.compareTo(b.studentName));
       return (students: roster, errorMessage: '');
     } on api.ApiError catch (error) {
       return (
@@ -375,9 +372,7 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
           score: previousScore,
         ),
       );
-      marksSaveMessage(
-        systemL10n().couldNotSaveMark(_formatApiError(error)),
-      );
+      marksSaveMessage(systemL10n().couldNotSaveMark(_formatApiError(error)));
       return false;
     } on Object catch (error) {
       marksStudents(
@@ -450,7 +445,8 @@ class EvaluationCreateController extends LevitController
     unawaited(loadPeriods());
   }
 
-  List<AssignedClass> get assignedClasses => _teacherContext.assignedClasses.value;
+  List<AssignedClass> get assignedClasses =>
+      _teacherContext.assignedClasses.value;
 
   Future<void> loadClassSubjects() async {
     final taughtIds = _teacherContext.taughtClassSubjectIds.value;
@@ -483,22 +479,19 @@ class EvaluationCreateController extends LevitController
                 subject['name'] as String? ?? systemL10n().subjectFallback,
         };
 
-        final options = rows
-            .map((row) {
-              final classGroupId = row['classGroupId'] as String;
-              final subjectId = row['subjectId'] as String?;
-              final subjectName = subjectId == null
-                  ? systemL10n().subjectFallback
-                  : subjectNameById[subjectId] ?? systemL10n().subjectFallback;
-              final classLabel = classLabelById[classGroupId] ?? classGroupId;
-              return ClassSubjectOption(
-                id: row['id'] as String,
-                classGroupId: classGroupId,
-                label: '$classLabel · $subjectName',
-              );
-            })
-            .toList()
-          ..sort((a, b) => a.label.compareTo(b.label));
+        final options = rows.map((row) {
+          final classGroupId = row['classGroupId'] as String;
+          final subjectId = row['subjectId'] as String?;
+          final subjectName = subjectId == null
+              ? systemL10n().subjectFallback
+              : subjectNameById[subjectId] ?? systemL10n().subjectFallback;
+          final classLabel = classLabelById[classGroupId] ?? classGroupId;
+          return ClassSubjectOption(
+            id: row['id'] as String,
+            classGroupId: classGroupId,
+            label: '$classLabel · $subjectName',
+          );
+        }).toList()..sort((a, b) => a.label.compareTo(b.label));
         classSubjects(options);
       } on Object catch (error) {
         errorMessage(systemL10n().couldNotLoadSubjects('$error'));
@@ -583,7 +576,8 @@ String _initials(String name) {
   if (parts.length == 1) {
     return parts.first.substring(0, 1).toUpperCase();
   }
-  return '${parts.first.substring(0, 1)}${parts.last.substring(0, 1)}'.toUpperCase();
+  return '${parts.first.substring(0, 1)}${parts.last.substring(0, 1)}'
+      .toUpperCase();
 }
 
 String _formatApiError(api.ApiError error) {
@@ -615,10 +609,7 @@ Future<int> _activeEnrollmentCount(
     return cached;
   }
   final enrollments = await client.enrollments.list(
-    activeEnrollmentsForClass(
-      classGroupId,
-      academicYearId: academicYearId,
-    ),
+    activeEnrollmentsForClass(classGroupId, academicYearId: academicYearId),
   );
   cache[classGroupId] = enrollments.length;
   return enrollments.length;

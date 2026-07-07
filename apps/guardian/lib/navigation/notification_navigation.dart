@@ -30,15 +30,16 @@ void handleGuardianNotificationOpened(RemoteMessage message) {
       id: deliveryId,
       subjectId: data['subjectId'] ?? '',
       status: InboxDeliveryStatus.fromApi(data['status']),
-      title: data['title'] ?? notification?.title ?? systemL10n().messageDefaultTitle,
+      title:
+          data['title'] ??
+          notification?.title ??
+          systemL10n().messageDefaultTitle,
       body: data['body'] ?? notification?.body ?? '',
       announcementId: data['announcementId'],
       eventKey: data['eventKey'],
     );
     router.go('/inbox');
-    Future.microtask(
-      () => router.push('/inbox/message', extra: delivery),
-    );
+    Future.microtask(() => router.push('/inbox/message', extra: delivery));
     return;
   }
 

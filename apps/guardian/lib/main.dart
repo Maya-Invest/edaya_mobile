@@ -18,9 +18,7 @@ Future<void> main() async {
   );
   await ApiBaseUrlConfig.load();
   await AppSettingsController.preload();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   Levit.enableAutoLinking();
   runApp(GuardianAppRoot());
 }

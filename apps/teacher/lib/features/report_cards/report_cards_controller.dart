@@ -4,7 +4,6 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
-import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../context/academic_year_controller.dart';
 import '../context/teacher_context_controller.dart';
 import '../evaluations/evaluations_controller.dart';
@@ -23,7 +22,8 @@ class ReportCardClassSummary {
   final int commentFilledCount;
 }
 
-class ReportCardsController extends LevitController with LevitReactiveTasksMixin {
+class ReportCardsController extends LevitController
+    with LevitReactiveTasksMixin {
   ReportCardsController({
     required TeacherContextController teacherContext,
     required AcademicYearController academicYear,
@@ -53,9 +53,11 @@ class ReportCardsController extends LevitController with LevitReactiveTasksMixin
       _evaluations.selectedPeriodId.stream,
       _academicYear.selectedYearId.stream,
     ]) {
-      autoDispose(subscription.listen((_) {
-        unawaited(loadClassSummaries());
-      }));
+      autoDispose(
+        subscription.listen((_) {
+          unawaited(loadClassSummaries());
+        }),
+      );
     }
 
     unawaited(_ensurePeriodsLoaded());

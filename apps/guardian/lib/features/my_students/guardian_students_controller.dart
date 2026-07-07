@@ -4,8 +4,6 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
-import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
-import '../auth/session_storage.dart';
 import '../my_students/linked_student.dart';
 
 class GuardianStudentsController extends LevitController
@@ -53,9 +51,7 @@ class GuardianStudentsController extends LevitController
         final rows = await _schoolClient().students.list(
           entitiesByIds(studentIds),
         );
-        final linkedStudents = rows
-            .map(LinkedStudent.fromJson)
-            .toList()
+        final linkedStudents = rows.map(LinkedStudent.fromJson).toList()
           ..sort((a, b) => a.fullName.compareTo(b.fullName));
         students(linkedStudents);
       } on api.ApiError catch (error) {

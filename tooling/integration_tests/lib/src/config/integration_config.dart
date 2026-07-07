@@ -64,8 +64,9 @@ class IntegrationConfig {
   static const defaultGuardianEmail = 'm.kone@mail.ci';
 
   static bool get isEnabled {
-    final flag = Platform.environment['EDAYA_INTEGRATION_TESTS']
-        ?? Platform.environment['RUN_INTEGRATION_TESTS'];
+    final flag =
+        Platform.environment['EDAYA_INTEGRATION_TESTS'] ??
+        Platform.environment['RUN_INTEGRATION_TESTS'];
     return flag == '1' || flag == 'true';
   }
 

@@ -17,7 +17,8 @@ const _androidBackgroundNotificationIcon = '@drawable/ic_stat_notification';
 
 FirebaseOptions? _fcmBackgroundFirebaseOptions;
 PushNotificationConfig? _fcmBackgroundConfig;
-final FlutterLocalNotificationsPlugin _backgroundLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+final FlutterLocalNotificationsPlugin _backgroundLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 var _backgroundLocalNotificationsReady = false;
 var _backgroundNotificationId = 0;
 
@@ -36,7 +37,11 @@ void configureEdayaFcm({
 
 /// Per-app notification channel and display settings.
 class PushNotificationConfig {
-  const PushNotificationConfig({required this.androidChannelId, required this.androidChannelName, this.androidChannelDescription = ''});
+  const PushNotificationConfig({
+    required this.androidChannelId,
+    required this.androidChannelName,
+    this.androidChannelDescription = '',
+  });
 
   final String androidChannelId;
   final String androidChannelName;
@@ -140,16 +145,29 @@ class NotificationDisplayContent {
 }
 
 /// Resolves a title/body from FCM notification or data payloads (Novu, etc.).
-NotificationDisplayContent? resolveNotificationDisplayContent(RemoteMessage message) {
+NotificationDisplayContent? resolveNotificationDisplayContent(
+  RemoteMessage message,
+) {
   final pushNotification = message.notification;
   final data = notificationMessageData(message);
 
   final title = pushNotification?.title?.trim().isNotEmpty == true
       ? pushNotification!.title!.trim()
-      : _firstNonEmpty(data, const ['title', 'subject', 'emailSubject', 'gcm.notification.title']);
+      : _firstNonEmpty(data, const [
+          'title',
+          'subject',
+          'emailSubject',
+          'gcm.notification.title',
+        ]);
   final body = pushNotification?.body?.trim().isNotEmpty == true
       ? pushNotification!.body!.trim()
-      : _firstNonEmpty(data, const ['body', 'message', 'emailBody', 'content', 'gcm.notification.body']);
+      : _firstNonEmpty(data, const [
+          'body',
+          'message',
+          'emailBody',
+          'content',
+          'gcm.notification.body',
+        ]);
 
   if ((title == null || title.isEmpty) && (body == null || body.isEmpty)) {
     return null;
@@ -179,7 +197,10 @@ Future<void> _ensureAndroidNotificationChannel(
     return;
   }
 
-  final androidPlugin = plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+  final androidPlugin = plugin
+      .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin
+      >();
   await androidPlugin?.createNotificationChannel(
     AndroidNotificationChannel(
       config.androidChannelId,
@@ -218,24 +239,38 @@ Future<void> displayEdayaPushNotification(
         priority: Priority.high,
         icon: androidIcon,
       ),
-      iOS: const DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
     ),
     payload: payload,
   );
 }
 
-Future<void> _ensureBackgroundLocalNotifications(PushNotificationConfig config) async {
+Future<void> _ensureBackgroundLocalNotifications(
+  PushNotificationConfig config,
+) async {
   if (_backgroundLocalNotificationsReady) {
     return;
   }
 
-  const androidSettings = AndroidInitializationSettings(_androidBackgroundNotificationIcon);
+  const androidSettings = AndroidInitializationSettings(
+    _androidBackgroundNotificationIcon,
+  );
   const iosSettings = DarwinInitializationSettings();
 
   await _backgroundLocalNotificationsPlugin.initialize(
-    settings: const InitializationSettings(android: androidSettings, iOS: iosSettings),
+    settings: const InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    ),
   );
-  await _ensureAndroidNotificationChannel(_backgroundLocalNotificationsPlugin, config);
+  await _ensureAndroidNotificationChannel(
+    _backgroundLocalNotificationsPlugin,
+    config,
+  );
   _backgroundLocalNotificationsReady = true;
 }
 
@@ -280,7 +315,8 @@ class FcmPushNotificationService implements PushNotificationService {
   }) : _schoolClientFactory = schoolClientFactory,
        _config = config,
        _messagingOverride = messaging,
-       _localNotificationsPlugin = localNotificationsPlugin ?? FlutterLocalNotificationsPlugin();
+       _localNotificationsPlugin =
+           localNotificationsPlugin ?? FlutterLocalNotificationsPlugin();
 
   final api.SchoolClient Function() _schoolClientFactory;
   final PushNotificationConfig _config;
@@ -298,7 +334,8 @@ class FcmPushNotificationService implements PushNotificationService {
   var _notificationIdCounter = 0;
   var _initialized = false;
 
-  FirebaseMessaging get _messaging => _messagingOverride ?? FirebaseMessaging.instance;
+  FirebaseMessaging get _messaging =>
+      _messagingOverride ?? FirebaseMessaging.instance;
 
   bool get _isDisabled => kIsWeb || isFlutterTest;
 
@@ -318,17 +355,25 @@ class FcmPushNotificationService implements PushNotificationService {
         return;
       }
 
-      await _messaging.setForegroundNotificationPresentationOptions(alert: true, badge: true, sound: true);
+      await _messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
 
       _tokenRefreshSubscription ??= _messaging.onTokenRefresh.listen((token) {
         unawaited(_registerToken(token));
       });
 
-      _foregroundMessageSubscription ??= FirebaseMessaging.onMessage.listen((message) {
+      _foregroundMessageSubscription ??= FirebaseMessaging.onMessage.listen((
+        message,
+      ) {
         unawaited(_showForegroundNotification(message));
       });
 
-      _openedAppSubscription ??= FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationOpened);
+      _openedAppSubscription ??= FirebaseMessaging.onMessageOpenedApp.listen(
+        _handleNotificationOpened,
+      );
 
       final initialMessage = await _messaging.getInitialMessage();
       if (initialMessage != null) {
@@ -376,7 +421,9 @@ class FcmPushNotificationService implements PushNotificationService {
       final token = _registeredToken ?? await _messaging.getToken();
       if (token != null) {
         try {
-          await _schoolClientFactory().unregisterPushDevice({'provider': 'fcm'});
+          await _schoolClientFactory().unregisterPushDevice({
+            'provider': 'fcm',
+          });
         } on Object {
           // Best-effort — local session is cleared regardless.
         }
@@ -404,7 +451,9 @@ class FcmPushNotificationService implements PushNotificationService {
       return;
     }
 
-    const androidSettings = AndroidInitializationSettings(_androidForegroundNotificationIcon);
+    const androidSettings = AndroidInitializationSettings(
+      _androidForegroundNotificationIcon,
+    );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
@@ -412,7 +461,10 @@ class FcmPushNotificationService implements PushNotificationService {
     );
 
     await _localNotificationsPlugin.initialize(
-      settings: const InitializationSettings(android: androidSettings, iOS: iosSettings),
+      settings: const InitializationSettings(
+        android: androidSettings,
+        iOS: iosSettings,
+      ),
       onDidReceiveNotificationResponse: (response) {
         final payload = response.payload;
         if (payload == null || onNotificationOpened == null) {
@@ -423,8 +475,14 @@ class FcmPushNotificationService implements PushNotificationService {
     );
 
     if (defaultTargetPlatform == TargetPlatform.android) {
-      final androidPlugin = _localNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-      await _ensureAndroidNotificationChannel(_localNotificationsPlugin, _config);
+      final androidPlugin = _localNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      await _ensureAndroidNotificationChannel(
+        _localNotificationsPlugin,
+        _config,
+      );
       await androidPlugin?.requestNotificationsPermission();
     }
 
@@ -433,14 +491,18 @@ class FcmPushNotificationService implements PushNotificationService {
 
   Future<void> _showForegroundNotification(RemoteMessage message) async {
     if (!_localNotificationsInitialized) {
-      debugPrint('Foreground push skipped: local notifications not initialized');
+      debugPrint(
+        'Foreground push skipped: local notifications not initialized',
+      );
       return;
     }
 
     try {
       final content = resolveNotificationDisplayContent(message);
       if (content == null) {
-        debugPrint('Foreground push skipped: no displayable title/body in message');
+        debugPrint(
+          'Foreground push skipped: no displayable title/body in message',
+        );
         return;
       }
 
@@ -457,7 +519,11 @@ class FcmPushNotificationService implements PushNotificationService {
             priority: Priority.high,
             icon: _androidForegroundNotificationIcon,
           ),
-          iOS: const DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
         ),
         payload: message.data.isEmpty ? null : jsonEncode(message.data),
       );
@@ -476,7 +542,10 @@ class FcmPushNotificationService implements PushNotificationService {
     }
 
     try {
-      await _schoolClientFactory().registerPushDevice({'token': token, 'provider': 'fcm'});
+      await _schoolClientFactory().registerPushDevice({
+        'token': token,
+        'provider': 'fcm',
+      });
       _registeredToken = token;
     } on Object {
       // Token registration is optional until push is fully configured.

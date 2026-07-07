@@ -24,7 +24,10 @@ class EvaluationCreateSheet extends LScopedView<EvaluationCreateController> {
   }
 
   @override
-  Widget buildView(BuildContext context, EvaluationCreateController controller) {
+  Widget buildView(
+    BuildContext context,
+    EvaluationCreateController controller,
+  ) {
     return SafeArea(
       child: SizedBox(
         height: MediaQuery.sizeOf(context).height * 0.75,
@@ -66,138 +69,132 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
 
   @override
   Widget build(BuildContext context) {
-    return LWatch(
-      () {
-        final subjects = widget.controller.classSubjects.value;
-        final periods = widget.controller.periods.value;
-        final evaluations = context.levit.find<EvaluationsController>();
-        _classSubjectId ??= subjects.isNotEmpty ? subjects.first.id : null;
-        _periodId ??=
-            evaluations.selectedPeriodId.value ??
-            widget.controller.defaultPeriodId() ??
-            (periods.isNotEmpty ? periods.first['id'] as String : null);
-        final selectedSubject = subjects.cast<ClassSubjectOption?>().firstWhere(
-          (entry) => entry?.id == _classSubjectId,
-          orElse: () => null,
-        );
+    return LWatch(() {
+      final subjects = widget.controller.classSubjects.value;
+      final periods = widget.controller.periods.value;
+      final evaluations = context.levit.find<EvaluationsController>();
+      _classSubjectId ??= subjects.isNotEmpty ? subjects.first.id : null;
+      _periodId ??=
+          evaluations.selectedPeriodId.value ??
+          widget.controller.defaultPeriodId() ??
+          (periods.isNotEmpty ? periods.first['id'] as String : null);
+      final selectedSubject = subjects.cast<ClassSubjectOption?>().firstWhere(
+        (entry) => entry?.id == _classSubjectId,
+        orElse: () => null,
+      );
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    context.tr.newEvaluation,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => context.pop(),
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
-            if (widget.controller.isBusy.value && subjects.isEmpty)
-              const Expanded(child: Center(child: CircularProgressIndicator()))
-            else if (subjects.isEmpty)
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
               Expanded(
-                child: Center(
-                  child: Text(context.tr.noSubjectsAssignedForYear),
-                ),
-              )
-            else ...[
-              if (periods.isNotEmpty) ...[
-                AcademicPeriodPicker(
-                  periods: periods,
-                  selectedPeriodId: _periodId,
-                  onPeriodSelected: (periodId) {
-                    setState(() => _periodId = periodId);
-                  },
-                ),
-                const SizedBox(height: 12),
-              ],
-              DropdownButtonFormField<String>(
-                initialValue: _classSubjectId,
-                decoration: InputDecoration(
-                  labelText: context.tr.classSubjectLabel,
-                  border: OutlineInputBorder(),
-                ),
-                items: [
-                  for (final subject in subjects)
-                    DropdownMenuItem(
-                      value: subject.id,
-                      child: Text(subject.label),
-                    ),
-                ],
-                onChanged: (value) => setState(() => _classSubjectId = value),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: context.tr.titleLabel,
-                  border: OutlineInputBorder(),
+                child: Text(
+                  context.tr.newEvaluation,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _maxScoreController,
-                decoration: InputDecoration(
-                  labelText: context.tr.outOfLabel,
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: _kind,
-                decoration: InputDecoration(
-                  labelText: context.tr.kindLabel,
-                  border: OutlineInputBorder(),
-                ),
-                items: [
-                  for (final kind in _kinds)
-                    DropdownMenuItem(
-                      value: kind,
-                      child: Text(_kindLabel(kind, context.tr)),
-                    ),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _kind = value);
-                  }
-                },
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Text(
-                  _error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ],
-              const Spacer(),
-              FilledButton(
-                onPressed: _saving ||
-                        selectedSubject == null ||
-                        _periodId == null
-                    ? null
-                    : _submit,
-                child: _saving
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(context.tr.createEvaluation),
+              IconButton(
+                onPressed: () => context.pop(),
+                icon: const Icon(Icons.close),
               ),
             ],
+          ),
+          if (widget.controller.isBusy.value && subjects.isEmpty)
+            const Expanded(child: Center(child: CircularProgressIndicator()))
+          else if (subjects.isEmpty)
+            Expanded(
+              child: Center(child: Text(context.tr.noSubjectsAssignedForYear)),
+            )
+          else ...[
+            if (periods.isNotEmpty) ...[
+              AcademicPeriodPicker(
+                periods: periods,
+                selectedPeriodId: _periodId,
+                onPeriodSelected: (periodId) {
+                  setState(() => _periodId = periodId);
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
+            DropdownButtonFormField<String>(
+              initialValue: _classSubjectId,
+              decoration: InputDecoration(
+                labelText: context.tr.classSubjectLabel,
+                border: OutlineInputBorder(),
+              ),
+              items: [
+                for (final subject in subjects)
+                  DropdownMenuItem(
+                    value: subject.id,
+                    child: Text(subject.label),
+                  ),
+              ],
+              onChanged: (value) => setState(() => _classSubjectId = value),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _titleController,
+              decoration: InputDecoration(
+                labelText: context.tr.titleLabel,
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _maxScoreController,
+              decoration: InputDecoration(
+                labelText: context.tr.outOfLabel,
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: _kind,
+              decoration: InputDecoration(
+                labelText: context.tr.kindLabel,
+                border: OutlineInputBorder(),
+              ),
+              items: [
+                for (final kind in _kinds)
+                  DropdownMenuItem(
+                    value: kind,
+                    child: Text(_kindLabel(kind, context.tr)),
+                  ),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() => _kind = value);
+                }
+              },
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
+            const Spacer(),
+            FilledButton(
+              onPressed: _saving || selectedSubject == null || _periodId == null
+                  ? null
+                  : _submit,
+              child: _saving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(context.tr.createEvaluation),
+            ),
           ],
-        );
-      },
-    );
+        ],
+      );
+    });
   }
 
   String _kindLabel(String kind, AppLocalizations l10n) => switch (kind) {

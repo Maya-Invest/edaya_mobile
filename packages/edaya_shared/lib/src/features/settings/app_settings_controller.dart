@@ -43,7 +43,10 @@ class AppSettingsController extends LevitController {
 
   Locale? get locale => language.value.locale;
 
-  Locale? resolveLocale(Locale? deviceLocale, Iterable<Locale> supportedLocales) {
+  Locale? resolveLocale(
+    Locale? deviceLocale,
+    Iterable<Locale> supportedLocales,
+  ) {
     final preferred = language.value.locale;
     if (preferred != null) {
       return preferred;
@@ -57,25 +60,20 @@ class AppSettingsController extends LevitController {
     );
   }
 
-  Future<void> setTheme(ThemePreference value) => _update(
-    AppSettingsStorage.cached.copyWith(theme: value),
-  );
+  Future<void> setTheme(ThemePreference value) =>
+      _update(AppSettingsStorage.cached.copyWith(theme: value));
 
-  Future<void> setLanguage(LanguagePreference value) => _update(
-    AppSettingsStorage.cached.copyWith(language: value),
-  );
+  Future<void> setLanguage(LanguagePreference value) =>
+      _update(AppSettingsStorage.cached.copyWith(language: value));
 
-  Future<void> setTimezone(AppTimezone value) => _update(
-    AppSettingsStorage.cached.copyWith(timezone: value),
-  );
+  Future<void> setTimezone(AppTimezone value) =>
+      _update(AppSettingsStorage.cached.copyWith(timezone: value));
 
-  Future<void> setDateFormat(DateFormatPreference value) => _update(
-    AppSettingsStorage.cached.copyWith(dateFormat: value),
-  );
+  Future<void> setDateFormat(DateFormatPreference value) =>
+      _update(AppSettingsStorage.cached.copyWith(dateFormat: value));
 
-  Future<void> setTimeFormat(TimeFormatPreference value) => _update(
-    AppSettingsStorage.cached.copyWith(timeFormat: value),
-  );
+  Future<void> setTimeFormat(TimeFormatPreference value) =>
+      _update(AppSettingsStorage.cached.copyWith(timeFormat: value));
 
   DateTime toDisplayTime(DateTime dateTime) {
     final local = dateTime.toLocal();

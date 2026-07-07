@@ -108,7 +108,9 @@ String isoDate(DateTime value) => value.toIso8601String().split('T').first;
 EntityQuery entitiesByIds(List<String> ids) {
   if (ids.isEmpty) {
     return {
-      'id': {'\$in': ['__no_match__']},
+      'id': {
+        '\$in': ['__no_match__'],
+      },
     };
   }
   return {
@@ -120,10 +122,7 @@ EntityQuery teacherAssignmentsQuery({
   required String teacherId,
   required String academicYearId,
 }) {
-  return {
-    'teacherId': teacherId,
-    'academicYearId': academicYearId,
-  };
+  return {'teacherId': teacherId, 'academicYearId': academicYearId};
 }
 
 EntityQuery academicPeriodsForYear(String academicYearId) {
@@ -142,20 +141,14 @@ EntityQuery activeEnrollmentsForClass(
 }
 
 EntityQuery assessmentsForClassPeriod(String classGroupId, String periodId) {
-  return {
-    'classGroupId': classGroupId,
-    'periodId': periodId,
-  };
+  return {'classGroupId': classGroupId, 'periodId': periodId};
 }
 
 EntityQuery assessmentsForClassSubjectPeriod(
   String classSubjectId,
   String periodId,
 ) {
-  return {
-    'classSubjectId': classSubjectId,
-    'periodId': periodId,
-  };
+  return {'classSubjectId': classSubjectId, 'periodId': periodId};
 }
 
 EntityQuery resultsForAssessment(String assessmentId) {
@@ -194,7 +187,9 @@ TeacherTeachingScope teachingScopeFromAssignments(
     if (kind == 'homeroom' && classGroupId != null && classGroupId.isNotEmpty) {
       classGroupIds.add(classGroupId);
     }
-    if (kind == 'subject' && classSubjectId != null && classSubjectId.isNotEmpty) {
+    if (kind == 'subject' &&
+        classSubjectId != null &&
+        classSubjectId.isNotEmpty) {
       classSubjectIds.add(classSubjectId);
     }
   }
@@ -255,7 +250,10 @@ Future<TeacherPortalContext> bootstrapTeacherPortal(
 
   final scopeFromGrants = teachingScopeFromGrants(grants);
   final scopeFromAssignments = teachingScopeFromAssignments(assignments);
-  final teachingScope = mergeTeachingScopes(scopeFromGrants, scopeFromAssignments);
+  final teachingScope = mergeTeachingScopes(
+    scopeFromGrants,
+    scopeFromAssignments,
+  );
 
   final classSubjectRows = teachingScope.classSubjectIds.isEmpty
       ? <Map<String, dynamic>>[]
@@ -350,10 +348,7 @@ Future<String?> findMaterializedLessonSessionId(
 }
 
 class PlanningDateRange {
-  const PlanningDateRange({
-    required this.startDate,
-    required this.endDate,
-  });
+  const PlanningDateRange({required this.startDate, required this.endDate});
 
   final String startDate;
   final String endDate;
@@ -610,7 +605,9 @@ Future<void> loadTimetableEnrichment(
     await client.lessonSessions.list(entitiesByIds(lessonSessionIds.toList()));
   }
   if (activitySessionIds.isNotEmpty) {
-    await client.activitySessions.list(entitiesByIds(activitySessionIds.toList()));
+    await client.activitySessions.list(
+      entitiesByIds(activitySessionIds.toList()),
+    );
   }
 
   await optionalEntityList(
@@ -623,8 +620,6 @@ Future<void> loadTimetableEnrichment(
     client.resourceAssignments.list({'classGroupId': classGroupId}),
   );
   await optionalEntityList(
-    client.teacherAssignments.list({
-      'academicYearId': academicYearId,
-    }),
+    client.teacherAssignments.list({'academicYearId': academicYearId}),
   );
 }

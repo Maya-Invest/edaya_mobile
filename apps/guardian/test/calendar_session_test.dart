@@ -19,17 +19,8 @@ void main() {
   });
 
   test('defaultCalendarDay prefers Monday on weekends', () {
-    expect(
-      defaultCalendarDay(DateTime(2026, 6, 27)),
-      DateTime(2026, 6, 22),
-    );
-    expect(
-      defaultCalendarDay(DateTime(2026, 6, 28)),
-      DateTime(2026, 6, 22),
-    );
-    expect(
-      defaultCalendarDay(DateTime(2026, 6, 25)),
-      DateTime(2026, 6, 25),
-    );
+    expect(defaultCalendarDay(DateTime(2026, 6, 27)), DateTime(2026, 6, 22));
+    expect(defaultCalendarDay(DateTime(2026, 6, 28)), DateTime(2026, 6, 22));
+    expect(defaultCalendarDay(DateTime(2026, 6, 25)), DateTime(2026, 6, 25));
   });
 }

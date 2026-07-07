@@ -69,7 +69,10 @@ class HttpTransport implements Transport {
     return base.resolve(normalized.substring(1));
   }
 
-  Future<T> _parseResponse<T>(String path, http.StreamedResponse response) async {
+  Future<T> _parseResponse<T>(
+    String path,
+    http.StreamedResponse response,
+  ) async {
     final bodyBytes = await response.stream.toBytes();
     final bodyText = utf8.decode(bodyBytes);
 

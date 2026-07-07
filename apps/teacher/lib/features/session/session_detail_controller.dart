@@ -4,7 +4,6 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
-import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../../common/utils/entity_filters.dart';
 import '../calendar/models/teacher_session.dart';
 import 'models/session_detail_models.dart';
@@ -78,30 +77,26 @@ class SessionDetailController extends LevitController
           occurrenceId: session.id,
         );
         final attendanceByStudent = {
-          for (final row in attendanceRows)
-            row['studentId'] as String: row,
+          for (final row in attendanceRows) row['studentId'] as String: row,
         };
 
-        final roster = studentRows
-            .map((row) {
-              final studentId = row['id'] as String;
-              final firstName = row['firstName'] as String? ?? '';
-              final lastName = row['lastName'] as String? ?? '';
-              final fullName = '$firstName $lastName'.trim();
-              final attendance = attendanceByStudent[studentId];
-              return SessionStudentRow(
-                studentId: studentId,
-                studentName: fullName.isEmpty ? studentId : fullName,
-                studentInitials: _initials(fullName.isEmpty ? studentId : fullName),
-                photoUrl: row['photoUrl'] as String?,
-                attendanceId: attendance?['id'] as String?,
-                status: SessionAttendanceStatus.fromApi(
-                  attendance?['status'] as String?,
-                ),
-              );
-            })
-            .toList()
-          ..sort((a, b) => a.studentName.compareTo(b.studentName));
+        final roster = studentRows.map((row) {
+          final studentId = row['id'] as String;
+          final firstName = row['firstName'] as String? ?? '';
+          final lastName = row['lastName'] as String? ?? '';
+          final fullName = '$firstName $lastName'.trim();
+          final attendance = attendanceByStudent[studentId];
+          return SessionStudentRow(
+            studentId: studentId,
+            studentName: fullName.isEmpty ? studentId : fullName,
+            studentInitials: _initials(fullName.isEmpty ? studentId : fullName),
+            photoUrl: row['photoUrl'] as String?,
+            attendanceId: attendance?['id'] as String?,
+            status: SessionAttendanceStatus.fromApi(
+              attendance?['status'] as String?,
+            ),
+          );
+        }).toList()..sort((a, b) => a.studentName.compareTo(b.studentName));
         students(roster);
 
         if (!supportsLogbook || session.classSubjectId == null) {
@@ -114,9 +109,7 @@ class SessionDetailController extends LevitController
                 session.id,
               );
               final notes = activitySession['notes'] as String?;
-              activityNotes(
-                notes != null && notes.isNotEmpty ? notes : null,
-              );
+              activityNotes(notes != null && notes.isNotEmpty ? notes : null);
             } on Object {
               activityNotes(null);
             }
@@ -191,10 +184,7 @@ class SessionDetailController extends LevitController
         students.value
             .map(
               (entry) => entry.studentId == row.studentId
-                  ? entry.copyWith(
-                      attendanceId: attendanceId,
-                      status: status,
-                    )
+                  ? entry.copyWith(attendanceId: attendanceId, status: status)
                   : entry,
             )
             .toList(),
@@ -264,8 +254,9 @@ class SessionDetailController extends LevitController
             ),
           );
         } else {
-          final progressRow =
-              await client.classSubjectProgress.get(existing!.id);
+          final progressRow = await client.classSubjectProgress.get(
+            existing!.id,
+          );
           await client.classSubjectProgress.save(
             logbook.updateProgressPayload(
               existing: progressRow,

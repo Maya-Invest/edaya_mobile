@@ -72,10 +72,8 @@ class _CalendarBody extends StatelessWidget {
         final session = daySessions[index];
         return TeacherSessionTile(
           session: session,
-          onTap: () => context.push(
-            '/calendar/session-details',
-            extra: session,
-          ),
+          onTap: () =>
+              context.push('/calendar/session-details', extra: session),
         );
       },
     );

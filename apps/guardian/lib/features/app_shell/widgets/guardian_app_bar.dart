@@ -50,61 +50,54 @@ class _GuardianAppBarContent extends StatelessWidget
         icon: const Icon(Icons.account_circle_outlined),
         onPressed: () => context.push('/account'),
       ),
-      title: LWatch(
-        () {
-          final student = studentContext.activeStudent.value;
-          final classLabel = studentContext.classLabel.value;
-          final isLoading = studentContext.isLoading.value;
+      title: LWatch(() {
+        final student = studentContext.activeStudent.value;
+        final classLabel = studentContext.classLabel.value;
+        final isLoading = studentContext.isLoading.value;
 
-          if (isLoading && student == null) {
-            return Text(context.tr.loading);
-          }
+        if (isLoading && student == null) {
+          return Text(context.tr.loading);
+        }
 
-          if (student == null) {
-            return Text(context.tr.selectAStudent);
-          }
+        if (student == null) {
+          return Text(context.tr.selectAStudent);
+        }
 
-          final subtitle = classLabel ?? context.tr.notEnrolled;
-          return Row(
-            children: [
-              PersonAvatar(
-                name: student.fullName,
-                initials: student.initials,
-                photoUrl: student.photoUrl,
-                radius: 18,
+        final subtitle = classLabel ?? context.tr.notEnrolled;
+        return Row(
+          children: [
+            PersonAvatar(
+              name: student.fullName,
+              initials: student.initials,
+              photoUrl: student.photoUrl,
+              radius: 18,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    student.fullName,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+                ],
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      student.fullName,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    Text(
-                      subtitle,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
-      ),
+            ),
+          ],
+        );
+      }),
       actions: [
-        LWatch(
-          () {
-            final yearLabel =
-                academicYear.selectedYearLabel ?? context.tr.schoolYear;
-            return TextButton.icon(
-              onPressed: () => context.push('/academic-year-picker'),
-              icon: const Icon(Icons.expand_more, size: 18),
-              label: Text(yearLabel),
-            );
-          },
-        ),
+        LWatch(() {
+          final yearLabel =
+              academicYear.selectedYearLabel ?? context.tr.schoolYear;
+          return TextButton.icon(
+            onPressed: () => context.push('/academic-year-picker'),
+            icon: const Icon(Icons.expand_more, size: 18),
+            label: Text(yearLabel),
+          );
+        }),
         IconButton(
           tooltip: context.tr.tooltipMyStudents,
           icon: const Icon(Icons.people_outline),
@@ -114,4 +107,3 @@ class _GuardianAppBarContent extends StatelessWidget
     );
   }
 }
-

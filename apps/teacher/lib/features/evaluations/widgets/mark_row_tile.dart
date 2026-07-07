@@ -4,11 +4,7 @@ import 'package:flutter/material.dart';
 import '../models/evaluation_models.dart';
 
 class MarkRowTile extends StatelessWidget {
-  const MarkRowTile({
-    super.key,
-    required this.row,
-    required this.onEditScore,
-  });
+  const MarkRowTile({super.key, required this.row, required this.onEditScore});
 
   final StudentMarkRow row;
   final VoidCallback onEditScore;

@@ -32,37 +32,35 @@ class _ReportCardsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LWatch(
-      () {
-        final periods = controller.periods;
-        final summaries = controller.classSummaries.value;
+    return LWatch(() {
+      final periods = controller.periods;
+      final summaries = controller.classSummaries.value;
 
-        return ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          children: [
-            if (periods.isNotEmpty) ...[
-              AcademicPeriodPicker(
-                periods: periods,
-                selectedPeriodId: controller.selectedPeriodId,
-                onPeriodSelected: controller.selectPeriod,
-              ),
-              const SizedBox(height: 16),
-            ],
-            if (summaries.isEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 32),
-                child: Center(child: Text(controller.emptyMessage)),
-              )
-            else
-              for (var index = 0; index < summaries.length; index++) ...[
-                if (index > 0) const SizedBox(height: 8),
-                _ReportCardClassCard(summary: summaries[index]),
-              ],
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        children: [
+          if (periods.isNotEmpty) ...[
+            AcademicPeriodPicker(
+              periods: periods,
+              selectedPeriodId: controller.selectedPeriodId,
+              onPeriodSelected: controller.selectPeriod,
+            ),
+            const SizedBox(height: 16),
           ],
-        );
-      },
-    );
+          if (summaries.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 32),
+              child: Center(child: Text(controller.emptyMessage)),
+            )
+          else
+            for (var index = 0; index < summaries.length; index++) ...[
+              if (index > 0) const SizedBox(height: 8),
+              _ReportCardClassCard(summary: summaries[index]),
+            ],
+        ],
+      );
+    });
   }
 }
 
@@ -90,7 +88,9 @@ class _ReportCardClassCard extends StatelessWidget {
             ? null
             : () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(context.tr.reportCardRosterComingSoon)),
+                  SnackBar(
+                    content: Text(context.tr.reportCardRosterComingSoon),
+                  ),
                 );
               },
       ),

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
-import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
 import 'academic_data.dart';
@@ -26,7 +25,9 @@ class AcademicController extends LevitController with LevitReactiveTasksMixin {
 
   final selectedTab = LxVar(AcademicDetailTab.progress);
   final selectedClassSubjectId = LxVar<String?>(null);
-  final classSubjectOptions = LxVar<List<CurriculumClassSubjectOption>>(const []);
+  final classSubjectOptions = LxVar<List<CurriculumClassSubjectOption>>(
+    const [],
+  );
   final progressOverview = LxVar<CurriculumProgressOverview?>(null);
   final logbookEntries = LxVar<List<CurriculumLogEntry>>(const []);
   final errorMessage = LxVar('');
@@ -144,8 +145,8 @@ class AcademicController extends LevitController with LevitReactiveTasksMixin {
         classSubjectOptions(options);
 
         final currentId = selectedClassSubjectId.value;
-        final resolvedId = currentId != null &&
-                options.any((option) => option.id == currentId)
+        final resolvedId =
+            currentId != null && options.any((option) => option.id == currentId)
             ? currentId
             : options.firstOrNull?.id;
         selectedClassSubjectId(resolvedId);
@@ -172,9 +173,7 @@ class AcademicController extends LevitController with LevitReactiveTasksMixin {
     final classLabel = _studentContext.classLabel.value;
     final classSubjectId = selectedClassSubjectId.value;
 
-    if (classGroupId == null ||
-        classLabel == null ||
-        classSubjectId == null) {
+    if (classGroupId == null || classLabel == null || classSubjectId == null) {
       progressOverview(null);
       logbookEntries(const []);
       return;

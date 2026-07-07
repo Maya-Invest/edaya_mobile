@@ -47,47 +47,45 @@ class _AcademicBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LWatch(
-      () {
-        final tab = controller.selectedTab.value;
-        return Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: _SubjectSelector(controller: controller),
+    return LWatch(() {
+      final tab = controller.selectedTab.value;
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: _SubjectSelector(controller: controller),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SegmentedButton<AcademicDetailTab>(
+              segments: [
+                ButtonSegment(
+                  value: AcademicDetailTab.progress,
+                  label: Text(context.tr.teachingProgressTab),
+                  icon: const Icon(Icons.insights_outlined),
+                ),
+                ButtonSegment(
+                  value: AcademicDetailTab.logbook,
+                  label: Text(context.tr.teachingLogbookTab),
+                  icon: const Icon(Icons.menu_book_outlined),
+                ),
+              ],
+              selected: {tab},
+              onSelectionChanged: (selection) {
+                controller.selectTab(selection.first);
+              },
             ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: SegmentedButton<AcademicDetailTab>(
-                segments: [
-                  ButtonSegment(
-                    value: AcademicDetailTab.progress,
-                    label: Text(context.tr.teachingProgressTab),
-                    icon: const Icon(Icons.insights_outlined),
-                  ),
-                  ButtonSegment(
-                    value: AcademicDetailTab.logbook,
-                    label: Text(context.tr.teachingLogbookTab),
-                    icon: const Icon(Icons.menu_book_outlined),
-                  ),
-                ],
-                selected: {tab},
-                onSelectionChanged: (selection) {
-                  controller.selectTab(selection.first);
-                },
-              ),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: tab == AcademicDetailTab.progress
-                  ? _ProgressTab(controller: controller)
-                  : _LogbookTab(controller: controller),
-            ),
-          ],
-        );
-      },
-    );
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: tab == AcademicDetailTab.progress
+                ? _ProgressTab(controller: controller)
+                : _LogbookTab(controller: controller),
+          ),
+        ],
+      );
+    });
   }
 }
 
@@ -98,28 +96,23 @@ class _SubjectSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LWatch(
-      () {
-        final subjects = controller.classSubjectOptions.value;
-        final selectedSubjectId = controller.selectedClassSubjectId.value;
+    return LWatch(() {
+      final subjects = controller.classSubjectOptions.value;
+      final selectedSubjectId = controller.selectedClassSubjectId.value;
 
-        return DropdownButtonFormField<String>(
-          initialValue: selectedSubjectId,
-          decoration: InputDecoration(
-            labelText: context.tr.classSubjectLabel,
-            border: const OutlineInputBorder(),
-          ),
-          items: [
-            for (final subject in subjects)
-              DropdownMenuItem(
-                value: subject.id,
-                child: Text(subject.label),
-              ),
-          ],
-          onChanged: subjects.isEmpty ? null : controller.selectSubject,
-        );
-      },
-    );
+      return DropdownButtonFormField<String>(
+        initialValue: selectedSubjectId,
+        decoration: InputDecoration(
+          labelText: context.tr.classSubjectLabel,
+          border: const OutlineInputBorder(),
+        ),
+        items: [
+          for (final subject in subjects)
+            DropdownMenuItem(value: subject.id, child: Text(subject.label)),
+        ],
+        onChanged: subjects.isEmpty ? null : controller.selectSubject,
+      );
+    });
   }
 }
 
@@ -130,47 +123,47 @@ class _ProgressTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LWatch(
-      () {
-        final overview = controller.progressOverview.value;
-        if (overview == null) {
-          return ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Center(child: Text(controller.emptyMessage)),
-              ),
-            ],
-          );
-        }
-
+    return LWatch(() {
+      final overview = controller.progressOverview.value;
+      if (overview == null) {
         return ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
           children: [
-            Text(
-              context.tr.percentComplete(overview.classSubjectCompletedPercentage),
-              style: Theme.of(context).textTheme.titleSmall,
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Center(child: Text(controller.emptyMessage)),
             ),
-            const SizedBox(height: 8),
-            LinearProgressIndicator(
-              value: overview.classSubjectCompletedPercentage / 100,
-              minHeight: 8,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            const SizedBox(height: 16),
-            if (overview.matters.isEmpty)
-              Text(controller.emptyMessage)
-            else
-              for (final matter in overview.matters) ...[
-                _MatterCard(matter: matter),
-                const SizedBox(height: 8),
-              ],
           ],
         );
-      },
-    );
+      }
+
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text(
+            context.tr.percentComplete(
+              overview.classSubjectCompletedPercentage,
+            ),
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(
+            value: overview.classSubjectCompletedPercentage / 100,
+            minHeight: 8,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          const SizedBox(height: 16),
+          if (overview.matters.isEmpty)
+            Text(controller.emptyMessage)
+          else
+            for (final matter in overview.matters) ...[
+              _MatterCard(matter: matter),
+              const SizedBox(height: 8),
+            ],
+        ],
+      );
+    });
   }
 }
 
@@ -222,7 +215,10 @@ class _MatterCard extends StatelessWidget {
     );
   }
 
-  String _matterStatusLabel(BuildContext context, CurriculumMatterStatus status) {
+  String _matterStatusLabel(
+    BuildContext context,
+    CurriculumMatterStatus status,
+  ) {
     return switch (status) {
       CurriculumMatterStatus.notStarted => context.tr.matterStatusNotStarted,
       CurriculumMatterStatus.inProgress => context.tr.matterStatusInProgress,
@@ -238,36 +234,34 @@ class _LogbookTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LWatch(
-      () {
-        final entries = controller.logbookEntries.value;
-        if (entries.isEmpty) {
-          return ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Center(child: Text(controller.emptyMessage)),
-              ),
-            ],
-          );
-        }
-
-        return ListView.separated(
+    return LWatch(() {
+      final entries = controller.logbookEntries.value;
+      if (entries.isEmpty) {
+        return ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          itemCount: entries.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 8),
-          itemBuilder: (context, index) {
-            final entry = entries[index];
-            return _LogbookCard(
-              entry: entry,
-              onTap: () => _openSession(context, entry),
-            );
-          },
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Center(child: Text(controller.emptyMessage)),
+            ),
+          ],
         );
-      },
-    );
+      }
+
+      return ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        itemCount: entries.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 8),
+        itemBuilder: (context, index) {
+          final entry = entries[index];
+          return _LogbookCard(
+            entry: entry,
+            onTap: () => _openSession(context, entry),
+          );
+        },
+      );
+    });
   }
 
   void _openSession(BuildContext context, CurriculumLogEntry entry) {
@@ -287,10 +281,7 @@ class _LogbookTab extends StatelessWidget {
 }
 
 class _LogbookCard extends StatelessWidget {
-  const _LogbookCard({
-    required this.entry,
-    required this.onTap,
-  });
+  const _LogbookCard({required this.entry, required this.onTap});
 
   final CurriculumLogEntry entry;
   final VoidCallback onTap;

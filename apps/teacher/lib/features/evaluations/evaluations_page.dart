@@ -55,26 +55,19 @@ class _EvaluationsBody extends StatelessWidget {
             padding: const EdgeInsets.only(top: 32),
             child: Center(child: Text(controller.emptyMessage)),
           )
-        else
-          ...[
-            for (var index = 0; index < items.length; index++) ...[
-              if (index > 0) const SizedBox(height: 8),
-              _EvaluationCard(
-                controller: controller,
-                evaluation: items[index],
-              ),
-            ],
+        else ...[
+          for (var index = 0; index < items.length; index++) ...[
+            if (index > 0) const SizedBox(height: 8),
+            _EvaluationCard(controller: controller, evaluation: items[index]),
           ],
+        ],
       ],
     );
   }
 }
 
 class _EvaluationCard extends StatelessWidget {
-  const _EvaluationCard({
-    required this.controller,
-    required this.evaluation,
-  });
+  const _EvaluationCard({required this.controller, required this.evaluation});
 
   final EvaluationsController controller;
   final EvaluationSummary evaluation;

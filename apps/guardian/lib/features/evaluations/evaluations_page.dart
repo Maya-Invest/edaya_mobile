@@ -28,58 +28,54 @@ class EvaluationsPage extends LScopedView<EvaluationsController> {
 
   @override
   Widget buildView(BuildContext context, EvaluationsController controller) {
-    return LWatch(
-      () {
-        final status = controller.dataStatus;
+    return LWatch(() {
+      final status = controller.dataStatus;
 
-        return DataState(
-          status: status,
-          errorMessage: controller.errorMessage.value,
-          emptyMessage: controller.emptyMessage,
-          onRetry: controller.reloadData,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: SegmentedButton<EvaluationsView>(
-                  segments: [
-                    ButtonSegment(
-                      value: EvaluationsView.grades,
-                      label: Text(context.tr.academicViewGrades),
-                      icon: const Icon(Icons.grade_outlined),
-                    ),
-                    ButtonSegment(
-                      value: EvaluationsView.reportCards,
-                      label: Text(context.tr.academicViewReports),
-                      icon: const Icon(Icons.description_outlined),
-                    ),
-                  ],
-                  selected: {controller.view.value},
-                  onSelectionChanged: (selection) {
-                    controller.selectView(selection.first);
-                  },
-                ),
-              ),
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: controller.reloadData,
-                  child: LWatch(
-                    () {
-                      switch (controller.view.value) {
-                        case EvaluationsView.grades:
-                          return _GradesBody(controller: controller);
-                        case EvaluationsView.reportCards:
-                          return _ReportCardsBody(controller: controller);
-                      }
-                    },
+      return DataState(
+        status: status,
+        errorMessage: controller.errorMessage.value,
+        emptyMessage: controller.emptyMessage,
+        onRetry: controller.reloadData,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: SegmentedButton<EvaluationsView>(
+                segments: [
+                  ButtonSegment(
+                    value: EvaluationsView.grades,
+                    label: Text(context.tr.academicViewGrades),
+                    icon: const Icon(Icons.grade_outlined),
                   ),
-                ),
+                  ButtonSegment(
+                    value: EvaluationsView.reportCards,
+                    label: Text(context.tr.academicViewReports),
+                    icon: const Icon(Icons.description_outlined),
+                  ),
+                ],
+                selected: {controller.view.value},
+                onSelectionChanged: (selection) {
+                  controller.selectView(selection.first);
+                },
               ),
-            ],
-          ),
-        );
-      },
-    );
+            ),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: controller.reloadData,
+                child: LWatch(() {
+                  switch (controller.view.value) {
+                    case EvaluationsView.grades:
+                      return _GradesBody(controller: controller);
+                    case EvaluationsView.reportCards:
+                      return _ReportCardsBody(controller: controller);
+                  }
+                }),
+              ),
+            ),
+          ],
+        ),
+      );
+    });
   }
 }
 
@@ -90,51 +86,49 @@ class _GradesBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LWatch(
-      () {
-        final periods = controller.periods.value;
-        final groups = controller.filteredGradeGroups;
-        final totalCount = groups.fold<int>(
-          0,
-          (count, group) => count + group.entries.length,
-        );
+    return LWatch(() {
+      final periods = controller.periods.value;
+      final groups = controller.filteredGradeGroups;
+      final totalCount = groups.fold<int>(
+        0,
+        (count, group) => count + group.entries.length,
+      );
 
-        return ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          children: [
-            if (periods.isNotEmpty) ...[
-              AcademicPeriodPicker(
-                periods: periods,
-                selectedPeriodId: controller.selectedPeriodId.value,
-                onPeriodSelected: controller.selectPeriod,
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        children: [
+          if (periods.isNotEmpty) ...[
+            AcademicPeriodPicker(
+              periods: periods,
+              selectedPeriodId: controller.selectedPeriodId.value,
+              onPeriodSelected: controller.selectPeriod,
+            ),
+            const SizedBox(height: 16),
+          ],
+          if (groups.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 32),
+              child: Center(child: Text(controller.emptyMessage)),
+            )
+          else ...[
+            GradeSummaryCards(
+              overallAverage: controller.overallAverage,
+              gradedCount: controller.gradedCount,
+              totalCount: totalCount,
+            ),
+            const SizedBox(height: 12),
+            for (final group in groups) ...[
+              SubjectGradeGroupTile(
+                group: group,
+                onGradeTap: (entry) => _openGradeDetails(context, entry),
               ),
-              const SizedBox(height: 16),
-            ],
-            if (groups.isEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 32),
-                child: Center(child: Text(controller.emptyMessage)),
-              )
-            else ...[
-              GradeSummaryCards(
-                overallAverage: controller.overallAverage,
-                gradedCount: controller.gradedCount,
-                totalCount: totalCount,
-              ),
-              const SizedBox(height: 12),
-              for (final group in groups) ...[
-                SubjectGradeGroupTile(
-                  group: group,
-                  onGradeTap: (entry) => _openGradeDetails(context, entry),
-                ),
-                const SizedBox(height: 8),
-              ],
+              const SizedBox(height: 8),
             ],
           ],
-        );
-      },
-    );
+        ],
+      );
+    });
   }
 
   void _openGradeDetails(BuildContext context, GradeEntry entry) {
@@ -149,31 +143,29 @@ class _ReportCardsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LWatch(
-      () {
-        final cards = controller.filteredReportCards;
+    return LWatch(() {
+      final cards = controller.filteredReportCards;
 
-        return ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          children: [
-            if (cards.isEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 32),
-                child: Center(child: Text(controller.emptyMessage)),
-              )
-            else
-              for (var index = 0; index < cards.length; index++) ...[
-                if (index > 0) const SizedBox(height: 8),
-                ReportCardTile(
-                  reportCard: cards[index],
-                  onTap: () => _openReportCardDetails(context, cards[index]),
-                ),
-              ],
-          ],
-        );
-      },
-    );
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        children: [
+          if (cards.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 32),
+              child: Center(child: Text(controller.emptyMessage)),
+            )
+          else
+            for (var index = 0; index < cards.length; index++) ...[
+              if (index > 0) const SizedBox(height: 8),
+              ReportCardTile(
+                reportCard: cards[index],
+                onTap: () => _openReportCardDetails(context, cards[index]),
+              ),
+            ],
+        ],
+      );
+    });
   }
 
   void _openReportCardDetails(BuildContext context, ReportCardSummary card) {

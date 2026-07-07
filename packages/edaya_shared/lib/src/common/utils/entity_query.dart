@@ -5,7 +5,9 @@ typedef EntityQuery = Map<String, dynamic>;
 EntityQuery entitiesByIds(List<String> ids) {
   if (ids.isEmpty) {
     return {
-      'id': {'\$in': ['__no_match__']},
+      'id': {
+        '\$in': ['__no_match__'],
+      },
     };
   }
 
@@ -43,7 +45,9 @@ EntityQuery sessionScope(String sessionId) {
 EntityQuery recordsForField(String field, List<String> ids) {
   if (ids.isEmpty) {
     return {
-      field: {'\$in': ['__no_match__']},
+      field: {
+        '\$in': ['__no_match__'],
+      },
     };
   }
   return {

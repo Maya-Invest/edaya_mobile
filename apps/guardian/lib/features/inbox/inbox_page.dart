@@ -22,22 +22,20 @@ class InboxPage extends LScopedView<InboxController> {
 
   @override
   Widget buildView(BuildContext context, InboxController controller) {
-    return LWatch(
-      () {
-        final status = controller.dataStatus;
+    return LWatch(() {
+      final status = controller.dataStatus;
 
-        return DataState(
-          status: status,
-          errorMessage: controller.errorMessage.value,
-          emptyMessage: controller.emptyMessage,
-          onRetry: controller.loadInbox,
-          child: RefreshIndicator(
-            onRefresh: controller.loadInbox,
-            child: _InboxBody(controller: controller),
-          ),
-        );
-      },
-    );
+      return DataState(
+        status: status,
+        errorMessage: controller.errorMessage.value,
+        emptyMessage: controller.emptyMessage,
+        onRetry: controller.loadInbox,
+        child: RefreshIndicator(
+          onRefresh: controller.loadInbox,
+          child: _InboxBody(controller: controller),
+        ),
+      );
+    });
   }
 }
 

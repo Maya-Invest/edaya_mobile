@@ -52,10 +52,7 @@ Widget _attendanceFlowApp({
       GlobalCupertinoLocalizations.delegate,
     ],
     supportedLocales: AppLocalizations.supportedLocales,
-    home: AttendanceFlowPage(
-      session: session,
-      controller: controller,
-    ),
+    home: AttendanceFlowPage(session: session, controller: controller),
   );
 }
 
@@ -101,10 +98,7 @@ void main() {
       schoolClient: _unimplementedSchoolClient,
     );
 
-    final args = AttendanceFlowArgs(
-      session: session,
-      controller: controller,
-    );
+    final args = AttendanceFlowArgs(session: session, controller: controller);
 
     expect(identical(args.controller, controller), isTrue);
   });

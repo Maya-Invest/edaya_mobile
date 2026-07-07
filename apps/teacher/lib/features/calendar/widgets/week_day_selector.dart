@@ -146,9 +146,9 @@ class _DayChip extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: foreground,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.labelSmall?.copyWith(color: foreground),
               ),
               const SizedBox(height: 4),
               Text(

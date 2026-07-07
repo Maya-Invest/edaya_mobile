@@ -34,17 +34,17 @@ Future<void> main(List<String> args) async {
 
   final bindingsPath = options.bindingsPath;
   if (bindingsPath != null) {
-    await File(bindingsPath).writeAsString(
-      const JsonEncoder.withIndent('  ').convert(bindings),
-    );
+    await File(
+      bindingsPath,
+    ).writeAsString(const JsonEncoder.withIndent('  ').convert(bindings));
   }
 
-  await File('${outputDir.path}/client_bindings.dart').writeAsString(
-    _generateBindingsDart(bindings),
-  );
-  await File('${outputDir.path}/school_client_surface.dart').writeAsString(
-    _generateSurfaceDart(bindings),
-  );
+  await File(
+    '${outputDir.path}/client_bindings.dart',
+  ).writeAsString(_generateBindingsDart(bindings));
+  await File(
+    '${outputDir.path}/school_client_surface.dart',
+  ).writeAsString(_generateSurfaceDart(bindings));
 
   stdout.writeln('Dart API client bindings generated at ${outputDir.path}');
 }
@@ -400,14 +400,16 @@ String _generateBindingsDart(Map<String, dynamic> bindings) {
   final commands = _stringMap(bindings['commands'], 'publicName');
   final queries = _stringMap(bindings['queries'], 'publicName');
 
-  final entityEntries = entities.entries.map((entry) {
-    final binding = entry.value;
-    return '''    ${_dartString(entry.key)}: EntityBinding(
+  final entityEntries = entities.entries
+      .map((entry) {
+        final binding = entry.value;
+        return '''    ${_dartString(entry.key)}: EntityBinding(
       publicName: ${_dartString(binding['publicName'] as String)},
       schemaName: ${_dartString(binding['schemaName'] as String)},
       allowDirectSave: ${binding['allowDirectSave'] == true},
     ),''';
-  }).join('\n');
+      })
+      .join('\n');
 
   final commandEntries = commands.entries
       .map(
@@ -459,21 +461,22 @@ String _generateSurfaceDart(Map<String, dynamic> bindings) {
 
   final entityGetters = entities.keys
       .map(
-        (key) =>
-            '  EntityResource get $key => entities[${_dartString(key)}]!;',
+        (key) => '  EntityResource get $key => entities[${_dartString(key)}]!;',
       )
       .join('\n\n');
 
   final commandMethods = commands.entries
       .map(
-        (entry) => '''  Future<Map<String, dynamic>> ${entry.key}(Map<String, dynamic> payload) =>
+        (entry) =>
+            '''  Future<Map<String, dynamic>> ${entry.key}(Map<String, dynamic> payload) =>
       runCommand(${_dartString(entry.value)}, payload);''',
       )
       .join('\n\n');
 
   final queryMethods = queries.entries
       .map(
-        (entry) => '''  Future<Map<String, dynamic>> ${entry.key}(Map<String, dynamic> payload) =>
+        (entry) =>
+            '''  Future<Map<String, dynamic>> ${entry.key}(Map<String, dynamic> payload) =>
       runQuery(${_dartString(entry.value)}, payload);''',
       )
       .join('\n\n');
@@ -501,14 +504,12 @@ Map<String, Map<String, dynamic>> _entityMap(Object? value) {
     throw StateError('Bindings entities must be a JSON object');
   }
 
-  return value.map(
-    (key, binding) {
-      if (binding is! Map<String, dynamic>) {
-        throw StateError('Entity binding for $key must be a JSON object');
-      }
-      return MapEntry(key, binding);
-    },
-  );
+  return value.map((key, binding) {
+    if (binding is! Map<String, dynamic>) {
+      throw StateError('Entity binding for $key must be a JSON object');
+    }
+    return MapEntry(key, binding);
+  });
 }
 
 Map<String, String> _stringMap(Object? value, String fieldName) {
@@ -516,18 +517,16 @@ Map<String, String> _stringMap(Object? value, String fieldName) {
     throw StateError('Bindings section must be a JSON object');
   }
 
-  return value.map(
-    (key, binding) {
-      if (binding is! Map<String, dynamic>) {
-        throw StateError('Binding for $key must be a JSON object');
-      }
-      final fieldValue = binding[fieldName];
-      if (fieldValue is! String) {
-        throw StateError('Binding for $key is missing $fieldName');
-      }
-      return MapEntry(key, fieldValue);
-    },
-  );
+  return value.map((key, binding) {
+    if (binding is! Map<String, dynamic>) {
+      throw StateError('Binding for $key must be a JSON object');
+    }
+    final fieldValue = binding[fieldName];
+    if (fieldValue is! String) {
+      throw StateError('Binding for $key is missing $fieldName');
+    }
+    return MapEntry(key, fieldValue);
+  });
 }
 
 String _dartString(String value) => jsonEncode(value);

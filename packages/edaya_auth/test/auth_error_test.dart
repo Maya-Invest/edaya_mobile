@@ -4,7 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('normalizeAuthErrorMessage maps wasm abort failures', () {
     expect(
-      normalizeAuthErrorMessage('Aborted(). Build with -sASSERTIONS for more info.'),
+      normalizeAuthErrorMessage(
+        'Aborted(). Build with -sASSERTIONS for more info.',
+      ),
       contains('bun repo seed'),
     );
   });

@@ -49,8 +49,8 @@ List<SessionSubjectMatterOption> buildSessionSubjectMatters({
       row['classSubjectMatterId'] as String: row,
   };
 
-  final options = matterLinks
-      .map((link) {
+  final options =
+      matterLinks.map((link) {
         final linkId = link['id'] as String;
         final subjectMatterId = link['subjectMatterId'] as String;
         final progressRow = progressByMatterId[linkId];
@@ -65,16 +65,13 @@ List<SessionSubjectMatterOption> buildSessionSubjectMatters({
           cumulativePercentage: cumulative,
           sessionProgress: parseSessionMatterProgress(progressRow),
         );
-      })
-      .toList()
-    ..sort((left, right) {
-      final orderCompare =
-          left.sequenceOrder.compareTo(right.sequenceOrder);
-      if (orderCompare != 0) {
-        return orderCompare;
-      }
-      return left.name.compareTo(right.name);
-    });
+      }).toList()..sort((left, right) {
+        final orderCompare = left.sequenceOrder.compareTo(right.sequenceOrder);
+        if (orderCompare != 0) {
+          return orderCompare;
+        }
+        return left.name.compareTo(right.name);
+      });
 
   return options;
 }
@@ -131,7 +128,7 @@ Map<String, dynamic> recordLessonProgressPayload({
     'classSubjectMatterId': classSubjectMatterId,
     'lessonSessionId': lessonSessionId,
     'completedPercentage': completedPercentage,
-    if (normalizedNotes != null) 'notes': normalizedNotes,
+    'notes': ?normalizedNotes,
     'recordedAt': recordedAt.toUtc().toIso8601String(),
   };
 }

@@ -29,11 +29,7 @@ class CurriculumProgressTile extends StatelessWidget {
           ],
         ),
         children: subject.units.isEmpty
-            ? [
-                ListTile(
-                  title: Text(l10n.noProgrammeUnitsTracked),
-                ),
-              ]
+            ? [ListTile(title: Text(l10n.noProgrammeUnitsTracked))]
             : [
                 for (final unit in subject.units)
                   ListTile(

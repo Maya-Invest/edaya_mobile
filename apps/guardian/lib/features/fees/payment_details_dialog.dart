@@ -18,10 +18,7 @@ class PaymentDetailsDialog extends LScopedView<PaymentDetailsController> {
   }
 
   @override
-  Widget buildView(
-    BuildContext context,
-    PaymentDetailsController controller,
-  ) {
+  Widget buildView(BuildContext context, PaymentDetailsController controller) {
     final payment = controller.payment;
     final l10n = context.tr;
 
@@ -64,10 +61,7 @@ class PaymentDetailsDialog extends LScopedView<PaymentDetailsController> {
               _DetailRow(label: l10n.reference, value: payment.reference!),
             if (payment.notes != null && payment.notes!.isNotEmpty) ...[
               const SizedBox(height: 12),
-              Text(
-                l10n.notes,
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
+              Text(l10n.notes, style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 4),
               Text(payment.notes!),
             ],
@@ -91,10 +85,7 @@ class _DetailRow extends StatelessWidget {
       child: Row(
         children: [
           Expanded(child: Text(label)),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
+          Text(value, style: Theme.of(context).textTheme.titleSmall),
         ],
       ),
     );

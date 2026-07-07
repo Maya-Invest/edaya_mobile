@@ -18,20 +18,14 @@ class FeesSummaryCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.summary,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text(l10n.summary, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
                   child: _Metric(
                     label: l10n.expected,
-                    value: formatMoney(
-                      summary.totalExpected,
-                      summary.currency,
-                    ),
+                    value: formatMoney(summary.totalExpected, summary.currency),
                   ),
                 ),
                 Expanded(
@@ -43,10 +37,7 @@ class FeesSummaryCard extends StatelessWidget {
                 Expanded(
                   child: _Metric(
                     label: l10n.balance,
-                    value: formatMoney(
-                      summary.totalBalance,
-                      summary.currency,
-                    ),
+                    value: formatMoney(summary.totalBalance, summary.currency),
                   ),
                 ),
               ],

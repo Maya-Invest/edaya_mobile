@@ -24,14 +24,17 @@ melos:
       runPubGetInParallel: true
   scripts:
     analyze:
-      exec: dart analyze .
-      description: Run static analysis in all packages.
+      exec: dart analyze lib test
+      description: Run static analysis on lib/ and test/ (skips build artifacts).
     test:
       exec: flutter test
       description: Run tests in all Flutter apps.
     format:
-      exec: dart format .
-      description: Format Dart source in all packages.
+      exec: dart format lib test
+      description: Format Dart source in lib/ and test/ (skips build artifacts).
+    fix:
+      exec: bash ../../scripts/dart-fix-package.sh
+      description: Apply automated dart fix suggestions in lib/ and test/.
     generated:update:
       run: bash scripts/generate-api-bindings.sh
       description: Regenerate edaya_api_client bindings from an OpenAPI document.

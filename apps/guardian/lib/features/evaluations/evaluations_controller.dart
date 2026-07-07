@@ -4,7 +4,6 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
-import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../../common/utils/entity_filters.dart';
 import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
@@ -14,7 +13,8 @@ import '../../common/utils/academic_period.dart';
 
 enum EvaluationsView { grades, reportCards }
 
-class EvaluationsController extends LevitController with LevitReactiveTasksMixin {
+class EvaluationsController extends LevitController
+    with LevitReactiveTasksMixin {
   EvaluationsController({
     required StudentContextController studentContext,
     required AcademicYearController academicYear,
@@ -228,8 +228,8 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
           };
           final subjectNameByClassSubjectId = {
             for (final classSubject in classSubjectRows)
-              classSubject['id'] as String: subjectNameById[
-                      classSubject['subjectId'] as String] ??
+              classSubject['id'] as String:
+                  subjectNameById[classSubject['subjectId'] as String] ??
                   classSubject['subjectId'] as String,
           };
 
@@ -262,7 +262,8 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
               GradeEntry.fromMaps(
                 result: result,
                 assessment: assessment,
-                subjectName: subjectNameByClassSubjectId[classSubjectId] ??
+                subjectName:
+                    subjectNameByClassSubjectId[classSubjectId] ??
                     systemL10n().subjectFallback,
                 periodName:
                     periodNameById[assessment['periodId'] as String?] ??
@@ -290,18 +291,19 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
           for (final entry in entries) {
             grouped.putIfAbsent(entry.subjectName, () => []).add(entry);
           }
-          final groups = grouped.entries
-              .map(
-                (entry) => SubjectGradeGroup(
-                  subjectName: entry.key,
-                  entries: entry.value,
-                  average: _weightedAverage(
-                    entry.value.where((grade) => grade.hasScore),
-                  ),
-                ),
-              )
-              .toList()
-            ..sort((a, b) => a.subjectName.compareTo(b.subjectName));
+          final groups =
+              grouped.entries
+                  .map(
+                    (entry) => SubjectGradeGroup(
+                      subjectName: entry.key,
+                      entries: entry.value,
+                      average: _weightedAverage(
+                        entry.value.where((grade) => grade.hasScore),
+                      ),
+                    ),
+                  )
+                  .toList()
+                ..sort((a, b) => a.subjectName.compareTo(b.subjectName));
 
           gradeGroups(groups);
         }
@@ -373,21 +375,20 @@ class EvaluationsController extends LevitController with LevitReactiveTasksMixin
       }
     }
 
-    return bestByPeriod.values.toList()
-      ..sort((a, b) {
-        final aDate = a.publishedAt;
-        final bDate = b.publishedAt;
-        if (aDate == null && bDate == null) {
-          return b.periodName.compareTo(a.periodName);
-        }
-        if (aDate == null) {
-          return 1;
-        }
-        if (bDate == null) {
-          return -1;
-        }
-        return bDate.compareTo(aDate);
-      });
+    return bestByPeriod.values.toList()..sort((a, b) {
+      final aDate = a.publishedAt;
+      final bDate = b.publishedAt;
+      if (aDate == null && bDate == null) {
+        return b.periodName.compareTo(a.periodName);
+      }
+      if (aDate == null) {
+        return 1;
+      }
+      if (bDate == null) {
+        return -1;
+      }
+      return bDate.compareTo(aDate);
+    });
   }
 }
 
@@ -466,8 +467,8 @@ class ReportCardDetailsController extends LevitController
 
     return {
       for (final classSubject in classSubjectRows)
-        classSubject['id'] as String: subjectNameById[
-                classSubject['subjectId'] as String] ??
+        classSubject['id'] as String:
+            subjectNameById[classSubject['subjectId'] as String] ??
             classSubject['subjectId'] as String,
     };
   }

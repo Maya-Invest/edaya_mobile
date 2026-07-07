@@ -101,10 +101,7 @@ EntityQuery activeEnrollmentForStudent({
 }
 
 EntityQuery publishedReportCardsForStudent(String studentId) {
-  return {
-    'studentId': studentId,
-    'status': 'published',
-  };
+  return {'studentId': studentId, 'status': 'published'};
 }
 
 EntityQuery studentFeesForStudent(String studentId) {
@@ -134,7 +131,9 @@ EntityQuery academicYearScope(String academicYearId) {
 EntityQuery recordsForField(String field, List<String> ids) {
   if (ids.isEmpty) {
     return {
-      field: {'\$in': ['__no_match__']},
+      field: {
+        '\$in': ['__no_match__'],
+      },
     };
   }
   return {
@@ -146,7 +145,9 @@ Future<List<String>> loadGuardianLinkedStudentIds(
   SchoolClient client,
   String guardianId,
 ) async {
-  final links = await client.guardianLinks.list(guardianLinksForGuardian(guardianId));
+  final links = await client.guardianLinks.list(
+    guardianLinksForGuardian(guardianId),
+  );
   final ids = <String>{};
   for (final link in links) {
     final studentId = link['studentId'] as String?;
@@ -189,7 +190,9 @@ Future<GuardianPortalContext> bootstrapGuardianPortal(
     throw StateError('guardian ${grants.actorId} has no linked students');
   }
 
-  final linkedStudents = await client.students.list(entitiesByIds(linkedStudentIds));
+  final linkedStudents = await client.students.list(
+    entitiesByIds(linkedStudentIds),
+  );
   final academicYears = await client.academicYears.list();
   final guardianProfile = await client.guardians.get(grants.actorId);
   final inboxSubjectId = await resolveGuardianInboxSubjectId(
@@ -250,7 +253,9 @@ Future<GuardianAcademicProbe> loadGuardianAcademicData(
       ? <Map<String, dynamic>>[]
       : await client.subjects.list(entitiesByIds(subjectIds));
 
-  final assessments = await client.assessments.list(classGroupScope(classGroupId));
+  final assessments = await client.assessments.list(
+    classGroupScope(classGroupId),
+  );
   final assessmentIds = assessments.map((row) => row['id'] as String).toList();
   final assessmentResults = assessmentIds.isEmpty
       ? <Map<String, dynamic>>[]
@@ -259,7 +264,9 @@ Future<GuardianAcademicProbe> loadGuardianAcademicData(
           ...recordsForField('assessmentId', assessmentIds),
         });
 
-  final classSubjectIds = classSubjects.map((row) => row['id'] as String).toList();
+  final classSubjectIds = classSubjects
+      .map((row) => row['id'] as String)
+      .toList();
   final classSubjectMatters = classSubjectIds.isEmpty
       ? <Map<String, dynamic>>[]
       : await client.classSubjectMatters.list(
@@ -296,10 +303,11 @@ Future<GuardianFeesProbe> loadGuardianFeesData(
   required String studentId,
   required String academicYearId,
 }) async {
-  final studentFees = (await client.studentFees.list(studentFeesForStudent(studentId)))
-      .where((row) => row['academicYearId'] == academicYearId)
-      .where((row) => row['status'] != 'cancelled')
-      .toList();
+  final studentFees =
+      (await client.studentFees.list(studentFeesForStudent(studentId)))
+          .where((row) => row['academicYearId'] == academicYearId)
+          .where((row) => row['status'] != 'cancelled')
+          .toList();
 
   final studentFeeIds = studentFees.map((row) => row['id'] as String).toList();
   final payments = studentFeeIds.isEmpty
@@ -386,11 +394,11 @@ Future<void> probeGuardianMarkDeliveryRead(
   SchoolClient client, {
   required String deliveryId,
 }) async {
-  final result = await client.markDeliveryRead({
-    'deliveryId': deliveryId,
-  });
+  final result = await client.markDeliveryRead({'deliveryId': deliveryId});
   if (result['status'] != 'read') {
-    throw StateError('markDeliveryRead did not set status to read for $deliveryId');
+    throw StateError(
+      'markDeliveryRead did not set status to read for $deliveryId',
+    );
   }
 
   final deliveryIdFromResult = result['id'] as String?;

@@ -19,13 +19,12 @@ class EffectiveGrantsResponse {
       effectiveGrants: EffectiveGrants.fromJson(
         Map<String, dynamic>.from(json['effectiveGrants'] as Map),
       ),
-      capabilities: (json['capabilities'] as List<dynamic>?)
+      capabilities:
+          (json['capabilities'] as List<dynamic>?)
               ?.map((entry) => entry as String)
               .toList() ??
           const [],
-      scope: scopeRaw is Map
-          ? Map<String, dynamic>.from(scopeRaw)
-          : null,
+      scope: scopeRaw is Map ? Map<String, dynamic>.from(scopeRaw) : null,
     );
   }
 
@@ -76,15 +75,15 @@ class TeacherPortalScope {
     return TeacherPortalScope(
       classSubjectIds: teaching is Map
           ? (teaching['classSubjectIds'] as List<dynamic>?)
-                  ?.map((entry) => entry as String)
-                  .toList() ??
-              const []
+                    ?.map((entry) => entry as String)
+                    .toList() ??
+                const []
           : const [],
       homeroomClassGroupIds: homeroom is Map
           ? (homeroom['classGroupIds'] as List<dynamic>?)
-                  ?.map((entry) => entry as String)
-                  .toList() ??
-              const []
+                    ?.map((entry) => entry as String)
+                    .toList() ??
+                const []
           : const [],
     );
   }
@@ -101,11 +100,13 @@ class GuardianPortalScope {
 
   factory GuardianPortalScope.fromJson(Map<String, dynamic> json) {
     return GuardianPortalScope(
-      studentIds: (json['studentIds'] as List<dynamic>?)
+      studentIds:
+          (json['studentIds'] as List<dynamic>?)
               ?.map((entry) => entry as String)
               .toList() ??
           const [],
-      classGroupIds: (json['classGroupIds'] as List<dynamic>?)
+      classGroupIds:
+          (json['classGroupIds'] as List<dynamic>?)
               ?.map((entry) => entry as String)
               .toList() ??
           const [],
@@ -128,11 +129,13 @@ class EffectiveGrants {
   factory EffectiveGrants.fromJson(Map<String, dynamic> json) {
     final scopeIdsRaw = json['scopeIdsByPermission'];
     return EffectiveGrants(
-      permissions: (json['permissions'] as List<dynamic>?)
+      permissions:
+          (json['permissions'] as List<dynamic>?)
               ?.map((entry) => entry as String)
               .toList() ??
           const [],
-      scopeGrants: (json['scopeGrants'] as List<dynamic>?)
+      scopeGrants:
+          (json['scopeGrants'] as List<dynamic>?)
               ?.map(
                 (entry) => ScopeGrant.fromJson(
                   Map<String, dynamic>.from(entry as Map),
@@ -142,9 +145,7 @@ class EffectiveGrants {
           const [],
       scopeIdsByPermission: scopeIdsRaw is Map
           ? Map<String, String>.from(
-              scopeIdsRaw.map(
-                (key, value) => MapEntry('$key', '$value'),
-              ),
+              scopeIdsRaw.map((key, value) => MapEntry('$key', '$value')),
             )
           : const {},
       isElevated: json['isElevated'] as bool? ?? false,

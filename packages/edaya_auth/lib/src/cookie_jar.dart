@@ -30,7 +30,9 @@ class CookieJar {
       return null;
     }
 
-    return _cookies.entries.map((entry) => '${entry.key}=${entry.value}').join('; ');
+    return _cookies.entries
+        .map((entry) => '${entry.key}=${entry.value}')
+        .join('; ');
   }
 
   Map<String, String> snapshot() => Map.unmodifiable(_cookies);

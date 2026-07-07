@@ -8,11 +8,7 @@ import 'models/session_detail_models.dart';
 import 'session_detail_controller.dart';
 
 class AttendanceFlowPage extends StatelessWidget {
-  const AttendanceFlowPage({
-    super.key,
-    required this.session,
-    this.controller,
-  });
+  const AttendanceFlowPage({super.key, required this.session, this.controller});
 
   final TeacherSession session;
   final SessionDetailController? controller;
@@ -23,9 +19,8 @@ class AttendanceFlowPage extends StatelessWidget {
     if (sharedController != null) {
       return LView<SessionDetailController>(
         resolver: (_) => sharedController,
-        builder: (context, resolved) => _AttendanceFlowScaffold(
-          controller: resolved,
-        ),
+        builder: (context, resolved) =>
+            _AttendanceFlowScaffold(controller: resolved),
       );
     }
 
@@ -63,33 +58,33 @@ class _AttendanceFlowScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.tr.attendanceFlowTitle(controller.session.classLabel)),
+        title: Text(
+          context.tr.attendanceFlowTitle(controller.session.classLabel),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => context.pop(),
         ),
       ),
-      body: LWatch(
-        () {
-          if (!controller.supportsAttendanceRecording) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  context.tr.attendanceRecordingLessonOnly,
-                  textAlign: TextAlign.center,
-                ),
+      body: LWatch(() {
+        if (!controller.supportsAttendanceRecording) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                context.tr.attendanceRecordingLessonOnly,
+                textAlign: TextAlign.center,
               ),
-            );
-          }
+            ),
+          );
+        }
 
-          if (controller.isBusy.value && controller.students.value.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
+        if (controller.isBusy.value && controller.students.value.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          return _AttendanceFlowBody(controller: controller);
-        },
-      ),
+        return _AttendanceFlowBody(controller: controller);
+      }),
     );
   }
 }
@@ -229,9 +224,9 @@ class _AttendanceFlowBodyState extends State<_AttendanceFlowBody> {
                   margin: const EdgeInsets.symmetric(horizontal: 2),
                   decoration: BoxDecoration(
                     color: _marks.containsKey(students[i].studentId)
-                        ? Theme.of(context).colorScheme.primary.withValues(
-                            alpha: 0.6,
-                          )
+                        ? Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.6)
                         : Theme.of(context).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(999),
                   ),
@@ -252,10 +247,8 @@ class _AttendanceFlowBodyState extends State<_AttendanceFlowBody> {
                           horizontal: 8,
                           vertical: 18,
                         ),
-                        textStyle:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                        textStyle: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       onPressed: () => _mark(current, status),
                       child: Text(status.label(context.tr)),
@@ -294,9 +287,9 @@ class _AttendanceFlowBodyState extends State<_AttendanceFlowBody> {
       });
       final message = widget.controller.saveMessage.value;
       if (message.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       }
       return;
     }

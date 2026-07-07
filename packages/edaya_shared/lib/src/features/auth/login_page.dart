@@ -41,9 +41,7 @@ class LoginPage extends LScopedView<LoginController> {
   @override
   Widget buildView(BuildContext context, LoginController controller) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(appTitle),
-      ),
+      appBar: AppBar(title: Text(appTitle)),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -88,23 +86,21 @@ class LoginPage extends LScopedView<LoginController> {
                       onChanged: (value) => controller.password(value),
                     ),
                     const SizedBox(height: 16),
-                    LWatch(
-                      () {
-                        final message = controller.errorMessage.value;
-                        if (message.isEmpty) {
-                          return const SizedBox.shrink();
-                        }
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: Text(
-                            message,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                            ),
+                    LWatch(() {
+                      final message = controller.errorMessage.value;
+                      if (message.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Text(
+                          message,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    }),
                     LWatch(
                       () => FilledButton(
                         onPressed: controller.isBusy.value
@@ -114,7 +110,9 @@ class LoginPage extends LScopedView<LoginController> {
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : Text(context.tr.signInButton),
                       ),

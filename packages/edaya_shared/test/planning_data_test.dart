@@ -22,23 +22,26 @@ class QueuedTransport implements Transport {
 }
 
 void main() {
-  test('fetchClassTimetableOccurrences returns empty when loaders miss', () async {
-    final transport = QueuedTransport([
-      ApiError(404, const {}),
-      ApiError(404, const {}),
-      ApiError(404, const {}),
-    ]);
-    final client = createSchoolClient(transport);
+  test(
+    'fetchClassTimetableOccurrences returns empty when loaders miss',
+    () async {
+      final transport = QueuedTransport([
+        ApiError(404, const {}),
+        ApiError(404, const {}),
+        ApiError(404, const {}),
+      ]);
+      final client = createSchoolClient(transport);
 
-    final occurrences = await fetchClassTimetableOccurrences(
-      client,
-      'cg-1',
-      range: const PlanningDateRange(
-        startDate: '2026-01-01',
-        endDate: '2026-01-31',
-      ),
-    );
+      final occurrences = await fetchClassTimetableOccurrences(
+        client,
+        'cg-1',
+        range: const PlanningDateRange(
+          startDate: '2026-01-01',
+          endDate: '2026-01-31',
+        ),
+      );
 
-    expect(occurrences, isEmpty);
-  });
+      expect(occurrences, isEmpty);
+    },
+  );
 }

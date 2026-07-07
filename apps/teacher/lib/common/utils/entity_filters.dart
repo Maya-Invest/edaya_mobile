@@ -32,20 +32,14 @@ EntityQuery assessmentsForClass(String classGroupId) {
 }
 
 EntityQuery assessmentsForClassPeriod(String classGroupId, String periodId) {
-  return {
-    'classGroupId': classGroupId,
-    'periodId': periodId,
-  };
+  return {'classGroupId': classGroupId, 'periodId': periodId};
 }
 
 EntityQuery assessmentsForClassSubjectPeriod(
   String classSubjectId,
   String periodId,
 ) {
-  return {
-    'classSubjectId': classSubjectId,
-    'periodId': periodId,
-  };
+  return {'classSubjectId': classSubjectId, 'periodId': periodId};
 }
 
 EntityQuery resultsForAssessment(String assessmentId) {
@@ -64,8 +58,5 @@ EntityQuery publishedReportCardsForClassPeriod(
 }
 
 EntityQuery logbookForClassSubject(String classGroupId, String classSubjectId) {
-  return {
-    'classGroupId': classGroupId,
-    'classSubjectId': classSubjectId,
-  };
+  return {'classGroupId': classGroupId, 'classSubjectId': classSubjectId};
 }

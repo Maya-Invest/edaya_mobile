@@ -2,9 +2,10 @@ import 'package:edaya_guardian/common/utils/academic_period.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('currentAcademicPeriodId picks trimester 3 in July 2026 for demo-ci', () {
-    final periodId = currentAcademicPeriodId(
-      const [
+  test(
+    'currentAcademicPeriodId picks trimester 3 in July 2026 for demo-ci',
+    () {
+      final periodId = currentAcademicPeriodId(const [
         {
           'id': 'ci-2025-t1',
           'startDate': '2025-09-15',
@@ -20,10 +21,9 @@ void main() {
           'startDate': '2026-04-14',
           'endDate': '2026-07-10',
         },
-      ],
-      onDate: DateTime(2026, 7, 6),
-    );
+      ], onDate: DateTime(2026, 7, 6));
 
-    expect(periodId, 'ci-2025-t3');
-  });
+      expect(periodId, 'ci-2025-t3');
+    },
+  );
 }

@@ -25,10 +25,10 @@ String normalizeAuthErrorMessage(String message) {
     return 'Sign-in failed. For local dev, run `bun repo seed` in edaya_backend.';
   }
 
-  if (lower.contains('user not found')
-      || lower.contains('invalid email')
-      || lower.contains('invalid password')
-      || lower.contains('invalid credentials')) {
+  if (lower.contains('user not found') ||
+      lower.contains('invalid email') ||
+      lower.contains('invalid password') ||
+      lower.contains('invalid credentials')) {
     return 'Invalid email or password.';
   }
 

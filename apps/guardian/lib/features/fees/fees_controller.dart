@@ -59,7 +59,9 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
     if (isBusy.value && feeLines.value.isEmpty && payments.value.isEmpty) {
       return DataStatus.loading;
     }
-    if (errorMessage.value.isNotEmpty && feeLines.value.isEmpty && payments.value.isEmpty) {
+    if (errorMessage.value.isNotEmpty &&
+        feeLines.value.isEmpty &&
+        payments.value.isEmpty) {
       return DataStatus.error;
     }
     if (_studentContext.activeStudent.value == null) {
@@ -95,16 +97,24 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
     await runTask(() async {
       try {
         final client = _schoolClient();
-        final studentFeeRows = await client.studentFees.list(studentFeesForStudent(studentId));
+        final studentFeeRows = await client.studentFees.list(
+          studentFeesForStudent(studentId),
+        );
         final yearFees = studentFeeRows
             .where((row) => row['academicYearId'] == yearId)
             .where((row) => row['status'] != 'cancelled')
             .toList();
 
-        final feeIds = yearFees.map((row) => row['feeId'] as String?).whereType<String>().toSet().toList();
+        final feeIds = yearFees
+            .map((row) => row['feeId'] as String?)
+            .whereType<String>()
+            .toSet()
+            .toList();
         final feeNameById = await _loadFeeNames(client, feeIds);
 
-        final studentFeeIds = yearFees.map((row) => row['id'] as String).toList();
+        final studentFeeIds = yearFees
+            .map((row) => row['id'] as String)
+            .toList();
         final paymentRows = studentFeeIds.isEmpty
             ? <Map<String, dynamic>>[]
             : await client.payments.list(paymentsForStudentFees(studentFeeIds));
@@ -146,7 +156,14 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
         final parsedPayments =
             paymentRows
                 .where((row) => row['status'] == 'recorded')
-                .map((row) => PaymentRecord.fromJson(row, feeLabel: feeLabelById[row['studentFeeId'] as String] ?? systemL10n().schoolFee))
+                .map(
+                  (row) => PaymentRecord.fromJson(
+                    row,
+                    feeLabel:
+                        feeLabelById[row['studentFeeId'] as String] ??
+                        systemL10n().schoolFee,
+                  ),
+                )
                 .toList()
               ..sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
 
@@ -155,9 +172,17 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
             : parsedPayments.isNotEmpty
             ? parsedPayments.first.currency
             : 'EUR';
-        final totalExpected = lines.fold<double>(0, (sum, line) => sum + line.expectedAmount);
-        final totalPaid = lines.fold<double>(0, (sum, line) => sum + line.paidAmount);
-        final overdueCount = lines.where((line) => line.status == StudentFeeStatus.overdue).length;
+        final totalExpected = lines.fold<double>(
+          0,
+          (sum, line) => sum + line.expectedAmount,
+        );
+        final totalPaid = lines.fold<double>(
+          0,
+          (sum, line) => sum + line.paidAmount,
+        );
+        final overdueCount = lines
+            .where((line) => line.status == StudentFeeStatus.overdue)
+            .length;
 
         feeLines(lines);
         payments(parsedPayments);
@@ -184,7 +209,10 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
     });
   }
 
-  Future<Map<String, String>> _loadFeeNames(api.SchoolClient client, List<String> feeIds) async {
+  Future<Map<String, String>> _loadFeeNames(
+    api.SchoolClient client,
+    List<String> feeIds,
+  ) async {
     final names = <String, String>{};
     for (final feeId in feeIds) {
       try {

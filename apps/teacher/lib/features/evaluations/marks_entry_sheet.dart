@@ -29,11 +29,7 @@ class MarksEntrySheet extends LView<EvaluationsController> {
         return Material(
           color: Theme.of(context).scaffoldBackgroundColor,
           child: LWatch(
-            () => _buildContent(
-              context,
-              scrollController,
-              controller,
-            ),
+            () => _buildContent(context, scrollController, controller),
           ),
         );
       },
@@ -53,9 +49,11 @@ class MarksEntrySheet extends LView<EvaluationsController> {
     final errorMessage = isCurrentEvaluation
         ? controller.marksErrorMessage.value
         : '';
-    final saveMessage =
-        isCurrentEvaluation ? controller.marksSaveMessage.value : '';
-    final loading = controller.isBusy.value &&
+    final saveMessage = isCurrentEvaluation
+        ? controller.marksSaveMessage.value
+        : '';
+    final loading =
+        controller.isBusy.value &&
         isCurrentEvaluation &&
         students.isEmpty &&
         errorMessage.isEmpty;
@@ -74,13 +72,9 @@ class MarksEntrySheet extends LView<EvaluationsController> {
                     evaluation.title,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
+                  Text('${evaluation.classLabel} · ${evaluation.subjectLabel}'),
                   Text(
-                    '${evaluation.classLabel} · ${evaluation.subjectLabel}',
-                  ),
-                  Text(
-                    context.tr.outOfMaxScore(
-                      evaluation.maxScore.toString(),
-                    ),
+                    context.tr.outOfMaxScore(evaluation.maxScore.toString()),
                   ),
                 ],
               ),
@@ -160,9 +154,7 @@ class MarksEntrySheet extends LView<EvaluationsController> {
           maxScoreLabel: context.tr.outOfMaxScore(
             evaluation.maxScore.toString(),
           ),
-          scoreHint: context.tr.scoreHintOutOf(
-            evaluation.maxScore.toString(),
-          ),
+          scoreHint: context.tr.scoreHintOutOf(evaluation.maxScore.toString()),
           saveLabel: context.tr.save,
         );
       },
@@ -179,9 +171,7 @@ class MarksEntrySheet extends LView<EvaluationsController> {
 
     final messenger = ScaffoldMessenger.of(context);
     if (saved) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(context.tr.save)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(context.tr.save)));
       return;
     }
 
@@ -247,10 +237,7 @@ class _ScoreEntryDialogState extends State<_ScoreEntryDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
         ),
-        FilledButton(
-          onPressed: _submit,
-          child: Text(widget.saveLabel),
-        ),
+        FilledButton(onPressed: _submit, child: Text(widget.saveLabel)),
       ],
     );
   }

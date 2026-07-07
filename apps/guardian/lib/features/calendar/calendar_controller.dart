@@ -5,7 +5,6 @@ import 'package:edaya_api_client/edaya_api_client.dart' show SchoolClient;
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
-import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
 import 'models/attendance_record.dart';
@@ -108,9 +107,7 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
 
   List<CalendarSession> get sessionsForSelectedDay {
     final day = selectedDay.value;
-    return sessions.value
-        .where((session) => session.occursOn(day))
-        .toList()
+    return sessions.value.where((session) => session.occursOn(day)).toList()
       ..sort((a, b) => a.startsAt.compareTo(b.startsAt));
   }
 
@@ -180,9 +177,7 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
         final eventRows = await client.calendarEvents.list(
           academicYearScope(yearId),
         );
-        events(
-          eventRows.map(SchoolEvent.fromJson).toList(growable: false),
-        );
+        events(eventRows.map(SchoolEvent.fromJson).toList(growable: false));
       } on api.ApiError catch (error) {
         eventsError = error;
         events(const []);
@@ -304,7 +299,9 @@ class SessionDetailsController extends LevitController
         );
         final subjectMatterId = matterLink?['subjectMatterId'] as String?;
         if (subjectMatterId != null) {
-          final subjectMatter = await client.subjectMatters.get(subjectMatterId);
+          final subjectMatter = await client.subjectMatters.get(
+            subjectMatterId,
+          );
           chapter = subjectMatter['name'] as String? ?? chapter;
         }
       } on Object {

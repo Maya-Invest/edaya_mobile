@@ -4,7 +4,6 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
-import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../context/academic_year_controller.dart';
 import '../context/teacher_context_controller.dart';
 import 'models/teaching_models.dart';
@@ -46,15 +45,18 @@ class TeachingController extends LevitController with LevitReactiveTasksMixin {
       _teacherContext.assignedClasses.stream,
       _academicYear.selectedYearId.stream,
     ]) {
-      autoDispose(subscription.listen((_) {
-        unawaited(_reloadScope());
-      }));
+      autoDispose(
+        subscription.listen((_) {
+          unawaited(_reloadScope());
+        }),
+      );
     }
 
     unawaited(_reloadScope());
   }
 
-  List<AssignedClass> get assignedClasses => _teacherContext.assignedClasses.value;
+  List<AssignedClass> get assignedClasses =>
+      _teacherContext.assignedClasses.value;
 
   TeachingClassSubjectOption? get selectedOption {
     final classSubjectId = selectedClassSubjectId.value;
@@ -69,11 +71,11 @@ class TeachingController extends LevitController with LevitReactiveTasksMixin {
   String? get selectedScopeLabel => selectedOption?.label;
 
   DataStatus get dataStatus {
-    if (_teacherContext.isLoading.value || (isBusy.value && progressOverview.value == null)) {
+    if (_teacherContext.isLoading.value ||
+        (isBusy.value && progressOverview.value == null)) {
       return DataStatus.loading;
     }
-    if (errorMessage.value.isNotEmpty &&
-        selectedClassSubjectId.value == null) {
+    if (errorMessage.value.isNotEmpty && selectedClassSubjectId.value == null) {
       return DataStatus.error;
     }
     if (selectedClassSubjectId.value == null) {
@@ -157,7 +159,9 @@ class TeachingController extends LevitController with LevitReactiveTasksMixin {
 
     final currentSubjectId = selectedClassSubjectId.value;
     if (currentSubjectId == null ||
-        !classSubjectOptions.value.any((entry) => entry.id == currentSubjectId)) {
+        !classSubjectOptions.value.any(
+          (entry) => entry.id == currentSubjectId,
+        )) {
       await _selectDefaultSubject();
     }
     await loadTeachingData();

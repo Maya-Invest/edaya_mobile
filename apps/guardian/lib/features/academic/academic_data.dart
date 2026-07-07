@@ -19,20 +19,17 @@ List<CurriculumClassSubjectOption> buildClassSubjectOptions({
   required String classLabel,
   required String subjectFallback,
 }) {
-  return classSubjectRows
-      .map((row) {
-        final subjectId = row['subjectId'] as String?;
-        return CurriculumClassSubjectOption(
-          id: row['id'] as String,
-          classGroupId: row['classGroupId'] as String,
-          subjectName: subjectId == null
-              ? subjectFallback
-              : subjectNameById[subjectId] ?? subjectFallback,
-          classLabel: classLabel,
-        );
-      })
-      .toList()
-    ..sort((left, right) => left.label.compareTo(right.label));
+  return classSubjectRows.map((row) {
+    final subjectId = row['subjectId'] as String?;
+    return CurriculumClassSubjectOption(
+      id: row['id'] as String,
+      classGroupId: row['classGroupId'] as String,
+      subjectName: subjectId == null
+          ? subjectFallback
+          : subjectNameById[subjectId] ?? subjectFallback,
+      classLabel: classLabel,
+    );
+  }).toList()..sort((left, right) => left.label.compareTo(right.label));
 }
 
 CurriculumProgressOverview buildCurriculumProgressOverview({
@@ -50,8 +47,8 @@ CurriculumProgressOverview buildCurriculumProgressOverview({
       matter['id'] as String: (matter['sequenceOrder'] as num?)?.toInt() ?? 0,
   };
 
-  final matters = matterLinks
-      .map((link) {
+  final matters =
+      matterLinks.map((link) {
         final subjectMatterId = link['subjectMatterId'] as String;
         return CurriculumMatterProgress(
           id: link['id'] as String,
@@ -62,15 +59,13 @@ CurriculumProgressOverview buildCurriculumProgressOverview({
               (link['completedPercentage'] as num?)?.toInt() ?? 0,
           notes: link['notes'] as String?,
         );
-      })
-      .toList()
-    ..sort((left, right) {
-      final order = left.sequenceOrder.compareTo(right.sequenceOrder);
-      if (order != 0) {
-        return order;
-      }
-      return left.name.compareTo(right.name);
-    });
+      }).toList()..sort((left, right) {
+        final order = left.sequenceOrder.compareTo(right.sequenceOrder);
+        if (order != 0) {
+          return order;
+        }
+        return left.name.compareTo(right.name);
+      });
 
   return CurriculumProgressOverview(
     classSubjectCompletedPercentage:
@@ -96,8 +91,8 @@ List<CurriculumLogEntry> buildCurriculumLogEntries({
   for (final link in matterLinks) {
     final linkId = link['id'] as String;
     final subjectMatterId = link['subjectMatterId'] as String;
-    matterNameByLinkId[linkId] = matterNameBySubjectMatterId[subjectMatterId] ??
-        matterFallback;
+    matterNameByLinkId[linkId] =
+        matterNameBySubjectMatterId[subjectMatterId] ?? matterFallback;
   }
 
   final progressBySessionId = <String, List<Map<String, dynamic>>>{};
@@ -108,17 +103,14 @@ List<CurriculumLogEntry> buildCurriculumLogEntries({
 
   final entries = lessonSessions.map((session) {
     final sessionId = session['id'] as String;
-    final snapshots = (progressBySessionId[sessionId] ?? const [])
-        .map((row) {
-          final linkId = row['classSubjectMatterId'] as String;
-          return CurriculumLogMatterSnapshot(
-            matterName: matterNameByLinkId[linkId] ?? matterFallback,
-            completedPercentage:
-                (row['completedPercentage'] as num?)?.toInt() ?? 0,
-            notes: row['notes'] as String?,
-          );
-        })
-        .toList();
+    final snapshots = (progressBySessionId[sessionId] ?? const []).map((row) {
+      final linkId = row['classSubjectMatterId'] as String;
+      return CurriculumLogMatterSnapshot(
+        matterName: matterNameByLinkId[linkId] ?? matterFallback,
+        completedPercentage: (row['completedPercentage'] as num?)?.toInt() ?? 0,
+        notes: row['notes'] as String?,
+      );
+    }).toList();
 
     return CurriculumLogEntry(
       lessonSessionId: sessionId,
@@ -132,8 +124,7 @@ List<CurriculumLogEntry> buildCurriculumLogEntries({
       sessionNote: session['sessionNote'] as String?,
       matterSnapshots: snapshots,
     );
-  }).toList()
-    ..sort((left, right) => right.startsAt.compareTo(left.startsAt));
+  }).toList()..sort((left, right) => right.startsAt.compareTo(left.startsAt));
 
   return entries;
 }
@@ -161,8 +152,7 @@ Future<List<CurriculumClassSubjectOption>> fetchClassSubjectOptions({
       : await client.subjects.list(entitiesByIds(subjectIds));
   final subjectNameById = {
     for (final subject in subjectRows)
-      subject['id'] as String:
-          subject['name'] as String? ?? subjectFallback,
+      subject['id'] as String: subject['name'] as String? ?? subjectFallback,
   };
 
   return buildClassSubjectOptions(

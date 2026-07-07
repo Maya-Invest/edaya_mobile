@@ -26,68 +26,66 @@ class CalendarPage extends LScopedView<CalendarController> {
 
   @override
   Widget buildView(BuildContext context, CalendarController controller) {
-    return LWatch(
-      () {
-        final status = controller.dataStatus;
+    return LWatch(() {
+      final status = controller.dataStatus;
 
-        return DataState(
-          status: status,
-          errorMessage: controller.errorMessage.value,
-          emptyMessage: controller.emptyMessage,
-          onRetry: controller.loadCalendarData,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: SegmentedButton<CalendarView>(
-                  segments: [
-                    ButtonSegment(
-                      value: CalendarView.timetable,
-                      label: Text(context.tr.calendarViewTimetable),
-                      icon: const Icon(Icons.schedule),
-                    ),
-                    ButtonSegment(
-                      value: CalendarView.events,
-                      label: Text(context.tr.calendarViewEvents),
-                      icon: const Icon(Icons.event),
-                    ),
-                  ],
-                  selected: {controller.view.value},
-                  onSelectionChanged: (selection) {
-                    controller.selectView(selection.first);
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: WeekDaySelector(
-                  days: controller.weekDays,
-                  selectedDay: controller.selectedDay.value,
-                  onDaySelected: controller.selectDay,
-                  onPreviousWeek: () => controller.shiftWeek(-1),
-                  onNextWeek: () => controller.shiftWeek(1),
-                ),
-              ),
-              if (controller.view.value == CalendarView.timetable)
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton.icon(
-                    onPressed: () => context.push('/calendar/attendance'),
-                    icon: const Icon(Icons.list_alt_outlined),
-                    label: Text(context.tr.allAttendance),
+      return DataState(
+        status: status,
+        errorMessage: controller.errorMessage.value,
+        emptyMessage: controller.emptyMessage,
+        onRetry: controller.loadCalendarData,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: SegmentedButton<CalendarView>(
+                segments: [
+                  ButtonSegment(
+                    value: CalendarView.timetable,
+                    label: Text(context.tr.calendarViewTimetable),
+                    icon: const Icon(Icons.schedule),
                   ),
-                ),
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: controller.loadCalendarData,
-                  child: _CalendarBody(controller: controller),
+                  ButtonSegment(
+                    value: CalendarView.events,
+                    label: Text(context.tr.calendarViewEvents),
+                    icon: const Icon(Icons.event),
+                  ),
+                ],
+                selected: {controller.view.value},
+                onSelectionChanged: (selection) {
+                  controller.selectView(selection.first);
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: WeekDaySelector(
+                days: controller.weekDays,
+                selectedDay: controller.selectedDay.value,
+                onDaySelected: controller.selectDay,
+                onPreviousWeek: () => controller.shiftWeek(-1),
+                onNextWeek: () => controller.shiftWeek(1),
+              ),
+            ),
+            if (controller.view.value == CalendarView.timetable)
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () => context.push('/calendar/attendance'),
+                  icon: const Icon(Icons.list_alt_outlined),
+                  label: Text(context.tr.allAttendance),
                 ),
               ),
-            ],
-          ),
-        );
-      },
-    );
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: controller.loadCalendarData,
+                child: _CalendarBody(controller: controller),
+              ),
+            ),
+          ],
+        ),
+      );
+    });
   }
 }
 
@@ -141,10 +139,8 @@ class _CalendarBody extends StatelessWidget {
         final session = daySessions[index];
         return SessionTile(
           session: session,
-          onTap: () => context.push(
-            '/calendar/session-details',
-            extra: session,
-          ),
+          onTap: () =>
+              context.push('/calendar/session-details', extra: session),
         );
       },
     );

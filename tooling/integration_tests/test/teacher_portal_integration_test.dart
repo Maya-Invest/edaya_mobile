@@ -120,17 +120,16 @@ void _teacherPortalSuite(TeacherPortalProfile profile) {
               .whereType<String>()
               .toSet();
           final allClassIds = {...assignmentClassIds, ...classIdsFromSubjects};
-          expect(
-            allClassIds,
-            containsAll(profile.expectedClassGroupIds),
-          );
+          expect(allClassIds, containsAll(profile.expectedClassGroupIds));
         }
       });
 
       test('academic years list includes configured year', () {
         expect(context.academicYears, isNotEmpty);
         expect(
-          context.academicYears.any((year) => year['id'] == profile.academicYearId),
+          context.academicYears.any(
+            (year) => year['id'] == profile.academicYearId,
+          ),
           isTrue,
         );
       });
@@ -162,7 +161,8 @@ void _teacherPortalSuite(TeacherPortalProfile profile) {
       });
 
       test('timetable enrichment reads do not fail', () async {
-        final events = timetableByClass[profile.primaryClassGroupId] ?? const [];
+        final events =
+            timetableByClass[profile.primaryClassGroupId] ?? const [];
         await loadTimetableEnrichment(
           session.schoolClient,
           classGroupId: profile.primaryClassGroupId,

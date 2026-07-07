@@ -19,91 +19,111 @@ class SettingsPage extends StatelessWidget {
           _SectionHeader(title: context.tr.settingsTheme),
           LWatch(
             () => _PreferenceCard(
-              children: [
-                for (final option in ThemePreference.values)
-                  RadioListTile<ThemePreference>(
-                    title: Text(_themeLabel(context, option)),
-                    value: option,
-                    groupValue: settings.theme.value,
-                    onChanged: (value) {
-                      if (value != null) {
-                        settings.setTheme(value);
-                      }
-                    },
-                  ),
-              ],
+              child: RadioGroup<ThemePreference>(
+                groupValue: settings.theme.value,
+                onChanged: (value) {
+                  if (value != null) {
+                    settings.setTheme(value);
+                  }
+                },
+                child: Column(
+                  children: [
+                    for (final option in ThemePreference.values)
+                      RadioListTile<ThemePreference>(
+                        title: Text(_themeLabel(context, option)),
+                        value: option,
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
           _SectionHeader(title: context.tr.settingsLanguage),
           LWatch(
             () => _PreferenceCard(
-              children: [
-                for (final option in LanguagePreference.values)
-                  RadioListTile<LanguagePreference>(
-                    title: Text(_languageLabel(context, option)),
-                    value: option,
-                    groupValue: settings.language.value,
-                    onChanged: (value) {
-                      if (value != null) {
-                        settings.setLanguage(value);
-                      }
-                    },
-                  ),
-              ],
+              child: RadioGroup<LanguagePreference>(
+                groupValue: settings.language.value,
+                onChanged: (value) {
+                  if (value != null) {
+                    settings.setLanguage(value);
+                  }
+                },
+                child: Column(
+                  children: [
+                    for (final option in LanguagePreference.values)
+                      RadioListTile<LanguagePreference>(
+                        title: Text(_languageLabel(context, option)),
+                        value: option,
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
           _SectionHeader(title: context.tr.settingsTimezone),
           LWatch(
             () => _PreferenceCard(
-              children: [
-                for (final option in AppTimezone.values)
-                  RadioListTile<AppTimezone>(
-                    title: Text(_timezoneLabel(context, option)),
-                    value: option,
-                    groupValue: settings.timezone.value,
-                    onChanged: (value) {
-                      if (value != null) {
-                        settings.setTimezone(value);
-                      }
-                    },
-                  ),
-              ],
+              child: RadioGroup<AppTimezone>(
+                groupValue: settings.timezone.value,
+                onChanged: (value) {
+                  if (value != null) {
+                    settings.setTimezone(value);
+                  }
+                },
+                child: Column(
+                  children: [
+                    for (final option in AppTimezone.values)
+                      RadioListTile<AppTimezone>(
+                        title: Text(_timezoneLabel(context, option)),
+                        value: option,
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
           _SectionHeader(title: context.tr.settingsDateFormat),
           LWatch(
             () => _PreferenceCard(
-              children: [
-                for (final option in DateFormatPreference.values)
-                  RadioListTile<DateFormatPreference>(
-                    title: Text(_dateFormatLabel(context, option)),
-                    value: option,
-                    groupValue: settings.dateFormat.value,
-                    onChanged: (value) {
-                      if (value != null) {
-                        settings.setDateFormat(value);
-                      }
-                    },
-                  ),
-              ],
+              child: RadioGroup<DateFormatPreference>(
+                groupValue: settings.dateFormat.value,
+                onChanged: (value) {
+                  if (value != null) {
+                    settings.setDateFormat(value);
+                  }
+                },
+                child: Column(
+                  children: [
+                    for (final option in DateFormatPreference.values)
+                      RadioListTile<DateFormatPreference>(
+                        title: Text(_dateFormatLabel(context, option)),
+                        value: option,
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
           _SectionHeader(title: context.tr.settingsTimeFormat),
           LWatch(
             () => _PreferenceCard(
-              children: [
-                for (final option in TimeFormatPreference.values)
-                  RadioListTile<TimeFormatPreference>(
-                    title: Text(_timeFormatLabel(context, option)),
-                    value: option,
-                    groupValue: settings.timeFormat.value,
-                    onChanged: (value) {
-                      if (value != null) {
-                        settings.setTimeFormat(value);
-                      }
-                    },
-                  ),
-              ],
+              child: RadioGroup<TimeFormatPreference>(
+                groupValue: settings.timeFormat.value,
+                onChanged: (value) {
+                  if (value != null) {
+                    settings.setTimeFormat(value);
+                  }
+                },
+                child: Column(
+                  children: [
+                    for (final option in TimeFormatPreference.values)
+                      RadioListTile<TimeFormatPreference>(
+                        title: Text(_timeFormatLabel(context, option)),
+                        value: option,
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -178,15 +198,15 @@ class _SectionHeader extends StatelessWidget {
 }
 
 class _PreferenceCard extends StatelessWidget {
-  const _PreferenceCard({required this.children});
+  const _PreferenceCard({required this.child});
 
-  final List<Widget> children;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(children: children),
+      child: child,
     );
   }
 }

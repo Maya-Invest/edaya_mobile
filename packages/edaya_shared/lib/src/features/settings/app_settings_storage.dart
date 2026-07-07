@@ -54,14 +54,13 @@ abstract final class AppSettingsStorage {
     return _cached;
   }
 
-  static T _readEnum<T extends Enum>(
-    String? raw,
-    List<T> values,
-    T fallback,
-  ) {
+  static T _readEnum<T extends Enum>(String? raw, List<T> values, T fallback) {
     if (raw == null) {
       return fallback;
     }
-    return values.firstWhere((value) => value.name == raw, orElse: () => fallback);
+    return values.firstWhere(
+      (value) => value.name == raw,
+      orElse: () => fallback,
+    );
   }
 }

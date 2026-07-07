@@ -34,47 +34,45 @@ class _TeachingBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LWatch(
-      () {
-        final tab = controller.selectedTab.value;
-        return Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: _TeachingScopeSelectors(controller: controller),
+    return LWatch(() {
+      final tab = controller.selectedTab.value;
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: _TeachingScopeSelectors(controller: controller),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SegmentedButton<TeachingDetailTab>(
+              segments: [
+                ButtonSegment(
+                  value: TeachingDetailTab.progress,
+                  label: Text(context.tr.teachingProgressTab),
+                  icon: const Icon(Icons.insights_outlined),
+                ),
+                ButtonSegment(
+                  value: TeachingDetailTab.logbook,
+                  label: Text(context.tr.teachingLogbookTab),
+                  icon: const Icon(Icons.menu_book_outlined),
+                ),
+              ],
+              selected: {tab},
+              onSelectionChanged: (selection) {
+                controller.selectTab(selection.first);
+              },
             ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: SegmentedButton<TeachingDetailTab>(
-                segments: [
-                  ButtonSegment(
-                    value: TeachingDetailTab.progress,
-                    label: Text(context.tr.teachingProgressTab),
-                    icon: const Icon(Icons.insights_outlined),
-                  ),
-                  ButtonSegment(
-                    value: TeachingDetailTab.logbook,
-                    label: Text(context.tr.teachingLogbookTab),
-                    icon: const Icon(Icons.menu_book_outlined),
-                  ),
-                ],
-                selected: {tab},
-                onSelectionChanged: (selection) {
-                  controller.selectTab(selection.first);
-                },
-              ),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: tab == TeachingDetailTab.progress
-                  ? _TeachingProgressTab(controller: controller)
-                  : _TeachingLogbookTab(controller: controller),
-            ),
-          ],
-        );
-      },
-    );
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: tab == TeachingDetailTab.progress
+                ? _TeachingProgressTab(controller: controller)
+                : _TeachingLogbookTab(controller: controller),
+          ),
+        ],
+      );
+    });
   }
 }
 
@@ -96,10 +94,7 @@ class _TeachingScopeSelectors extends StatelessWidget {
       ),
       items: [
         for (final subject in subjects)
-          DropdownMenuItem(
-            value: subject.id,
-            child: Text(subject.label),
-          ),
+          DropdownMenuItem(value: subject.id, child: Text(subject.label)),
       ],
       onChanged: subjects.isEmpty ? null : controller.selectSubject,
     );
@@ -113,56 +108,54 @@ class _TeachingProgressTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LWatch(
-      () {
-        final overview = controller.progressOverview.value;
-        if (overview == null) {
-          return ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Center(child: Text(controller.emptyMessage)),
-              ),
-            ],
-          );
-        }
-
-        if (overview.matters.isEmpty) {
-          return ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Center(child: Text(context.tr.noCurriculumChaptersLinked)),
-              ),
-            ],
-          );
-        }
-
+    return LWatch(() {
+      final overview = controller.progressOverview.value;
+      if (overview == null) {
         return ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
           children: [
-            Text(
-              context.tr.subjectProgressSummary(
-                overview.classSubjectCompletedPercentage,
-              ),
-              style: Theme.of(context).textTheme.titleSmall,
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Center(child: Text(controller.emptyMessage)),
             ),
-            const SizedBox(height: 8),
-            LinearProgressIndicator(
-              value: overview.classSubjectCompletedPercentage / 100,
-              minHeight: 8,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            const SizedBox(height: 16),
-            for (final matter in overview.matters)
-              _TeachingMatterCard(matter: matter),
           ],
         );
-      },
-    );
+      }
+
+      if (overview.matters.isEmpty) {
+        return ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Center(child: Text(context.tr.noCurriculumChaptersLinked)),
+            ),
+          ],
+        );
+      }
+
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text(
+            context.tr.subjectProgressSummary(
+              overview.classSubjectCompletedPercentage,
+            ),
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(
+            value: overview.classSubjectCompletedPercentage / 100,
+            minHeight: 8,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          const SizedBox(height: 16),
+          for (final matter in overview.matters)
+            _TeachingMatterCard(matter: matter),
+        ],
+      );
+    });
   }
 }
 
@@ -231,36 +224,34 @@ class _TeachingLogbookTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LWatch(
-      () {
-        final entries = controller.logbookEntries.value;
-        if (entries.isEmpty) {
-          return ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Center(child: Text(context.tr.noTeachingLogEntries)),
-              ),
-            ],
-          );
-        }
-
-        return ListView.separated(
+    return LWatch(() {
+      final entries = controller.logbookEntries.value;
+      if (entries.isEmpty) {
+        return ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          itemCount: entries.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 8),
-          itemBuilder: (context, index) {
-            final entry = entries[index];
-            return _TeachingLogbookCard(
-              entry: entry,
-              onTap: () => _openSession(context, entry),
-            );
-          },
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Center(child: Text(context.tr.noTeachingLogEntries)),
+            ),
+          ],
         );
-      },
-    );
+      }
+
+      return ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        itemCount: entries.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 8),
+        itemBuilder: (context, index) {
+          final entry = entries[index];
+          return _TeachingLogbookCard(
+            entry: entry,
+            onTap: () => _openSession(context, entry),
+          );
+        },
+      );
+    });
   }
 
   void _openSession(BuildContext context, TeachingLogEntry entry) {
@@ -282,10 +273,7 @@ class _TeachingLogbookTab extends StatelessWidget {
 }
 
 class _TeachingLogbookCard extends StatelessWidget {
-  const _TeachingLogbookCard({
-    required this.entry,
-    required this.onTap,
-  });
+  const _TeachingLogbookCard({required this.entry, required this.onTap});
 
   final TeachingLogEntry entry;
   final VoidCallback onTap;

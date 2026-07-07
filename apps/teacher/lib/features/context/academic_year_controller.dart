@@ -4,7 +4,6 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
-import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../auth/session_storage.dart';
 
 class AcademicYearController extends LevitController
@@ -84,7 +83,9 @@ class AcademicYearController extends LevitController
     await _sessionStorage.writeAcademicYearId(yearId);
   }
 
-  Future<void> _applyYearSelection(List<Map<String, dynamic>> sortedYears) async {
+  Future<void> _applyYearSelection(
+    List<Map<String, dynamic>> sortedYears,
+  ) async {
     years(sortedYears);
 
     final persistedId = await _sessionStorage.readAcademicYearId();

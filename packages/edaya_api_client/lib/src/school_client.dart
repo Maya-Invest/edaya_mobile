@@ -55,7 +55,10 @@ class SchoolClient {
     return EntityResource(_transport, publicName).list(query);
   }
 
-  Future<Map<String, dynamic>> getEntityByPublicName(String publicName, String id) {
+  Future<Map<String, dynamic>> getEntityByPublicName(
+    String publicName,
+    String id,
+  ) {
     return EntityResource(_transport, publicName).get(id);
   }
 }

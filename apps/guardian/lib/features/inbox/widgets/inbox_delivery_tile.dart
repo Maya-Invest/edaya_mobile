@@ -30,17 +30,15 @@ class InboxDeliveryTile extends StatelessWidget {
           delivery.title,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: isUnread ? theme.textTheme.titleSmall : theme.textTheme.bodyLarge,
+          style: isUnread
+              ? theme.textTheme.titleSmall
+              : theme.textTheme.bodyLarge,
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
-            Text(
-              delivery.body,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
+            Text(delivery.body, maxLines: 2, overflow: TextOverflow.ellipsis),
             const SizedBox(height: 6),
             Text(
               [

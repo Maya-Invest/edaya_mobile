@@ -24,10 +24,7 @@ class SessionDetailsDialog extends LScopedView<SessionDetailsController> {
   }
 
   @override
-  Widget buildView(
-    BuildContext context,
-    SessionDetailsController controller,
-  ) {
+  Widget buildView(BuildContext context, SessionDetailsController controller) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
@@ -64,78 +61,77 @@ class SessionDetailsDialog extends LScopedView<SessionDetailsController> {
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 20),
-            LWatch(
-              () {
-                if (controller.isBusy.value &&
-                    controller.attendance.value == null &&
-                    controller.logbook.value == null) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+            LWatch(() {
+              if (controller.isBusy.value &&
+                  controller.attendance.value == null &&
+                  controller.logbook.value == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-                final error = controller.errorMessage.value;
-                final attendance = controller.attendance.value;
-                final logbook = controller.logbook.value;
+              final error = controller.errorMessage.value;
+              final attendance = controller.attendance.value;
+              final logbook = controller.logbook.value;
 
-                if (error.isNotEmpty && attendance == null && logbook == null) {
-                  return Text(
-                    error,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  );
-                }
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (error.isNotEmpty) ...[
-                      Text(
-                        error,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    Text(
-                      context.tr.attendance,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    if (attendance == null)
-                      Text(context.tr.noAttendanceRecorded)
-                    else
-                      Text(
-                        [
-                          attendance.status,
-                          if (attendance.reason != null) attendance.reason!,
-                          if (attendance.justificationStatus != 'none')
-                            attendance.justificationStatus,
-                        ].join(' · '),
-                      ),
-                    const SizedBox(height: 20),
-                    Text(
-                      context.tr.classLogbook,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    if (logbook == null)
-                      Text(context.tr.noLogbookEntryForSession)
-                    else ...[
-                      Text(logbook.chapter, style: const TextStyle(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 8),
-                      Text(logbook.content),
-                      if (logbook.homework != null) ...[
-                        const SizedBox(height: 8),
-                        Text(context.tr.homeworkValue(logbook.homework!)),
-                      ],
-                      const SizedBox(height: 8),
-                      Text(context.tr.progressPercent(logbook.progress)),
-                    ],
-                  ],
+              if (error.isNotEmpty && attendance == null && logbook == null) {
+                return Text(
+                  error,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
                 );
-              },
-            ),
+              }
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (error.isNotEmpty) ...[
+                    Text(
+                      error,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  Text(
+                    context.tr.attendance,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  if (attendance == null)
+                    Text(context.tr.noAttendanceRecorded)
+                  else
+                    Text(
+                      [
+                        attendance.status,
+                        if (attendance.reason != null) attendance.reason!,
+                        if (attendance.justificationStatus != 'none')
+                          attendance.justificationStatus,
+                      ].join(' · '),
+                    ),
+                  const SizedBox(height: 20),
+                  Text(
+                    context.tr.classLogbook,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  if (logbook == null)
+                    Text(context.tr.noLogbookEntryForSession)
+                  else ...[
+                    Text(
+                      logbook.chapter,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(logbook.content),
+                    if (logbook.homework != null) ...[
+                      const SizedBox(height: 8),
+                      Text(context.tr.homeworkValue(logbook.homework!)),
+                    ],
+                    const SizedBox(height: 8),
+                    Text(context.tr.progressPercent(logbook.progress)),
+                  ],
+                ],
+              );
+            }),
           ],
         ),
       ),

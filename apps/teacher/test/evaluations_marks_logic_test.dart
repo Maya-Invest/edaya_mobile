@@ -4,9 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('shouldApplyMarksLoad', () {
-    test('rejects stale roster responses after a save invalidates generation', () {
-      expect(shouldApplyMarksLoad(1, 2), isFalse);
-    });
+    test(
+      'rejects stale roster responses after a save invalidates generation',
+      () {
+        expect(shouldApplyMarksLoad(1, 2), isFalse);
+      },
+    );
 
     test('accepts roster responses for the active generation', () {
       expect(shouldApplyMarksLoad(2, 2), isTrue);

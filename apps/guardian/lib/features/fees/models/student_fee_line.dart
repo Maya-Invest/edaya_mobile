@@ -60,8 +60,7 @@ class StudentFeeLine {
 
   double get balance => (expectedAmount - paidAmount).clamp(0, expectedAmount);
 
-  bool get isSettled =>
-      status == StudentFeeStatus.paid || balance <= 0;
+  bool get isSettled => status == StudentFeeStatus.paid || balance <= 0;
 }
 
 double _moneyAmount(Object? value) {

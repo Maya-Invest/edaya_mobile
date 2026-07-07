@@ -26,22 +26,20 @@ class FeesPage extends LScopedView<FeesController> {
 
   @override
   Widget buildView(BuildContext context, FeesController controller) {
-    return LWatch(
-      () {
-        final status = controller.dataStatus;
+    return LWatch(() {
+      final status = controller.dataStatus;
 
-        return DataState(
-          status: status,
-          errorMessage: controller.errorMessage.value,
-          emptyMessage: controller.emptyMessage,
-          onRetry: controller.loadFeesData,
-          child: RefreshIndicator(
-            onRefresh: controller.loadFeesData,
-            child: _FeesBody(controller: controller),
-          ),
-        );
-      },
-    );
+      return DataState(
+        status: status,
+        errorMessage: controller.errorMessage.value,
+        emptyMessage: controller.emptyMessage,
+        onRetry: controller.loadFeesData,
+        child: RefreshIndicator(
+          onRefresh: controller.loadFeesData,
+          child: _FeesBody(controller: controller),
+        ),
+      );
+    });
   }
 }
 

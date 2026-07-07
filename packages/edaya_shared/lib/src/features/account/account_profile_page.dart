@@ -36,18 +36,14 @@ class AccountProfilePage extends LScopedView<AccountProfileController> {
   @override
   Widget buildView(BuildContext context, AccountProfileController controller) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.tr.accountProfileTitle),
-      ),
+      appBar: AppBar(title: Text(context.tr.accountProfileTitle)),
       body: LWatch(
         () => DataState(
           status: controller.dataStatus,
           errorMessage: controller.errorMessage.value,
           emptyMessage: context.tr.accountProfileUnavailable,
           onRetry: controller.loadProfile,
-          child: LWatch(
-            () => _ProfileForm(controller: controller),
-          ),
+          child: LWatch(() => _ProfileForm(controller: controller)),
         ),
       ),
     );
@@ -144,7 +140,8 @@ class _ProfileForm extends StatelessWidget {
           Text(
             controller.saveMessage.value,
             style: TextStyle(
-              color: controller.saveMessage.value ==
+              color:
+                  controller.saveMessage.value ==
                       context.tr.accountProfileUpdateSuccess
                   ? Theme.of(context).colorScheme.primary
                   : Theme.of(context).colorScheme.error,

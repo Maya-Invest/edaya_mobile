@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/l10n_lookup.dart';
@@ -30,7 +31,10 @@ abstract final class ApiBaseUrlConfig {
 
   static const _prefKey = 'edaya_api_base_url';
 
-  static const _dartDefineUrl = String.fromEnvironment('API_URL', defaultValue: '');
+  static const _dartDefineUrl = String.fromEnvironment(
+    'API_URL',
+    defaultValue: '',
+  );
 
   static String? _appDefaultUrl;
 
@@ -118,7 +122,9 @@ abstract final class ApiBaseUrlConfig {
       throw FormatException(systemL10n().enterValidApiUrl);
     }
 
-    return uri.replace(path: uri.path.replaceAll(RegExp(r'/+$'), '')).toString();
+    return uri
+        .replace(path: uri.path.replaceAll(RegExp(r'/+$'), ''))
+        .toString();
   }
 
   /// Maps Android loopback (`10.0.2.2`) to localhost on iOS/desktop simulators.

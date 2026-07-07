@@ -14,10 +14,10 @@ class SchoolEventTile extends StatelessWidget {
     return Card(
       child: ListTile(
         leading: Icon(
-          event.isNonSchoolDay ? Icons.event_busy_outlined : Icons.event_outlined,
-          color: event.isNonSchoolDay
-              ? colorScheme.error
-              : colorScheme.primary,
+          event.isNonSchoolDay
+              ? Icons.event_busy_outlined
+              : Icons.event_outlined,
+          color: event.isNonSchoolDay ? colorScheme.error : colorScheme.primary,
         ),
         title: Text(event.title),
         subtitle: Text(

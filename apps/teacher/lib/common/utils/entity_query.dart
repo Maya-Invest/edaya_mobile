@@ -16,10 +16,7 @@ EntityQuery teacherAssignmentsForTeacherAndYear({
   required String teacherId,
   required String academicYearId,
 }) {
-  return {
-    'teacherId': teacherId,
-    'academicYearId': academicYearId,
-  };
+  return {'teacherId': teacherId, 'academicYearId': academicYearId};
 }
 
 TeachingScope teachingScopeFromTeacherPortalScope(TeacherPortalScope? scope) {
@@ -51,7 +48,9 @@ TeachingScope teachingScopeFromTeacherAssignments(
     if (kind == 'homeroom' && classGroupId != null && classGroupId.isNotEmpty) {
       classGroupIds.add(classGroupId);
     }
-    if (kind == 'subject' && classSubjectId != null && classSubjectId.isNotEmpty) {
+    if (kind == 'subject' &&
+        classSubjectId != null &&
+        classSubjectId.isNotEmpty) {
       classSubjectIds.add(classSubjectId);
     }
   }
@@ -62,7 +61,10 @@ TeachingScope teachingScopeFromTeacherAssignments(
   );
 }
 
-TeachingScope mergeTeachingScopes(TeachingScope primary, TeachingScope fallback) {
+TeachingScope mergeTeachingScopes(
+  TeachingScope primary,
+  TeachingScope fallback,
+) {
   if (primary.classGroupIds.isNotEmpty || primary.classSubjectIds.isNotEmpty) {
     return primary;
   }

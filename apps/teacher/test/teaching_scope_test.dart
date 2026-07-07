@@ -3,38 +3,41 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:edaya_teacher/common/utils/entity_query.dart';
 
 void main() {
-  test('teachingScopeFromTeacherAssignments collects homeroom and subject targets', () {
-    final scope = teachingScopeFromTeacherAssignments([
-      {
-        'id': 'ta-homeroom',
-        'teacherId': 't1',
-        'academicYearId': '2025',
-        'kind': 'homeroom',
-        'classGroupId': 'cg-6a',
-        'status': 'active',
-      },
-      {
-        'id': 'ta-subject',
-        'teacherId': 't1',
-        'academicYearId': '2025',
-        'kind': 'subject',
-        'classSubjectId': 'cs-maths-6a',
-        'status': 'active',
-      },
-      {
-        'id': 'ta-ended',
-        'teacherId': 't1',
-        'academicYearId': '2025',
-        'kind': 'subject',
-        'classSubjectId': 'cs-history-6a',
-        'status': 'ended',
-      },
-    ]);
+  test(
+    'teachingScopeFromTeacherAssignments collects homeroom and subject targets',
+    () {
+      final scope = teachingScopeFromTeacherAssignments([
+        {
+          'id': 'ta-homeroom',
+          'teacherId': 't1',
+          'academicYearId': '2025',
+          'kind': 'homeroom',
+          'classGroupId': 'cg-6a',
+          'status': 'active',
+        },
+        {
+          'id': 'ta-subject',
+          'teacherId': 't1',
+          'academicYearId': '2025',
+          'kind': 'subject',
+          'classSubjectId': 'cs-maths-6a',
+          'status': 'active',
+        },
+        {
+          'id': 'ta-ended',
+          'teacherId': 't1',
+          'academicYearId': '2025',
+          'kind': 'subject',
+          'classSubjectId': 'cs-history-6a',
+          'status': 'ended',
+        },
+      ]);
 
-    expect(scope.classGroupIds, {'cg-6a'});
-    expect(scope.classSubjectIds, {'cs-maths-6a'});
-    expect(scope.sessionIds, isEmpty);
-  });
+      expect(scope.classGroupIds, {'cg-6a'});
+      expect(scope.classSubjectIds, {'cs-maths-6a'});
+      expect(scope.sessionIds, isEmpty);
+    },
+  );
 
   test('teachingScopeFromTeacherPortalScope reads grants scope payload', () {
     final scope = teachingScopeFromTeacherPortalScope(

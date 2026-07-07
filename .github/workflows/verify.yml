@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, master, staging]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install Melos
+        run: dart pub global activate melos
+
+      - name: Add pub global bin to PATH
+        run: echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+
+      - name: Bootstrap workspace
+        run: melos bootstrap
+
+      - name: Verify
+        run: melos run verify
+
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve integration target
+        id: target
+        run: |
+          REF="${{ github.base_ref }}"
+          case "$REF" in
+            main|master)
+              echo "integration_target=production" >> "$GITHUB_OUTPUT"
+              echo "api_url=https://api.edaya.softilab.dev" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "integration_target=staging" >> "$GITHUB_OUTPUT"
+              echo "api_url=https://api-staging.edaya.softilab.dev" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install Melos
+        run: dart pub global activate melos
+
+      - name: Add pub global bin to PATH
+        run: echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+
+      - name: Bootstrap workspace
+        run: melos bootstrap
+
+      - name: Wait for deployed API
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf "${{ steps.target.outputs.api_url }}/reference" > /dev/null; then
+              echo "API ready: ${{ steps.target.outputs.api_url }}"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "API not reachable: ${{ steps.target.outputs.api_url }}"
+          exit 1
+
+      - name: Integration tests
+        env:
+          EDAYA_INTEGRATION_TESTS: '1'
+          INTEGRATION_TARGET: ${{ steps.target.outputs.integration_target }}
+          EDAYA_API_URL: ${{ steps.target.outputs.api_url }}
+        run: melos run test:integration

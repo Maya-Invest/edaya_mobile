@@ -1,6 +1,4 @@
 import 'package:edaya_shared/edaya_shared.dart';
-import 'package:edaya_shared/src/l10n/app_localizations.dart';
-import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 
 enum InboxDeliveryStatus {
   pending,

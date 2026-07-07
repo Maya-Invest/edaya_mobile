@@ -13,11 +13,7 @@ class RecordingTransport implements Transport {
     String path, {
     TransportRequestOptions? options,
   }) async {
-    requests.add({
-      'method': method,
-      'path': path,
-      'body': options?.body,
-    });
+    requests.add({'method': method, 'path': path, 'body': options?.body});
     return responses.removeAt(0) as T;
   }
 }
@@ -26,9 +22,13 @@ void main() {
   test('uses generated entity paths and unwraps entity envelopes', () async {
     final transport = RecordingTransport([
       [
-        {'data': {'id': 'subject-1', 'name': 'Mathematics'}},
+        {
+          'data': {'id': 'subject-1', 'name': 'Mathematics'},
+        },
       ],
-      {'data': {'id': 'subject-1', 'name': 'Mathematics'}},
+      {
+        'data': {'id': 'subject-1', 'name': 'Mathematics'},
+      },
       {'message': 'deleted'},
     ]);
     final client = createSchoolClient(transport);
@@ -79,9 +79,7 @@ void main() {
         'effectiveGrants': {
           'permissions': ['STUDENT_READ'],
           'scopeGrants': [],
-          'scopeIdsByPermission': {
-            'QUERY_STUDENT_DETAIL_READ': 'student-1',
-          },
+          'scopeIdsByPermission': {'QUERY_STUDENT_DETAIL_READ': 'student-1'},
           'isElevated': false,
         },
       },
@@ -119,7 +117,10 @@ void main() {
     ]);
     expect(grants.kind, 'staff');
     expect(grants.actorId, 'actor-1');
-    expect(grants.effectiveGrants.scopeIdsByPermission['QUERY_STUDENT_DETAIL_READ'], 'student-1');
+    expect(
+      grants.effectiveGrants.scopeIdsByPermission['QUERY_STUDENT_DETAIL_READ'],
+      'student-1',
+    );
   });
 
   test('parses portal actor capabilities and scope', () async {
@@ -137,8 +138,12 @@ void main() {
         },
         'capabilities': ['RecordSessionAttendance'],
         'scope': {
-          'teaching': {'classSubjectIds': ['cs-1']},
-          'homeroom': {'classGroupIds': ['cg-1']},
+          'teaching': {
+            'classSubjectIds': ['cs-1'],
+          },
+          'homeroom': {
+            'classGroupIds': ['cg-1'],
+          },
         },
       },
     ]);

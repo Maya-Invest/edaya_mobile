@@ -40,7 +40,10 @@ abstract final class AppDateFormatting {
     return _timeFormat(settings.timeFormat.value, localeTag).format(display);
   }
 
-  static DateFormat _dateFormat(DateFormatPreference preference, String locale) {
+  static DateFormat _dateFormat(
+    DateFormatPreference preference,
+    String locale,
+  ) {
     return switch (preference) {
       DateFormatPreference.system => DateFormat.yMMMd(locale),
       DateFormatPreference.short => DateFormat.yMd(locale),
@@ -49,7 +52,10 @@ abstract final class AppDateFormatting {
     };
   }
 
-  static DateFormat _timeFormat(TimeFormatPreference preference, String locale) {
+  static DateFormat _timeFormat(
+    TimeFormatPreference preference,
+    String locale,
+  ) {
     return switch (preference) {
       TimeFormatPreference.system => DateFormat.jm(locale),
       TimeFormatPreference.hour24 => DateFormat.Hm(locale),

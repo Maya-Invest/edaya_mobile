@@ -57,80 +57,76 @@ class _AcademicYearPickerBody extends StatelessWidget {
               constraints: BoxConstraints(
                 maxHeight: MediaQuery.sizeOf(context).height * 0.45,
               ),
-              child: LWatch(
-                () {
-                  if (academicYear.isBusy.value &&
-                      academicYear.years.value.isEmpty) {
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(24),
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  }
-
-                  final error = academicYear.errorMessage.value;
-                  if (error.isNotEmpty && academicYear.years.value.isEmpty) {
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          error,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        OutlinedButton(
-                          onPressed: academicYear.loadYears,
-                          child: Text(context.tr.retry),
-                        ),
-                      ],
-                    );
-                  }
-
-                  final years = academicYear.years.value;
-                  final selectedId = academicYear.selectedYearId.value;
-
-                  if (years.isEmpty) {
-                    return Text(context.tr.noAcademicYearsAvailable);
-                  }
-
-                  return ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: years.length,
-                    separatorBuilder: (_, _) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final year = years[index];
-                      final yearId = year['id'] as String;
-                      final yearName = year['name'] as String? ?? yearId;
-                      final isActive =
-                          year['isActive'] == true ||
-                          year['isActive'] == 'true';
-                      final isSelected = yearId == selectedId;
-
-                      return ListTile(
-                        title: Text(yearName),
-                        subtitle: isActive
-                            ? Text(context.tr.activeYear)
-                            : null,
-                        trailing: isSelected
-                            ? const Icon(Icons.check)
-                            : null,
-                        onTap: () async {
-                          await academicYear.selectYear(yearId);
-                          await context.levit
-                              .find<StudentContextController>()
-                              .reloadContext();
-                          if (context.mounted) {
-                            context.pop();
-                          }
-                        },
-                      );
-                    },
+              child: LWatch(() {
+                if (academicYear.isBusy.value &&
+                    academicYear.years.value.isEmpty) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: CircularProgressIndicator(),
+                    ),
                   );
-                },
-              ),
+                }
+
+                final error = academicYear.errorMessage.value;
+                if (error.isNotEmpty && academicYear.years.value.isEmpty) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        error,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      OutlinedButton(
+                        onPressed: academicYear.loadYears,
+                        child: Text(context.tr.retry),
+                      ),
+                    ],
+                  );
+                }
+
+                final years = academicYear.years.value;
+                final selectedId = academicYear.selectedYearId.value;
+
+                if (years.isEmpty) {
+                  return Text(context.tr.noAcademicYearsAvailable);
+                }
+
+                return ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: years.length,
+                  separatorBuilder: (_, _) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final year = years[index];
+                    final yearId = year['id'] as String;
+                    final yearName = year['name'] as String? ?? yearId;
+                    final isActive =
+                        year['isActive'] == true || year['isActive'] == 'true';
+                    final isSelected = yearId == selectedId;
+
+                    return ListTile(
+                      title: Text(yearName),
+                      subtitle: isActive ? Text(context.tr.activeYear) : null,
+                      trailing: isSelected ? const Icon(Icons.check) : null,
+                      onTap: () async {
+                        await academicYear.selectYear(yearId);
+                        if (!context.mounted) {
+                          return;
+                        }
+                        await context.levit
+                            .find<StudentContextController>()
+                            .reloadContext();
+                        if (context.mounted) {
+                          context.pop();
+                        }
+                      },
+                    );
+                  },
+                );
+              }),
             ),
           ],
         ),

@@ -161,14 +161,18 @@ abstract final class AppTheme {
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return TextStyle(
-            color: selected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+            color: selected
+                ? colorScheme.primary
+                : colorScheme.onSurfaceVariant,
             fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return IconThemeData(
-            color: selected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+            color: selected
+                ? colorScheme.primary
+                : colorScheme.onSurfaceVariant,
           );
         }),
       ),

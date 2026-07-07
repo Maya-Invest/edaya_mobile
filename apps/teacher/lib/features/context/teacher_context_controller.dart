@@ -5,7 +5,6 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../common/utils/entity_query.dart';
 import 'package:edaya_shared/edaya_shared.dart';
-import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 import '../auth/session_storage.dart';
 import 'academic_year_controller.dart';
 
@@ -16,7 +15,8 @@ class AssignedClass {
   final String label;
 }
 
-class TeacherContextController extends LevitController with LevitReactiveTasksMixin {
+class TeacherContextController extends LevitController
+    with LevitReactiveTasksMixin {
   TeacherContextController({
     required SessionStorage sessionStorage,
     required AppSessionController session,
@@ -119,7 +119,9 @@ class TeacherContextController extends LevitController with LevitReactiveTasksMi
 
     final yearId = _academicYear.selectedYearId.value;
     if (yearId == null) {
-      teacherName(_session.user.value?.name ?? systemL10n().teacherFallbackName);
+      teacherName(
+        _session.user.value?.name ?? systemL10n().teacherFallbackName,
+      );
       assignedClasses(const []);
       taughtClassSubjectIds({});
       assignedClassGroupIds({});
@@ -137,16 +139,21 @@ class TeacherContextController extends LevitController with LevitReactiveTasksMi
           final fullName = '$firstName $lastName'.trim();
           teacherName(
             fullName.isEmpty
-                ? (_session.user.value?.name ?? systemL10n().teacherFallbackName)
+                ? (_session.user.value?.name ??
+                      systemL10n().teacherFallbackName)
                 : fullName,
           );
           teacherPhotoUrl(teacher['photoUrl'] as String?);
         } on Object {
-          teacherName(_session.user.value?.name ?? systemL10n().teacherFallbackName);
+          teacherName(
+            _session.user.value?.name ?? systemL10n().teacherFallbackName,
+          );
           teacherPhotoUrl(null);
         }
 
-        final scopeFromGrants = teachingScopeFromTeacherPortalScope(grants.teacherScope);
+        final scopeFromGrants = teachingScopeFromTeacherPortalScope(
+          grants.teacherScope,
+        );
         final assignments = await client.teacherAssignments.list(
           teacherAssignmentsForTeacherAndYear(
             teacherId: resolvedTeacherId,
@@ -163,7 +170,9 @@ class TeacherContextController extends LevitController with LevitReactiveTasksMi
 
         final classSubjectRows = taughtSubjectIds.isEmpty
             ? <Map<String, dynamic>>[]
-            : await client.classSubjects.list(entitiesByIds(taughtSubjectIds.toList()));
+            : await client.classSubjects.list(
+                entitiesByIds(taughtSubjectIds.toList()),
+              );
         taughtClassSubjectIds(taughtSubjectIds);
         assignedClassGroupIds(classGroupIds);
 
@@ -190,7 +199,8 @@ class TeacherContextController extends LevitController with LevitReactiveTasksMi
         assignedClasses(classes);
 
         final persistedFilter = await _sessionStorage.readClassFilterId();
-        if (persistedFilter != null && !classes.any((entry) => entry.id == persistedFilter)) {
+        if (persistedFilter != null &&
+            !classes.any((entry) => entry.id == persistedFilter)) {
           await selectClassFilter(null);
         }
       } on api.ApiError catch (error) {
@@ -208,10 +218,12 @@ class TeacherContextController extends LevitController with LevitReactiveTasksMi
     required String? classGroupId,
     required String? classSubjectId,
   }) {
-    if (classSubjectId != null && taughtClassSubjectIds.value.contains(classSubjectId)) {
+    if (classSubjectId != null &&
+        taughtClassSubjectIds.value.contains(classSubjectId)) {
       return true;
     }
-    if (classGroupId != null && assignedClassGroupIds.value.contains(classGroupId)) {
+    if (classGroupId != null &&
+        assignedClassGroupIds.value.contains(classGroupId)) {
       return true;
     }
     return false;

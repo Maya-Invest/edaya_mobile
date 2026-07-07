@@ -48,8 +48,7 @@ class GradeDetailsDialog extends LScopedView<GradeDetailsController> {
                 entry.coefficient.toStringAsFixed(0),
               ),
             ),
-            if (entry.date != null)
-              Text(context.formatLongDate(entry.date!)),
+            if (entry.date != null) Text(context.formatLongDate(entry.date!)),
             const SizedBox(height: 20),
             ListTile(
               contentPadding: EdgeInsets.zero,

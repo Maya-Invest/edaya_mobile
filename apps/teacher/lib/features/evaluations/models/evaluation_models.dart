@@ -25,8 +25,7 @@ class EvaluationSummary {
   final int gradedCount;
   final int totalStudents;
 
-  double get progress =>
-      totalStudents == 0 ? 0 : gradedCount / totalStudents;
+  double get progress => totalStudents == 0 ? 0 : gradedCount / totalStudents;
 }
 
 class StudentMarkRow {
@@ -60,7 +59,9 @@ class StudentMarkRow {
       studentName: studentName,
       studentInitials: studentInitials,
       photoUrl: photoUrl,
-      resultId: identical(resultId, _unset) ? this.resultId : resultId as String?,
+      resultId: identical(resultId, _unset)
+          ? this.resultId
+          : resultId as String?,
       score: identical(score, _unset) ? this.score : score as double?,
       marksLocked: marksLocked ?? this.marksLocked,
     );

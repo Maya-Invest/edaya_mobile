@@ -31,10 +31,7 @@ class GradeSummaryCards extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: _SummaryCard(
-            label: l10n.graded,
-            value: '$gradedCount',
-          ),
+          child: _SummaryCard(label: l10n.graded, value: '$gradedCount'),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -49,11 +46,7 @@ class GradeSummaryCards extends StatelessWidget {
 }
 
 class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({
-    required this.label,
-    required this.value,
-    this.suffix,
-  });
+  const _SummaryCard({required this.label, required this.value, this.suffix});
 
   final String label;
   final String value;
@@ -67,10 +60,7 @@ class _SummaryCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              label,
-              style: Theme.of(context).textTheme.labelSmall,
-            ),
+            Text(label, style: Theme.of(context).textTheme.labelSmall),
             const SizedBox(height: 4),
             Text.rich(
               TextSpan(

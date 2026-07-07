@@ -17,68 +17,79 @@ void main() {
     expect(TeacherPortalProfile.demoCiProfiles, hasLength(2));
     expect(
       TeacherPortalProfile.demoCiProfiles.map((profile) => profile.kind),
-      containsAll([
-        TeacherPortalKind.subject,
-        TeacherPortalKind.homeroom,
-      ]),
+      containsAll([TeacherPortalKind.subject, TeacherPortalKind.homeroom]),
     );
   });
 
-  test('GuardianPortalProfile.demoCiProfiles includes single and multi-child guardians', () {
-    expect(GuardianPortalProfile.demoCiProfiles, hasLength(2));
-    expect(
-      GuardianPortalProfile.demoCiProfiles.map((profile) => profile.guardianId),
-      containsAll(['ci-g1', 'ci-g4']),
-    );
-    expect(GuardianPortalProfile.mariamKone.expectedStudentIds, ['ci-s1', 'ci-s10']);
-    expect(GuardianPortalProfile.koffiYao.expectedStudentIds, ['ci-s4', 'ci-s7', 'ci-s8']);
-  });
-
-  test('IntegrationConfig.defaultGuardianEmail matches guardian app dev default', () {
-    expect(IntegrationConfig.defaultGuardianEmail, 'm.kone@mail.ci');
-  });
-
-  test('TeacherPortalContext.writeProbePeriodId prefers last academic period', () {
-    const context = TeacherPortalContext(
-      profile: TeacherPortalProfile.subjectTeacher,
-      grants: EffectiveGrantsResponse(
-        kind: 'teacher',
-        actorId: 'ci-t1',
-        schoolId: 'ci-school',
-        assuranceLevel: 'standard',
-        effectiveGrants: const EffectiveGrants(
-          permissions: [],
-          scopeGrants: [],
-          scopeIdsByPermission: {},
-          isElevated: false,
+  test(
+    'GuardianPortalProfile.demoCiProfiles includes single and multi-child guardians',
+    () {
+      expect(GuardianPortalProfile.demoCiProfiles, hasLength(2));
+      expect(
+        GuardianPortalProfile.demoCiProfiles.map(
+          (profile) => profile.guardianId,
         ),
-      ),
-      academicYears: const [],
-      teacherAssignments: const [],
-      academicPeriods: const [
-        {'id': 'ci-2025-t1'},
-        {'id': 'ci-2025-t2'},
-        {'id': 'ci-2025-t3'},
-      ],
-      teachingScope: TeacherTeachingScope(
-        classGroupIds: const {},
-        classSubjectIds: const {},
-      ),
-      assignedClassGroups: const [],
-      classSubjects: const [],
-    );
+        containsAll(['ci-g1', 'ci-g4']),
+      );
+      expect(GuardianPortalProfile.mariamKone.expectedStudentIds, [
+        'ci-s1',
+        'ci-s10',
+      ]);
+      expect(GuardianPortalProfile.koffiYao.expectedStudentIds, [
+        'ci-s4',
+        'ci-s7',
+        'ci-s8',
+      ]);
+    },
+  );
 
-    expect(context.firstPeriodId, 'ci-2025-t1');
-    expect(context.writeProbePeriodId, 'ci-2025-t3');
-  });
+  test(
+    'IntegrationConfig.defaultGuardianEmail matches guardian app dev default',
+    () {
+      expect(IntegrationConfig.defaultGuardianEmail, 'm.kone@mail.ci');
+    },
+  );
+
+  test(
+    'TeacherPortalContext.writeProbePeriodId prefers last academic period',
+    () {
+      const context = TeacherPortalContext(
+        profile: TeacherPortalProfile.subjectTeacher,
+        grants: EffectiveGrantsResponse(
+          kind: 'teacher',
+          actorId: 'ci-t1',
+          schoolId: 'ci-school',
+          assuranceLevel: 'standard',
+          effectiveGrants: EffectiveGrants(
+            permissions: [],
+            scopeGrants: [],
+            scopeIdsByPermission: {},
+            isElevated: false,
+          ),
+        ),
+        academicYears: [],
+        teacherAssignments: [],
+        academicPeriods: [
+          {'id': 'ci-2025-t1'},
+          {'id': 'ci-2025-t2'},
+          {'id': 'ci-2025-t3'},
+        ],
+        teachingScope: TeacherTeachingScope(
+          classGroupIds: {},
+          classSubjectIds: {},
+        ),
+        assignedClassGroups: [],
+        classSubjects: [],
+      );
+
+      expect(context.firstPeriodId, 'ci-2025-t1');
+      expect(context.writeProbePeriodId, 'ci-2025-t3');
+    },
+  );
 
   test('teachingScopeFromAssignments derives homeroom and subject ids', () {
     final scope = teachingScopeFromAssignments([
-      {
-        'status': 'active',
-        'kind': 'homeroom',
-        'classGroupId': 'ci-6b',
-      },
+      {'status': 'active', 'kind': 'homeroom', 'classGroupId': 'ci-6b'},
       {
         'status': 'active',
         'kind': 'subject',

@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('parseNotificationDeepLink resolves explicit route', () {
     final link = parseNotificationDeepLink(
-      RemoteMessage(data: const {'route': '/calendar'}),
+      const RemoteMessage(data: {'route': '/calendar'}),
     );
 
     expect(link?.path, '/calendar');
@@ -12,12 +12,7 @@ void main() {
 
   test('parseNotificationDeepLink resolves inbox delivery id', () {
     final link = parseNotificationDeepLink(
-      RemoteMessage(
-        data: const {
-          'deliveryId': 'delivery-1',
-          'title': 'Hello',
-        },
-      ),
+      const RemoteMessage(data: {'deliveryId': 'delivery-1', 'title': 'Hello'}),
     );
 
     expect(link?.path, '/inbox/message');
@@ -26,10 +21,8 @@ void main() {
 
   test('notificationMessageData decodes foreground local payload', () {
     final data = notificationMessageData(
-      RemoteMessage(
-        data: const {
-          'payload': '{"deliveryId":"delivery-2","route":"/inbox"}',
-        },
+      const RemoteMessage(
+        data: {'payload': '{"deliveryId":"delivery-2","route":"/inbox"}'},
       ),
     );
 

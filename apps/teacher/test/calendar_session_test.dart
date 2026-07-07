@@ -1,4 +1,3 @@
-import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:edaya_teacher/features/calendar/models/teacher_session.dart';

@@ -17,10 +17,7 @@ void main() {
   test('resolveNotificationDisplayContent falls back to data payload', () {
     final content = resolveNotificationDisplayContent(
       const RemoteMessage(
-        data: {
-          'title': 'Announcement',
-          'body': 'School is closed tomorrow',
-        },
+        data: {'title': 'Announcement', 'body': 'School is closed tomorrow'},
       ),
     );
 
@@ -30,10 +27,8 @@ void main() {
 
   test('resolveNotificationDisplayContent decodes nested payload json', () {
     final content = resolveNotificationDisplayContent(
-      RemoteMessage(
-        data: {
-          'payload': '{"title":"Nested","body":"From Novu"}',
-        },
+      const RemoteMessage(
+        data: {'payload': '{"title":"Nested","body":"From Novu"}'},
       ),
     );
 

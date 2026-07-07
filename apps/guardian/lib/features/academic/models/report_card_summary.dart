@@ -1,5 +1,4 @@
 import 'package:edaya_shared/edaya_shared.dart';
-import 'package:edaya_shared/src/l10n/l10n_lookup.dart';
 
 class ReportCardSummary {
   const ReportCardSummary({
@@ -118,7 +117,8 @@ class ReportCardSubjectMark {
     String? resolvedName,
   }) {
     return ReportCardSubjectMark(
-      name: resolvedName ??
+      name:
+          resolvedName ??
           json['name'] as String? ??
           systemL10n().subjectFallback,
       average: (json['average'] as num?)?.toDouble() ?? 0,
@@ -156,8 +156,7 @@ class ReportCardDetail {
     final globalSeenClassSubjectIds = <String>{};
     if (sectionResults is List) {
       for (final entry in sectionResults) {
-        if (entry is! Map<String, dynamic> ||
-            entry['sectionKind'] != 'group') {
+        if (entry is! Map<String, dynamic> || entry['sectionKind'] != 'group') {
           continue;
         }
         final sectionId = entry['sectionId'] as String?;

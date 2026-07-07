@@ -32,11 +32,12 @@ void registerSchoolClientFactory(
   String? Function()? getActorKind,
 }) {
   scope.put<SchoolClientFactory>(
-    () => () => createEdayaSchoolClient(
-      scope.find<AuthClient>(),
-      getAcademicYearId: getAcademicYearId,
-      getActorKind: getActorKind,
-    ),
+    () =>
+        () => createEdayaSchoolClient(
+          scope.find<AuthClient>(),
+          getAcademicYearId: getAcademicYearId,
+          getActorKind: getActorKind,
+        ),
     permanent: true,
   );
 }

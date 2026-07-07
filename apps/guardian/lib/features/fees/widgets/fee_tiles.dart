@@ -30,8 +30,7 @@ class StudentFeeTile extends StatelessWidget {
             formatFeeStatus(l10n, line.status),
             if (line.dueDate != null)
               l10n.dueDate(context.formatShortDate(line.dueDate!)),
-            if (line.paymentCount > 0)
-              l10n.paymentCount(line.paymentCount),
+            if (line.paymentCount > 0) l10n.paymentCount(line.paymentCount),
           ].join(' · '),
         ),
         trailing: Column(
@@ -44,9 +43,9 @@ class StudentFeeTile extends StatelessWidget {
             ),
             Text(
               l10n.paidAmount(formatMoney(line.paidAmount, line.currency)),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: statusColor,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: statusColor),
             ),
           ],
         ),
@@ -56,11 +55,7 @@ class StudentFeeTile extends StatelessWidget {
 }
 
 class PaymentTile extends StatelessWidget {
-  const PaymentTile({
-    super.key,
-    required this.payment,
-    required this.onTap,
-  });
+  const PaymentTile({super.key, required this.payment, required this.onTap});
 
   final PaymentRecord payment;
   final VoidCallback onTap;
