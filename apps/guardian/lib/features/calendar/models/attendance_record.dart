@@ -52,7 +52,4 @@ class AttendanceRecord {
   final String status;
   final String justificationStatus;
   final String? reason;
-
-  @Deprecated('Use occurrenceId')
-  String get sessionId => occurrenceId;
 }

@@ -62,7 +62,6 @@ void main() {
           assuranceLevel: 'standard',
           effectiveGrants: EffectiveGrants(
             permissions: [],
-            scopeGrants: [],
             scopeIdsByPermission: {},
             isElevated: false,
           ),

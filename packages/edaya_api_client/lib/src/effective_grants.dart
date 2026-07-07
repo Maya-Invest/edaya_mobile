@@ -120,7 +120,6 @@ class GuardianPortalScope {
 class EffectiveGrants {
   const EffectiveGrants({
     required this.permissions,
-    required this.scopeGrants,
     required this.scopeIdsByPermission,
     required this.isElevated,
     this.expiresAt,
@@ -134,15 +133,6 @@ class EffectiveGrants {
               ?.map((entry) => entry as String)
               .toList() ??
           const [],
-      scopeGrants:
-          (json['scopeGrants'] as List<dynamic>?)
-              ?.map(
-                (entry) => ScopeGrant.fromJson(
-                  Map<String, dynamic>.from(entry as Map),
-                ),
-              )
-              .toList() ??
-          const [],
       scopeIdsByPermission: scopeIdsRaw is Map
           ? Map<String, String>.from(
               scopeIdsRaw.map((key, value) => MapEntry('$key', '$value')),
@@ -154,44 +144,14 @@ class EffectiveGrants {
   }
 
   final List<String> permissions;
-  final List<ScopeGrant> scopeGrants;
   final Map<String, String> scopeIdsByPermission;
   final bool isElevated;
   final String? expiresAt;
 
   Map<String, dynamic> toJson() => {
     'permissions': permissions,
-    'scopeGrants': scopeGrants.map((entry) => entry.toJson()).toList(),
     'scopeIdsByPermission': scopeIdsByPermission,
     'isElevated': isElevated,
     if (expiresAt != null) 'expiresAt': expiresAt,
-  };
-}
-
-class ScopeGrant {
-  const ScopeGrant({
-    required this.permission,
-    required this.scopeType,
-    required this.scopeEntityIds,
-  });
-
-  factory ScopeGrant.fromJson(Map<String, dynamic> json) {
-    return ScopeGrant(
-      permission: json['permission'] as String,
-      scopeType: json['scopeType'] as String,
-      scopeEntityIds: (json['scopeEntityIds'] as List<dynamic>)
-          .map((entry) => entry as String)
-          .toList(),
-    );
-  }
-
-  final String permission;
-  final String scopeType;
-  final List<String> scopeEntityIds;
-
-  Map<String, dynamic> toJson() => {
-    'permission': permission,
-    'scopeType': scopeType,
-    'scopeEntityIds': scopeEntityIds,
   };
 }
