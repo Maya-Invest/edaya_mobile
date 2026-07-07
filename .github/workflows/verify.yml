@@ -3,10 +3,21 @@ name: CI
 on:
   pull_request:
     branches: [main, master, staging]
+  workflow_dispatch:
+    inputs:
+      pr_base_ref:
+        description: Pull request base branch (selects api-dev image channel)
+        required: false
+        default: staging
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: read
 
 jobs:
   verify:
@@ -36,25 +47,12 @@ jobs:
   integration:
     needs: [verify]
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    env:
+      API_DEV_BASE_REF: ${{ github.event.pull_request.base.ref || github.event.inputs.pr_base_ref || 'staging' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Resolve integration target
-        id: target
-        run: |
-          REF="${{ github.base_ref }}"
-          case "$REF" in
-            main|master)
-              echo "integration_target=production" >> "$GITHUB_OUTPUT"
-              echo "api_url=https://api.edaya.softilab.dev" >> "$GITHUB_OUTPUT"
-              ;;
-            *)
-              echo "integration_target=staging" >> "$GITHUB_OUTPUT"
-              echo "api_url=https://api-staging.edaya.softilab.dev" >> "$GITHUB_OUTPUT"
-              ;;
-          esac
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -71,21 +69,23 @@ jobs:
       - name: Bootstrap workspace
         run: melos bootstrap
 
-      - name: Wait for deployed API
-        run: |
-          for i in $(seq 1 30); do
-            if curl -sf "${{ steps.target.outputs.api_url }}/reference" > /dev/null; then
-              echo "API ready: ${{ steps.target.outputs.api_url }}"
-              exit 0
-            fi
-            sleep 2
-          done
-          echo "API not reachable: ${{ steps.target.outputs.api_url }}"
-          exit 1
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Start API dev container
+        run: bash .github/scripts/ci-api-dev-container.sh start "${{ env.API_DEV_BASE_REF }}"
 
       - name: Integration tests
         env:
           EDAYA_INTEGRATION_TESTS: '1'
-          INTEGRATION_TARGET: ${{ steps.target.outputs.integration_target }}
-          EDAYA_API_URL: ${{ steps.target.outputs.api_url }}
+          INTEGRATION_TARGET: staging
+          EDAYA_API_URL: http://127.0.0.1:9999
         run: melos run test:integration
+
+      - name: Stop API dev container
+        if: always()
+        run: bash .github/scripts/ci-api-dev-container.sh stop
