@@ -20,7 +20,7 @@ Demo accounts: `a.toure@ecole-ci.edaya.dev` (subject), `k.diomande@ecole-ci.eday
 - Academic reads (periods, assessments, curriculum, **published report cards**)
 - Fees reads (`studentFees`, `payments`, `fees.get`)
 - Calendar/timetable + school events + student attendance list
-- Inbox list + **`markDeliveryRead`** write probe (when unread delivery is seeded)
+- Inbox list + **`markDeliveryRead`** write probe (staff seeds a fresh unread delivery per test)
 - Negative authorization (`createAssessment`, `staffMembers.get`, `teachers.list`)
 
 Demo accounts: `m.kone@mail.ci` (children `ci-s1` + `ci-s10`), `k.yao@mail.ci` (`ci-s4`, `ci-s7`, `ci-s8`).

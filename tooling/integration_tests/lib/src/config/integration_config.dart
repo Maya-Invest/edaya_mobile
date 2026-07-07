@@ -63,6 +63,19 @@ class IntegrationConfig {
   /// Default guardian demo account (`ci-g1` parent of `ci-s1` in 6ème A).
   static const defaultGuardianEmail = 'm.kone@mail.ci';
 
+  /// Director staff account used to seed inbox probe deliveries in tests.
+  static const defaultStaffDirectorEmail = 'j.aka@ecole-ci.edaya.dev';
+
+  IntegrationConfig withStaffDirectorEmail([String? email]) {
+    return IntegrationConfig(
+      baseUrl: baseUrl,
+      email: email ?? defaultStaffDirectorEmail,
+      password: password,
+      academicYearId: academicYearId,
+      classGroupId: classGroupId,
+    );
+  }
+
   static bool get isEnabled {
     final flag =
         Platform.environment['EDAYA_INTEGRATION_TESTS'] ??

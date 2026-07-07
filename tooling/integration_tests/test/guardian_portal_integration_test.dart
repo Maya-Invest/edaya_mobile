@@ -213,13 +213,12 @@ void _guardianPortalSuite(GuardianPortalProfile profile) {
       });
 
       test('markDeliveryRead persists when unread delivery exists', () async {
-        final deliveryId = inboxProbe.unreadDeliveryId;
-        if (deliveryId == null) {
-          markTestSkipped(
-            'no unread deliveries seeded for guardian inbox subject',
-          );
-          return;
-        }
+        final deliveryId = await seedGuardianInboxProbeDelivery(
+          baseConfig: baseConfig,
+          schoolId: context.grants.schoolId,
+          guardianId: profile.guardianId,
+          inboxSubjectId: context.inboxSubjectId,
+        );
         await probeGuardianMarkDeliveryRead(
           session.schoolClient,
           deliveryId: deliveryId,

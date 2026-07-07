@@ -1,6 +1,7 @@
 import 'package:edaya_api_client/edaya_api_client.dart' hide EntityQuery;
 
 import '../config/guardian_portal_profile.dart';
+import '../config/integration_config.dart';
 import 'portal_session.dart';
 import 'teacher_portal_harness.dart';
 
@@ -387,6 +388,41 @@ Future<List<Map<String, dynamic>>> loadGuardianAttendance(
   required String studentId,
 }) async {
   return client.attendance.list(attendanceForStudent(studentId));
+}
+
+/// Staff-seeded unread delivery for the guardian inbox read probe.
+/// Uses a unique id per invocation so tests stay repeatable without re-seeding.
+Future<String> seedGuardianInboxProbeDelivery({
+  required IntegrationConfig baseConfig,
+  required String schoolId,
+  required String guardianId,
+  required String inboxSubjectId,
+  String announcementId = 'ci-ann-rentree',
+}) async {
+  final staffSession = await PortalSession.signIn(
+    config: baseConfig.withStaffDirectorEmail(),
+    actorKind: 'staff',
+    academicYearId: baseConfig.academicYearId,
+  );
+  final deliveryId =
+      'inbox-probe-$guardianId-${DateTime.now().millisecondsSinceEpoch}';
+  final sentAt = DateTime.now().toUtc().toIso8601String();
+
+  await staffSession.schoolClient.recordDelivery({
+    'id': deliveryId,
+    'schoolId': schoolId,
+    'announcementId': announcementId,
+    'subjectId': inboxSubjectId,
+    'title': 'Rentrée scolaire 2025',
+    'body':
+        'La rentrée des classes aura lieu le lundi 15 septembre à 7h30. Merci de vérifier la liste des fournitures.',
+    'recipientKind': 'guardian',
+    'recipientId': guardianId,
+    'status': 'sent',
+    'sentAt': sentAt,
+  });
+
+  return deliveryId;
 }
 
 /// Mirrors [MessageDetailsController.markAsReadIfNeeded].
