@@ -44,7 +44,8 @@ class TeacherPortalContext {
     return academicPeriods.first['id'] as String?;
   }
 
-  /// Period used for grade write probes — avoids T1 where demo-ci seeds published report cards.
+  /// Period used for grade write probes — demo-ci publishes bulletins for all
+  /// trimesters; pair with the last enrollment student in [probeTeacherEvaluationWrites].
   String? get writeProbePeriodId {
     if (academicPeriods.isEmpty) {
       return null;
@@ -554,7 +555,9 @@ Future<void> probeTeacherEvaluationWrites(
   if (enrollments.isEmpty) {
     throw StateError('expected enrollments for $classGroupId');
   }
-  final studentId = enrollments.first['studentId'] as String;
+  // Demo-ci seeds published report cards for all but the last-ranked student per
+  // class; grade writes fail with 409 when the bulletin is published.
+  final studentId = enrollments.last['studentId'] as String;
 
   await client.recordAssessmentResult({
     'id': 'ar-$asmId-$studentId',
