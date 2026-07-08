@@ -7,21 +7,9 @@ Future<List<Map<String, dynamic>>> listAttendanceForOccurrence(
   required String kind,
   required String occurrenceId,
 }) async {
-  final rows = await attendance.list(
+  return attendance.list(
     attendanceForOccurrence(kind: kind, occurrenceId: occurrenceId),
   );
-  if (rows.isNotEmpty || kind != 'lesson') {
-    return rows;
-  }
-
-  try {
-    return await attendance.list(recordsForFieldIds('sessionId', [occurrenceId]));
-  } on ApiError catch (error) {
-    if (error.status == 403 || error.status == 404) {
-      return const [];
-    }
-    rethrow;
-  }
 }
 
 Map<String, dynamic> attendanceRecordPayload({

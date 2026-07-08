@@ -45,22 +45,18 @@ void main() {
     },
   );
 
-  test(
-    'listAttendanceForOccurrence treats legacy sessionId fallback 403 as empty',
-    () async {
-      final transport = _QueuedAttendanceTransport([
-        const <Map<String, dynamic>>[],
-        ApiError(403, const {'message': 'Operation is not permitted'}),
-      ]);
-      final client = createSchoolClient(transport);
+  test('listAttendanceForOccurrence queries the occurrence anchor field', () async {
+    final transport = _QueuedAttendanceTransport([
+      const <Map<String, dynamic>>[],
+    ]);
+    final client = createSchoolClient(transport);
 
-      final rows = await listAttendanceForOccurrence(
-        client.attendance,
-        kind: 'lesson',
-        occurrenceId: 'sch-ci-6a-math-wed:2026-07-07',
-      );
+    final rows = await listAttendanceForOccurrence(
+      client.attendance,
+      kind: 'lesson',
+      occurrenceId: 'sch-ci-6a-math-wed:2026-07-07',
+    );
 
-      expect(rows, isEmpty);
-    },
-  );
+    expect(rows, isEmpty);
+  });
 }
