@@ -1,5 +1,6 @@
 import 'package:edaya_api_client/edaya_api_client.dart';
 
+import 'optional_entity_list.dart';
 import '../common/models/timetable_occurrence.dart';
 import '../common/utils/date_time_parse.dart';
 import '../common/utils/entity_query.dart';
@@ -37,21 +38,6 @@ String _toDateKey(DateTime date) {
 
 List<String> _uniqueIds(Iterable<String?> ids) {
   return ids.whereType<String>().toSet().toList();
-}
-
-/// Portal actors cannot read staff workspace entities. Treat optional reads as
-/// best-effort enrichment and keep timetable loading working.
-Future<List<Map<String, dynamic>>> _optionalEntityList(
-  Future<List<Map<String, dynamic>>> future,
-) async {
-  try {
-    return await future;
-  } on ApiError catch (error) {
-    if (error.status == 403) {
-      return const [];
-    }
-    rethrow;
-  }
 }
 
 String? _lessonSessionIdForEvent(Map<String, dynamic> event) {
@@ -103,11 +89,44 @@ String _teacherName(
   return fallback;
 }
 
+String _subjectLabelFromEvent(
+  Map<String, dynamic> event, {
+  required String title,
+  String? enrichedLabel,
+}) {
+  final fromQuery = event['subjectLabel'] as String?;
+  if (fromQuery != null && fromQuery.isNotEmpty) {
+    return fromQuery;
+  }
+  if (enrichedLabel != null && enrichedLabel.isNotEmpty) {
+    return enrichedLabel;
+  }
+  return title;
+}
+
+String _teacherNameFromEvent(
+  Map<String, dynamic> event, {
+  required List<Map<String, dynamic>> teacherAssignments,
+  required Map<String, Map<String, dynamic>> teachersById,
+  required bool Function(Map<String, dynamic> assignment) match,
+  required String fallback,
+}) {
+  final fromQuery = event['teacherName'] as String?;
+  if (fromQuery != null && fromQuery.isNotEmpty) {
+    return fromQuery;
+  }
+  return _teacherName(teacherAssignments, teachersById, match, fallback);
+}
+
 Future<List<TimetableOccurrence>> fetchClassTimetableOccurrences(
   SchoolClient client,
   String classGroupId, {
   PlanningDateRange? range,
   String unassignedTeacherLabel = '—',
+  /// Portal actors (guardian, teacher) cannot read staff workspace entities
+  /// used only to enrich labels and teacher names. Skip those HTTP calls and
+  /// rely on timetable event titles instead.
+  bool enrichStaffWorkspace = true,
 }) async {
   final resolvedRange = range ?? defaultPlanningDateRange();
 
@@ -117,6 +136,7 @@ Future<List<TimetableOccurrence>> fetchClassTimetableOccurrences(
       classGroupId,
       resolvedRange,
       unassignedTeacherLabel: unassignedTeacherLabel,
+      enrichStaffWorkspace: enrichStaffWorkspace,
     );
   } on ApiError catch (error) {
     if (error.status != 404) {
@@ -144,6 +164,7 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
   String classGroupId,
   PlanningDateRange resolvedRange, {
   required String unassignedTeacherLabel,
+  required bool enrichStaffWorkspace,
 }) async {
   final timetable = await client.getClassGroupTimetable({
     'classGroupId': classGroupId,
@@ -177,9 +198,11 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
     activitySessionIds.isEmpty
         ? Future.value(<Map<String, dynamic>>[])
         : client.activitySessions.list(entitiesByIds(activitySessionIds)),
-    _optionalEntityList(
-      client.classSubjects.list(classGroupScope(classGroupId)),
-    ),
+    enrichStaffWorkspace
+        ? optionalEntityList(
+            client.classSubjects.list(classGroupScope(classGroupId)),
+          )
+        : Future.value(<Map<String, dynamic>>[]),
   ]);
 
   final lessonSessionsById = {
@@ -203,31 +226,45 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
     activitiesRaw,
     subjectsRaw,
     teacherAssignmentsRaw,
-  ] = await Future.wait([
-    activityIds.isEmpty
-        ? Future.value(<Map<String, dynamic>>[])
-        : client.activities.list(entitiesByIds(activityIds)),
-    subjectIds.isEmpty
-        ? Future.value(<Map<String, dynamic>>[])
-        : _optionalEntityList(client.subjects.list(entitiesByIds(subjectIds))),
-    classSubjectIds.isEmpty
-        ? Future.value(<Map<String, dynamic>>[])
-        : _optionalEntityList(
-            client.teacherAssignments.list(
-              assignmentsForClassSubjects(classSubjectIds),
-            ),
+  ] = enrichStaffWorkspace
+      ? await Future.wait([
+          activityIds.isEmpty
+              ? Future.value(<Map<String, dynamic>>[])
+              : optionalEntityList(
+                  client.activities.list(entitiesByIds(activityIds)),
+                ),
+          subjectIds.isEmpty
+              ? Future.value(<Map<String, dynamic>>[])
+              : optionalEntityList(
+                  client.subjects.list(entitiesByIds(subjectIds)),
+                ),
+          classSubjectIds.isEmpty
+              ? Future.value(<Map<String, dynamic>>[])
+              : optionalEntityList(
+                  client.teacherAssignments.list(
+                    assignmentsForClassSubjects(classSubjectIds),
+                  ),
+                ),
+        ])
+      : [
+          <Map<String, dynamic>>[],
+          <Map<String, dynamic>>[],
+          <Map<String, dynamic>>[],
+        ];
+
+  final teacherIds = enrichStaffWorkspace
+      ? _uniqueIds(
+          teacherAssignmentsRaw.map(
+            (assignment) => assignment['teacherId'] as String?,
           ),
-  ]);
+        )
+      : const <String>[];
 
-  final teacherIds = _uniqueIds(
-    teacherAssignmentsRaw.map(
-      (assignment) => assignment['teacherId'] as String?,
-    ),
-  );
-
-  final teachersRaw = teacherIds.isEmpty
+  final teachersRaw = !enrichStaffWorkspace || teacherIds.isEmpty
       ? <Map<String, dynamic>>[]
-      : await _optionalEntityList(client.teachers.list(entitiesByIds(teacherIds)));
+      : await optionalEntityList(
+          client.teachers.list(entitiesByIds(teacherIds)),
+        );
   final teachersById = {
     for (final teacher in teachersRaw) teacher['id'] as String: teacher,
   };
@@ -270,7 +307,11 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
             id: lessonSessionId,
             kind: 'lesson',
             title: title,
-            subjectLabel: subject?['name'] as String? ?? title,
+            subjectLabel: _subjectLabelFromEvent(
+              event,
+              title: title,
+              enrichedLabel: subject?['name'] as String?,
+            ),
             startsAt: startsAt.toLocal(),
             endsAt: endsAt.toLocal(),
             classGroupId: classGroupId,
@@ -278,14 +319,15 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
             status:
                 event['status'] as String? ??
                 lessonSession?['status'] as String?,
-            teacherName: _teacherName(
-              teacherAssignmentsRaw,
-              teachersById,
-              (entry) =>
+            teacherName: _teacherNameFromEvent(
+              event,
+              teacherAssignments: teacherAssignmentsRaw,
+              teachersById: teachersById,
+              match: (entry) =>
                   entry['kind'] == 'subject' &&
                   classSubjectId != null &&
                   entry['classSubjectId'] == classSubjectId,
-              unassignedTeacherLabel,
+              fallback: unassignedTeacherLabel,
             ),
           ),
         );
@@ -297,29 +339,29 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
             event['activityId'] as String? ??
             activitySession?['activityId'] as String?;
         final activity = activityId == null ? null : activitiesById[activityId];
-        final instructorLabel = _teacherName(
-          teacherAssignmentsRaw,
-          teachersById,
-          (_) => false,
-          unassignedTeacherLabel,
-        );
         occurrences.add(
           TimetableOccurrence(
             id: activitySessionId,
             kind: 'activity',
             title: title,
-            subjectLabel: activity?['name'] as String? ?? title,
+            subjectLabel: _subjectLabelFromEvent(
+              event,
+              title: title,
+              enrichedLabel: activity?['name'] as String?,
+            ),
             startsAt: startsAt.toLocal(),
             endsAt: endsAt.toLocal(),
             classGroupId: classGroupId,
             status:
                 event['status'] as String? ??
                 activitySession?['status'] as String?,
-            teacherName:
-                instructorLabel == unassignedTeacherLabel &&
-                    activity?['coach'] != null
-                ? activity!['coach'] as String
-                : instructorLabel,
+            teacherName: _teacherNameFromEvent(
+              event,
+              teacherAssignments: teacherAssignmentsRaw,
+              teachersById: teachersById,
+              match: (_) => false,
+              fallback: unassignedTeacherLabel,
+            ),
           ),
         );
       case 'assessment':
@@ -337,19 +379,24 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
             id: assessmentId,
             kind: 'assessment',
             title: title,
-            subjectLabel: subject?['name'] as String? ?? title,
+            subjectLabel: _subjectLabelFromEvent(
+              event,
+              title: title,
+              enrichedLabel: subject?['name'] as String?,
+            ),
             startsAt: startsAt.toLocal(),
             endsAt: endsAt.toLocal(),
             classGroupId: classGroupId,
             classSubjectId: classSubjectId,
-            teacherName: _teacherName(
-              teacherAssignmentsRaw,
-              teachersById,
-              (entry) =>
+            teacherName: _teacherNameFromEvent(
+              event,
+              teacherAssignments: teacherAssignmentsRaw,
+              teachersById: teachersById,
+              match: (entry) =>
                   entry['kind'] == 'subject' &&
                   classSubjectId != null &&
                   entry['classSubjectId'] == classSubjectId,
-              unassignedTeacherLabel,
+              fallback: unassignedTeacherLabel,
             ),
           ),
         );

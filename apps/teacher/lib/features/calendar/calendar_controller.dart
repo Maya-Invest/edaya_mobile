@@ -147,6 +147,7 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
             classGroupId,
             range: range,
             unassignedTeacherLabel: systemL10n().teacherFallbackName,
+            enrichStaffWorkspace: false,
           );
           for (final occurrence in occurrences) {
             if (!_teacherContext.canTeachSession(

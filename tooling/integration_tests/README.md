@@ -42,7 +42,7 @@ melos run test:integration
 
 ## What these tests do not cover
 
-Integration tests do **not** run Flutter controllers, widgets, or Levit task orchestration. Bugs in:
+API integration tests do **not** run Flutter controllers, widgets, or Levit task orchestration. Bugs in:
 
 - optimistic UI updates after a save
 - `runTask` / in-flight load races
@@ -50,4 +50,24 @@ Integration tests do **not** run Flutter controllers, widgets, or Levit task orc
 
 belong in `apps/teacher/test/` or `apps/guardian/test/` (pure logic) or widget/controller tests.
 
-When adding a new portal feature API surface, add a matching integration probe **and** a focused unit test for any non-trivial client-side merge/invalidation logic.
+### Guardian widget integration tests
+
+Live API widget tests live in `apps/guardian/test/integration/`. They reuse this package's harness (`PortalSession`, `bootstrapGuardianPortal`, feature probes) and pump real guardian pages under `flutter test`.
+
+Coverage includes the app shell (bottom navigation), calendar, academic, evaluations, fees, inbox, and attendance list views.
+
+Run with the rest of the integration suite:
+
+```bash
+melos run test:integration
+```
+
+Or only guardian widget integration tests:
+
+```bash
+cd apps/guardian && EDAYA_INTEGRATION_TESTS=1 flutter test --tags integration
+```
+
+Unit/widget runs (`melos run test`) exclude `@Tags(['integration'])` tests so CI verify does not require a running API.
+
+When adding a new portal feature API surface, add a matching integration probe **and** a focused unit test for any non-trivial client-side merge/invalidation logic. When the feature has meaningful UI, add a guardian widget integration test that asserts the page renders seeded API data.

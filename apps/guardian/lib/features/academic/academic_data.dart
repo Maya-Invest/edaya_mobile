@@ -204,7 +204,6 @@ Future<List<CurriculumLogEntry>> fetchCurriculumLogEntries({
     return const [];
   }
 
-  final sessionIds = lessonSessions.map((row) => row['id'] as String).toList();
   final matterLinks = await client.classSubjectMatters.list({
     'classSubjectId': classSubjectId,
   });
@@ -215,6 +214,7 @@ Future<List<CurriculumLogEntry>> fetchCurriculumLogEntries({
   final subjectMatters = subjectMatterIds.isEmpty
       ? <Map<String, dynamic>>[]
       : await client.subjectMatters.list(entitiesByIds(subjectMatterIds));
+  final sessionIds = lessonSessions.map((row) => row['id'] as String).toList();
   final progressRows = await client.classSubjectProgress.list(
     progressForLessonSessions(sessionIds),
   );

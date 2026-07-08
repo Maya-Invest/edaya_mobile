@@ -159,6 +159,7 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
           client,
           classGroupId,
           range: range,
+          enrichStaffWorkspace: false,
         );
         sessions(
           occurrences
@@ -261,16 +262,9 @@ class SessionDetailsController extends LevitController
       return null;
     }
 
-    List<Map<String, dynamic>> progressRows = const [];
-    try {
-      progressRows = await client.classSubjectProgress.list(
-        progressForLessonSessions([session.id]),
-      );
-    } on api.ApiError catch (error) {
-      if (error.status != 404 && error.status != 403) {
-        rethrow;
-      }
-    }
+    final progressRows = await client.classSubjectProgress.list(
+      progressForLessonSessions([session.id]),
+    );
 
     Map<String, dynamic>? lessonSession;
     try {
