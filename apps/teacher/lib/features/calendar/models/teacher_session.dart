@@ -12,7 +12,6 @@ class TeacherSession {
     required this.subjectLabel,
     this.classSubjectId,
     this.status,
-    this.room,
     this.teacherName,
   });
 
@@ -31,7 +30,6 @@ class TeacherSession {
       subjectLabel: occurrence.subjectLabel,
       classSubjectId: occurrence.classSubjectId,
       status: occurrence.status,
-      room: occurrence.room,
       teacherName: occurrence.teacherName,
     );
   }
@@ -46,7 +44,6 @@ class TeacherSession {
   final String subjectLabel;
   final String? classSubjectId;
   final String? status;
-  final String? room;
   final String? teacherName;
 
   bool occursOn(DateTime day) => isSameCalendarDay(startsAt, day);

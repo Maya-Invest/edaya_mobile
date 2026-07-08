@@ -614,12 +614,6 @@ Future<void> loadTimetableEnrichment(
     client.classSubjects.list({'classGroupId': classGroupId}),
   );
   await optionalEntityList(
-    client.staffAssignments.list({'classGroupId': classGroupId}),
-  );
-  await optionalEntityList(
-    client.resourceAssignments.list({'classGroupId': classGroupId}),
-  );
-  await optionalEntityList(
     client.teacherAssignments.list({'academicYearId': academicYearId}),
   );
 }
