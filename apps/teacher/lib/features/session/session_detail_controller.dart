@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:edaya_api_client/edaya_api_client.dart' as api;
+import 'package:edaya_api_client/edaya_api_client.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
@@ -13,10 +13,13 @@ class SessionDetailController extends LevitController
     with LevitReactiveTasksMixin {
   SessionDetailController({
     required this.session,
+    required String? Function() getAcademicYearId,
     required SchoolClientFactory schoolClient,
-  }) : _schoolClient = schoolClient;
+  }) : _getAcademicYearId = getAcademicYearId,
+       _schoolClient = schoolClient;
 
   final TeacherSession session;
+  final String? Function() _getAcademicYearId;
   final SchoolClientFactory _schoolClient;
 
   final segment = LxVar(SessionDetailSegment.attendance);
@@ -61,7 +64,10 @@ class SessionDetailController extends LevitController
       try {
         final client = _schoolClient();
         final enrollmentRows = await client.enrollments.list(
-          activeEnrollmentsForClass(session.classGroupId),
+          activeEnrollmentsForClass(
+            session.classGroupId,
+            academicYearId: _getAcademicYearId(),
+          ),
         );
         final studentIds = enrollmentRows
             .map((row) => row['studentId'] as String?)
@@ -149,7 +155,7 @@ class SessionDetailController extends LevitController
         classSubjectCompletedPercentage(
           (classSubject['completedPercentage'] as num?)?.toInt(),
         );
-      } on api.ApiError catch (error) {
+      } on ApiError catch (error) {
         errorMessage(systemL10n().couldNotLoadSession('$error'));
       } on Object catch (error) {
         errorMessage(systemL10n().couldNotLoadSession('$error'));
@@ -190,7 +196,7 @@ class SessionDetailController extends LevitController
             .toList(),
       );
       return true;
-    } on api.ApiError catch (error) {
+    } on ApiError catch (error) {
       saveMessage(systemL10n().couldNotSaveAttendance('$error'));
       return false;
     } on Object catch (error) {

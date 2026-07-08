@@ -1,8 +1,11 @@
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../evaluations/widgets/academic_period_picker.dart';
+import 'models/report_card_roster_models.dart';
+import 'report_card_logic.dart';
 import 'report_cards_controller.dart';
 
 class ReportCardsPage extends LView<ReportCardsController> {
@@ -56,18 +59,53 @@ class _ReportCardsBody extends StatelessWidget {
           else
             for (var index = 0; index < summaries.length; index++) ...[
               if (index > 0) const SizedBox(height: 8),
-              _ReportCardClassCard(summary: summaries[index]),
+              _ReportCardClassCard(
+                summary: summaries[index],
+                onOpenRoster: summaries[index].generatedCount == 0
+                    ? null
+                    : () => _openRoster(
+                        context,
+                        controller,
+                        summaries[index],
+                      ),
+              ),
             ],
         ],
       );
     });
   }
+
+  void _openRoster(
+    BuildContext context,
+    ReportCardsController controller,
+    ReportCardClassSummary summary,
+  ) {
+    final periodId = controller.selectedPeriodId;
+    final periodLabel = controller.selectedPeriodLabel;
+    if (periodId == null || periodLabel == null) {
+      return;
+    }
+
+    context.push(
+      '/report-cards/roster',
+      extra: ReportCardRosterArgs(
+        classGroupId: summary.classGroupId,
+        classLabel: summary.classLabel,
+        periodId: periodId,
+        periodLabel: periodLabel,
+      ),
+    );
+  }
 }
 
 class _ReportCardClassCard extends StatelessWidget {
-  const _ReportCardClassCard({required this.summary});
+  const _ReportCardClassCard({
+    required this.summary,
+    required this.onOpenRoster,
+  });
 
   final ReportCardClassSummary summary;
+  final VoidCallback? onOpenRoster;
 
   @override
   Widget build(BuildContext context) {
@@ -84,15 +122,7 @@ class _ReportCardClassCard extends StatelessWidget {
         title: Text(summary.classLabel, style: theme.textTheme.titleSmall),
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.chevron_right),
-        onTap: summary.generatedCount == 0
-            ? null
-            : () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(context.tr.reportCardRosterComingSoon),
-                  ),
-                );
-              },
+        onTap: onOpenRoster,
       ),
     );
   }

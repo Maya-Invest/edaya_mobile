@@ -269,6 +269,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportCardRosterComingSoon => 'Student roster coming soon.';
 
   @override
+  String get missingReportCardRosterRouteData =>
+      'Missing report card roster route data.';
+
+  @override
+  String couldNotLoadReportCardRoster(String error) {
+    return 'Could not load report card roster: $error';
+  }
+
+  @override
+  String get reportCardStatusDraft => 'Draft';
+
+  @override
+  String get reportCardStatusPublished => 'Published';
+
+  @override
   String get tooltipAccount => 'Account';
 
   @override

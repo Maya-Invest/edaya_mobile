@@ -4,6 +4,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
 import '../calendar/models/teacher_session.dart';
+import '../context/academic_year_controller.dart';
 import 'models/session_detail_models.dart';
 import 'session_detail_controller.dart';
 import 'session_route_args.dart';
@@ -19,6 +20,8 @@ class SessionDetailsSheet extends LScopedView<SessionDetailController> {
     return scope.put(
       () => SessionDetailController(
         session: session,
+        getAcademicYearId: () =>
+            scope.find<AcademicYearController>().selectedYearId.value,
         schoolClient: scope.find<SchoolClientFactory>(),
       ),
     );

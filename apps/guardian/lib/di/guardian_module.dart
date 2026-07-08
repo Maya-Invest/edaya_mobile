@@ -36,6 +36,7 @@ void registerGuardianDependencies(LevitScope scope) {
       routerRefresh: scope.find<EdayaRouterRefresh>(),
       validateGrants: (_) => null,
       unauthorizedProfileMessage: () => systemL10n().signedInNoGuardianProfile,
+      resolveActorKind: () => 'guardian',
     ),
     permanent: true,
   );

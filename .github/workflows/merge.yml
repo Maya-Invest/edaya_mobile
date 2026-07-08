@@ -1,0 +1,59 @@
+name: Merge
+
+on:
+  push:
+    branches: [main, master, staging]
+  repository_dispatch:
+    types: [api-dev-image-published]
+  workflow_dispatch:
+    inputs:
+      run_rerun_pr_ci:
+        description: Re-run open PR CI against the latest api-dev image
+        type: boolean
+        default: true
+      channel:
+        description: api-dev image channel when run manually (staging or production)
+        required: false
+        default: staging
+        type: string
+
+concurrency:
+  group: merge-${{ github.ref_name }}-${{ github.event.action || 'push' }}
+  cancel-in-progress: false
+
+permissions:
+  actions: write
+  contents: read
+  pull-requests: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      run_rerun_pr_ci: ${{ steps.plan.outputs.run_rerun_pr_ci }}
+      channel: ${{ steps.plan.outputs.channel }}
+    steps:
+      - name: Plan jobs
+        id: plan
+        run: |
+          case "${{ github.event_name }}" in
+            repository_dispatch)
+              echo "run_rerun_pr_ci=true" >> "$GITHUB_OUTPUT"
+              echo "channel=${{ github.event.client_payload.channel }}" >> "$GITHUB_OUTPUT"
+              ;;
+            workflow_dispatch)
+              echo "run_rerun_pr_ci=${{ inputs.run_rerun_pr_ci }}" >> "$GITHUB_OUTPUT"
+              echo "channel=${{ inputs.channel }}" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "run_rerun_pr_ci=false" >> "$GITHUB_OUTPUT"
+              echo "channel=staging" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+  rerun-pr-on-api-dev-image:
+    needs: gate
+    if: needs.gate.outputs.run_rerun_pr_ci == 'true'
+    uses: ./.github/workflows/_rerun-pr-on-api-dev-image.yml
+    with:
+      channel: ${{ needs.gate.outputs.channel }}

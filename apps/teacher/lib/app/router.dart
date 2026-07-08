@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../features/context/academic_year_controller.dart';
+import '../di/teacher_module.dart';
 import '../features/context/teacher_context_controller.dart';
 import '../config/api_config.dart';
 import '../features/account/account_sheet.dart';
@@ -15,6 +15,8 @@ import '../features/evaluations/evaluation_create_sheet.dart';
 import '../features/evaluations/evaluations_page.dart';
 import '../features/evaluations/marks_entry_sheet.dart';
 import '../features/evaluations/models/evaluation_models.dart';
+import '../features/report_cards/models/report_card_roster_models.dart';
+import '../features/report_cards/report_card_roster_sheet.dart';
 import '../features/report_cards/report_cards_page.dart';
 import '../features/teaching/teaching_page.dart';
 import '../features/session/attendance_flow_page.dart';
@@ -55,9 +57,7 @@ class AppRouter extends LevitController implements EdayaAppRouter {
             defaultEmail: ApiConfig.devTeacherEmail,
             defaultPassword: ApiConfig.devPassword,
             onSignInSuccess: () async {
-              await EdayaRootScope.find<AcademicYearController>().loadYears();
-              await EdayaRootScope.find<TeacherContextController>()
-                  .initializeFromSession();
+              await initializeTeacherAuthenticatedContext();
               AppRouter.find.router.go('/calendar');
             },
           ),
@@ -193,6 +193,28 @@ class AppRouter extends LevitController implements EdayaAppRouter {
             GoRoute(
               path: '/report-cards',
               builder: (context, state) => const ReportCardsPage(),
+              routes: [
+                GoRoute(
+                  parentNavigatorKey: rootNavigatorKey,
+                  path: 'roster',
+                  pageBuilder: (context, state) {
+                    final extra = state.extra;
+                    if (extra is! ReportCardRosterArgs) {
+                      return MaterialPage<void>(
+                        child: RouteErrorPage(
+                          message: context.tr.missingReportCardRosterRouteData,
+                        ),
+                      );
+                    }
+
+                    return ModalBottomSheetPage<void>(
+                      isScrollControlled: true,
+                      useSafeArea: true,
+                      child: ReportCardRosterSheet(rosterArgs: extra),
+                    );
+                  },
+                ),
+              ],
             ),
           ],
         ),

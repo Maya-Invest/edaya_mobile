@@ -7,6 +7,7 @@ import 'package:edaya_shared/edaya_shared.dart';
 import '../context/academic_year_controller.dart';
 import '../context/teacher_context_controller.dart';
 import '../evaluations/evaluations_controller.dart';
+import 'report_card_logic.dart';
 
 class ReportCardClassSummary {
   const ReportCardClassSummary({
@@ -118,16 +119,8 @@ class ReportCardsController extends LevitController
             'classGroupId': assigned.id,
             'periodId': periodId,
           });
-          final generated = results.where(
-            (row) => row['status'] == 'draft' || row['status'] == 'published',
-          );
-          final withComments = generated.where((row) {
-            final teacherComment = row['teacherComment'] as String?;
-            if (teacherComment != null && teacherComment.trim().isNotEmpty) {
-              return true;
-            }
-            return _hasSectionComment(row['sectionResults']);
-          });
+          final generated = results.where(reportCardIsGenerated);
+          final withComments = generated.where(reportCardHasComment);
 
           summaries.add(
             ReportCardClassSummary(
@@ -145,24 +138,5 @@ class ReportCardsController extends LevitController
         classSummaries(const []);
       }
     });
-  }
-
-  bool _hasSectionComment(dynamic sections) {
-    if (sections is! List) {
-      return false;
-    }
-    for (final section in sections) {
-      if (section is! Map) {
-        continue;
-      }
-      final comment = section['comment'] as String?;
-      if (comment != null && comment.trim().isNotEmpty) {
-        return true;
-      }
-      if (_hasSectionComment(section['subResults'])) {
-        return true;
-      }
-    }
-    return false;
   }
 }

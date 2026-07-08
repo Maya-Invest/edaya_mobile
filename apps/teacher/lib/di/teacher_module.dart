@@ -11,6 +11,13 @@ import '../features/report_cards/report_cards_controller.dart';
 import '../features/teaching/teaching_controller.dart';
 import '../navigation/notification_navigation.dart';
 
+/// Loads academic year, year-scoped grants, and teacher context after auth.
+Future<void> initializeTeacherAuthenticatedContext() async {
+  await EdayaRootScope.find<AcademicYearController>().loadYears();
+  await EdayaRootScope.find<AppSessionController>().refreshGrants();
+  await EdayaRootScope.find<TeacherContextController>().initializeFromSession();
+}
+
 void registerTeacherDependencies(LevitScope scope) {
   EdayaRootScope.bind(scope, appName: systemL10n().appTitleTeacher);
   final cookieJar = CookieJar();
@@ -52,6 +59,7 @@ void registerTeacherDependencies(LevitScope scope) {
         }
         return scope.find<SessionStorage>().readAcademicYearId();
       },
+      resolveActorKind: () => 'teacher',
     ),
     permanent: true,
   );
@@ -111,11 +119,7 @@ void registerTeacherDependencies(LevitScope scope) {
       sessionStorage: scope.find<SessionStorage>(),
       session: scope.find<AppSessionController>(),
       pushNotifications: scope.find<PushNotificationService>(),
-      initializeAuthenticatedContext: () async {
-        await scope.find<AcademicYearController>().loadYears();
-        await scope.find<AppSessionController>().refreshGrants();
-        await scope.find<TeacherContextController>().initializeFromSession();
-      },
+      initializeAuthenticatedContext: initializeTeacherAuthenticatedContext,
     ),
     permanent: true,
   );

@@ -14,7 +14,14 @@ Future<List<Map<String, dynamic>>> listAttendanceForOccurrence(
     return rows;
   }
 
-  return attendance.list(recordsForFieldIds('sessionId', [occurrenceId]));
+  try {
+    return await attendance.list(recordsForFieldIds('sessionId', [occurrenceId]));
+  } on ApiError catch (error) {
+    if (error.status == 403 || error.status == 404) {
+      return const [];
+    }
+    rethrow;
+  }
 }
 
 Map<String, dynamic> attendanceRecordPayload({

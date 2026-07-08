@@ -548,6 +548,30 @@ abstract class AppLocalizations {
   /// **'Student roster coming soon.'**
   String get reportCardRosterComingSoon;
 
+  /// No description provided for @missingReportCardRosterRouteData.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing report card roster route data.'**
+  String get missingReportCardRosterRouteData;
+
+  /// No description provided for @couldNotLoadReportCardRoster.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load report card roster: {error}'**
+  String couldNotLoadReportCardRoster(String error);
+
+  /// No description provided for @reportCardStatusDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get reportCardStatusDraft;
+
+  /// No description provided for @reportCardStatusPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Published'**
+  String get reportCardStatusPublished;
+
   /// No description provided for @tooltipAccount.
   ///
   /// In en, this message translates to:

@@ -22,13 +22,15 @@ class AppSessionController extends LevitController {
     required GrantValidator validateGrants,
     required String Function() unauthorizedProfileMessage,
     Future<String?> Function()? resolveAcademicYearId,
+    String? Function()? resolveActorKind,
   }) : _authClient = authClient,
        _sessionStorage = sessionStorage,
        _pushNotifications = pushNotifications,
        _routerRefresh = routerRefresh,
        _validateGrants = validateGrants,
        _unauthorizedProfileMessage = unauthorizedProfileMessage,
-       _resolveAcademicYearId = resolveAcademicYearId;
+       _resolveAcademicYearId = resolveAcademicYearId,
+       _resolveActorKind = resolveActorKind;
 
   final AuthClient _authClient;
   final AuthSessionStorage _sessionStorage;
@@ -37,8 +39,10 @@ class AppSessionController extends LevitController {
   final GrantValidator _validateGrants;
   final String Function() _unauthorizedProfileMessage;
   final Future<String?> Function()? _resolveAcademicYearId;
+  final String? Function()? _resolveActorKind;
 
   String? _academicYearIdHeader;
+  String? _actorKindHeader;
 
   final user = LxVar<AuthUser?>(null);
   final grants = LxVar<api.EffectiveGrantsResponse?>(null);
@@ -155,9 +159,11 @@ class AppSessionController extends LevitController {
     if (_resolveAcademicYearId != null) {
       _academicYearIdHeader = await _resolveAcademicYearId();
     }
+    _actorKindHeader = _resolveActorKind?.call();
     return createEdayaSchoolClient(
       _authClient,
       getAcademicYearId: () => _academicYearIdHeader,
+      getActorKind: () => _actorKindHeader,
     );
   }
 
@@ -165,6 +171,7 @@ class AppSessionController extends LevitController {
     user(null);
     grants(null);
     _academicYearIdHeader = null;
+    _actorKindHeader = null;
     if (persistCookies) {
       await _sessionStorage.clearCookies();
       _authClient.cookieJar.clear();

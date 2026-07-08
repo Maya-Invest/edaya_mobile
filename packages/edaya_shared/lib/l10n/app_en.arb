@@ -126,6 +126,15 @@
     }
   },
   "reportCardRosterComingSoon": "Student roster coming soon.",
+  "missingReportCardRosterRouteData": "Missing report card roster route data.",
+  "couldNotLoadReportCardRoster": "Could not load report card roster: {error}",
+  "@couldNotLoadReportCardRoster": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "reportCardStatusDraft": "Draft",
+  "reportCardStatusPublished": "Published",
   "tooltipAccount": "Account",
   "loading": "Loading…",
   "selectAStudent": "Select a student",

@@ -274,6 +274,21 @@ class AppLocalizationsFr extends AppLocalizations {
       'Liste des élèves bientôt disponible.';
 
   @override
+  String get missingReportCardRosterRouteData =>
+      'Données de route de la liste des bulletins manquantes.';
+
+  @override
+  String couldNotLoadReportCardRoster(String error) {
+    return 'Impossible de charger la liste des bulletins : $error';
+  }
+
+  @override
+  String get reportCardStatusDraft => 'Brouillon';
+
+  @override
+  String get reportCardStatusPublished => 'Publié';
+
+  @override
   String get tooltipAccount => 'Compte';
 
   @override

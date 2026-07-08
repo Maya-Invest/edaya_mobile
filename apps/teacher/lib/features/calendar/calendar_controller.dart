@@ -35,6 +35,7 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
     autoDispose(errorMessage);
 
     for (final subscription in [
+      _teacherContext.teacherId.stream,
       _teacherContext.assignedClasses.stream,
       _teacherContext.classFilterId.stream,
       _teacherContext.taughtClassSubjectIds.stream,

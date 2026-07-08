@@ -1,55 +1,21 @@
-name: CI
+name: Integration tests
 
 on:
-  pull_request:
-    branches: [main, master, staging]
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      pr_base_ref:
-        description: Pull request base branch (selects api-dev image channel)
-        required: false
-        default: staging
+      api_dev_base_ref:
+        description: Base branch used to select the api-dev image channel
+        required: true
         type: string
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 permissions:
   contents: read
   packages: read
 
 jobs:
-  verify:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Install Melos
-        run: dart pub global activate melos
-
-      - name: Add pub global bin to PATH
-        run: echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
-
-      - name: Bootstrap workspace
-        run: melos bootstrap
-
-      - name: Verify
-        run: melos run verify
-
   integration:
-    needs: [verify]
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      API_DEV_BASE_REF: ${{ github.event.pull_request.base.ref || github.event.inputs.pr_base_ref || 'staging' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -77,7 +43,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Start API dev container
-        run: bash .github/scripts/ci-api-dev-container.sh start "${{ env.API_DEV_BASE_REF }}"
+        run: bash .github/scripts/ci-api-dev-container.sh start "${{ inputs.api_dev_base_ref }}"
 
       - name: Integration tests
         env:

@@ -14,6 +14,7 @@ SchoolClient _unimplementedSchoolClient() => throw UnimplementedError();
 class _RecordingSessionDetailController extends SessionDetailController {
   _RecordingSessionDetailController({
     required super.session,
+    required super.getAcademicYearId,
     required super.schoolClient,
   });
 
@@ -72,6 +73,7 @@ void main() {
             sharedController = scope.put(
               () => _RecordingSessionDetailController(
                 session: session,
+                getAcademicYearId: () => '2025-ci',
                 schoolClient: _unimplementedSchoolClient,
               ),
             );
@@ -95,6 +97,7 @@ void main() {
     final session = _lessonSession();
     final controller = _RecordingSessionDetailController(
       session: session,
+      getAcademicYearId: () => '2025-ci',
       schoolClient: _unimplementedSchoolClient,
     );
 

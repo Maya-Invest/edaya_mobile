@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../calendar/models/teacher_session.dart';
+import '../context/academic_year_controller.dart';
 import 'models/session_detail_models.dart';
 import 'session_detail_controller.dart';
 
@@ -38,6 +39,8 @@ class _AttendanceFlowScopedPage extends LScopedView<SessionDetailController> {
     return scope.put(
       () => SessionDetailController(
         session: session,
+        getAcademicYearId: () =>
+            scope.find<AcademicYearController>().selectedYearId.value,
         schoolClient: scope.find<SchoolClientFactory>(),
       ),
     );
@@ -74,6 +77,29 @@ class _AttendanceFlowScaffold extends StatelessWidget {
               child: Text(
                 context.tr.attendanceRecordingLessonOnly,
                 textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
+
+        if (controller.errorMessage.value.isNotEmpty &&
+            controller.students.value.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    controller.errorMessage.value,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: controller.loadDetail,
+                    child: Text(context.tr.retry),
+                  ),
+                ],
               ),
             ),
           );

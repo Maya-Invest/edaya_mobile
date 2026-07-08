@@ -1,5 +1,25 @@
-import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_api_client/edaya_api_client.dart';
+import 'package:edaya_shared/src/api/attendance_data.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+class _QueuedAttendanceTransport implements Transport {
+  _QueuedAttendanceTransport(this.responses);
+
+  final List<Object?> responses;
+
+  @override
+  Future<T> request<T>(
+    String method,
+    String path, {
+    TransportRequestOptions? options,
+  }) async {
+    final next = responses.removeAt(0);
+    if (next is Exception) {
+      throw next;
+    }
+    return next as T;
+  }
+}
 
 void main() {
   test(
@@ -22,6 +42,25 @@ void main() {
           'lessonSessionId': 'ls-1',
         },
       );
+    },
+  );
+
+  test(
+    'listAttendanceForOccurrence treats legacy sessionId fallback 403 as empty',
+    () async {
+      final transport = _QueuedAttendanceTransport([
+        const <Map<String, dynamic>>[],
+        ApiError(403, const {'message': 'Operation is not permitted'}),
+      ]);
+      final client = createSchoolClient(transport);
+
+      final rows = await listAttendanceForOccurrence(
+        client.attendance,
+        kind: 'lesson',
+        occurrenceId: 'sch-ci-6a-math-wed:2026-07-07',
+      );
+
+      expect(rows, isEmpty);
     },
   );
 }
