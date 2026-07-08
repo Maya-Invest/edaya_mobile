@@ -54,7 +54,9 @@ belong in `apps/teacher/test/` or `apps/guardian/test/` (pure logic) or widget/c
 
 Live API widget tests live in `apps/guardian/test/integration/`. They reuse this package's harness (`PortalSession`, `bootstrapGuardianPortal`, feature probes) and pump real guardian pages under `flutter test`.
 
-Coverage includes the app shell (bottom navigation), calendar, academic, evaluations, fees, inbox, and attendance list views.
+Coverage includes the app shell (all five tabs), calendar timetable and events views, session details, student switching, academic curriculum progress, evaluations grades and report cards, fees and payment details, inbox message details, and attendance list views.
+
+Demo accounts: `m.kone@mail.ci` (children `ci-s1` + `ci-s10`), `k.yao@mail.ci` (`ci-s4`, `ci-s7`, `ci-s8`).
 
 ### Teacher widget integration tests
 

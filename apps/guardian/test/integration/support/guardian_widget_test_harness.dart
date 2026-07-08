@@ -26,6 +26,17 @@ class GuardianWidgetTestHarness {
 
   LevitScope? _scope;
 
+  /// Levit scope after [buildApp] or [buildRouterApp] has been pumped.
+  LevitScope get scope {
+    final resolved = _scope;
+    if (resolved == null) {
+      throw StateError(
+        'Guardian widget harness: pump buildApp() or buildRouterApp() before using scope',
+      );
+    }
+    return resolved;
+  }
+
   static Future<GuardianWidgetTestHarness> create({
     GuardianPortalProfile profile = GuardianPortalProfile.mariamKone,
   }) async {
@@ -65,14 +76,18 @@ class GuardianWidgetTestHarness {
   }
 
   /// Builds the authenticated shell with [AppRouter] (post-bootstrap).
-  Widget buildRouterApp() {
+  Widget buildRouterApp({String? initialRoute}) {
     return LScope(
       name: 'guardian-widget-integration',
       dependencyFactory: (scope) {
         _scope = scope;
         registerDependencies(scope);
       },
-      child: _GuardianTestShell(harness: this, useRouter: true),
+      child: _GuardianTestShell(
+        harness: this,
+        useRouter: true,
+        initialRoute: initialRoute,
+      ),
     );
   }
 
@@ -198,11 +213,13 @@ class _GuardianTestShell extends StatefulWidget {
     required this.harness,
     this.child,
     this.useRouter = false,
+    this.initialRoute,
   });
 
   final GuardianWidgetTestHarness harness;
   final Widget? child;
   final bool useRouter;
+  final String? initialRoute;
 
   @override
   State<_GuardianTestShell> createState() => _GuardianTestShellState();
@@ -224,6 +241,11 @@ class _GuardianTestShellState extends State<_GuardianTestShell> {
       if (!mounted) {
         return;
       }
+      if (widget.useRouter) {
+        final router = widget.harness._scope!.find<AppRouter>();
+        router.router.go(widget.initialRoute ?? '/calendar');
+      }
+      widget.harness._scope!.find<EdayaRouterRefresh>().notifyListeners();
       setState(() => _ready = true);
     } on Object catch (error) {
       if (!mounted) {

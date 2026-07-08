@@ -1,6 +1,31 @@
+import 'package:edaya_guardian/features/academic/models/grade_entry.dart';
+import 'package:edaya_guardian/features/fees/models/payment_record.dart';
+import 'package:edaya_guardian/features/inbox/models/inbox_delivery.dart';
 import 'package:edaya_integration_tests/edaya_integration_tests.dart';
 
 import 'guardian_widget_test_harness.dart';
+
+class GuardianCalendarSessionProbe {
+  const GuardianCalendarSessionProbe({
+    required this.sessionTitle,
+    required this.subjectLabel,
+    required this.sessionDay,
+  });
+
+  final String sessionTitle;
+  final String subjectLabel;
+  final DateTime sessionDay;
+}
+
+class GuardianStudentSwitchProbe {
+  const GuardianStudentSwitchProbe({
+    required this.alternateStudentId,
+    required this.alternateStudentName,
+  });
+
+  final String alternateStudentId;
+  final String alternateStudentName;
+}
 
 /// API probes loaded once for guardian widget integration tests.
 class GuardianProbeBundle {
@@ -10,6 +35,13 @@ class GuardianProbeBundle {
     required this.calendar,
     required this.inbox,
     required this.attendance,
+    required this.sessionProbe,
+    required this.studentSwitchProbe,
+    required this.firstGradedAssessmentTitle,
+    required this.firstSubjectMatterName,
+    required this.firstGradedEntry,
+    required this.firstPayment,
+    required this.firstInboxDelivery,
   });
 
   final GuardianAcademicProbe academic;
@@ -17,8 +49,17 @@ class GuardianProbeBundle {
   final GuardianCalendarProbe calendar;
   final GuardianInboxProbe inbox;
   final List<Map<String, dynamic>> attendance;
+  final GuardianCalendarSessionProbe? sessionProbe;
+  final GuardianStudentSwitchProbe? studentSwitchProbe;
+  final String? firstGradedAssessmentTitle;
+  final String? firstSubjectMatterName;
+  final GradeEntry? firstGradedEntry;
+  final PaymentRecord? firstPayment;
+  final InboxDelivery? firstInboxDelivery;
 
-  static Future<GuardianProbeBundle> load(GuardianWidgetTestHarness harness) async {
+  static Future<GuardianProbeBundle> load(
+    GuardianWidgetTestHarness harness,
+  ) async {
     final client = harness.portalSession.schoolClient;
     final profile = harness.profile;
 
@@ -47,12 +88,168 @@ class GuardianProbeBundle {
       studentId: profile.primaryStudentId,
     );
 
+    final sessionProbe = _loadSessionProbe(calendar.timetableEvents);
+    final studentSwitchProbe = _loadStudentSwitchProbe(harness);
+    final graded = _loadFirstGradedEntry(academic);
+    final firstPayment = _loadFirstPayment(fees);
+    final firstInboxDelivery = inbox.deliveries.isEmpty
+        ? null
+        : InboxDelivery.fromJson(inbox.deliveries.first);
+
     return GuardianProbeBundle(
       academic: academic,
       fees: fees,
       calendar: calendar,
       inbox: inbox,
       attendance: attendance,
+      sessionProbe: sessionProbe,
+      studentSwitchProbe: studentSwitchProbe,
+      firstGradedAssessmentTitle: graded?.$1,
+      firstSubjectMatterName: _firstSubjectMatterName(academic),
+      firstGradedEntry: graded?.$2,
+      firstPayment: firstPayment,
+      firstInboxDelivery: firstInboxDelivery,
     );
+  }
+
+  static GuardianCalendarSessionProbe? _loadSessionProbe(
+    List<dynamic> events,
+  ) {
+    for (final event in events) {
+      if (event is! Map<String, dynamic>) {
+        continue;
+      }
+      if (event['kind'] != 'lesson') {
+        continue;
+      }
+      final startsAtRaw = event['startsAt'] as String?;
+      if (startsAtRaw == null) {
+        continue;
+      }
+      final startsAt = DateTime.parse(startsAtRaw).toLocal();
+      final title = event['title'] as String? ?? 'Lesson';
+      final subjectLabel =
+          event['subjectLabel'] as String? ??
+          event['title'] as String? ??
+          title;
+      return GuardianCalendarSessionProbe(
+        sessionTitle: title,
+        subjectLabel: subjectLabel,
+        sessionDay: DateTime(startsAt.year, startsAt.month, startsAt.day),
+      );
+    }
+    return null;
+  }
+
+  static GuardianStudentSwitchProbe? _loadStudentSwitchProbe(
+    GuardianWidgetTestHarness harness,
+  ) {
+    if (harness.context.linkedStudents.length < 2) {
+      return null;
+    }
+
+    final alternate = harness.context.linkedStudents.firstWhere(
+      (row) => row['id'] != harness.profile.primaryStudentId,
+      orElse: () => harness.context.linkedStudents.last,
+    );
+    final firstName = alternate['firstName'] as String? ?? '';
+    final lastName = alternate['lastName'] as String? ?? '';
+    final fullName = '$firstName $lastName'.trim();
+
+    return GuardianStudentSwitchProbe(
+      alternateStudentId: alternate['id'] as String,
+      alternateStudentName: fullName.isEmpty
+          ? alternate['id'] as String
+          : fullName,
+    );
+  }
+
+  static (String, GradeEntry)? _loadFirstGradedEntry(
+    GuardianAcademicProbe academic,
+  ) {
+    final periodNameById = {
+      for (final period in academic.academicPeriods)
+        period['id'] as String:
+            period['name'] as String? ?? period['id'] as String,
+    };
+    final subjectNameById = {
+      for (final subject in academic.subjects)
+        subject['id'] as String: subject['name'] as String? ?? '',
+    };
+    final classSubjectById = {
+      for (final row in academic.classSubjects)
+        row['id'] as String: row,
+    };
+
+    for (final result in academic.assessmentResults) {
+      if (result['score'] == null) {
+        continue;
+      }
+      final assessmentId = result['assessmentId'] as String?;
+      if (assessmentId == null) {
+        continue;
+      }
+      final assessment = academic.assessments
+          .cast<Map<String, dynamic>>()
+          .where((row) => row['id'] == assessmentId)
+          .firstOrNull;
+      if (assessment == null) {
+        continue;
+      }
+
+      final classSubjectId = assessment['classSubjectId'] as String?;
+      final classSubject = classSubjectId == null
+          ? null
+          : classSubjectById[classSubjectId];
+      final subjectId = classSubject?['subjectId'] as String?;
+      final subjectName = subjectId == null
+          ? ''
+          : subjectNameById[subjectId] ?? '';
+      final periodId = assessment['periodId'] as String? ?? '';
+      final periodName = periodNameById[periodId] ?? periodId;
+      final title = assessment['title'] as String? ?? assessmentId;
+
+      return (
+        title,
+        GradeEntry.fromMaps(
+          result: result,
+          assessment: assessment,
+          subjectName: subjectName.isEmpty ? 'Subject' : subjectName,
+          periodName: periodName,
+        ),
+      );
+    }
+
+    return null;
+  }
+
+  static String? _firstSubjectMatterName(GuardianAcademicProbe academic) {
+    for (final matter in academic.subjectMatters) {
+      final name =
+          matter['name'] as String? ?? matter['title'] as String? ?? '';
+      if (name.isNotEmpty) {
+        return name;
+      }
+    }
+    return null;
+  }
+
+  static PaymentRecord? _loadFirstPayment(GuardianFeesProbe fees) {
+    if (fees.payments.isEmpty) {
+      return null;
+    }
+
+    final payment = fees.payments.first;
+    final studentFeeId = payment['studentFeeId'] as String?;
+    final studentFee = fees.studentFees
+        .where((row) => row['id'] == studentFeeId)
+        .cast<Map<String, dynamic>?>()
+        .firstWhere((row) => row != null, orElse: () => null);
+    final feeId = studentFee?['feeId'] as String?;
+    final feeLabel = feeId == null
+        ? 'Fee'
+        : fees.feeNamesById[feeId] ?? feeId;
+
+    return PaymentRecord.fromJson(payment, feeLabel: feeLabel);
   }
 }
