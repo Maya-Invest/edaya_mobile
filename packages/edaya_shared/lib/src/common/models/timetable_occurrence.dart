@@ -12,7 +12,6 @@ class TimetableOccurrence {
     required this.classGroupId,
     this.classSubjectId,
     this.status,
-    this.room,
     this.teacherName,
   });
 
@@ -25,7 +24,6 @@ class TimetableOccurrence {
   final String classGroupId;
   final String? classSubjectId;
   final String? status;
-  final String? room;
   final String? teacherName;
 
   bool occursOn(DateTime day) => isSameCalendarDay(startsAt, day);

@@ -57,25 +57,10 @@ class EdayaBootstrapGate extends LView<AppBootstrapController> {
       settings.timezone.value;
       settings.dateFormat.value;
       settings.timeFormat.value;
+      controller.isReady.value;
 
       final themeMode = settings.themeMode;
       final locale = settings.locale;
-
-      if (!controller.isReady.value) {
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.light,
-          darkTheme: AppTheme.dark,
-          themeMode: themeMode,
-          locale: locale,
-          localeResolutionCallback: settings.resolveLocale,
-          localizationsDelegates: _localizationDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          ),
-        );
-      }
 
       return MaterialApp.router(
         debugShowCheckedModeBanner: false,
@@ -88,6 +73,14 @@ class EdayaBootstrapGate extends LView<AppBootstrapController> {
         localizationsDelegates: _localizationDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: context.levit.find<EdayaAppRouter>().config(),
+        builder: (context, child) {
+          if (!controller.isReady.value) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          return child ?? const SizedBox.shrink();
+        },
       );
     });
   }

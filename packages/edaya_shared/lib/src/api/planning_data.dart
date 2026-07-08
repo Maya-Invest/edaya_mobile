@@ -39,22 +39,8 @@ List<String> _uniqueIds(Iterable<String?> ids) {
   return ids.whereType<String>().toSet().toList();
 }
 
-List<Map<String, dynamic>> _dedupeById(Iterable<Map<String, dynamic>> rows) {
-  final seen = <String>{};
-  final result = <Map<String, dynamic>>[];
-  for (final row in rows) {
-    final id = row['id'] as String?;
-    if (id == null || seen.contains(id)) {
-      continue;
-    }
-    seen.add(id);
-    result.add(row);
-  }
-  return result;
-}
-
-/// Portal actors (guardians/students) cannot read staff or resource assignments.
-/// Treat those lists as optional enrichment and keep timetable loading working.
+/// Portal actors cannot read staff workspace entities. Treat optional reads as
+/// best-effort enrichment and keep timetable loading working.
 Future<List<Map<String, dynamic>>> _optionalEntityList(
   Future<List<Map<String, dynamic>>> future,
 ) async {
@@ -115,71 +101,6 @@ String _teacherName(
     }
   }
   return fallback;
-}
-
-String _resolveInstructorName({
-  required List<Map<String, dynamic>> teacherAssignments,
-  required Map<String, Map<String, dynamic>> teachersById,
-  required List<Map<String, dynamic>> staffAssignments,
-  required Map<String, Map<String, dynamic>> staffById,
-  required bool Function(Map<String, dynamic> assignment) matchTeacher,
-  required bool Function(Map<String, dynamic> assignment) matchStaff,
-  required String fallback,
-}) {
-  final teacherLabel = _teacherName(
-    teacherAssignments,
-    teachersById,
-    matchTeacher,
-    '',
-  );
-  if (teacherLabel.isNotEmpty) {
-    return teacherLabel;
-  }
-  return _staffName(staffAssignments, staffById, matchStaff, fallback);
-}
-
-String _staffName(
-  List<Map<String, dynamic>> staffAssignments,
-  Map<String, Map<String, dynamic>> staffById,
-  bool Function(Map<String, dynamic> assignment) match,
-  String fallback,
-) {
-  for (final assignment in staffAssignments) {
-    if (!match(assignment)) {
-      continue;
-    }
-    final staffId = assignment['staffId'] as String?;
-    final teacher = staffId == null ? null : staffById[staffId];
-    if (teacher == null) {
-      continue;
-    }
-    final firstName = teacher['firstName'] as String? ?? '';
-    final lastName = teacher['lastName'] as String? ?? '';
-    final fullName = '$firstName $lastName'.trim();
-    if (fullName.isNotEmpty) {
-      return fullName;
-    }
-  }
-  return fallback;
-}
-
-String _roomName(
-  List<Map<String, dynamic>> resourceAssignments,
-  Map<String, Map<String, dynamic>> resourceById,
-  bool Function(Map<String, dynamic> assignment) match,
-) {
-  for (final assignment in resourceAssignments) {
-    if (!match(assignment)) {
-      continue;
-    }
-    final resourceId = assignment['resourceId'] as String?;
-    final resource = resourceId == null ? null : resourceById[resourceId];
-    final name = resource?['name'] as String?;
-    if (name != null && name.isNotEmpty) {
-      return name;
-    }
-  }
-  return '—';
 }
 
 Future<List<TimetableOccurrence>> fetchClassTimetableOccurrences(
@@ -249,8 +170,6 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
     lessonSessionsRaw,
     activitySessionsRaw,
     classSubjectsRaw,
-    classGroupStaffAssignmentsRaw,
-    classGroupResourceAssignmentsRaw,
   ] = await Future.wait([
     lessonSessionIds.isEmpty
         ? Future.value(<Map<String, dynamic>>[])
@@ -260,12 +179,6 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
         : client.activitySessions.list(entitiesByIds(activitySessionIds)),
     _optionalEntityList(
       client.classSubjects.list(classGroupScope(classGroupId)),
-    ),
-    _optionalEntityList(
-      client.staffAssignments.list(classGroupScope(classGroupId)),
-    ),
-    _optionalEntityList(
-      client.resourceAssignments.list(classGroupScope(classGroupId)),
     ),
   ]);
 
@@ -288,52 +201,12 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
 
   final [
     activitiesRaw,
-    sessionStaffAssignmentsRaw,
-    classSubjectStaffAssignmentsRaw,
-    activityStaffAssignmentsRaw,
-    sessionResourceAssignmentsRaw,
-    activityResourceAssignmentsRaw,
     subjectsRaw,
     teacherAssignmentsRaw,
   ] = await Future.wait([
     activityIds.isEmpty
         ? Future.value(<Map<String, dynamic>>[])
         : client.activities.list(entitiesByIds(activityIds)),
-    lessonSessionIds.isEmpty
-        ? Future.value(<Map<String, dynamic>>[])
-        : _optionalEntityList(
-            client.staffAssignments.list(
-              assignmentsForLessonSessions(lessonSessionIds),
-            ),
-          ),
-    classSubjectIds.isEmpty
-        ? Future.value(<Map<String, dynamic>>[])
-        : _optionalEntityList(
-            client.staffAssignments.list(
-              assignmentsForClassSubjects(classSubjectIds),
-            ),
-          ),
-    activitySessionIds.isEmpty
-        ? Future.value(<Map<String, dynamic>>[])
-        : _optionalEntityList(
-            client.staffAssignments.list(
-              assignmentsForActivitySessions(activitySessionIds),
-            ),
-          ),
-    lessonSessionIds.isEmpty
-        ? Future.value(<Map<String, dynamic>>[])
-        : _optionalEntityList(
-            client.resourceAssignments.list(
-              assignmentsForLessonSessions(lessonSessionIds),
-            ),
-          ),
-    activitySessionIds.isEmpty
-        ? Future.value(<Map<String, dynamic>>[])
-        : _optionalEntityList(
-            client.resourceAssignments.list(
-              assignmentsForActivitySessions(activitySessionIds),
-            ),
-          ),
     subjectIds.isEmpty
         ? Future.value(<Map<String, dynamic>>[])
         : _optionalEntityList(client.subjects.list(entitiesByIds(subjectIds))),
@@ -346,56 +219,17 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
           ),
   ]);
 
-  final staffAssignmentsRaw = _dedupeById([
-    ...classGroupStaffAssignmentsRaw,
-    ...sessionStaffAssignmentsRaw,
-    ...classSubjectStaffAssignmentsRaw,
-    ...activityStaffAssignmentsRaw,
-  ]);
-  final resourceAssignmentsRaw = _dedupeById([
-    ...classGroupResourceAssignmentsRaw,
-    ...sessionResourceAssignmentsRaw,
-    ...activityResourceAssignmentsRaw,
-  ]);
-
-  final staffIds = _uniqueIds(
-    staffAssignmentsRaw.map((assignment) => assignment['staffId'] as String?),
-  );
   final teacherIds = _uniqueIds(
     teacherAssignmentsRaw.map(
       (assignment) => assignment['teacherId'] as String?,
     ),
   );
-  final resourceIds = _uniqueIds(
-    resourceAssignmentsRaw.map(
-      (assignment) => assignment['resourceId'] as String?,
-    ),
-  );
 
-  final [staffMembersRaw, teachersRaw, resourcesRaw] = await Future.wait([
-    staffIds.isEmpty
-        ? Future.value(<Map<String, dynamic>>[])
-        : _optionalEntityList(
-            client.staffMembers.list(entitiesByIds(staffIds)),
-          ),
-    teacherIds.isEmpty
-        ? Future.value(<Map<String, dynamic>>[])
-        : _optionalEntityList(client.teachers.list(entitiesByIds(teacherIds))),
-    resourceIds.isEmpty
-        ? Future.value(<Map<String, dynamic>>[])
-        : _optionalEntityList(
-            client.resources.list(entitiesByIds(resourceIds)),
-          ),
-  ]);
-
-  final staffById = {
-    for (final member in staffMembersRaw) member['id'] as String: member,
-  };
+  final teachersRaw = teacherIds.isEmpty
+      ? <Map<String, dynamic>>[]
+      : await _optionalEntityList(client.teachers.list(entitiesByIds(teacherIds)));
   final teachersById = {
     for (final teacher in teachersRaw) teacher['id'] as String: teacher,
-  };
-  final resourceById = {
-    for (final resource in resourcesRaw) resource['id'] as String: resource,
   };
   final activitiesById = {
     for (final activity in activitiesRaw) activity['id'] as String: activity,
@@ -444,25 +278,14 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
             status:
                 event['status'] as String? ??
                 lessonSession?['status'] as String?,
-            room: _roomName(
-              resourceAssignmentsRaw,
-              resourceById,
-              (entry) => entry['lessonSessionId'] == lessonSessionId,
-            ),
-            teacherName: _resolveInstructorName(
-              teacherAssignments: teacherAssignmentsRaw,
-              teachersById: teachersById,
-              staffAssignments: staffAssignmentsRaw,
-              staffById: staffById,
-              matchTeacher: (entry) =>
+            teacherName: _teacherName(
+              teacherAssignmentsRaw,
+              teachersById,
+              (entry) =>
                   entry['kind'] == 'subject' &&
                   classSubjectId != null &&
                   entry['classSubjectId'] == classSubjectId,
-              matchStaff: (entry) =>
-                  entry['lessonSessionId'] == lessonSessionId ||
-                  (classSubjectId != null &&
-                      entry['classSubjectId'] == classSubjectId),
-              fallback: unassignedTeacherLabel,
+              unassignedTeacherLabel,
             ),
           ),
         );
@@ -474,15 +297,11 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
             event['activityId'] as String? ??
             activitySession?['activityId'] as String?;
         final activity = activityId == null ? null : activitiesById[activityId];
-        final staffLabel = _resolveInstructorName(
-          teacherAssignments: teacherAssignmentsRaw,
-          teachersById: teachersById,
-          staffAssignments: staffAssignmentsRaw,
-          staffById: staffById,
-          matchTeacher: (_) => false,
-          matchStaff: (entry) =>
-              entry['activitySessionId'] == activitySessionId,
-          fallback: unassignedTeacherLabel,
+        final instructorLabel = _teacherName(
+          teacherAssignmentsRaw,
+          teachersById,
+          (_) => false,
+          unassignedTeacherLabel,
         );
         occurrences.add(
           TimetableOccurrence(
@@ -496,16 +315,11 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
             status:
                 event['status'] as String? ??
                 activitySession?['status'] as String?,
-            room: _roomName(
-              resourceAssignmentsRaw,
-              resourceById,
-              (entry) => entry['activitySessionId'] == activitySessionId,
-            ),
             teacherName:
-                staffLabel == unassignedTeacherLabel &&
+                instructorLabel == unassignedTeacherLabel &&
                     activity?['coach'] != null
                 ? activity!['coach'] as String
-                : staffLabel,
+                : instructorLabel,
           ),
         );
       case 'assessment':
@@ -528,25 +342,14 @@ Future<List<TimetableOccurrence>> _fetchFromTimetableQuery(
             endsAt: endsAt.toLocal(),
             classGroupId: classGroupId,
             classSubjectId: classSubjectId,
-            room: _roomName(
-              resourceAssignmentsRaw,
-              resourceById,
-              (entry) => entry['assessmentId'] == assessmentId,
-            ),
-            teacherName: _resolveInstructorName(
-              teacherAssignments: teacherAssignmentsRaw,
-              teachersById: teachersById,
-              staffAssignments: staffAssignmentsRaw,
-              staffById: staffById,
-              matchTeacher: (entry) =>
+            teacherName: _teacherName(
+              teacherAssignmentsRaw,
+              teachersById,
+              (entry) =>
                   entry['kind'] == 'subject' &&
                   classSubjectId != null &&
                   entry['classSubjectId'] == classSubjectId,
-              matchStaff: (entry) =>
-                  entry['assessmentId'] == assessmentId ||
-                  (classSubjectId != null &&
-                      entry['classSubjectId'] == classSubjectId),
-              fallback: unassignedTeacherLabel,
+              unassignedTeacherLabel,
             ),
           ),
         );
