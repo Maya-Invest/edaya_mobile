@@ -56,6 +56,12 @@ Live API widget tests live in `apps/guardian/test/integration/`. They reuse this
 
 Coverage includes the app shell (bottom navigation), calendar, academic, evaluations, fees, inbox, and attendance list views.
 
+### Teacher widget integration tests
+
+Live API widget tests live in `apps/teacher/test/integration/`. They reuse `PortalSession`, `bootstrapTeacherPortal`, and feature probes, then pump real teacher pages under `flutter test`.
+
+Coverage includes the app shell (bottom navigation), calendar, evaluations, teaching, and report cards views.
+
 Run with the rest of the integration suite:
 
 ```bash
@@ -68,6 +74,12 @@ Or only guardian widget integration tests:
 cd apps/guardian && EDAYA_INTEGRATION_TESTS=1 flutter test --tags integration
 ```
 
+Or only teacher widget integration tests:
+
+```bash
+cd apps/teacher && EDAYA_INTEGRATION_TESTS=1 flutter test test/integration --tags integration
+```
+
 Unit/widget runs (`melos run test`) exclude `@Tags(['integration'])` tests so CI verify does not require a running API.
 
-When adding a new portal feature API surface, add a matching integration probe **and** a focused unit test for any non-trivial client-side merge/invalidation logic. When the feature has meaningful UI, add a guardian widget integration test that asserts the page renders seeded API data.
+When adding a new portal feature API surface, add a matching integration probe **and** a focused unit test for any non-trivial client-side merge/invalidation logic. When the feature has meaningful UI, add a guardian or teacher widget integration test that asserts the page renders seeded API data.

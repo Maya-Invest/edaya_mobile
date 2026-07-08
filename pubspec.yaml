@@ -63,6 +63,7 @@ melos:
       run: |
         cd tooling/integration_tests && EDAYA_INTEGRATION_TESTS=1 dart test --tags integration
         cd ../../apps/guardian && EDAYA_INTEGRATION_TESTS=1 flutter test test/integration --tags integration
+        cd ../teacher && EDAYA_INTEGRATION_TESTS=1 flutter test test/integration --tags integration
       description: Run live API integration tests (requires local or remote API).
     clean:flutter:
       exec: flutter clean

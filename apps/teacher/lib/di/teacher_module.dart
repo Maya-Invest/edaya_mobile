@@ -18,12 +18,26 @@ Future<void> initializeTeacherAuthenticatedContext() async {
   await EdayaRootScope.find<TeacherContextController>().initializeFromSession();
 }
 
-void registerTeacherDependencies(LevitScope scope) {
+void registerTeacherDependencies(
+  LevitScope scope, {
+  CookieJar? cookieJar,
+  AuthClient? authClient,
+  PushNotificationService? pushNotifications,
+}) {
   EdayaRootScope.bind(scope, appName: systemL10n().appTitleTeacher);
-  final cookieJar = CookieJar();
+  final resolvedCookieJar = cookieJar ?? CookieJar();
   scope.put<SessionStorage>(() => SessionStorage(), permanent: true);
   scope.put<EdayaRouterRefresh>(() => EdayaRouterRefresh(), permanent: true);
-  registerEdayaDependencies(scope, cookieJar: cookieJar);
+  if (authClient != null) {
+    scope.put<CookieJar>(() => resolvedCookieJar, permanent: true);
+    scope.put<AuthClient>(() => authClient, permanent: true);
+    scope.put<AppSettingsController>(
+      () => AppSettingsController(),
+      permanent: true,
+    );
+  } else {
+    registerEdayaDependencies(scope, cookieJar: resolvedCookieJar);
+  }
   registerSchoolClientFactory(
     scope,
     getAcademicYearId: () =>
@@ -31,11 +45,13 @@ void registerTeacherDependencies(LevitScope scope) {
     getActorKind: () => 'teacher',
   );
   scope.put<PushNotificationService>(
-    () => FcmPushNotificationService(
-      schoolClientFactory: scope.find<SchoolClientFactory>(),
-      config: PushNotificationConfigs.teacher,
-      onNotificationOpened: handleTeacherNotificationOpened,
-    ),
+    () =>
+        pushNotifications ??
+        FcmPushNotificationService(
+          schoolClientFactory: scope.find<SchoolClientFactory>(),
+          config: PushNotificationConfigs.teacher,
+          onNotificationOpened: handleTeacherNotificationOpened,
+        ),
     permanent: true,
   );
   scope.put<AppSessionController>(
