@@ -24,6 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  actions: write
   contents: read
   packages: read
 
@@ -61,4 +62,3 @@ jobs:
     uses: ./.github/workflows/_integration.yml
     with:
       api_dev_base_ref: ${{ needs.gate.outputs.api_dev_base_ref }}
-    secrets: inherit

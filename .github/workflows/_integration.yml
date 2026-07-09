@@ -9,6 +9,7 @@ on:
         type: string
 
 permissions:
+  actions: write
   contents: read
   packages: read
 
@@ -18,7 +19,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -36,11 +37,48 @@ jobs:
         run: melos bootstrap
 
       - name: Log in to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Resolve api-dev image
+        id: api_dev_image
+        run: |
+          OWNER="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
+          case "${{ inputs.api_dev_base_ref }}" in
+            main|master) CHANNEL=production ;;
+            *) CHANNEL=staging ;;
+          esac
+          echo "ref=ghcr.io/${OWNER}/edaya-api-dev:${CHANNEL}" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve api-dev image digest
+        id: api_dev_digest
+        run: |
+          DIGEST="$(docker buildx imagetools inspect "${{ steps.api_dev_image.outputs.ref }}" --format '{{json .Manifest.Digest}}' | tr -d '"')"
+          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore api-dev Docker image cache
+        uses: actions/cache@v6
+        id: api_dev_image_cache
+        with:
+          path: /tmp/edaya-api-dev-image.tar
+          key: api-dev-image-${{ steps.api_dev_digest.outputs.digest }}
+
+      - name: Load or pull api-dev Docker image
+        env:
+          IMAGE: ${{ steps.api_dev_image.outputs.ref }}
+        run: |
+          if [ -f /tmp/edaya-api-dev-image.tar ]; then
+            docker load -i /tmp/edaya-api-dev-image.tar
+          else
+            docker pull "$IMAGE"
+            docker save "$IMAGE" -o /tmp/edaya-api-dev-image.tar
+          fi
 
       - name: Start API dev container
         run: bash .github/scripts/ci-api-dev-container.sh start "${{ inputs.api_dev_base_ref }}"
