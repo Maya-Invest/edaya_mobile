@@ -35,6 +35,8 @@ class PortalSession {
     }
 
     final yearId = academicYearId ?? config.academicYearId;
+    String? resolvedActorId;
+    String? resolvedSchoolId;
     final schoolClient = createSchoolClient(
       HttpTransport(
         baseUrl: config.baseUrl,
@@ -42,8 +44,14 @@ class PortalSession {
         cookieHeader: () => authClient.cookieHeader,
         getAcademicYearId: () => yearId,
         getActorKind: () => actorKind,
+        getActorId: () => resolvedActorId,
+        getSchoolId: () => resolvedSchoolId,
       ),
     );
+
+    final grants = await schoolClient.effectiveGrants();
+    resolvedActorId = grants.actorId;
+    resolvedSchoolId = grants.schoolId;
 
     return PortalSession(
       config: config,

@@ -153,6 +153,8 @@ class GuardianWidgetTestHarness {
       getAcademicYearId: () =>
           scope.find<AcademicYearController>().selectedYearId.value,
       getActorKind: () => 'guardian',
+      getActorId: () => scope.find<AppSessionController>().actorIdHeader,
+      getSchoolId: () => scope.find<AppSessionController>().schoolIdHeader,
     );
 
     scope.put<AppSessionController>(

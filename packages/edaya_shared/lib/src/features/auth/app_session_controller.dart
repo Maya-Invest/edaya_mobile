@@ -46,6 +46,8 @@ class AppSessionController extends LevitController {
 
   final user = LxVar<AuthUser?>(null);
   final grants = LxVar<api.EffectiveGrantsResponse?>(null);
+  String? get actorIdHeader => grants.value?.actorId;
+  String? get schoolIdHeader => grants.value?.schoolId;
   final isBootstrapping = LxVar(true);
   final isSigningOut = LxVar(false);
 
@@ -164,6 +166,8 @@ class AppSessionController extends LevitController {
       _authClient,
       getAcademicYearId: () => _academicYearIdHeader,
       getActorKind: () => _actorKindHeader,
+      getActorId: () => grants.value?.actorId,
+      getSchoolId: () => grants.value?.schoolId,
     );
   }
 

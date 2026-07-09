@@ -10,6 +10,8 @@ api.SchoolClient createEdayaSchoolClient(
   AuthClient authClient, {
   String? Function()? getAcademicYearId,
   String? Function()? getActorKind,
+  String? Function()? getActorId,
+  String? Function()? getSchoolId,
 }) {
   return api.createSchoolClient(
     api.HttpTransport(
@@ -20,6 +22,8 @@ api.SchoolClient createEdayaSchoolClient(
           : () => authClient.cookieHeader,
       getAcademicYearId: getAcademicYearId,
       getActorKind: getActorKind,
+      getActorId: getActorId,
+      getSchoolId: getSchoolId,
     ),
   );
 }
@@ -30,6 +34,8 @@ void registerSchoolClientFactory(
   LevitScope scope, {
   required String? Function() getAcademicYearId,
   String? Function()? getActorKind,
+  String? Function()? getActorId,
+  String? Function()? getSchoolId,
 }) {
   scope.put<SchoolClientFactory>(
     () =>
@@ -37,6 +43,8 @@ void registerSchoolClientFactory(
           scope.find<AuthClient>(),
           getAcademicYearId: getAcademicYearId,
           getActorKind: getActorKind,
+          getActorId: getActorId,
+          getSchoolId: getSchoolId,
         ),
     permanent: true,
   );

@@ -12,6 +12,8 @@ class HttpTransport implements Transport {
     this.client,
     this.getAcademicYearId,
     this.getActorKind,
+    this.getActorId,
+    this.getSchoolId,
     this.cookieHeader,
   });
 
@@ -19,6 +21,8 @@ class HttpTransport implements Transport {
   final http.Client? client;
   final String? Function()? getAcademicYearId;
   final String? Function()? getActorKind;
+  final String? Function()? getActorId;
+  final String? Function()? getSchoolId;
   final String? Function()? cookieHeader;
 
   http.Client get _client => client ?? http.Client();
@@ -47,6 +51,16 @@ class HttpTransport implements Transport {
     final actorKind = getActorKind?.call();
     if (actorKind != null && actorKind.isNotEmpty) {
       headers['X-Actor-Kind'] = actorKind;
+    }
+
+    final actorId = getActorId?.call();
+    if (actorId != null && actorId.isNotEmpty) {
+      headers['X-Actor-Id'] = actorId;
+    }
+
+    final schoolId = getSchoolId?.call();
+    if (schoolId != null && schoolId.isNotEmpty) {
+      headers['X-School-Id'] = schoolId;
     }
 
     final cookies = cookieHeader?.call();

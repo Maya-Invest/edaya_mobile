@@ -50,6 +50,8 @@ void registerTeacherDependencies(
     getAcademicYearId: () =>
         scope.find<AcademicYearController>().selectedYearId.value,
     getActorKind: () => 'teacher',
+    getActorId: () => scope.find<AppSessionController>().actorIdHeader,
+    getSchoolId: () => scope.find<AppSessionController>().schoolIdHeader,
   );
   bind<PushNotificationService>(
     () =>
