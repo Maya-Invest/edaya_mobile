@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ACTION="${1:?usage: ci-api-dev-container.sh {start|stop}}"
+ACTION="${1:?usage: ci-api-dev-container.sh start|stop}"
 BASE_REF="${2:-staging}"
 
 OWNER="$(echo "${GITHUB_REPOSITORY_OWNER:-maya-invest}" | tr '[:upper:]' '[:lower:]')"
