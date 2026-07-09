@@ -12,6 +12,10 @@ concurrency:
   group: branch-${{ github.ref_name }}
   cancel-in-progress: true
 
+permissions:
+  actions: write
+  contents: read
+
 jobs:
   verify:
     uses: ./.github/workflows/_verify.yml

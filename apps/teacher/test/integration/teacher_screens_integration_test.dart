@@ -253,7 +253,7 @@ void _subjectTeacherSuite() {
       );
       await pumpUntilFound(tester, find.byType(DropdownButtonFormField<String>));
 
-      if (teaching!.matterNames.isEmpty) {
+      if (teaching.matterNames.isEmpty) {
         expect(
           find.text('No curriculum chapters linked to this subject.'),
           findsOneWidget,

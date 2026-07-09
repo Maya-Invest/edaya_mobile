@@ -1,0 +1,49 @@
+name: Setup Flutter, Melos, and caches
+description: Installs Flutter with SDK and pub caches, caches the Melos global tool, and bootstraps the workspace.
+
+inputs:
+  channel:
+    description: Flutter release channel
+    required: false
+    default: stable
+  bootstrap:
+    description: Run melos bootstrap after setup
+    required: false
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: ${{ inputs.channel }}
+        cache: true
+        pub-cache: true
+        pub-cache-key: flutter-pub-${{ runner.os }}-${{ inputs.channel }}-${{ hashFiles('pubspec.lock', 'pubspec.yaml', 'apps/**/pubspec.yaml', 'packages/**/pubspec.yaml', 'tooling/**/pubspec.yaml') }}
+
+    - name: Cache Melos global
+      uses: actions/cache@v6
+      id: melos_global_cache
+      with:
+        path: |
+          ~/.pub-cache/bin
+          ~/.pub-cache/global_packages
+          ~/.pub-cache/activated_package
+        key: melos-global-${{ hashFiles('pubspec.lock') }}
+        restore-keys: |
+          melos-global-
+
+    - name: Install Melos
+      shell: bash
+      run: |
+        echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+        export PATH="$HOME/.pub-cache/bin:$PATH"
+        if ! command -v melos >/dev/null 2>&1; then
+          dart pub global activate melos
+        fi
+
+    - name: Bootstrap workspace
+      if: inputs.bootstrap == 'true'
+      shell: bash
+      run: melos bootstrap

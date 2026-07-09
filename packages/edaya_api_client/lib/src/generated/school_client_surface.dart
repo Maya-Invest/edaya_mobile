@@ -25,8 +25,7 @@ extension GeneratedSchoolClientEntities on SchoolClient {
 
   EntityResource get accountInvitations => entities["accountInvitations"]!;
 
-  EntityResource get staffPermissionAssignments =>
-      entities["staffPermissionAssignments"]!;
+  EntityResource get staffPermissionAssignments => entities["staffPermissionAssignments"]!;
 
   EntityResource get attachments => entities["attachments"]!;
 
@@ -58,8 +57,7 @@ extension GeneratedSchoolClientEntities on SchoolClient {
 
   EntityResource get messageDeliveries => entities["messageDeliveries"]!;
 
-  EntityResource get schoolNotificationTemplates =>
-      entities["schoolNotificationTemplates"]!;
+  EntityResource get schoolNotificationTemplates => entities["schoolNotificationTemplates"]!;
 
   EntityResource get subjects => entities["subjects"]!;
 
@@ -67,8 +65,7 @@ extension GeneratedSchoolClientEntities on SchoolClient {
 
   EntityResource get gradeLevelSubjects => entities["gradeLevelSubjects"]!;
 
-  EntityResource get gradeLevelSubjectMatters =>
-      entities["gradeLevelSubjectMatters"]!;
+  EntityResource get gradeLevelSubjectMatters => entities["gradeLevelSubjectMatters"]!;
 
   EntityResource get classGroups => entities["classGroups"]!;
 
@@ -82,8 +79,7 @@ extension GeneratedSchoolClientEntities on SchoolClient {
 
   EntityResource get activityEnrollments => entities["activityEnrollments"]!;
 
-  EntityResource get classActivityEnrollments =>
-      entities["classActivityEnrollments"]!;
+  EntityResource get classActivityEnrollments => entities["classActivityEnrollments"]!;
 
   EntityResource get assessments => entities["assessments"]!;
 
@@ -107,16 +103,13 @@ extension GeneratedSchoolClientEntities on SchoolClient {
 
   EntityResource get studentNotes => entities["studentNotes"]!;
 
-  EntityResource get studentHealthProfiles =>
-      entities["studentHealthProfiles"]!;
+  EntityResource get studentHealthProfiles => entities["studentHealthProfiles"]!;
 
-  EntityResource get studentDisciplinaryActions =>
-      entities["studentDisciplinaryActions"]!;
+  EntityResource get studentDisciplinaryActions => entities["studentDisciplinaryActions"]!;
 
   EntityResource get disciplinaryActions => entities["disciplinaryActions"]!;
 
-  EntityResource get studentIncidentInvolvements =>
-      entities["studentIncidentInvolvements"]!;
+  EntityResource get studentIncidentInvolvements => entities["studentIncidentInvolvements"]!;
 
   EntityResource get incidents => entities["incidents"]!;
 }
@@ -125,119 +118,92 @@ extension GeneratedSchoolClientCommands on SchoolClient {
   Future<Map<String, dynamic>> registerSchool(Map<String, dynamic> payload) =>
       runCommand("register-school", payload);
 
-  Future<Map<String, dynamic>> updateSchoolConfiguration(
-    Map<String, dynamic> payload,
-  ) => runCommand("update-school-configuration", payload);
+  Future<Map<String, dynamic>> updateSchoolConfiguration(Map<String, dynamic> payload) =>
+      runCommand("update-school-configuration", payload);
 
-  Future<Map<String, dynamic>> createAcademicYear(
-    Map<String, dynamic> payload,
-  ) => runCommand("create-academic-year", payload);
+  Future<Map<String, dynamic>> createAcademicYear(Map<String, dynamic> payload) =>
+      runCommand("create-academic-year", payload);
 
-  Future<Map<String, dynamic>> activateAcademicYear(
-    Map<String, dynamic> payload,
-  ) => runCommand("activate-academic-year", payload);
+  Future<Map<String, dynamic>> activateAcademicYear(Map<String, dynamic> payload) =>
+      runCommand("activate-academic-year", payload);
 
-  Future<Map<String, dynamic>> createAcademicPeriod(
-    Map<String, dynamic> payload,
-  ) => runCommand("create-academic-period", payload);
+  Future<Map<String, dynamic>> createAcademicPeriod(Map<String, dynamic> payload) =>
+      runCommand("create-academic-period", payload);
 
-  Future<Map<String, dynamic>> publishAcademicPeriod(
-    Map<String, dynamic> payload,
-  ) => runCommand("publish-academic-period", payload);
+  Future<Map<String, dynamic>> publishAcademicPeriod(Map<String, dynamic> payload) =>
+      runCommand("publish-academic-period", payload);
 
-  Future<Map<String, dynamic>> configureGradeLevel(
-    Map<String, dynamic> payload,
-  ) => runCommand("configure-grade-level", payload);
+  Future<Map<String, dynamic>> configureGradeLevel(Map<String, dynamic> payload) =>
+      runCommand("configure-grade-level", payload);
 
-  Future<Map<String, dynamic>> configurePeriodDefinition(
-    Map<String, dynamic> payload,
-  ) => runCommand("configure-period-definition", payload);
+  Future<Map<String, dynamic>> configurePeriodDefinition(Map<String, dynamic> payload) =>
+      runCommand("configure-period-definition", payload);
 
-  Future<Map<String, dynamic>> configureResource(
-    Map<String, dynamic> payload,
-  ) => runCommand("configure-resource", payload);
+  Future<Map<String, dynamic>> configureResource(Map<String, dynamic> payload) =>
+      runCommand("configure-resource", payload);
 
-  Future<Map<String, dynamic>> configureActivity(
-    Map<String, dynamic> payload,
-  ) => runCommand("configure-activity", payload);
+  Future<Map<String, dynamic>> configureActivity(Map<String, dynamic> payload) =>
+      runCommand("configure-activity", payload);
 
-  Future<Map<String, dynamic>> enrollStudentInActivity(
-    Map<String, dynamic> payload,
-  ) => runCommand("enroll-student-in-activity", payload);
+  Future<Map<String, dynamic>> enrollStudentInActivity(Map<String, dynamic> payload) =>
+      runCommand("enroll-student-in-activity", payload);
 
   Future<Map<String, dynamic>> createClassGroup(Map<String, dynamic> payload) =>
       runCommand("create-class-group", payload);
 
-  Future<Map<String, dynamic>> updateClassGroupConfiguration(
-    Map<String, dynamic> payload,
-  ) => runCommand("update-class-group-configuration", payload);
+  Future<Map<String, dynamic>> updateClassGroupConfiguration(Map<String, dynamic> payload) =>
+      runCommand("update-class-group-configuration", payload);
 
-  Future<Map<String, dynamic>> registerStaffMember(
-    Map<String, dynamic> payload,
-  ) => runCommand("register-staff-member", payload);
+  Future<Map<String, dynamic>> registerStaffMember(Map<String, dynamic> payload) =>
+      runCommand("register-staff-member", payload);
 
-  Future<Map<String, dynamic>> updateStaffMemberStatus(
-    Map<String, dynamic> payload,
-  ) => runCommand("update-staff-member-status", payload);
+  Future<Map<String, dynamic>> updateStaffMemberStatus(Map<String, dynamic> payload) =>
+      runCommand("update-staff-member-status", payload);
 
-  Future<Map<String, dynamic>> updateStaffMemberProfile(
-    Map<String, dynamic> payload,
-  ) => runCommand("update-staff-member-profile", payload);
+  Future<Map<String, dynamic>> updateStaffMemberProfile(Map<String, dynamic> payload) =>
+      runCommand("update-staff-member-profile", payload);
 
   Future<Map<String, dynamic>> linkActorSubject(Map<String, dynamic> payload) =>
       runCommand("link-actor-subject", payload);
 
-  Future<Map<String, dynamic>> relinkActorSubject(
-    Map<String, dynamic> payload,
-  ) => runCommand("relink-actor-subject", payload);
+  Future<Map<String, dynamic>> relinkActorSubject(Map<String, dynamic> payload) =>
+      runCommand("relink-actor-subject", payload);
 
-  Future<Map<String, dynamic>> sendAccountInvitation(
-    Map<String, dynamic> payload,
-  ) => runCommand("send-account-invitation", payload);
+  Future<Map<String, dynamic>> sendAccountInvitation(Map<String, dynamic> payload) =>
+      runCommand("send-account-invitation", payload);
 
-  Future<Map<String, dynamic>> resendAccountInvitation(
-    Map<String, dynamic> payload,
-  ) => runCommand("resend-account-invitation", payload);
+  Future<Map<String, dynamic>> resendAccountInvitation(Map<String, dynamic> payload) =>
+      runCommand("resend-account-invitation", payload);
 
-  Future<Map<String, dynamic>> revokeAccountInvitation(
-    Map<String, dynamic> payload,
-  ) => runCommand("revoke-account-invitation", payload);
+  Future<Map<String, dynamic>> revokeAccountInvitation(Map<String, dynamic> payload) =>
+      runCommand("revoke-account-invitation", payload);
 
-  Future<Map<String, dynamic>> acceptAccountInvitation(
-    Map<String, dynamic> payload,
-  ) => runCommand("accept-account-invitation", payload);
+  Future<Map<String, dynamic>> acceptAccountInvitation(Map<String, dynamic> payload) =>
+      runCommand("accept-account-invitation", payload);
 
-  Future<Map<String, dynamic>> assignStaffToClass(
-    Map<String, dynamic> payload,
-  ) => runCommand("assign-staff-to-class", payload);
+  Future<Map<String, dynamic>> assignStaffToClass(Map<String, dynamic> payload) =>
+      runCommand("assign-staff-to-class", payload);
 
-  Future<Map<String, dynamic>> assignStaffToClassSubject(
-    Map<String, dynamic> payload,
-  ) => runCommand("assign-staff-to-class-subject", payload);
+  Future<Map<String, dynamic>> assignStaffToClassSubject(Map<String, dynamic> payload) =>
+      runCommand("assign-staff-to-class-subject", payload);
 
-  Future<Map<String, dynamic>> assignStaffToLessonSession(
-    Map<String, dynamic> payload,
-  ) => runCommand("assign-staff-to-lesson-session", payload);
+  Future<Map<String, dynamic>> assignStaffToLessonSession(Map<String, dynamic> payload) =>
+      runCommand("assign-staff-to-lesson-session", payload);
 
-  Future<Map<String, dynamic>> assignStaffPermission(
-    Map<String, dynamic> payload,
-  ) => runCommand("assign-staff-permission", payload);
+  Future<Map<String, dynamic>> assignStaffPermission(Map<String, dynamic> payload) =>
+      runCommand("assign-staff-permission", payload);
 
-  Future<Map<String, dynamic>> assignResourceToClass(
-    Map<String, dynamic> payload,
-  ) => runCommand("assign-resource-to-class", payload);
+  Future<Map<String, dynamic>> assignResourceToClass(Map<String, dynamic> payload) =>
+      runCommand("assign-resource-to-class", payload);
 
-  Future<Map<String, dynamic>> assignResourceToLessonSession(
-    Map<String, dynamic> payload,
-  ) => runCommand("assign-resource-to-lesson-session", payload);
+  Future<Map<String, dynamic>> assignResourceToLessonSession(Map<String, dynamic> payload) =>
+      runCommand("assign-resource-to-lesson-session", payload);
 
-  Future<Map<String, dynamic>> removeResourceAssignment(
-    Map<String, dynamic> payload,
-  ) => runCommand("remove-resource-assignment", payload);
+  Future<Map<String, dynamic>> removeResourceAssignment(Map<String, dynamic> payload) =>
+      runCommand("remove-resource-assignment", payload);
 
-  Future<Map<String, dynamic>> registerAttachment(
-    Map<String, dynamic> payload,
-  ) => runCommand("register-attachment", payload);
+  Future<Map<String, dynamic>> registerAttachment(Map<String, dynamic> payload) =>
+      runCommand("register-attachment", payload);
 
   Future<Map<String, dynamic>> removeAttachment(Map<String, dynamic> payload) =>
       runCommand("remove-attachment", payload);
@@ -248,9 +214,8 @@ extension GeneratedSchoolClientCommands on SchoolClient {
   Future<Map<String, dynamic>> enrollStudent(Map<String, dynamic> payload) =>
       runCommand("enroll-student", payload);
 
-  Future<Map<String, dynamic>> linkGuardianToStudent(
-    Map<String, dynamic> payload,
-  ) => runCommand("link-guardian-to-student", payload);
+  Future<Map<String, dynamic>> linkGuardianToStudent(Map<String, dynamic> payload) =>
+      runCommand("link-guardian-to-student", payload);
 
   Future<Map<String, dynamic>> registerGuardian(Map<String, dynamic> payload) =>
       runCommand("register-guardian", payload);
@@ -267,151 +232,119 @@ extension GeneratedSchoolClientCommands on SchoolClient {
   Future<Map<String, dynamic>> closeEnrollment(Map<String, dynamic> payload) =>
       runCommand("close-enrollment", payload);
 
-  Future<Map<String, dynamic>> recordProgressionDecision(
-    Map<String, dynamic> payload,
-  ) => runCommand("record-progression-decision", payload);
+  Future<Map<String, dynamic>> recordProgressionDecision(Map<String, dynamic> payload) =>
+      runCommand("record-progression-decision", payload);
 
-  Future<Map<String, dynamic>> updateStudentProfile(
-    Map<String, dynamic> payload,
-  ) => runCommand("update-student-profile", payload);
+  Future<Map<String, dynamic>> updateStudentProfile(Map<String, dynamic> payload) =>
+      runCommand("update-student-profile", payload);
 
-  Future<Map<String, dynamic>> updateStudentStatus(
-    Map<String, dynamic> payload,
-  ) => runCommand("update-student-status", payload);
+  Future<Map<String, dynamic>> updateStudentStatus(Map<String, dynamic> payload) =>
+      runCommand("update-student-status", payload);
 
-  Future<Map<String, dynamic>> upsertStudentHealthProfile(
-    Map<String, dynamic> payload,
-  ) => runCommand("upsert-student-health-profile", payload);
+  Future<Map<String, dynamic>> upsertStudentHealthProfile(Map<String, dynamic> payload) =>
+      runCommand("upsert-student-health-profile", payload);
 
-  Future<Map<String, dynamic>> createStudentNote(
-    Map<String, dynamic> payload,
-  ) => runCommand("create-student-note", payload);
+  Future<Map<String, dynamic>> createStudentNote(Map<String, dynamic> payload) =>
+      runCommand("create-student-note", payload);
 
-  Future<Map<String, dynamic>> updateStudentNote(
-    Map<String, dynamic> payload,
-  ) => runCommand("update-student-note", payload);
+  Future<Map<String, dynamic>> updateStudentNote(Map<String, dynamic> payload) =>
+      runCommand("update-student-note", payload);
 
-  Future<Map<String, dynamic>> updateGuardianContactMethods(
-    Map<String, dynamic> payload,
-  ) => runCommand("update-guardian-contact-methods", payload);
+  Future<Map<String, dynamic>> updateGuardianContactMethods(Map<String, dynamic> payload) =>
+      runCommand("update-guardian-contact-methods", payload);
 
-  Future<Map<String, dynamic>> updateGuardianStudentLink(
-    Map<String, dynamic> payload,
-  ) => runCommand("update-guardian-student-link", payload);
+  Future<Map<String, dynamic>> updateGuardianStudentLink(Map<String, dynamic> payload) =>
+      runCommand("update-guardian-student-link", payload);
 
   Future<Map<String, dynamic>> configureSubject(Map<String, dynamic> payload) =>
       runCommand("configure-subject", payload);
 
-  Future<Map<String, dynamic>> configureSubjectMatter(
-    Map<String, dynamic> payload,
-  ) => runCommand("configure-subject-matter", payload);
+  Future<Map<String, dynamic>> configureSubjectMatter(Map<String, dynamic> payload) =>
+      runCommand("configure-subject-matter", payload);
 
-  Future<Map<String, dynamic>> offerSubjectToClass(
-    Map<String, dynamic> payload,
-  ) => runCommand("offer-subject-to-class", payload);
+  Future<Map<String, dynamic>> offerSubjectToClass(Map<String, dynamic> payload) =>
+      runCommand("offer-subject-to-class", payload);
 
-  Future<Map<String, dynamic>> assignMatterToClassSubject(
-    Map<String, dynamic> payload,
-  ) => runCommand("assign-matter-to-class-subject", payload);
+  Future<Map<String, dynamic>> assignMatterToClassSubject(Map<String, dynamic> payload) =>
+      runCommand("assign-matter-to-class-subject", payload);
 
-  Future<Map<String, dynamic>> offerSubjectToGradeLevel(
-    Map<String, dynamic> payload,
-  ) => runCommand("offer-subject-to-grade-level", payload);
+  Future<Map<String, dynamic>> offerSubjectToGradeLevel(Map<String, dynamic> payload) =>
+      runCommand("offer-subject-to-grade-level", payload);
 
-  Future<Map<String, dynamic>> removeSubjectFromGradeLevel(
-    Map<String, dynamic> payload,
-  ) => runCommand("remove-subject-from-grade-level", payload);
+  Future<Map<String, dynamic>> removeSubjectFromGradeLevel(Map<String, dynamic> payload) =>
+      runCommand("remove-subject-from-grade-level", payload);
 
-  Future<Map<String, dynamic>> updateGradeLevelSubject(
-    Map<String, dynamic> payload,
-  ) => runCommand("update-grade-level-subject", payload);
+  Future<Map<String, dynamic>> updateGradeLevelSubject(Map<String, dynamic> payload) =>
+      runCommand("update-grade-level-subject", payload);
 
-  Future<Map<String, dynamic>> assignMatterToGradeLevelSubject(
-    Map<String, dynamic> payload,
-  ) => runCommand("assign-matter-to-grade-level-subject", payload);
+  Future<Map<String, dynamic>> assignMatterToGradeLevelSubject(Map<String, dynamic> payload) =>
+      runCommand("assign-matter-to-grade-level-subject", payload);
 
-  Future<Map<String, dynamic>> addCustomClassSubject(
-    Map<String, dynamic> payload,
-  ) => runCommand("add-custom-class-subject", payload);
+  Future<Map<String, dynamic>> addCustomClassSubject(Map<String, dynamic> payload) =>
+      runCommand("add-custom-class-subject", payload);
 
-  Future<Map<String, dynamic>> setClassSubjectOffered(
-    Map<String, dynamic> payload,
-  ) => runCommand("set-class-subject-offered", payload);
+  Future<Map<String, dynamic>> setClassSubjectOffered(Map<String, dynamic> payload) =>
+      runCommand("set-class-subject-offered", payload);
 
-  Future<Map<String, dynamic>> recordLessonSessionProgress(
-    Map<String, dynamic> payload,
-  ) => runCommand("record-lesson-session-progress", payload);
+  Future<Map<String, dynamic>> recordLessonSessionProgress(Map<String, dynamic> payload) =>
+      runCommand("record-lesson-session-progress", payload);
 
   Future<Map<String, dynamic>> createGradeScale(Map<String, dynamic> payload) =>
       runCommand("create-grade-scale", payload);
 
-  Future<Map<String, dynamic>> createReportCardDefinition(
-    Map<String, dynamic> payload,
-  ) => runCommand("create-report-card-definition", payload);
+  Future<Map<String, dynamic>> createReportCardDefinition(Map<String, dynamic> payload) =>
+      runCommand("create-report-card-definition", payload);
 
-  Future<Map<String, dynamic>> createReportCardDefinitionSection(
-    Map<String, dynamic> payload,
-  ) => runCommand("create-report-card-definition-section", payload);
+  Future<Map<String, dynamic>> createReportCardDefinitionSection(Map<String, dynamic> payload) =>
+      runCommand("create-report-card-definition-section", payload);
 
   Future<Map<String, dynamic>> createAssessment(Map<String, dynamic> payload) =>
       runCommand("create-assessment", payload);
 
-  Future<Map<String, dynamic>> completeAssessment(
-    Map<String, dynamic> payload,
-  ) => runCommand("complete-assessment", payload);
+  Future<Map<String, dynamic>> completeAssessment(Map<String, dynamic> payload) =>
+      runCommand("complete-assessment", payload);
 
-  Future<Map<String, dynamic>> recordAssessmentResult(
-    Map<String, dynamic> payload,
-  ) => runCommand("record-assessment-result", payload);
+  Future<Map<String, dynamic>> recordAssessmentResult(Map<String, dynamic> payload) =>
+      runCommand("record-assessment-result", payload);
 
-  Future<Map<String, dynamic>> recordAssessmentResultCompliance(
-    Map<String, dynamic> payload,
-  ) => runCommand("record-assessment-result-compliance", payload);
+  Future<Map<String, dynamic>> recordAssessmentResultCompliance(Map<String, dynamic> payload) =>
+      runCommand("record-assessment-result-compliance", payload);
 
-  Future<Map<String, dynamic>> listClassSubjectAssessmentResultsForPeriod(
-    Map<String, dynamic> payload,
-  ) => runCommand("list-class-subject-assessment-results-for-period", payload);
+  Future<Map<String, dynamic>> listClassSubjectAssessmentResultsForPeriod(Map<String, dynamic> payload) =>
+      runCommand("list-class-subject-assessment-results-for-period", payload);
 
-  Future<Map<String, dynamic>> generateReportCardResult(
-    Map<String, dynamic> payload,
-  ) => runCommand("generate-report-card-result", payload);
+  Future<Map<String, dynamic>> generateReportCardResult(Map<String, dynamic> payload) =>
+      runCommand("generate-report-card-result", payload);
 
-  Future<Map<String, dynamic>> publishReportCardResult(
-    Map<String, dynamic> payload,
-  ) => runCommand("publish-report-card-result", payload);
+  Future<Map<String, dynamic>> publishReportCardResult(Map<String, dynamic> payload) =>
+      runCommand("publish-report-card-result", payload);
 
   Future<Map<String, dynamic>> recordIncident(Map<String, dynamic> payload) =>
       runCommand("record-incident", payload);
 
-  Future<Map<String, dynamic>> addStudentInvolvement(
-    Map<String, dynamic> payload,
-  ) => runCommand("add-student-involvement", payload);
+  Future<Map<String, dynamic>> addStudentInvolvement(Map<String, dynamic> payload) =>
+      runCommand("add-student-involvement", payload);
 
-  Future<Map<String, dynamic>> configureDisciplinaryAction(
-    Map<String, dynamic> payload,
-  ) => runCommand("configure-disciplinary-action", payload);
+  Future<Map<String, dynamic>> configureDisciplinaryAction(Map<String, dynamic> payload) =>
+      runCommand("configure-disciplinary-action", payload);
 
-  Future<Map<String, dynamic>> applyDisciplinaryAction(
-    Map<String, dynamic> payload,
-  ) => runCommand("apply-disciplinary-action", payload);
+  Future<Map<String, dynamic>> applyDisciplinaryAction(Map<String, dynamic> payload) =>
+      runCommand("apply-disciplinary-action", payload);
 
-  Future<Map<String, dynamic>> updateStudentDisciplinaryActionStatus(
-    Map<String, dynamic> payload,
-  ) => runCommand("update-student-disciplinary-action-status", payload);
+  Future<Map<String, dynamic>> updateStudentDisciplinaryActionStatus(Map<String, dynamic> payload) =>
+      runCommand("update-student-disciplinary-action-status", payload);
 
   Future<Map<String, dynamic>> resolveIncident(Map<String, dynamic> payload) =>
       runCommand("resolve-incident", payload);
 
-  Future<Map<String, dynamic>> resolveIncidentWithOutcomes(
-    Map<String, dynamic> payload,
-  ) => runCommand("resolve-incident-with-outcomes", payload);
+  Future<Map<String, dynamic>> resolveIncidentWithOutcomes(Map<String, dynamic> payload) =>
+      runCommand("resolve-incident-with-outcomes", payload);
 
   Future<Map<String, dynamic>> createFee(Map<String, dynamic> payload) =>
       runCommand("create-fee", payload);
 
-  Future<Map<String, dynamic>> assignFeeToStudent(
-    Map<String, dynamic> payload,
-  ) => runCommand("assign-fee-to-student", payload);
+  Future<Map<String, dynamic>> assignFeeToStudent(Map<String, dynamic> payload) =>
+      runCommand("assign-fee-to-student", payload);
 
   Future<Map<String, dynamic>> recordPayment(Map<String, dynamic> payload) =>
       runCommand("record-payment", payload);
@@ -434,109 +367,86 @@ extension GeneratedSchoolClientCommands on SchoolClient {
   Future<Map<String, dynamic>> saveSchedule(Map<String, dynamic> payload) =>
       runCommand("save-schedule", payload);
 
-  Future<Map<String, dynamic>> materializeSchedule(
-    Map<String, dynamic> payload,
-  ) => runCommand("materialize-schedule", payload);
+  Future<Map<String, dynamic>> materializeSchedule(Map<String, dynamic> payload) =>
+      runCommand("materialize-schedule", payload);
 
-  Future<Map<String, dynamic>> createCalendarEvent(
-    Map<String, dynamic> payload,
-  ) => runCommand("create-calendar-event", payload);
+  Future<Map<String, dynamic>> createCalendarEvent(Map<String, dynamic> payload) =>
+      runCommand("create-calendar-event", payload);
 
-  Future<Map<String, dynamic>> cancelLessonSession(
-    Map<String, dynamic> payload,
-  ) => runCommand("cancel-lesson-session", payload);
+  Future<Map<String, dynamic>> cancelLessonSession(Map<String, dynamic> payload) =>
+      runCommand("cancel-lesson-session", payload);
 
-  Future<Map<String, dynamic>> cancelActivitySession(
-    Map<String, dynamic> payload,
-  ) => runCommand("cancel-activity-session", payload);
+  Future<Map<String, dynamic>> cancelActivitySession(Map<String, dynamic> payload) =>
+      runCommand("cancel-activity-session", payload);
 
-  Future<Map<String, dynamic>> rescheduleOccurrence(
-    Map<String, dynamic> payload,
-  ) => runCommand("reschedule-occurrence", payload);
+  Future<Map<String, dynamic>> rescheduleOccurrence(Map<String, dynamic> payload) =>
+      runCommand("reschedule-occurrence", payload);
 
   Future<Map<String, dynamic>> recordAttendance(Map<String, dynamic> payload) =>
       runCommand("record-attendance", payload);
 
-  Future<Map<String, dynamic>> recordDailyAttendance(
-    Map<String, dynamic> payload,
-  ) => runCommand("record-daily-attendance", payload);
+  Future<Map<String, dynamic>> recordDailyAttendance(Map<String, dynamic> payload) =>
+      runCommand("record-daily-attendance", payload);
 
-  Future<Map<String, dynamic>> recordLessonSessionAttendance(
-    Map<String, dynamic> payload,
-  ) => runCommand("record-lesson-session-attendance", payload);
+  Future<Map<String, dynamic>> recordLessonSessionAttendance(Map<String, dynamic> payload) =>
+      runCommand("record-lesson-session-attendance", payload);
 
-  Future<Map<String, dynamic>> recordClassDailyAttendance(
-    Map<String, dynamic> payload,
-  ) => runCommand("record-class-daily-attendance", payload);
+  Future<Map<String, dynamic>> recordClassDailyAttendance(Map<String, dynamic> payload) =>
+      runCommand("record-class-daily-attendance", payload);
 
-  Future<Map<String, dynamic>> reviewAttendanceJustification(
-    Map<String, dynamic> payload,
-  ) => runCommand("review-attendance-justification", payload);
+  Future<Map<String, dynamic>> reviewAttendanceJustification(Map<String, dynamic> payload) =>
+      runCommand("review-attendance-justification", payload);
 
-  Future<Map<String, dynamic>> requestAttendanceJustification(
-    Map<String, dynamic> payload,
-  ) => runCommand("request-attendance-justification", payload);
+  Future<Map<String, dynamic>> requestAttendanceJustification(Map<String, dynamic> payload) =>
+      runCommand("request-attendance-justification", payload);
 
-  Future<Map<String, dynamic>> createAnnouncement(
-    Map<String, dynamic> payload,
-  ) => runCommand("create-announcement", payload);
+  Future<Map<String, dynamic>> createAnnouncement(Map<String, dynamic> payload) =>
+      runCommand("create-announcement", payload);
 
   Future<Map<String, dynamic>> addTarget(Map<String, dynamic> payload) =>
       runCommand("add-target", payload);
 
-  Future<Map<String, dynamic>> publishAnnouncement(
-    Map<String, dynamic> payload,
-  ) => runCommand("publish-announcement", payload);
+  Future<Map<String, dynamic>> publishAnnouncement(Map<String, dynamic> payload) =>
+      runCommand("publish-announcement", payload);
 
   Future<Map<String, dynamic>> recordDelivery(Map<String, dynamic> payload) =>
       runCommand("record-delivery", payload);
 
-  Future<Map<String, dynamic>> materializeDeliveries(
-    Map<String, dynamic> payload,
-  ) => runCommand("materialize-deliveries", payload);
+  Future<Map<String, dynamic>> materializeDeliveries(Map<String, dynamic> payload) =>
+      runCommand("materialize-deliveries", payload);
 
-  Future<Map<String, dynamic>> applyDeliveryEvent(
-    Map<String, dynamic> payload,
-  ) => runCommand("apply-delivery-event", payload);
+  Future<Map<String, dynamic>> applyDeliveryEvent(Map<String, dynamic> payload) =>
+      runCommand("apply-delivery-event", payload);
 
   Future<Map<String, dynamic>> markDeliveryRead(Map<String, dynamic> payload) =>
       runCommand("mark-delivery-read", payload);
 
-  Future<Map<String, dynamic>> updateNotificationContact(
-    Map<String, dynamic> payload,
-  ) => runCommand("update-notification-contact", payload);
+  Future<Map<String, dynamic>> updateNotificationContact(Map<String, dynamic> payload) =>
+      runCommand("update-notification-contact", payload);
 
-  Future<Map<String, dynamic>> registerPushDevice(
-    Map<String, dynamic> payload,
-  ) => runCommand("register-push-device", payload);
+  Future<Map<String, dynamic>> registerPushDevice(Map<String, dynamic> payload) =>
+      runCommand("register-push-device", payload);
 
-  Future<Map<String, dynamic>> unregisterPushDevice(
-    Map<String, dynamic> payload,
-  ) => runCommand("unregister-push-device", payload);
+  Future<Map<String, dynamic>> unregisterPushDevice(Map<String, dynamic> payload) =>
+      runCommand("unregister-push-device", payload);
 
-  Future<Map<String, dynamic>> updateSchoolNotificationTemplates(
-    Map<String, dynamic> payload,
-  ) => runCommand("update-school-notification-templates", payload);
+  Future<Map<String, dynamic>> updateSchoolNotificationTemplates(Map<String, dynamic> payload) =>
+      runCommand("update-school-notification-templates", payload);
 
-  Future<Map<String, dynamic>> resetSchoolNotificationTemplates(
-    Map<String, dynamic> payload,
-  ) => runCommand("reset-school-notification-templates", payload);
+  Future<Map<String, dynamic>> resetSchoolNotificationTemplates(Map<String, dynamic> payload) =>
+      runCommand("reset-school-notification-templates", payload);
 }
 
 extension GeneratedSchoolClientQueries on SchoolClient {
-  Future<Map<String, dynamic>> getOverdueFeeCount(
-    Map<String, dynamic> payload,
-  ) => runQuery("get-overdue-fee-count", payload);
+  Future<Map<String, dynamic>> getOverdueFeeCount(Map<String, dynamic> payload) =>
+      runQuery("get-overdue-fee-count", payload);
 
-  Future<Map<String, dynamic>> getPublishedReportCardCount(
-    Map<String, dynamic> payload,
-  ) => runQuery("get-published-report-card-count", payload);
+  Future<Map<String, dynamic>> getPublishedReportCardCount(Map<String, dynamic> payload) =>
+      runQuery("get-published-report-card-count", payload);
 
-  Future<Map<String, dynamic>> getSchoolOverview(
-    Map<String, dynamic> payload,
-  ) => runQuery("get-school-overview", payload);
+  Future<Map<String, dynamic>> getSchoolOverview(Map<String, dynamic> payload) =>
+      runQuery("get-school-overview", payload);
 
-  Future<Map<String, dynamic>> getClassGroupTimetable(
-    Map<String, dynamic> payload,
-  ) => runQuery("get-class-group-timetable", payload);
+  Future<Map<String, dynamic>> getClassGroupTimetable(Map<String, dynamic> payload) =>
+      runQuery("get-class-group-timetable", payload);
 }

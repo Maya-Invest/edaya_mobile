@@ -5,7 +5,6 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import '../evaluations/widgets/academic_period_picker.dart';
 import 'models/report_card_roster_models.dart';
-import 'report_card_logic.dart';
 import 'report_cards_controller.dart';
 
 class ReportCardsPage extends LView<ReportCardsController> {
