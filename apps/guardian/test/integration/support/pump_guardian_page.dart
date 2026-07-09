@@ -11,6 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'guardian_probe_bundle.dart';
 import 'guardian_widget_test_harness.dart';
+import 'integration_test_lifecycle.dart';
 import 'pump_until_found.dart';
 
 /// Pumps [page] inside the guardian integration harness and waits for it to mount.
@@ -22,6 +23,7 @@ Future<void> pumpGuardianPage<T extends Widget>(
   GuardianWidgetTestHarness harness,
   T page,
 ) async {
+  await resetIntegrationTestSurface(tester);
   await tester.pumpWidget(harness.buildApp(Scaffold(body: page)));
   await pumpUntilFound(tester, find.byType(T));
 }
@@ -32,6 +34,7 @@ Future<void> pumpGuardianShellUntil<T extends Widget>(
   GuardianWidgetTestHarness harness, {
   String? initialRoute,
 }) async {
+  await resetIntegrationTestSurface(tester);
   await tester.pumpWidget(harness.buildRouterApp(initialRoute: initialRoute));
   await pumpUntilFound(tester, find.byType(T));
 }

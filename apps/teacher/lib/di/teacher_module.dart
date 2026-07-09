@@ -23,18 +23,25 @@ void registerTeacherDependencies(
   CookieJar? cookieJar,
   AuthClient? authClient,
   PushNotificationService? pushNotifications,
+  bool includeBootstrap = true,
+  bool eager = true,
 }) {
+  void bind<S>(S Function() factory, {bool permanent = false}) {
+    if (eager) {
+      scope.put<S>(factory, permanent: permanent);
+    } else {
+      scope.lazyPut<S>(factory, permanent: permanent);
+    }
+  }
+
   EdayaRootScope.bind(scope, appName: systemL10n().appTitleTeacher);
   final resolvedCookieJar = cookieJar ?? CookieJar();
-  scope.put<SessionStorage>(() => SessionStorage(), permanent: true);
-  scope.put<EdayaRouterRefresh>(() => EdayaRouterRefresh(), permanent: true);
+  bind<SessionStorage>(() => SessionStorage(), permanent: true);
+  bind<EdayaRouterRefresh>(() => EdayaRouterRefresh(), permanent: true);
   if (authClient != null) {
-    scope.put<CookieJar>(() => resolvedCookieJar, permanent: true);
-    scope.put<AuthClient>(() => authClient, permanent: true);
-    scope.put<AppSettingsController>(
-      () => AppSettingsController(),
-      permanent: true,
-    );
+    bind<CookieJar>(() => resolvedCookieJar, permanent: true);
+    bind<AuthClient>(() => authClient, permanent: true);
+    bind<AppSettingsController>(() => AppSettingsController(), permanent: true);
   } else {
     registerEdayaDependencies(scope, cookieJar: resolvedCookieJar);
   }
@@ -44,7 +51,7 @@ void registerTeacherDependencies(
         scope.find<AcademicYearController>().selectedYearId.value,
     getActorKind: () => 'teacher',
   );
-  scope.put<PushNotificationService>(
+  bind<PushNotificationService>(
     () =>
         pushNotifications ??
         FcmPushNotificationService(
@@ -54,7 +61,7 @@ void registerTeacherDependencies(
         ),
     permanent: true,
   );
-  scope.put<AppSessionController>(
+  bind<AppSessionController>(
     () => AppSessionController(
       authClient: scope.find<AuthClient>(),
       sessionStorage: scope.find<SessionStorage>(),
@@ -79,7 +86,7 @@ void registerTeacherDependencies(
     ),
     permanent: true,
   );
-  scope.put<AcademicYearController>(
+  bind<AcademicYearController>(
     () => AcademicYearController(
       sessionStorage: scope.find<SessionStorage>(),
       session: scope.find<AppSessionController>(),
@@ -87,7 +94,7 @@ void registerTeacherDependencies(
     ),
     permanent: true,
   );
-  scope.put<TeacherContextController>(
+  bind<TeacherContextController>(
     () => TeacherContextController(
       sessionStorage: scope.find<SessionStorage>(),
       session: scope.find<AppSessionController>(),
@@ -96,7 +103,7 @@ void registerTeacherDependencies(
     ),
     permanent: true,
   );
-  scope.put<EvaluationsController>(
+  bind<EvaluationsController>(
     () => EvaluationsController(
       teacherContext: scope.find<TeacherContextController>(),
       academicYear: scope.find<AcademicYearController>(),
@@ -104,7 +111,7 @@ void registerTeacherDependencies(
     ),
     permanent: true,
   );
-  scope.put<TeachingController>(
+  bind<TeachingController>(
     () => TeachingController(
       teacherContext: scope.find<TeacherContextController>(),
       academicYear: scope.find<AcademicYearController>(),
@@ -112,7 +119,7 @@ void registerTeacherDependencies(
     ),
     permanent: true,
   );
-  scope.put<ReportCardsController>(
+  bind<ReportCardsController>(
     () => ReportCardsController(
       teacherContext: scope.find<TeacherContextController>(),
       academicYear: scope.find<AcademicYearController>(),
@@ -121,22 +128,24 @@ void registerTeacherDependencies(
     ),
     permanent: true,
   );
-  scope.put<AppRouter>(
+  bind<AppRouter>(
     () => AppRouter(
       session: scope.find<AppSessionController>(),
       routerRefresh: scope.find<EdayaRouterRefresh>(),
     ),
     permanent: true,
   );
-  scope.put<EdayaAppRouter>(() => scope.find<AppRouter>(), permanent: true);
-  scope.put<AppBootstrapController>(
-    () => AppBootstrapController(
-      cookieJar: scope.find<CookieJar>(),
-      sessionStorage: scope.find<SessionStorage>(),
-      session: scope.find<AppSessionController>(),
-      pushNotifications: scope.find<PushNotificationService>(),
-      initializeAuthenticatedContext: initializeTeacherAuthenticatedContext,
-    ),
-    permanent: true,
-  );
+  bind<EdayaAppRouter>(() => scope.find<AppRouter>(), permanent: true);
+  if (includeBootstrap) {
+    bind<AppBootstrapController>(
+      () => AppBootstrapController(
+        cookieJar: scope.find<CookieJar>(),
+        sessionStorage: scope.find<SessionStorage>(),
+        session: scope.find<AppSessionController>(),
+        pushNotifications: scope.find<PushNotificationService>(),
+        initializeAuthenticatedContext: initializeTeacherAuthenticatedContext,
+      ),
+      permanent: true,
+    );
+  }
 }

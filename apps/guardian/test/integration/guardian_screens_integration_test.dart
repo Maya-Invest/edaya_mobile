@@ -33,6 +33,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import 'support/guardian_probe_bundle.dart';
 import 'support/guardian_widget_test_harness.dart';
+import 'support/integration_test_lifecycle.dart';
 import 'support/live_api_test_binding.dart';
 import 'support/pump_guardian_page.dart';
 import 'support/pump_until_found.dart';
@@ -61,16 +62,11 @@ void _mariamKoneSuite() {
   late GuardianProbeBundle probes;
 
   setUp(() {
-    Levit.reset();
-    final view = TestWidgetsFlutterBinding.instance.platformDispatcher.views.first;
-    view.physicalSize = const Size(390, 844);
-    view.devicePixelRatio = 1.0;
+    configureIntegrationTestViewport();
   });
 
-  tearDown(() {
-    final view = TestWidgetsFlutterBinding.instance.platformDispatcher.views.first;
-    view.resetPhysicalSize();
-    view.resetDevicePixelRatio();
+  tearDown(() async {
+    resetIntegrationTestViewport();
   });
 
   setUpAll(() async {
@@ -199,15 +195,22 @@ void _mariamKoneSuite() {
       await pumpUntilFound(tester, find.byType(MyStudentsSheet));
 
       await tapAlternateStudent(tester, switchProbe!);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 800));
 
-      final activeId = harness.scope
-          .find<StudentContextController>()
-          .activeStudent
-          .value
-          ?.id;
-      expect(activeId, switchProbe.alternateStudentId);
+      final deadline = DateTime.now().add(const Duration(seconds: 15));
+      while (DateTime.now().isBefore(deadline)) {
+        await tester.pump(const Duration(milliseconds: 200));
+        final activeId = harness.scope
+            .find<StudentContextController>()
+            .activeStudent
+            .value
+            ?.id;
+        if (activeId == switchProbe.alternateStudentId) {
+          expect(activeId, switchProbe.alternateStudentId);
+          return;
+        }
+      }
+
+      fail('Timed out waiting for active student switch');
     });
   });
 
@@ -382,16 +385,11 @@ void _koffiYaoSuite() {
   late GuardianProbeBundle probes;
 
   setUp(() {
-    Levit.reset();
-    final view = TestWidgetsFlutterBinding.instance.platformDispatcher.views.first;
-    view.physicalSize = const Size(390, 844);
-    view.devicePixelRatio = 1.0;
+    configureIntegrationTestViewport();
   });
 
-  tearDown(() {
-    final view = TestWidgetsFlutterBinding.instance.platformDispatcher.views.first;
-    view.resetPhysicalSize();
-    view.resetDevicePixelRatio();
+  tearDown(() async {
+    resetIntegrationTestViewport();
   });
 
   setUpAll(() async {

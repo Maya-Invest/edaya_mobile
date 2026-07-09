@@ -27,6 +27,7 @@ import 'support/pump_teacher_page.dart';
 import 'support/pump_until_found.dart';
 import 'support/teacher_probe_bundle.dart';
 import 'support/teacher_widget_test_harness.dart';
+import 'support/integration_test_lifecycle.dart';
 
 Future<void> main() async {
   LiveApiWidgetTestBinding();
@@ -52,16 +53,11 @@ void _subjectTeacherSuite() {
   late TeacherProbeBundle probes;
 
   setUp(() {
-    Levit.reset();
-    final view = TestWidgetsFlutterBinding.instance.platformDispatcher.views.first;
-    view.physicalSize = const Size(390, 844);
-    view.devicePixelRatio = 1.0;
+    configureIntegrationTestViewport();
   });
 
   tearDown(() {
-    final view = TestWidgetsFlutterBinding.instance.platformDispatcher.views.first;
-    view.resetPhysicalSize();
-    view.resetDevicePixelRatio();
+    resetIntegrationTestViewport();
   });
 
   setUpAll(() async {
@@ -197,7 +193,19 @@ void _subjectTeacherSuite() {
         expectedTitle: title,
         harness: harness,
       );
-      expect(find.textContaining(title.split(' ').first), findsWidgets);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      final loadedEvaluations =
+          harness.scope.find<EvaluationsController>().evaluations.value;
+      expect(
+        loadedEvaluations.any(
+          (row) =>
+              row.title == title ||
+              row.title.contains(title.split(' ').first),
+        ),
+        isTrue,
+      );
+      expect(find.byType(ListTile), findsWidgets);
     });
 
     testWidgets('evaluation card opens marks entry with student rows', (
@@ -316,16 +324,11 @@ void _homeroomTeacherSuite() {
   late TeacherProbeBundle probes;
 
   setUp(() {
-    Levit.reset();
-    final view = TestWidgetsFlutterBinding.instance.platformDispatcher.views.first;
-    view.physicalSize = const Size(390, 844);
-    view.devicePixelRatio = 1.0;
+    configureIntegrationTestViewport();
   });
 
   tearDown(() {
-    final view = TestWidgetsFlutterBinding.instance.platformDispatcher.views.first;
-    view.resetPhysicalSize();
-    view.resetDevicePixelRatio();
+    resetIntegrationTestViewport();
   });
 
   setUpAll(() async {

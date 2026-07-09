@@ -159,6 +159,8 @@ class TeacherWidgetTestHarness {
       cookieJar: portalSession.authClient.cookieJar,
       authClient: portalSession.authClient,
       pushNotifications: const _NoOpPushNotificationService(),
+      includeBootstrap: false,
+      eager: false,
     );
   }
 

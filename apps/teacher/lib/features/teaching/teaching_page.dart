@@ -87,6 +87,7 @@ class _TeachingScopeSelectors extends StatelessWidget {
     final selectedSubjectId = controller.selectedClassSubjectId.value;
 
     return DropdownButtonFormField<String>(
+      isExpanded: true,
       initialValue: selectedSubjectId,
       decoration: InputDecoration(
         labelText: context.tr.classSubjectLabel,
@@ -94,7 +95,10 @@ class _TeachingScopeSelectors extends StatelessWidget {
       ),
       items: [
         for (final subject in subjects)
-          DropdownMenuItem(value: subject.id, child: Text(subject.label)),
+          DropdownMenuItem(
+            value: subject.id,
+            child: Text(subject.label, overflow: TextOverflow.ellipsis),
+          ),
       ],
       onChanged: subjects.isEmpty ? null : controller.selectSubject,
     );

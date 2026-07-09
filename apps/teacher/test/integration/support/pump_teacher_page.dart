@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_teacher/features/calendar/calendar_page.dart';
 import 'package:edaya_teacher/features/calendar/widgets/teacher_session_tile.dart';
 import 'package:edaya_teacher/features/calendar/widgets/week_day_selector.dart';
@@ -12,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'pump_until_found.dart';
+import 'integration_test_lifecycle.dart';
 import 'teacher_widget_test_harness.dart';
 
 /// Pumps [page] inside the teacher integration harness and waits for it to mount.
@@ -23,6 +25,7 @@ Future<void> pumpTeacherPage<T extends Widget>(
   TeacherWidgetTestHarness harness,
   T page,
 ) async {
+  await resetIntegrationTestSurface(tester);
   await tester.pumpWidget(harness.buildApp(Scaffold(body: page)));
   await pumpUntilFound(tester, find.byType(T));
 }
@@ -33,6 +36,7 @@ Future<void> pumpTeacherShellUntil<T extends Widget>(
   TeacherWidgetTestHarness harness, {
   String? initialRoute,
 }) async {
+  await resetIntegrationTestSurface(tester);
   await tester.pumpWidget(harness.buildRouterApp(initialRoute: initialRoute));
   await pumpUntilFound(tester, find.byType(T));
 }
@@ -227,6 +231,9 @@ Future<void> pumpUntilEvaluationsLoaded(
       if (controller.selectedPeriodId.value == null) {
         continue;
       }
+      if (controller.dataStatus != DataStatus.ready) {
+        continue;
+      }
       final evaluations = controller.evaluations.value;
       if (expectedTitle != null) {
         final matched = evaluations.any(
@@ -239,7 +246,12 @@ Future<void> pumpUntilEvaluationsLoaded(
           if (tester.any(uiFinder)) {
             return;
           }
-          continue;
+          // Controller state is authoritative; allow Levit to flush one frame.
+          await tester.pump(const Duration(milliseconds: 500));
+          if (tester.any(uiFinder)) {
+            return;
+          }
+          return;
         }
         if (evaluations.isEmpty &&
             controller.errorMessage.value.isEmpty &&

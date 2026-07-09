@@ -34,35 +34,37 @@ class _EvaluationsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items = controller.evaluations.value;
-    final periods = controller.periods.value;
-    final selectedPeriodId = controller.selectedPeriodId.value;
+    return LWatch(() {
+      final items = controller.evaluations.value;
+      final periods = controller.periods.value;
+      final selectedPeriodId = controller.selectedPeriodId.value;
 
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
-      children: [
-        if (periods.isNotEmpty) ...[
-          AcademicPeriodPicker(
-            periods: periods,
-            selectedPeriodId: selectedPeriodId,
-            onPeriodSelected: controller.selectPeriod,
-          ),
-          const SizedBox(height: 16),
-        ],
-        if (items.isEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 32),
-            child: Center(child: Text(controller.emptyMessage)),
-          )
-        else ...[
-          for (var index = 0; index < items.length; index++) ...[
-            if (index > 0) const SizedBox(height: 8),
-            _EvaluationCard(controller: controller, evaluation: items[index]),
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        children: [
+          if (periods.isNotEmpty) ...[
+            AcademicPeriodPicker(
+              periods: periods,
+              selectedPeriodId: selectedPeriodId,
+              onPeriodSelected: controller.selectPeriod,
+            ),
+            const SizedBox(height: 16),
+          ],
+          if (items.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 32),
+              child: Center(child: Text(controller.emptyMessage)),
+            )
+          else ...[
+            for (var index = 0; index < items.length; index++) ...[
+              if (index > 0) const SizedBox(height: 8),
+              _EvaluationCard(controller: controller, evaluation: items[index]),
+            ],
           ],
         ],
-      ],
-    );
+      );
+    });
   }
 }
 
