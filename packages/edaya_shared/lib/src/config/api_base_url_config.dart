@@ -1,5 +1,4 @@
-import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/l10n_lookup.dart';
@@ -15,8 +14,8 @@ abstract final class ApiBaseUrlConfig {
   /// Known API endpoints for developer presets and build-time defines.
   static const localUrl = 'http://localhost:9999';
   static const androidEmulatorUrl = 'http://10.0.2.2:9999';
-  static const stagingUrl = 'https://api-staging.edaya.softilab.dev';
-  static const productionUrl = 'https://api.edaya.softilab.dev';
+  static const stagingUrl = 'https://staging.api.edayaplus.com';
+  static const productionUrl = 'https://api.edayaplus.com';
 
   /// Default API origin for the current runtime (iOS/macOS → localhost, Android → 10.0.2.2).
   static String get defaultForCurrentPlatform {
@@ -31,10 +30,7 @@ abstract final class ApiBaseUrlConfig {
 
   static const _prefKey = 'edaya_api_base_url';
 
-  static const _dartDefineUrl = String.fromEnvironment(
-    'API_URL',
-    defaultValue: '',
-  );
+  static const _dartDefineUrl = String.fromEnvironment('API_URL', defaultValue: '');
 
   static String? _appDefaultUrl;
 
@@ -122,9 +118,7 @@ abstract final class ApiBaseUrlConfig {
       throw FormatException(systemL10n().enterValidApiUrl);
     }
 
-    return uri
-        .replace(path: uri.path.replaceAll(RegExp(r'/+$'), ''))
-        .toString();
+    return uri.replace(path: uri.path.replaceAll(RegExp(r'/+$'), '')).toString();
   }
 
   /// Maps Android loopback (`10.0.2.2`) to localhost on iOS/desktop simulators.

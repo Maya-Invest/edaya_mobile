@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-API_URL="${EDAYA_API_URL:-https://api.edaya.softilab.dev}"
+API_URL="${EDAYA_API_URL:-https://api.edayaplus.com}"
 APPS=(guardian teacher)
 
 if [[ $# -gt 0 ]]; then

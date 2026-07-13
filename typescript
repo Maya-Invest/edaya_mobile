@@ -1,14 +1,26 @@
 Script started on Thu Jul  2 00:18:28 2026
 compinit:527: no such file or directory: /opt/homebrew/share/zsh/site-functions/_ghostty
-[1m[7m%[27m[1m[0m                            
+[1m[7m%[27m[1m[0m                           
+ 
+
 [34m[01medaya_mobile[22m [90mgit:dev* [39m [33m[39m
-]2;atoumbre@MacBook-Pro-de-Atoumbre-4:~/SoftiLab/maya_invest/edaya_mobile]1;../edaya_mobile]7;file://MacBook-Pro-de-Atoumbre-4.local/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile\[0m[27m[24m[J[35m❯[39m [K[25C[90m[39m[25D[?1h=[?2004h[?2004l
-[1m[7m%[27m[1m[0m                            
+]2;atoumbre@MacBook-Pro-de-Atoumbre-4:~/SoftiLab/maya_invest/edaya_mobile]1;../edaya_mobile]7;file://MacBook-Pro-de-Atoumbre-4.local/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile\
+[0m[27m[24m[J[35m❯[39m [K[25C[90m[39m[25D[?1h=[?2004h[?2004l
+
+[1m[7m%[27m[1m[0m                           
+ 
+
 [34m[01medaya_mobile[22m [90mgit:dev* [39m [33m[39m
-]2;atoumbre@MacBook-Pro-de-Atoumbre-4:~/SoftiLab/maya_invest/edaya_mobile]1;../edaya_mobile]7;file://MacBook-Pro-de-Atoumbre-4.local/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile\[0m[27m[24m[J[31m❯[39m [K[25C[90m[39m[25D[?1h=[?2004hccd scripts[1m/[0m[0m [?1l>[?2004l
-]2;cd scripts]1;cd[1m[7m%[27m[1m[0m                            
+]2;atoumbre@MacBook-Pro-de-Atoumbre-4:~/SoftiLab/maya_invest/edaya_mobile]1;../edaya_mobile]7;file://MacBook-Pro-de-Atoumbre-4.local/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile\
+[0m[27m[24m[J[31m❯[39m [K[25C[90m[39m[25D[?1h=[?2004hccd scripts[1m/[0m[0m [?1l>[?2004l
+
+]2;cd scripts]1;cd[1m[7m%[27m[1m[0m                           
+ 
+
 [34m[01medaya_mobile[22m/scripts [90mgit:dev* [39m [33m[39m
-]2;atoumbre@MacBook-Pro-de-Atoumbre-4:~/SoftiLab/maya_invest/edaya_mobile/scripts]1;..obile/scripts]7;file://MacBook-Pro-de-Atoumbre-4.local/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/scripts\[0m[27m[24m[J[35m❯[39m [K[25C[90m[39m[25D[?1h=[?2004hcd scripts[10Dscript    cd .. flutter run[11Dcd ..      scriptcd scripts[10D          [10Db
+]2;atoumbre@MacBook-Pro-de-Atoumbre-4:~/SoftiLab/maya_invest/edaya_mobile/scripts]1;..obile/scripts]7;file://MacBook-Pro-de-Atoumbre-4.local/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/scripts\
+[0m[27m[24m[J[35m❯[39m [K[25C[90m[39m[25D[?1h=[?2004hcd scripts[10Dscript    cd .. flutter run[11Dcd ..      scriptcd scripts[10D          [10Db
+
 [0mBG                    
 BTLEServer            
 BTLEServerAgent       
@@ -72,8 +84,9 @@ bzip2recover          [J
 bzless                [J
 bzmore                [J
 bzr_prompt_info       [J
-[0m[27m[24m[J[35m❯[39m b[K[24C[90m[39m[24D ../build-play-aab.sh[1m [0m[0m [?1l>[?2004l
-]2;./build-play-aab.sh]1;./build-play-aab.shResolving dependencies... 
+[0m[27m[24m[J[35m❯[39m b[K[24C[90m[39m[24D ../build-play-aab.sh[1m [0m[0m [?1l>[?2004l
+
+]2;./build-play-aab.sh]1;./build-play-aab.shResolvapi.edayaplus.com
 Downloading packages... 
 [35m! [39m[1mcli_util[0m 0.5.1 [35m(overridden)[39m
   [1mdbus[0m 0.7.13 [36m(0.7.14 available)[39m
@@ -100,12 +113,18 @@ Downloading packages...
 Got dependencies in `/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile`!
 7 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
-Running Gradle task 'bundleRelease'...                                 ⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟[K[31mWARNING: Your Android app project: app located at: /Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/apps/guardian/android/app/build.gradle.kts[39m
-Running Gradle task 'bundleRelease'...                                 ⣯[K[31mapplies the Kotlin Gradle Plugin, which will cause build failures in future versions of Flutter. [39m
-Running Gradle task 'bundleRelease'...                                 ⣽[K[31mPlease migrate your app to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers[39m
-Running Gradle task 'bundleRelease'...                                 ⣾[K
-Running Gradle task 'bundleRelease'...                                 ⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻[KFont asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 5432 bytes (99.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
-Running Gradle task 'bundleRelease'...                                 ⣟[KFont asset "CupertinoIcons.ttf" was tree-shaken, reducing it from 257628 to 848 bytes (99.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Running Gradle task 'bundleRelease'...               api.edayaplus.com⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟
+[K[31mWARNING: Your Android app project: app located at: /Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/apps/guardian/android/app/build.gradle.kts[39m
+Running Gradle task 'bundleRelease'...                                 ⣯
+[K[31mapplies the Kotlin Gradle Plugin, which will cause build failures in future versions of Flutter. [39m
+Running Gradle task 'bundleRelease'...                                 ⣽
+[K[31mPlease migrate your app to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers[39m
+Running Gradle task 'bundleRelease'...                                 ⣾
+[K
+Running Gradle task 'bundleRelease'...                                 ⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻
+[KFont asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 5432 bytes (99.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Running Gradle task 'bundleRelease'...                                 ⣟
+[KFont asset "CupertinoIcons.ttf" was tree-shaken, reducing it from 257628 to 848 bytes (99.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
 Running Gradle task 'bundleRelease'...                                 ⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽    69.4s
 [32m[1m[32m✓[39m[32m[22m Built[39m
 [32mbuild/app/outputs/bundle/rel[39m
@@ -127,12 +146,18 @@ Downloading packages...
 Got dependencies in `/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile`!
 7 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
-Running Gradle task 'bundleRelease'...                                 ⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷[K[31mWARNING: Your Android app project: app located at: /Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/apps/teacher/android/app/build.gradle.kts[39m
-Running Gradle task 'bundleRelease'...                                 ⣯[K[31mapplies the Kotlin Gradle Plugin, which will cause build failures in future versions of Flutter. [39m
-Running Gradle task 'bundleRelease'...                                 ⣽[K[31mPlease migrate your app to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers[39m
-Running Gradle task 'bundleRelease'...                                 ⣻[K
-Running Gradle task 'bundleRelease'...                                 ⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷[KFont asset "CupertinoIcons.ttf" was tree-shaken, reducing it from 257628 to 848 bytes (99.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
-Running Gradle task 'bundleRelease'...                                 ⣯[KFont asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 4184 bytes (99.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Running Gradle task 'bundleRelease'...                                 ⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷
+[K[31mWARNING: Your Android app project: app located at: /Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/apps/teacher/android/app/build.gradle.kts[39m
+Running Gradle task 'bundleRelease'...                                 ⣯
+[K[31mapplies the Kotlin Gradle Plugin, which will cause build failures in future versions of Flutter. [39m
+Running Gradle task 'bundleRelease'...                                 ⣽
+[K[31mPlease migrate your app to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers[39m
+Running Gradle task 'bundleRelease'...                                 ⣻
+[K
+Running Gradle task 'bundleRelease'...                                 ⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷
+[KFont asset "CupertinoIcons.ttf" was tree-shaken, reducing it from 257628 to 848 bytes (99.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Running Gradle task 'bundleRelease'...                                 ⣯
+[KFont asset "MaterialIcons-Regular.otf" was tree-shaapi.edayaplus.com1645184 to 4184 bytes (99.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
 Running Gradle task 'bundleRelease'...                                 ⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯    69.3s
 [32m[1m[32m✓[39m[32m[22m Built[39m
 [32mbuild/app/outputs/bundle/rel[39m
@@ -141,9 +166,13 @@ Running Gradle task 'bundleRelease'...                                 ⣽⣻�
 Built: /Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/apps/teacher/build/app/outputs/bundle/release/app-release.aab
 -rw-r--r--@ 1 atoumbre  staff    55M Jul  2 00:24 /Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/apps/teacher/build/app/outputs/bundle/release/app-release.aab
 All Play Store AABs built successfully.
-[1m[7m%[27m[1m[0m                            
+[1m[7m%[27m[1m[0m                           
+ 
+
 [34m[01medaya_mobile[22m/scripts [90mgit:dev* [39m [33m145s[39m
-]2;atoumbre@MacBook-Pro-de-Atoumbre-4:~/SoftiLab/maya_invest/edaya_mobile/scripts]1;..obile/scripts]7;file://MacBook-Pro-de-Atoumbre-4.local/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/scripts\[0m[27m[24m[J[35m❯[39m [K[25C[90m[39m[25D[?1h=[?2004h./build-play-aab.sh[?1l>[?2004l
+]2;atoumbre@MacBook-Pro-de-Atoumbre-4:~/SoftiLab/maya_invest/edaya_mobile/scripts]1;..obile/scripts]7;file://MacBook-Pro-de-Atoumbre-4.local/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/scripts\
+[0m[27m[24m[J[35m❯[39m [K[25C[90m[39m[25D[?1h=[?2004h./build-play-aab.sh[?1l>[?2004l
+
 ]2;./build-play-aab.sh]1;./build-play-aab.shResolving dependencies... 
 Downloading packages... 
 [35m! [39m[1mcli_util[0m 0.5.1 [35m(overridden)[39m
@@ -155,7 +184,7 @@ Downloading packages...
   [1mtest_api[0m 0.7.11 [36m(0.7.13 available)[39m
   [1mvector_math[0m 2.2.0 [36m(2.4.0 available)[39m
 Got dependencies!
-7 packages have newer versions incompatible with dependency constraints.
+7 packages have newer versions incompatible with depeapi.edayaplus.com
 Try `dart pub outdated` for more information.
 Building Play Store AAB for guardian (API_URL=https://api.edaya.softilab.dev)...
 Resolving dependencies in `/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile`... 
@@ -171,12 +200,18 @@ Downloading packages...
 Got dependencies in `/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile`!
 7 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
-Running Gradle task 'bundleRelease'...                                 ⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿[K[31mWARNING: Your Android app project: app located at: /Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/apps/guardian/android/app/build.gradle.kts[39m
-Running Gradle task 'bundleRelease'...                                 ⣻[K[31mapplies the Kotlin Gradle Plugin, which will cause build failures in future versions of Flutter. [39m
-Running Gradle task 'bundleRelease'...                                 ⣟[K[31mPlease migrate your app to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers[39m
-Running Gradle task 'bundleRelease'...                                 ⣯[K
-Running Gradle task 'bundleRelease'...                                 ⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻[KFont asset "CupertinoIcons.ttf" was tree-shaken, reducing it from 257628 to 848 bytes (99.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
-Running Gradle task 'bundleRelease'...                                 ⣟[KFont asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 5432 bytes (99.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Running Gradle task 'bundleRelease'...                                 ⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿
+[K[31mWARNING: Your Android app project: app located at: /Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/apps/guardian/android/app/build.gradle.kts[39m
+Running Gradle task 'bundleRelease'...                                 ⣻
+[K[31mapplies the Kotlin Gradle Plugin, which will cause build failures in future versions of Flutter. [39m
+Running Gradle task 'bundleRelease'...                                 ⣟
+[K[31mPlease migrate your app to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers[39m
+Running Gradle task 'bundleRelease'...                                 ⣯
+[K
+Running Gradle task 'bundleRelease'...                                 ⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻
+[KFont asset "CupertinoIcons.ttf" was tree-shaken, reducing it from 257628 to 848 bytes (99.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Running Gradle task 'bundleRelease'...                                 ⣟
+[KFont asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 5432 bytes (99.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
 Running Gradle task 'bundleRelease'...                                 ⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟    62.4s
 [32m[1m[32m✓[39m[32m[22m Built[39m
 [32mbuild/app/outputs/bundle/rel[39m
@@ -198,12 +233,18 @@ Downloading packages...
 Got dependencies in `/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile`!
 7 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
-Running Gradle task 'bundleRelease'...                                 ⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽[K[31mWARNING: Your Android app project: app located at: /Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/apps/teacher/android/app/build.gradle.kts[39m
-Running Gradle task 'bundleRelease'...                                 ⣾[K[31mapplies the Kotlin Gradle Plugin, which will cause build failures in future versions of Flutter. [39m
-Running Gradle task 'bundleRelease'...                                 ⣷[K[31mPlease migrate your app to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers[39m
-Running Gradle task 'bundleRelease'...                                 ⣯[K
-Running Gradle task 'bundleRelease'...                                 ⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻[KFont asset "CupertinoIcons.ttf" was tree-shaken, reducing it from 257628 to 848 bytes (99.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
-Running Gradle task 'bundleRelease'...                                 ⣟[KFont asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 4184 bytes (99.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Running Gradle task 'bundleRelease'...                                 ⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽
+[K[31mWARNING: Your Android app project: app located at: /Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/apps/teacher/android/app/build.gradle.kts[39m
+Running Gradle task 'bundleRelease'...                                 ⣾
+[K[31mapplies the Kotlin Gradle Plugin, which will cause build failures in future versions of Flutter. [39m
+Running Gradle task 'bundleRelease'...                                 ⣷
+[K[31mPlease migrate your app to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers[39m
+Running Gradle task 'bundleRelease'...                                 ⣯
+[K
+Running Gradle task 'bundleRelease'...                                 ⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻
+[KFont asset "CupertinoIcons.ttf" was tree-shaken, reducing it from 257628 to 848 bytes (99.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Running Gradle task 'bundleRelease'...                                 ⣟
+[KFont asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 4184 bytes (99.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
 Running Gradle task 'bundleRelease'...                                 ⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯    57.0s
 [32m[1m[32m✓[39m[32m[22m Built[39m
 [32mbuild/app/outputs/bundle/rel[39m
@@ -212,6 +253,9 @@ Running Gradle task 'bundleRelease'...                                 ⡿⢿�
 Built: /Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/apps/teacher/build/app/outputs/bundle/release/app-release.aab
 -rw-r--r--@ 1 atoumbre  staff    55M Jul  2 00:38 /Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/apps/teacher/build/app/outputs/bundle/release/app-release.aab
 All Play Store AABs built successfully.
-[1m[7m%[27m[1m[0m                            
+[1m[7m%[27m[1m[0m                           
+ 
+
 [34m[01medaya_mobile[22m/scripts [90mgit:dev* [39m [33m126s[39m
-]2;atoumbre@MacBook-Pro-de-Atoumbre-4:~/SoftiLab/maya_invest/edaya_mobile/scripts]1;..obile/scripts]7;file://MacBook-Pro-de-Atoumbre-4.local/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/scripts\[0m[27m[24m[J[35m❯[39m [K[25C[90m[39m[25D[?1h=[?2004h
+]2;atoumbre@MacBook-Pro-de-Atoumbre-4:~/SoftiLab/maya_invest/edaya_mobile/scripts]1;..obile/scripts]7;file://MacBook-Pro-de-Atoumbre-4.local/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/scripts\
+[0m[27m[24m[J[35m❯[39m [K[25C[90m[39m[25D[?1h=[?2004h
