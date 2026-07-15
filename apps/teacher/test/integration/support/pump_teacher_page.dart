@@ -9,6 +9,7 @@ import 'package:edaya_teacher/features/evaluations/evaluations_page.dart';
 import 'package:edaya_teacher/features/report_cards/report_cards_page.dart';
 import 'package:edaya_teacher/features/teaching/teaching_controller.dart';
 import 'package:edaya_teacher/features/teaching/teaching_page.dart';
+import 'package:edaya_integration_tests/edaya_integration_tests.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -26,6 +27,7 @@ Future<void> pumpTeacherPage<T extends Widget>(
   T page,
 ) async {
   await resetIntegrationTestSurface(tester);
+  configureIntegrationTestViewport();
   await tester.pumpWidget(harness.buildApp(Scaffold(body: page)));
   await pumpUntilFound(tester, find.byType(T));
 }
@@ -37,6 +39,7 @@ Future<void> pumpTeacherShellUntil<T extends Widget>(
   String? initialRoute,
 }) async {
   await resetIntegrationTestSurface(tester);
+  configureIntegrationTestViewport();
   await tester.pumpWidget(harness.buildRouterApp(initialRoute: initialRoute));
   await pumpUntilFound(tester, find.byType(T));
 }
@@ -90,8 +93,10 @@ Future<void> pumpUntilCalendarHasSessions(
   DateTime? preferDay,
   Duration timeout = const Duration(seconds: 45),
 }) async {
-  if (preferDay != null) {
-    await navigateCalendarToDay(tester, preferDay);
+  final targetDay = preferDay ?? integrationCalendarReferenceDay();
+  await navigateCalendarWeekToDay(tester, targetDay);
+  await tester.pump(const Duration(milliseconds: 800));
+  if (tester.any(find.byType(TeacherSessionTile))) {
     return;
   }
 
@@ -142,8 +147,8 @@ Future<bool> _selectEachDayInVisibleWeek(WidgetTester tester) async {
 }
 
 Future<void> _shiftCalendarWeek(WidgetTester tester, int direction) async {
-  final tooltip = direction >= 0 ? 'Next week' : 'Previous week';
-  final weekNav = find.byTooltip(tooltip);
+  final icon = direction >= 0 ? Icons.chevron_right : Icons.chevron_left;
+  final weekNav = find.byIcon(icon);
   if (weekNav.evaluate().isEmpty) {
     return;
   }
@@ -151,7 +156,32 @@ Future<void> _shiftCalendarWeek(WidgetTester tester, int direction) async {
   await tester.pump();
 }
 
-/// Moves the calendar week selector until [day] shows sessions or the day is selected.
+DateTime _weekStart(DateTime day) {
+  final normalized = DateTime(day.year, day.month, day.day);
+  return normalized.subtract(Duration(days: normalized.weekday - DateTime.monday));
+}
+
+Future<void> navigateCalendarWeekToDay(
+  WidgetTester tester,
+  DateTime day,
+) async {
+  final normalized = DateTime(day.year, day.month, day.day);
+  final targetWeekStart = _weekStart(normalized);
+  final currentWeekStart = _weekStart(DateTime.now());
+  final weekDelta = targetWeekStart.difference(currentWeekStart).inDays ~/ 7;
+
+  if (weekDelta != 0) {
+    final direction = weekDelta > 0 ? 1 : -1;
+    for (var step = 0; step < weekDelta.abs(); step++) {
+      await _shiftCalendarWeek(tester, direction);
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+  }
+
+  await _tapDayChipForNumber(tester, normalized.day);
+  await tester.pump(const Duration(milliseconds: 1500));
+}
+
 Future<void> navigateCalendarToDay(
   WidgetTester tester,
   DateTime day,
@@ -314,7 +344,9 @@ Future<void> tapTeacherSessionTile(
   await tester.tap(find.byType(TeacherSessionTile).first);
 }
 Future<void> openClassFilterSheet(WidgetTester tester) async {
-  await tester.tap(find.byIcon(Icons.filter_list));
+  final filterButton = find.byIcon(Icons.filter_list);
+  await tester.ensureVisible(filterButton);
+  await tester.tap(filterButton);
   await tester.pump();
   await pumpUntilFound(tester, find.byType(ClassFilterSheet));
 }
@@ -324,9 +356,11 @@ Future<void> selectClassFilter(
   WidgetTester tester,
   String classLabel,
 ) async {
-  await tester.tap(find.text(classLabel));
+  final tile = find.widgetWithText(ListTile, classLabel);
+  await tester.ensureVisible(tile);
+  await tester.tap(tile);
   await tester.pump();
-  await tester.pump(const Duration(milliseconds: 500));
+  await tester.pumpAndSettle();
 }
 
 /// Waits until calendar sessions finish loading for the selected day.

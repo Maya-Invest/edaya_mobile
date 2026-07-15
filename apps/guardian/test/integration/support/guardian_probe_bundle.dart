@@ -1,3 +1,4 @@
+import 'package:edaya_api_client/edaya_api_client.dart';
 import 'package:edaya_guardian/features/academic/models/grade_entry.dart';
 import 'package:edaya_guardian/features/fees/models/payment_record.dart';
 import 'package:edaya_guardian/features/inbox/models/inbox_delivery.dart';
@@ -88,7 +89,11 @@ class GuardianProbeBundle {
       studentId: profile.primaryStudentId,
     );
 
-    final sessionProbe = _loadSessionProbe(calendar.timetableEvents);
+    final sessionProbe = await _loadSessionProbe(
+      client,
+      calendar.timetableEvents,
+      profile.primaryClassGroupId,
+    );
     final studentSwitchProbe = _loadStudentSwitchProbe(harness);
     final graded = _loadFirstGradedEntry(academic);
     final firstPayment = _loadFirstPayment(fees);
@@ -112,9 +117,11 @@ class GuardianProbeBundle {
     );
   }
 
-  static GuardianCalendarSessionProbe? _loadSessionProbe(
+  static Future<GuardianCalendarSessionProbe?> _loadSessionProbe(
+    SchoolClient client,
     List<dynamic> events,
-  ) {
+    String classGroupId,
+  ) async {
     for (final event in events) {
       if (event is! Map<String, dynamic>) {
         continue;
@@ -138,7 +145,31 @@ class GuardianProbeBundle {
         sessionDay: DateTime(startsAt.year, startsAt.month, startsAt.day),
       );
     }
-    return null;
+
+    final lessonSessionId = await resolveLessonSessionIdForClass(
+      client,
+      classGroupId: classGroupId,
+      timetableEvents: events,
+    );
+    if (lessonSessionId == null) {
+      return null;
+    }
+
+    final lessonSession = await client.lessonSessions.get(lessonSessionId);
+    final startsAtRaw = lessonSession['startsAt'] as String?;
+    if (startsAtRaw == null) {
+      return null;
+    }
+    final startsAt = DateTime.parse(startsAtRaw).toLocal();
+    final title = lessonSession['title'] as String? ??
+        lessonSession['displayLabel'] as String? ??
+        'Lesson';
+
+    return GuardianCalendarSessionProbe(
+      sessionTitle: title,
+      subjectLabel: title,
+      sessionDay: DateTime(startsAt.year, startsAt.month, startsAt.day),
+    );
   }
 
   static GuardianStudentSwitchProbe? _loadStudentSwitchProbe(

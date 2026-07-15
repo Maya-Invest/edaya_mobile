@@ -345,8 +345,11 @@ void _homeroomTeacherSuite() {
 
     expect(find.byType(AppShellPage), findsOneWidget);
     expect(find.byType(CalendarPage), findsOneWidget);
-    expect(harness.context.teachingScope.classGroupIds, isNotEmpty);
-    expect(harness.context.teachingScope.classSubjectIds, isEmpty);
+    expect(harness.context.teachingScope.classGroupIds, contains('ci-6b'));
+    expect(
+      harness.context.teachingScope.classSubjectIds,
+      contains('ci-cs-6b-eps'),
+    );
   });
 
   testWidgets('homeroom calendar shows week selector', (tester) async {
@@ -381,12 +384,16 @@ void _homeroomTeacherSuite() {
     }
   });
 
-  testWidgets('homeroom teaching page renders for homeroom-only grants', (
+  testWidgets('homeroom teaching page renders for homeroom and EPS grants', (
     tester,
   ) async {
-    expect(probes.classSubjectIds, isEmpty);
+    expect(probes.classSubjectIds, contains('ci-cs-6b-eps'));
 
-    await openTeachingTab(tester, harness);
+    await openTeachingTab(
+      tester,
+      harness,
+      classSubjectId: 'ci-cs-6b-eps',
+    );
     expect(find.byType(TeachingPage), findsOneWidget);
     tester.takeException();
   });

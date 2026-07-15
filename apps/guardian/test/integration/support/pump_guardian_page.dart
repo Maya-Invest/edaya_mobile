@@ -6,6 +6,7 @@ import 'package:edaya_guardian/features/calendar/widgets/week_day_selector.dart'
 import 'package:edaya_guardian/features/evaluations/evaluations_page.dart';
 import 'package:edaya_guardian/features/fees/fees_page.dart';
 import 'package:edaya_guardian/features/inbox/inbox_page.dart';
+import 'package:edaya_integration_tests/edaya_integration_tests.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -24,6 +25,7 @@ Future<void> pumpGuardianPage<T extends Widget>(
   T page,
 ) async {
   await resetIntegrationTestSurface(tester);
+  configureIntegrationTestViewport();
   await tester.pumpWidget(harness.buildApp(Scaffold(body: page)));
   await pumpUntilFound(tester, find.byType(T));
 }
@@ -35,6 +37,7 @@ Future<void> pumpGuardianShellUntil<T extends Widget>(
   String? initialRoute,
 }) async {
   await resetIntegrationTestSurface(tester);
+  configureIntegrationTestViewport();
   await tester.pumpWidget(harness.buildRouterApp(initialRoute: initialRoute));
   await pumpUntilFound(tester, find.byType(T));
 }
@@ -93,8 +96,10 @@ Future<void> pumpUntilCalendarHasSessions(
   DateTime? preferDay,
   Duration timeout = const Duration(seconds: 45),
 }) async {
-  if (preferDay != null) {
-    await navigateCalendarToDay(tester, preferDay);
+  final targetDay = preferDay ?? integrationCalendarReferenceDay();
+  await navigateCalendarWeekToDay(tester, targetDay);
+  await tester.pump(const Duration(milliseconds: 800));
+  if (tester.any(find.byType(SessionTile))) {
     return;
   }
 
@@ -122,8 +127,16 @@ Future<void> pumpUntilCalendarHasSessions(
 /// Scans calendar weeks until at least one school event tile is visible.
 Future<void> pumpUntilCalendarHasEvents(
   WidgetTester tester, {
+  DateTime? preferDay,
   Duration timeout = const Duration(seconds: 45),
 }) async {
+  final targetDay = preferDay ?? integrationCalendarReferenceDay();
+  await navigateCalendarWeekToDay(tester, targetDay);
+  await tester.pump(const Duration(milliseconds: 800));
+  if (tester.any(find.byType(SchoolEventTile))) {
+    return;
+  }
+
   final deadline = DateTime.now().add(timeout);
   var scanForward = true;
   while (DateTime.now().isBefore(deadline)) {
@@ -178,8 +191,8 @@ Future<bool> _selectEachDayInVisibleWeek(WidgetTester tester) async {
 }
 
 Future<void> _shiftCalendarWeek(WidgetTester tester, int direction) async {
-  final tooltip = direction >= 0 ? 'Next week' : 'Previous week';
-  final weekNav = find.byTooltip(tooltip);
+  final icon = direction >= 0 ? Icons.chevron_right : Icons.chevron_left;
+  final weekNav = find.byIcon(icon);
   if (weekNav.evaluate().isEmpty) {
     return;
   }
@@ -187,21 +200,39 @@ Future<void> _shiftCalendarWeek(WidgetTester tester, int direction) async {
   await tester.pump();
 }
 
+DateTime _weekStart(DateTime day) {
+  final normalized = DateTime(day.year, day.month, day.day);
+  return normalized.subtract(Duration(days: normalized.weekday - DateTime.monday));
+}
+
+Future<void> navigateCalendarWeekToDay(
+  WidgetTester tester,
+  DateTime day,
+) async {
+  final normalized = DateTime(day.year, day.month, day.day);
+  final targetWeekStart = _weekStart(normalized);
+  final currentWeekStart = _weekStart(DateTime.now());
+  final weekDelta = targetWeekStart.difference(currentWeekStart).inDays ~/ 7;
+
+  if (weekDelta != 0) {
+    final direction = weekDelta > 0 ? 1 : -1;
+    for (var step = 0; step < weekDelta.abs(); step++) {
+      await _shiftCalendarWeek(tester, direction);
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+  }
+
+  await _tapDayChipForNumber(tester, normalized.day);
+  await tester.pump(const Duration(milliseconds: 1500));
+}
+
 Future<void> navigateCalendarToDay(
   WidgetTester tester,
   DateTime day,
 ) async {
-  for (var attempt = 0; attempt < 52; attempt++) {
-    await tester.pump(const Duration(milliseconds: 400));
-    if (_visibleWeekContainsDay(tester, day)) {
-      await _tapDayChipForNumber(tester, day.day);
-      await tester.pump(const Duration(milliseconds: 1500));
-      if (tester.any(find.byType(SessionTile))) {
-        return;
-      }
-    }
-
-    await _shiftCalendarWeek(tester, attempt.isEven ? 1 : -1);
+  await navigateCalendarWeekToDay(tester, day);
+  if (tester.any(find.byType(SessionTile))) {
+    return;
   }
 
   await pumpUntilCalendarHasSessions(tester);

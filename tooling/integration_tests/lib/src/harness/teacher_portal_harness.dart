@@ -1,5 +1,6 @@
 import 'package:edaya_api_client/edaya_api_client.dart';
 
+import '../config/integration_config.dart';
 import '../config/teacher_portal_profile.dart';
 import 'portal_session.dart';
 
@@ -286,11 +287,13 @@ Future<TeacherPortalContext> bootstrapTeacherPortal(
 /// Mirrors [CalendarController.loadCalendarData] timetable reads per class.
 Future<Map<String, List<dynamic>>> loadCalendarTimetables(
   SchoolClient client,
-  Iterable<String> classGroupIds,
-) async {
-  final now = DateTime.now().toUtc();
-  final startDate = isoDate(now.subtract(const Duration(days: 7)));
-  final endDate = isoDate(now.add(const Duration(days: 14)));
+  Iterable<String> classGroupIds, {
+  DateTime? referenceDay,
+}) async {
+  final anchor =
+      referenceDay ?? IntegrationConfig.fromEnvironment().calendarReferenceDay;
+  final startDate = isoDate(anchor.subtract(const Duration(days: 7)));
+  final endDate = isoDate(anchor.add(const Duration(days: 14)));
   final eventsByClass = <String, List<dynamic>>{};
 
   for (final classGroupId in classGroupIds) {
@@ -355,10 +358,10 @@ class PlanningDateRange {
 }
 
 PlanningDateRange _defaultPlanningDateRange() {
-  final now = DateTime.now().toUtc();
+  final anchor = IntegrationConfig.fromEnvironment().calendarReferenceDay;
   return PlanningDateRange(
-    startDate: isoDate(now.subtract(const Duration(days: 7))),
-    endDate: isoDate(now.add(const Duration(days: 14))),
+    startDate: isoDate(anchor.subtract(const Duration(days: 7))),
+    endDate: isoDate(anchor.add(const Duration(days: 14))),
   );
 }
 

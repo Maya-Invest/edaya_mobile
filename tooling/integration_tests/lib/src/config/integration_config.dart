@@ -8,7 +8,12 @@ class IntegrationConfig {
     required this.password,
     required this.academicYearId,
     required this.classGroupId,
+    required this.calendarReferenceDate,
   });
+
+  /// Narrative "today" for demo-ci calendar/timetable probes — matches backend
+  /// `SEED_REFERENCE_DATE` so integration tests stay stable across real dates.
+  static const defaultCalendarReferenceDate = '2026-06-16';
 
   factory IntegrationConfig.fromEnvironment() {
     return IntegrationConfig(
@@ -37,6 +42,10 @@ class IntegrationConfig {
         fallbackKeys: ['CLASS_GROUP_ID'],
         defaultValue: 'ci-6a',
       ),
+      calendarReferenceDate: _readEnv(
+        'EDAYA_CALENDAR_REFERENCE_DATE',
+        defaultValue: defaultCalendarReferenceDate,
+      ),
     );
   }
 
@@ -45,6 +54,17 @@ class IntegrationConfig {
   final String password;
   final String academicYearId;
   final String classGroupId;
+  final String calendarReferenceDate;
+
+  DateTime get calendarReferenceDay {
+    final parsed = DateTime.tryParse(calendarReferenceDate);
+    if (parsed == null) {
+      throw FormatException(
+        'Invalid EDAYA_CALENDAR_REFERENCE_DATE: $calendarReferenceDate',
+      );
+    }
+    return DateTime(parsed.year, parsed.month, parsed.day);
+  }
 
   IntegrationConfig withTeacherEmail(String email) {
     return IntegrationConfig(
@@ -53,6 +73,7 @@ class IntegrationConfig {
       password: password,
       academicYearId: academicYearId,
       classGroupId: classGroupId,
+      calendarReferenceDate: calendarReferenceDate,
     );
   }
 
@@ -73,6 +94,7 @@ class IntegrationConfig {
       password: password,
       academicYearId: academicYearId,
       classGroupId: classGroupId,
+      calendarReferenceDate: calendarReferenceDate,
     );
   }
 

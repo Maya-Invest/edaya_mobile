@@ -162,7 +162,15 @@ void _mariamKoneSuite() {
         return;
       }
 
-      await pumpUntilCalendarHasEvents(tester);
+      final eventNearReference = calendarEventNearReference(
+        probes.calendar.calendarEvents,
+      );
+      expect(eventNearReference, isNotNull);
+      final eventDay = DateTime.parse(
+        eventNearReference!['startDate'] as String,
+      );
+
+      await pumpUntilCalendarHasEvents(tester, preferDay: eventDay);
       expect(find.byType(SchoolEventTile), findsWidgets);
     });
 

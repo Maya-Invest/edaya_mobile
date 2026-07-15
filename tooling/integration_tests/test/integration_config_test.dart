@@ -11,6 +11,10 @@ void main() {
     expect(config.password, 'DevPassword1!');
     expect(config.academicYearId, '2025-ci');
     expect(config.classGroupId, 'ci-6a');
+    expect(
+      config.calendarReferenceDate,
+      IntegrationConfig.defaultCalendarReferenceDate,
+    );
   });
 
   test('TeacherPortalProfile.demoCiProfiles includes subject and homeroom', () {

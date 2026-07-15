@@ -37,7 +37,13 @@ class TeacherPortalProfile {
     academicYearId: '2025-ci',
     primaryClassGroupId: 'ci-6b',
     expectedClassGroupIds: ['ci-6b'],
-    expectedClassSubjectIds: [],
+    expectedClassSubjectIds: [
+      'ci-cs-6a-eps',
+      'ci-cs-6b-eps',
+      'ci-cs-5a-eps',
+      'ci-cs-4a-eps',
+      'ci-cs-3a-eps',
+    ],
   );
 
   static const demoCiProfiles = [subjectTeacher, homeroomTeacher];
