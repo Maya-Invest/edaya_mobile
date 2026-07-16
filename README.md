@@ -155,7 +155,7 @@ Override at build time:
 flutter run --dart-define=API_URL=http://localhost:9999          # local API
 flutter run --dart-define=API_URL=http://10.0.2.2:9999           # Android emulator → local
 flutter run --dart-define=API_URL=http://192.168.1.10:9999       # LAN device → local
-flutter run --dart-define=API_URL=https://staging.api.edayaplus.com
+flutter run --dart-define=API_URL=https://staging.api.edaya.app
 ```
 
 Or use Melos shortcuts:

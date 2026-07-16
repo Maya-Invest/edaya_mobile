@@ -14,8 +14,8 @@ abstract final class ApiBaseUrlConfig {
   /// Known API endpoints for developer presets and build-time defines.
   static const localUrl = 'http://localhost:9999';
   static const androidEmulatorUrl = 'http://10.0.2.2:9999';
-  static const stagingUrl = 'https://staging.api.edayaplus.com';
-  static const productionUrl = 'https://api.edayaplus.com';
+  static const stagingUrl = 'https://staging.api.edaya.app';
+  static const productionUrl = 'https://api.edaya.app';
 
   /// Default API origin for the current runtime (iOS/macOS → localhost, Android → 10.0.2.2).
   static String get defaultForCurrentPlatform {

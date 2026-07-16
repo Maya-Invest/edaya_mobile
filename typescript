@@ -86,7 +86,7 @@ bzmore                [J
 bzr_prompt_info       [J
 [0m[27m[24m[J[35m❯[39m b[K[24C[90m[39m[24D ../build-play-aab.sh[1m [0m[0m [?1l>[?2004l
 
-]2;./build-play-aab.sh]1;./build-play-aab.shResolvapi.edayaplus.com
+]2;./build-play-aab.sh]1;./build-play-aab.shResolvapi.edaya.app
 Downloading packages... 
 [35m! [39m[1mcli_util[0m 0.5.1 [35m(overridden)[39m
   [1mdbus[0m 0.7.13 [36m(0.7.14 available)[39m
@@ -113,7 +113,7 @@ Downloading packages...
 Got dependencies in `/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile`!
 7 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
-Running Gradle task 'bundleRelease'...               api.edayaplus.com⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟
+Running Gradle task 'bundleRelease'...               api.edaya.app⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟⣯⣽⣾⣷⣯⣽⣻⣟⡿⢿⣻⣟
 [K[31mWARNING: Your Android app project: app located at: /Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/apps/guardian/android/app/build.gradle.kts[39m
 Running Gradle task 'bundleRelease'...                                 ⣯
 [K[31mapplies the Kotlin Gradle Plugin, which will cause build failures in future versions of Flutter. [39m
@@ -184,7 +184,7 @@ Downloading packages...
   [1mtest_api[0m 0.7.11 [36m(0.7.13 available)[39m
   [1mvector_math[0m 2.2.0 [36m(2.4.0 available)[39m
 Got dependencies!
-7 packages have newer versions incompatible with depeapi.edayaplus.com
+7 packages have newer versions incompatible with depeapi.edaya.app
 Try `dart pub outdated` for more information.
 Building Play Store AAB for guardian (API_URL=https://api.edaya.softilab.dev)...
 Resolving dependencies in `/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile`... 
