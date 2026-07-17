@@ -29,5 +29,5 @@ Outputs:
 - `apps/guardian/build/app/outputs/bundle/release/app-release.aab`
 - `apps/teacher/build/app/outputs/bundle/release/app-release.aab`
 
-Production API URL (`https://api.edaya.app`) is baked in via `--dart-define=API_URL=...`.
+Production API URL (`https://api.edayaplus.com`) is baked in via `--dart-define=API_URL=...`.
 Override with `EDAYA_API_URL` when building.
