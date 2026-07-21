@@ -21,13 +21,22 @@ class TeacherWidgetTestHarness {
     required this.context,
     required this.authUserId,
     required this.teacherDisplayName,
-  });
+    required this.language,
+    AuthClient? guestAuthClient,
+  }) : _guestAuthClient = guestAuthClient;
 
-  final PortalSession portalSession;
-  final TeacherPortalProfile profile;
-  final TeacherPortalContext context;
+  final PortalSession? portalSession;
+  final TeacherPortalProfile? profile;
+  final TeacherPortalContext? context;
   final String authUserId;
   final String teacherDisplayName;
+  final LanguagePreference language;
+  final AuthClient? _guestAuthClient;
+
+  bool get isGuest => _guestAuthClient != null;
+
+  /// When set, design-review captures use this exact logical frame size.
+  Size? viewportSize;
 
   LevitScope? _scope;
 
@@ -44,6 +53,7 @@ class TeacherWidgetTestHarness {
 
   static Future<TeacherWidgetTestHarness> create({
     TeacherPortalProfile profile = TeacherPortalProfile.subjectTeacher,
+    LanguagePreference language = LanguagePreference.en,
   }) async {
     SharedPreferences.setMockInitialValues({});
 
@@ -76,6 +86,29 @@ class TeacherWidgetTestHarness {
       context: portalContext,
       authUserId: authUserId,
       teacherDisplayName: fullName.isEmpty ? profile.email : fullName,
+      language: language,
+    );
+  }
+
+  /// Unauthenticated harness for capturing the login screen.
+  static Future<TeacherWidgetTestHarness> createGuest({
+    LanguagePreference language = LanguagePreference.fr,
+  }) async {
+    SharedPreferences.setMockInitialValues({});
+
+    final config = IntegrationConfig.fromEnvironment();
+    ApiBaseUrlConfig.configure(appDefaultUrl: config.baseUrl);
+    await ApiBaseUrlConfig.saveOverride(config.baseUrl);
+    await AppSettingsController.preload();
+
+    return TeacherWidgetTestHarness._(
+      portalSession: null,
+      profile: null,
+      context: null,
+      authUserId: '',
+      teacherDisplayName: '',
+      language: language,
+      guestAuthClient: AuthClient(baseUrl: config.baseUrl),
     );
   }
 
@@ -115,13 +148,22 @@ class TeacherWidgetTestHarness {
       );
     }
 
+    if (isGuest) {
+      scope.find<AppSettingsController>().language(language);
+      scope.find<AppSessionController>().isBootstrapping(false);
+      return;
+    }
+
+    final profile = this.profile!;
+    final context = this.context!;
+
     final session = scope.find<AppSessionController>();
     final sessionStorage = scope.find<SessionStorage>();
     final academicYear = scope.find<AcademicYearController>();
     final teacherContext = scope.find<TeacherContextController>();
     final settings = scope.find<AppSettingsController>();
 
-    settings.language(LanguagePreference.en);
+    settings.language(language);
 
     session.user(AuthUser(id: authUserId, email: profile.email));
     session.grants(context.grants);
@@ -155,6 +197,18 @@ class TeacherWidgetTestHarness {
   }
 
   void registerDependencies(LevitScope scope) {
+    if (isGuest) {
+      registerTeacherDependencies(
+        scope,
+        authClient: _guestAuthClient,
+        pushNotifications: const _NoOpPushNotificationService(),
+        includeBootstrap: false,
+        eager: false,
+      );
+      return;
+    }
+
+    final portalSession = this.portalSession!;
     registerTeacherDependencies(
       scope,
       cookieJar: portalSession.authClient.cookieJar,
@@ -165,9 +219,16 @@ class TeacherWidgetTestHarness {
     );
   }
 
-  static Widget materialApp({required Widget home}) {
+  static Widget materialApp({
+    required Widget home,
+    Locale? locale,
+  }) {
     return MaterialApp(
-      locale: const Locale('en'),
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.light,
+      locale: locale ?? const Locale('en'),
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -176,6 +237,18 @@ class TeacherWidgetTestHarness {
       ],
       supportedLocales: AppLocalizations.supportedLocales,
       home: home,
+    );
+  }
+
+  Locale get appLocale => language.locale ?? const Locale('en');
+
+  Widget designReviewRoot({required Widget child}) {
+    final framed = viewportSize == null
+        ? child
+        : SizedBox(width: viewportSize!.width, height: viewportSize!.height, child: child);
+    return RepaintBoundary(
+      key: const Key('teacher_design_review_root'),
+      child: framed,
     );
   }
 }
@@ -217,10 +290,14 @@ class _TeacherTestShellState extends State<_TeacherTestShell> {
       }
       if (widget.useRouter) {
         final router = widget.harness._scope!.find<AppRouter>();
-        router.router.go(
-          widget.initialRoute ?? '/calendar',
-          extra: widget.initialExtra,
-        );
+        final location = widget.initialRoute ??
+            (widget.harness.isGuest ? '/login' : '/calendar');
+        // Nested routes that rely on `extra` must use push — go() drops it.
+        if (widget.initialExtra != null) {
+          router.router.push(location, extra: widget.initialExtra);
+        } else {
+          router.router.go(location);
+        }
       }
       widget.harness._scope!.find<EdayaRouterRefresh>().notifyListeners();
       setState(() => _ready = true);
@@ -234,31 +311,53 @@ class _TeacherTestShellState extends State<_TeacherTestShell> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = widget.harness.appLocale;
     if (_error != null) {
-      return TeacherWidgetTestHarness.materialApp(
-        home: Scaffold(body: Center(child: Text('Bootstrap failed: $_error'))),
+      return widget.harness.designReviewRoot(
+        child: TeacherWidgetTestHarness.materialApp(
+          locale: locale,
+          home: Scaffold(
+            body: Center(child: Text('Bootstrap failed: $_error')),
+          ),
+        ),
       );
     }
     if (!_ready) {
-      return TeacherWidgetTestHarness.materialApp(
-        home: const Scaffold(body: Center(child: CircularProgressIndicator())),
+      return widget.harness.designReviewRoot(
+        child: TeacherWidgetTestHarness.materialApp(
+          locale: locale,
+          home: const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          ),
+        ),
       );
     }
     if (widget.useRouter) {
       final appRouter = widget.harness._scope!.find<AppRouter>();
-      return MaterialApp.router(
-        locale: const Locale('en'),
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.supportedLocales,
-        routerConfig: appRouter.config(),
+      return widget.harness.designReviewRoot(
+        child: MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: ThemeMode.light,
+          locale: locale,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: appRouter.config(),
+        ),
       );
     }
-    return TeacherWidgetTestHarness.materialApp(home: widget.child!);
+    return widget.harness.designReviewRoot(
+      child: TeacherWidgetTestHarness.materialApp(
+        locale: locale,
+        home: widget.child!,
+      ),
+    );
   }
 }
 

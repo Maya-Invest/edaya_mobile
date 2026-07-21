@@ -121,9 +121,13 @@ class TeacherProbeBundle {
   static Future<TeacherProbeBundle> load(
     TeacherWidgetTestHarness harness,
   ) async {
-    final client = harness.portalSession.schoolClient;
-    final profile = harness.profile;
-    final context = harness.context;
+    if (harness.isGuest) {
+      throw StateError('TeacherProbeBundle.load requires an authenticated harness');
+    }
+
+    final client = harness.portalSession!.schoolClient;
+    final profile = harness.profile!;
+    final context = harness.context!;
     final classGroupIds = context.assignedClassGroups
         .map((row) => row['id'] as String)
         .toList();

@@ -18,11 +18,20 @@ class GuardianWidgetTestHarness {
     required this.portalSession,
     required this.profile,
     required this.context,
-  });
+    required this.language,
+    AuthClient? guestAuthClient,
+  }) : _guestAuthClient = guestAuthClient;
 
-  final PortalSession portalSession;
-  final GuardianPortalProfile profile;
-  final GuardianPortalContext context;
+  final PortalSession? portalSession;
+  final GuardianPortalProfile? profile;
+  final GuardianPortalContext? context;
+  final LanguagePreference language;
+  final AuthClient? _guestAuthClient;
+
+  bool get isGuest => _guestAuthClient != null;
+
+  /// When set, design-review captures use this exact logical frame size.
+  Size? viewportSize;
 
   LevitScope? _scope;
 
@@ -39,6 +48,7 @@ class GuardianWidgetTestHarness {
 
   static Future<GuardianWidgetTestHarness> create({
     GuardianPortalProfile profile = GuardianPortalProfile.mariamKone,
+    LanguagePreference language = LanguagePreference.fr,
   }) async {
     SharedPreferences.setMockInitialValues({});
 
@@ -60,6 +70,27 @@ class GuardianWidgetTestHarness {
       portalSession: portalSession,
       profile: profile,
       context: portalContext,
+      language: language,
+    );
+  }
+
+  /// Unauthenticated harness for capturing the login screen.
+  static Future<GuardianWidgetTestHarness> createGuest({
+    LanguagePreference language = LanguagePreference.fr,
+  }) async {
+    SharedPreferences.setMockInitialValues({});
+
+    final config = IntegrationConfig.fromEnvironment();
+    ApiBaseUrlConfig.configure(appDefaultUrl: config.baseUrl);
+    await ApiBaseUrlConfig.saveOverride(config.baseUrl);
+    await AppSettingsController.preload();
+
+    return GuardianWidgetTestHarness._(
+      portalSession: null,
+      profile: null,
+      context: null,
+      language: language,
+      guestAuthClient: AuthClient(baseUrl: config.baseUrl),
     );
   }
 
@@ -76,7 +107,7 @@ class GuardianWidgetTestHarness {
   }
 
   /// Builds the authenticated shell with [AppRouter] (post-bootstrap).
-  Widget buildRouterApp({String? initialRoute}) {
+  Widget buildRouterApp({String? initialRoute, Object? initialExtra}) {
     return LScope(
       name: 'guardian-widget-integration',
       dependencyFactory: (scope) {
@@ -87,6 +118,7 @@ class GuardianWidgetTestHarness {
         harness: this,
         useRouter: true,
         initialRoute: initialRoute,
+        initialExtra: initialExtra,
       ),
     );
   }
@@ -95,8 +127,19 @@ class GuardianWidgetTestHarness {
   Future<void> bootstrapScope() async {
     final scope = _scope;
     if (scope == null) {
-      throw StateError('Guardian widget harness: pump buildApp() before bootstrapScope()');
+      throw StateError(
+        'Guardian widget harness: pump buildApp() before bootstrapScope()',
+      );
     }
+
+    if (isGuest) {
+      scope.find<AppSettingsController>().language(language);
+      scope.find<AppSessionController>().isBootstrapping(false);
+      return;
+    }
+
+    final profile = this.profile!;
+    final context = this.context!;
 
     final session = scope.find<AppSessionController>();
     final sessionStorage = scope.find<SessionStorage>();
@@ -104,7 +147,7 @@ class GuardianWidgetTestHarness {
     final studentContext = scope.find<StudentContextController>();
     final settings = scope.find<AppSettingsController>();
 
-    settings.language(LanguagePreference.en);
+    settings.language(language);
 
     session.user(AuthUser(id: context.authUserId, email: profile.email));
     session.grants(context.grants);
@@ -136,8 +179,19 @@ class GuardianWidgetTestHarness {
     EdayaRootScope.bind(scope, appName: 'Guardian integration test');
 
     scope.put<SessionStorage>(() => SessionStorage(), permanent: true);
-    scope.put<CookieJar>(() => portalSession.authClient.cookieJar, permanent: true);
-    scope.put<AuthClient>(() => portalSession.authClient, permanent: true);
+
+    if (isGuest) {
+      scope.put<CookieJar>(() => CookieJar(), permanent: true);
+      scope.put<AuthClient>(() => _guestAuthClient!, permanent: true);
+    } else {
+      final portalSession = this.portalSession!;
+      scope.put<CookieJar>(
+        () => portalSession.authClient.cookieJar,
+        permanent: true,
+      );
+      scope.put<AuthClient>(() => portalSession.authClient, permanent: true);
+    }
+
     scope.put<PushNotificationService>(
       () => const _NoOpPushNotificationService(),
       permanent: true,
@@ -195,9 +249,18 @@ class GuardianWidgetTestHarness {
     );
   }
 
-  static Widget materialApp({required Widget home}) {
+  Locale get appLocale => language.locale ?? const Locale('fr');
+
+  static Widget materialApp({
+    required Widget home,
+    Locale? locale,
+  }) {
     return MaterialApp(
-      locale: const Locale('en'),
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.light,
+      locale: locale ?? const Locale('fr'),
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -208,6 +271,20 @@ class GuardianWidgetTestHarness {
       home: home,
     );
   }
+
+  Widget designReviewRoot({required Widget child}) {
+    final framed = viewportSize == null
+        ? child
+        : SizedBox(
+            width: viewportSize!.width,
+            height: viewportSize!.height,
+            child: child,
+          );
+    return RepaintBoundary(
+      key: const Key('guardian_design_review_root'),
+      child: framed,
+    );
+  }
 }
 
 class _GuardianTestShell extends StatefulWidget {
@@ -216,12 +293,14 @@ class _GuardianTestShell extends StatefulWidget {
     this.child,
     this.useRouter = false,
     this.initialRoute,
+    this.initialExtra,
   });
 
   final GuardianWidgetTestHarness harness;
   final Widget? child;
   final bool useRouter;
   final String? initialRoute;
+  final Object? initialExtra;
 
   @override
   State<_GuardianTestShell> createState() => _GuardianTestShellState();
@@ -245,7 +324,13 @@ class _GuardianTestShellState extends State<_GuardianTestShell> {
       }
       if (widget.useRouter) {
         final router = widget.harness._scope!.find<AppRouter>();
-        router.router.go(widget.initialRoute ?? '/calendar');
+        final location = widget.initialRoute ??
+            (widget.harness.isGuest ? '/login' : '/calendar');
+        if (widget.initialExtra != null) {
+          router.router.push(location, extra: widget.initialExtra);
+        } else {
+          router.router.go(location);
+        }
       }
       widget.harness._scope!.find<EdayaRouterRefresh>().notifyListeners();
       setState(() => _ready = true);
@@ -259,31 +344,53 @@ class _GuardianTestShellState extends State<_GuardianTestShell> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = widget.harness.appLocale;
     if (_error != null) {
-      return GuardianWidgetTestHarness.materialApp(
-        home: Scaffold(body: Center(child: Text('Bootstrap failed: $_error'))),
+      return widget.harness.designReviewRoot(
+        child: GuardianWidgetTestHarness.materialApp(
+          locale: locale,
+          home: Scaffold(
+            body: Center(child: Text('Bootstrap failed: $_error')),
+          ),
+        ),
       );
     }
     if (!_ready) {
-      return GuardianWidgetTestHarness.materialApp(
-        home: const Scaffold(body: Center(child: CircularProgressIndicator())),
+      return widget.harness.designReviewRoot(
+        child: GuardianWidgetTestHarness.materialApp(
+          locale: locale,
+          home: const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          ),
+        ),
       );
     }
     if (widget.useRouter) {
       final appRouter = widget.harness._scope!.find<AppRouter>();
-      return MaterialApp.router(
-        locale: const Locale('en'),
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.supportedLocales,
-        routerConfig: appRouter.config(),
+      return widget.harness.designReviewRoot(
+        child: MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: ThemeMode.light,
+          locale: locale,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: appRouter.config(),
+        ),
       );
     }
-    return GuardianWidgetTestHarness.materialApp(home: widget.child!);
+    return widget.harness.designReviewRoot(
+      child: GuardianWidgetTestHarness.materialApp(
+        locale: locale,
+        home: widget.child!,
+      ),
+    );
   }
 }
 

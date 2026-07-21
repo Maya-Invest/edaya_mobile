@@ -1,4 +1,5 @@
 import 'package:edaya_guardian/features/academic/academic_page.dart';
+import 'package:edaya_guardian/features/calendar/calendar_controller.dart';
 import 'package:edaya_guardian/features/calendar/calendar_page.dart';
 import 'package:edaya_guardian/features/calendar/widgets/school_event_tile.dart';
 import 'package:edaya_guardian/features/calendar/widgets/session_tile.dart';
@@ -7,6 +8,7 @@ import 'package:edaya_guardian/features/evaluations/evaluations_page.dart';
 import 'package:edaya_guardian/features/fees/fees_page.dart';
 import 'package:edaya_guardian/features/inbox/inbox_page.dart';
 import 'package:edaya_integration_tests/edaya_integration_tests.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -16,16 +18,15 @@ import 'integration_test_lifecycle.dart';
 import 'pump_until_found.dart';
 
 /// Pumps [page] inside the guardian integration harness and waits for it to mount.
-///
-/// Pages are wrapped in a [Scaffold] so material widgets match production layout
-/// inside [AppShellPage].
 Future<void> pumpGuardianPage<T extends Widget>(
   WidgetTester tester,
   GuardianWidgetTestHarness harness,
-  T page,
-) async {
+  T page, {
+  DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
+}) async {
   await resetIntegrationTestSurface(tester);
-  configureIntegrationTestViewport();
+  await configureDesignReviewViewport(tester, formFactor);
+  harness.viewportSize = designReviewLogicalSize(formFactor);
   await tester.pumpWidget(harness.buildApp(Scaffold(body: page)));
   await pumpUntilFound(tester, find.byType(T));
 }
@@ -35,18 +36,81 @@ Future<void> pumpGuardianShellUntil<T extends Widget>(
   WidgetTester tester,
   GuardianWidgetTestHarness harness, {
   String? initialRoute,
+  DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
 }) async {
   await resetIntegrationTestSurface(tester);
-  configureIntegrationTestViewport();
-  await tester.pumpWidget(harness.buildRouterApp(initialRoute: initialRoute));
+  await configureDesignReviewViewport(tester, formFactor);
+  harness.viewportSize = designReviewLogicalSize(formFactor);
+  await tester.pumpWidget(
+    harness.buildRouterApp(initialRoute: initialRoute),
+  );
   await pumpUntilFound(tester, find.byType(T));
+}
+
+/// Opens [location] through the real guardian router (optionally with [extra]).
+Future<void> pumpGuardianRoute(
+  WidgetTester tester,
+  GuardianWidgetTestHarness harness, {
+  required String location,
+  Object? extra,
+  Duration settleDelay = const Duration(milliseconds: 1500),
+  DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
+}) async {
+  await resetIntegrationTestSurface(tester);
+  await configureDesignReviewViewport(tester, formFactor);
+  harness.viewportSize = designReviewLogicalSize(formFactor);
+  await tester.pumpWidget(
+    harness.buildRouterApp(initialRoute: location, initialExtra: extra),
+  );
+  await tester.pump();
+  await tester.pump(settleDelay);
+}
+
+/// Pumps the login route with an unauthenticated harness.
+Future<void> pumpGuardianLoginShell(
+  WidgetTester tester,
+  GuardianWidgetTestHarness harness, {
+  DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
+}) async {
+  await pumpGuardianRoute(
+    tester,
+    harness,
+    location: '/login',
+    formFactor: formFactor,
+  );
+  await pumpUntilFound(tester, find.byType(LoginPage));
+}
+
+/// Waits until [finder] is visible, failing if a [RouteErrorPage] appears.
+Future<void> pumpUntilRouteReady(
+  WidgetTester tester,
+  Finder finder, {
+  Duration timeout = const Duration(seconds: 45),
+}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (DateTime.now().isBefore(deadline)) {
+    await tester.pump(const Duration(milliseconds: 200));
+    if (tester.any(find.byType(RouteErrorPage))) {
+      fail('Route resolved to RouteErrorPage while waiting for $finder');
+    }
+    if (tester.any(finder)) {
+      return;
+    }
+  }
+
+  fail('Timed out waiting for $finder');
 }
 
 Future<void> openAcademicTab(
   WidgetTester tester,
-  GuardianWidgetTestHarness harness,
-) async {
-  await pumpGuardianShellUntil<CalendarPage>(tester, harness);
+  GuardianWidgetTestHarness harness, {
+  DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
+}) async {
+  await pumpGuardianShellUntil<CalendarPage>(
+    tester,
+    harness,
+    formFactor: formFactor,
+  );
   await tester.tap(find.byIcon(Icons.school_outlined));
   await tester.pump();
   await pumpUntilFound(tester, find.byType(AcademicPage));
@@ -54,39 +118,64 @@ Future<void> openAcademicTab(
   tester.takeException();
 }
 
+Future<void> openAcademicLogbookTab(WidgetTester tester) async {
+  await tester.tap(find.byIcon(Icons.menu_book_outlined));
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 1200));
+}
+
 Future<void> openEvaluationsTab(
   WidgetTester tester,
-  GuardianWidgetTestHarness harness,
-) async {
+  GuardianWidgetTestHarness harness, {
+  DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
+}) async {
   await pumpGuardianShellUntil<EvaluationsPage>(
     tester,
     harness,
     initialRoute: '/evaluations',
+    formFactor: formFactor,
   );
+  await tester.pump(const Duration(milliseconds: 1200));
+}
+
+Future<void> openEvaluationsReportsView(WidgetTester tester) async {
+  await tester.tap(find.byIcon(Icons.description_outlined));
+  await tester.pump();
   await tester.pump(const Duration(milliseconds: 1200));
 }
 
 Future<void> openFeesTab(
   WidgetTester tester,
-  GuardianWidgetTestHarness harness,
-) async {
+  GuardianWidgetTestHarness harness, {
+  DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
+}) async {
   await pumpGuardianShellUntil<FeesPage>(
     tester,
     harness,
     initialRoute: '/fees',
+    formFactor: formFactor,
   );
   await tester.pump(const Duration(milliseconds: 1200));
 }
 
 Future<void> openInboxTab(
   WidgetTester tester,
-  GuardianWidgetTestHarness harness,
-) async {
+  GuardianWidgetTestHarness harness, {
+  DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
+}) async {
   await pumpGuardianShellUntil<InboxPage>(
     tester,
     harness,
     initialRoute: '/inbox',
+    formFactor: formFactor,
   );
+  await tester.pump(const Duration(milliseconds: 1200));
+}
+
+Future<void> openCalendarEventsView(WidgetTester tester) async {
+  await pumpUntilFound(tester, find.byType(SegmentedButton<CalendarView>));
+  await tester.tap(find.byIcon(Icons.event));
+  await tester.pump();
   await tester.pump(const Duration(milliseconds: 1200));
 }
 
@@ -238,28 +327,6 @@ Future<void> navigateCalendarToDay(
   await pumpUntilCalendarHasSessions(tester);
 }
 
-bool _visibleWeekContainsDay(WidgetTester tester, DateTime day) {
-  final dayChips = find.descendant(
-    of: find.byType(WeekDaySelector),
-    matching: find.byType(InkWell),
-  );
-  if (dayChips.evaluate().length < 7) {
-    return false;
-  }
-
-  for (var index = 0; index < 7; index++) {
-    final chip = dayChips.at(index);
-    final numberFinder = find.descendant(
-      of: chip,
-      matching: find.text('${day.day}'),
-    );
-    if (numberFinder.evaluate().isNotEmpty) {
-      return true;
-    }
-  }
-  return false;
-}
-
 Future<void> _tapDayChipForNumber(WidgetTester tester, int dayNumber) async {
   final dayChips = find.descendant(
     of: find.byType(WeekDaySelector),
@@ -298,49 +365,6 @@ Future<void> tapSessionTile(
   }
 
   await tester.tap(find.byType(SessionTile).first);
-}
-
-/// Waits until guardian grades finish loading for the active period.
-Future<void> pumpUntilGradesLoaded(
-  WidgetTester tester, {
-  String? expectedAssessmentTitle,
-  Duration timeout = const Duration(seconds: 45),
-}) async {
-  final deadline = DateTime.now().add(timeout);
-  while (DateTime.now().isBefore(deadline)) {
-    await tester.pump(const Duration(milliseconds: 200));
-    if (tester.any(find.byType(CircularProgressIndicator))) {
-      continue;
-    }
-    if (expectedAssessmentTitle != null &&
-        tester.any(find.textContaining(expectedAssessmentTitle.split(' ').first))) {
-      return;
-    }
-    if (tester.any(find.text('No grades recorded for this period.'))) {
-      if (expectedAssessmentTitle != null) {
-        fail('Expected grade "$expectedAssessmentTitle" but period is empty');
-      }
-      return;
-    }
-    if (tester.any(find.text('Select a period to view evaluations.'))) {
-      continue;
-    }
-    if (expectedAssessmentTitle == null &&
-        tester.any(find.byType(ExpansionTile))) {
-      return;
-    }
-  }
-
-  if (expectedAssessmentTitle != null) {
-    fail('Timed out waiting for grade "$expectedAssessmentTitle"');
-  }
-  fail('Timed out waiting for grades to load');
-}
-
-/// Taps a [SegmentedButton] segment identified by [label].
-Future<void> tapSegmentLabel(WidgetTester tester, String label) async {
-  await tester.tap(find.text(label));
-  await tester.pump();
 }
 
 Future<void> tapAlternateStudent(

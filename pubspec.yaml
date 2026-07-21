@@ -65,6 +65,12 @@ melos:
         cd ../../apps/guardian && EDAYA_INTEGRATION_TESTS=1 flutter test test/integration --tags integration
         cd ../teacher && EDAYA_INTEGRATION_TESTS=1 flutter test test/integration --tags integration
       description: Run live API integration tests (requires local or remote API).
+    screenshots:teacher:review:
+      run: bash scripts/teacher-design-review.sh
+      description: Generate local teacher app screenshots for designer review (requires API).
+    screenshots:guardian:review:
+      run: bash scripts/guardian-design-review.sh
+      description: Generate local guardian app screenshots for designer review (requires API).
     clean:flutter:
       exec: flutter clean
       description: Run flutter clean in all Flutter apps.

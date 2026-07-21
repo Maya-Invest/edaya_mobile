@@ -33,7 +33,6 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import 'support/guardian_probe_bundle.dart';
 import 'support/guardian_widget_test_harness.dart';
-import 'support/integration_test_lifecycle.dart';
 import 'support/live_api_test_binding.dart';
 import 'support/pump_guardian_page.dart';
 import 'support/pump_until_found.dart';
@@ -60,14 +59,6 @@ Future<void> main() async {
 void _mariamKoneSuite() {
   late GuardianWidgetTestHarness harness;
   late GuardianProbeBundle probes;
-
-  setUp(() {
-    configureIntegrationTestViewport();
-  });
-
-  tearDown(() async {
-    resetIntegrationTestViewport();
-  });
 
   setUpAll(() async {
     harness = await GuardianWidgetTestHarness.create();
@@ -392,14 +383,6 @@ void _koffiYaoSuite() {
   late GuardianWidgetTestHarness harness;
   late GuardianProbeBundle probes;
 
-  setUp(() {
-    configureIntegrationTestViewport();
-  });
-
-  tearDown(() async {
-    resetIntegrationTestViewport();
-  });
-
   setUpAll(() async {
     harness = await GuardianWidgetTestHarness.create(
       profile: GuardianPortalProfile.koffiYao,
@@ -414,7 +397,7 @@ void _koffiYaoSuite() {
 
     expect(find.byType(AppShellPage), findsOneWidget);
     expect(find.byType(CalendarPage), findsOneWidget);
-    expect(harness.context.linkedStudents.length, greaterThan(1));
+    expect(harness.context!.linkedStudents.length, greaterThan(1));
   });
 
   testWidgets('multi-child calendar shows week selector', (tester) async {

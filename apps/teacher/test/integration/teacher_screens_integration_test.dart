@@ -52,14 +52,6 @@ void _subjectTeacherSuite() {
   late TeacherWidgetTestHarness harness;
   late TeacherProbeBundle probes;
 
-  setUp(() {
-    configureIntegrationTestViewport();
-  });
-
-  tearDown(() {
-    resetIntegrationTestViewport();
-  });
-
   setUpAll(() async {
     harness = await TeacherWidgetTestHarness.create();
     probes = await TeacherProbeBundle.load(harness);
@@ -323,14 +315,6 @@ void _homeroomTeacherSuite() {
   late TeacherWidgetTestHarness harness;
   late TeacherProbeBundle probes;
 
-  setUp(() {
-    configureIntegrationTestViewport();
-  });
-
-  tearDown(() {
-    resetIntegrationTestViewport();
-  });
-
   setUpAll(() async {
     harness = await TeacherWidgetTestHarness.create(
       profile: TeacherPortalProfile.homeroomTeacher,
@@ -345,9 +329,9 @@ void _homeroomTeacherSuite() {
 
     expect(find.byType(AppShellPage), findsOneWidget);
     expect(find.byType(CalendarPage), findsOneWidget);
-    expect(harness.context.teachingScope.classGroupIds, contains('ci-6b'));
+    expect(harness.context!.teachingScope.classGroupIds, contains('ci-6b'));
     expect(
-      harness.context.teachingScope.classSubjectIds,
+      harness.context!.teachingScope.classSubjectIds,
       contains('ci-cs-6b-eps'),
     );
   });

@@ -43,14 +43,6 @@ void _teacherRoutesSuite() {
   late TeacherWidgetTestHarness harness;
   late TeacherProbeBundle probes;
 
-  setUp(() {
-    configureIntegrationTestViewport();
-  });
-
-  tearDown(() {
-    resetIntegrationTestViewport();
-  });
-
   setUpAll(() async {
     harness = await TeacherWidgetTestHarness.create();
     probes = await TeacherProbeBundle.load(harness);

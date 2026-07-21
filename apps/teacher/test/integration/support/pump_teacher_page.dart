@@ -7,6 +7,9 @@ import 'package:edaya_teacher/features/context/teacher_context_controller.dart';
 import 'package:edaya_teacher/features/evaluations/evaluations_controller.dart';
 import 'package:edaya_teacher/features/evaluations/evaluations_page.dart';
 import 'package:edaya_teacher/features/report_cards/report_cards_page.dart';
+import 'package:edaya_teacher/features/session/attendance_exception_sheet.dart';
+import 'package:edaya_teacher/features/session/session_details_sheet.dart';
+import 'package:edaya_teacher/features/session/widgets/attendance_row_tile.dart';
 import 'package:edaya_teacher/features/teaching/teaching_controller.dart';
 import 'package:edaya_teacher/features/teaching/teaching_page.dart';
 import 'package:edaya_integration_tests/edaya_integration_tests.dart';
@@ -24,10 +27,12 @@ import 'teacher_widget_test_harness.dart';
 Future<void> pumpTeacherPage<T extends Widget>(
   WidgetTester tester,
   TeacherWidgetTestHarness harness,
-  T page,
-) async {
+  T page, {
+  DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
+}) async {
   await resetIntegrationTestSurface(tester);
-  configureIntegrationTestViewport();
+  await configureIntegrationTestViewport(tester, formFactor: formFactor);
+  harness.viewportSize = designReviewLogicalSize(formFactor);
   await tester.pumpWidget(harness.buildApp(Scaffold(body: page)));
   await pumpUntilFound(tester, find.byType(T));
 }
@@ -38,9 +43,11 @@ Future<void> pumpTeacherShellUntil<T extends Widget>(
   TeacherWidgetTestHarness harness, {
   String? initialRoute,
   Object? initialExtra,
+  DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
 }) async {
   await resetIntegrationTestSurface(tester);
-  configureIntegrationTestViewport();
+  await configureIntegrationTestViewport(tester, formFactor: formFactor);
+  harness.viewportSize = designReviewLogicalSize(formFactor);
   await tester.pumpWidget(
     harness.buildRouterApp(
       initialRoute: initialRoute,
@@ -57,9 +64,11 @@ Future<void> pumpTeacherRoute(
   required String location,
   Object? extra,
   Duration settleDelay = const Duration(milliseconds: 1500),
+  DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
 }) async {
   await resetIntegrationTestSurface(tester);
-  configureIntegrationTestViewport();
+  await configureIntegrationTestViewport(tester, formFactor: formFactor);
+  harness.viewportSize = designReviewLogicalSize(formFactor);
   await tester.pumpWidget(
     harness.buildRouterApp(initialRoute: location, initialExtra: extra),
   );
@@ -74,12 +83,14 @@ void expectNoCapturedFlutterErrors(WidgetTester tester) {
 
 Future<void> openEvaluationsTab(
   WidgetTester tester,
-  TeacherWidgetTestHarness harness,
-) async {
+  TeacherWidgetTestHarness harness, {
+  DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
+}) async {
   await pumpTeacherShellUntil<EvaluationsPage>(
     tester,
     harness,
     initialRoute: '/evaluations',
+    formFactor: formFactor,
   );
   await harness.scope.find<EvaluationsController>().reloadPeriodsAndEvaluations();
   await tester.pump(const Duration(milliseconds: 1500));
@@ -89,8 +100,9 @@ Future<void> openTeachingTab(
   WidgetTester tester,
   TeacherWidgetTestHarness harness, {
   String? classSubjectId,
+  DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
 }) async {
-  await pumpTeacherShellUntil<CalendarPage>(tester, harness);
+  await pumpTeacherShellUntil<CalendarPage>(tester, harness, formFactor: formFactor);
   await tester.tap(find.byIcon(Icons.school_outlined));
   await tester.pump();
   await pumpUntilFound(tester, find.byType(TeachingPage));
@@ -106,9 +118,10 @@ Future<void> openTeachingTab(
 
 Future<void> openReportCardsTab(
   WidgetTester tester,
-  TeacherWidgetTestHarness harness,
-) async {
-  await pumpTeacherShellUntil<CalendarPage>(tester, harness);
+  TeacherWidgetTestHarness harness, {
+  DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
+}) async {
+  await pumpTeacherShellUntil<CalendarPage>(tester, harness, formFactor: formFactor);
   await tester.tap(find.byIcon(Icons.description_outlined));
   await tester.pump();
   await pumpUntilFound(tester, find.byType(ReportCardsPage));
@@ -430,4 +443,50 @@ Future<void> pumpUntilRouteReady(
 /// Reads the active class filter label from [TeacherContextController].
 String? activeClassFilterLabel(TeacherWidgetTestHarness harness) {
   return harness.scope.find<TeacherContextController>().classFilterLabel;
+}
+
+/// Pumps the login route with an unauthenticated harness.
+Future<void> pumpTeacherLoginShell(
+  WidgetTester tester,
+  TeacherWidgetTestHarness harness, {
+  DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
+}) async {
+  await pumpTeacherRoute(
+    tester,
+    harness,
+    location: '/login',
+    formFactor: formFactor,
+  );
+  await pumpUntilFound(tester, find.byType(LoginPage));
+}
+
+/// Switches the teaching page to the logbook segment.
+Future<void> openTeachingLogbookTab(WidgetTester tester) async {
+  await tester.tap(find.byIcon(Icons.menu_book_outlined));
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 1200));
+}
+
+/// Switches session detail to the logbook segment when available.
+Future<void> openSessionLogbookSegment(WidgetTester tester) async {
+  final logbookIcon = find.descendant(
+    of: find.byType(SessionDetailsSheet),
+    matching: find.byIcon(Icons.menu_book_outlined),
+  );
+  await tester.ensureVisible(logbookIcon);
+  await tester.tap(logbookIcon);
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 1200));
+}
+
+/// Opens the attendance exception sheet from the first student row.
+Future<void> openAttendanceExceptionSheet(WidgetTester tester) async {
+  final recordButton = find.descendant(
+    of: find.byType(AttendanceRowTile).first,
+    matching: find.byType(FilledButton),
+  );
+  await tester.ensureVisible(recordButton);
+  await tester.tap(recordButton);
+  await tester.pump();
+  await pumpUntilFound(tester, find.byType(AttendanceExceptionSheet));
 }
