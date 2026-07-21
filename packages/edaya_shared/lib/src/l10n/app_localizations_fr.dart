@@ -283,6 +283,35 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String couldNotLoadReportCardComments(String error) {
+    return 'Impossible de charger les commentaires du bulletin : $error';
+  }
+
+  @override
+  String couldNotSaveReportCardComment(String error) {
+    return 'Impossible d\'enregistrer le commentaire du bulletin : $error';
+  }
+
+  @override
+  String get reportCardCommentsTitle => 'Commentaires du bulletin';
+
+  @override
+  String get reportCardCommentHint => 'Saisissez votre commentaire';
+
+  @override
+  String get reportCardCommentsReadOnly =>
+      'Ce bulletin est publié et ne peut pas être modifié.';
+
+  @override
+  String get reportCardCommentNoEditableFields =>
+      'Aucun champ de commentaire n\'est disponible pour votre rôle sur ce bulletin.';
+
+  @override
+  String subjectComment(String subject) {
+    return 'Commentaire $subject';
+  }
+
+  @override
   String get reportCardStatusDraft => 'Brouillon';
 
   @override
@@ -998,6 +1027,65 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attendanceComplete => 'Appel terminé';
 
   @override
+  String get markAllPresent => 'Tout marquer présent';
+
+  @override
+  String get attendanceModeGrid => 'Grille';
+
+  @override
+  String get attendanceModeSequential => 'Séquentiel';
+
+  @override
+  String attendanceExceptionTitle(String studentName) {
+    return 'Présence · $studentName';
+  }
+
+  @override
+  String get attendanceReasonLabel => 'Motif';
+
+  @override
+  String get attendanceReasonHint => 'ex. maladie, rendez-vous';
+
+  @override
+  String get attendanceNotesLabel => 'Notes';
+
+  @override
+  String get attendanceNotesHint => 'Contexte optionnel pour la vie scolaire';
+
+  @override
+  String get attendanceSavedLocally =>
+      'Enregistré localement — synchronisation à la reconnexion';
+
+  @override
+  String get calendarTodayTitle => 'Aujourd\'hui';
+
+  @override
+  String get calendarGoToToday => 'Aller à aujourd\'hui';
+
+  @override
+  String get calendarCurrentSession => 'En cours';
+
+  @override
+  String get calendarNextSession => 'À suivre';
+
+  @override
+  String get calendarNoSessionsToday => 'Aucune séance prévue aujourd\'hui.';
+
+  @override
+  String calendarIncompleteAttendance(String classLabel, String subjectLabel) {
+    return 'Présence · $classLabel $subjectLabel';
+  }
+
+  @override
+  String get sessionAttendanceComplete => 'Présence complète';
+
+  @override
+  String get sessionAttendanceIncomplete => 'Présence incomplète';
+
+  @override
+  String get logbookDraftRestored => 'Brouillon de cahier restauré';
+
+  @override
   String get done => 'Terminé';
 
   @override
@@ -1123,6 +1211,107 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get enterValidMaxScore => 'Saisissez une note maximale valide.';
+
+  @override
+  String get assessmentDateLabel => 'Date de l\'évaluation';
+
+  @override
+  String get homeworkDueDateLabel => 'Date limite du devoir';
+
+  @override
+  String get assessmentDateRequired => 'Sélectionnez une date d\'évaluation.';
+
+  @override
+  String get homeworkDueDateRequired =>
+      'Sélectionnez une date limite pour le devoir.';
+
+  @override
+  String invalidScoreValue(String maxScore) {
+    return 'Saisissez une note entre 0 et $maxScore.';
+  }
+
+  @override
+  String get syncStatusSaved => 'Enregistré';
+
+  @override
+  String get syncStatusSavedLocally => 'Enregistré localement';
+
+  @override
+  String get syncStatusPending => 'En attente de synchronisation';
+
+  @override
+  String get syncStatusSyncing => 'Synchronisation';
+
+  @override
+  String get syncStatusSynced => 'Synchronisé';
+
+  @override
+  String get syncStatusFailed => 'Échec de synchronisation';
+
+  @override
+  String get duplicateEvaluation => 'Dupliquer';
+
+  @override
+  String get completeEvaluation => 'Marquer terminée';
+
+  @override
+  String get ungradedOnlyFilter => 'Non notés seulement';
+
+  @override
+  String get fillAllMarks => 'Remplir tout';
+
+  @override
+  String get clearAllMarks => 'Effacer tout';
+
+  @override
+  String get familyVisibleSummaryLabel => 'Résumé visible par les familles';
+
+  @override
+  String get familyVisiblePreviewLabel => 'Aperçu famille';
+
+  @override
+  String get accountSyncSectionTitle => 'Synchronisation';
+
+  @override
+  String accountPendingSyncSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments en attente',
+      one: '1 élément en attente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String accountPendingSyncOldest(String age) {
+    return 'Le plus ancien : $age';
+  }
+
+  @override
+  String get accountPendingSyncNone =>
+      'Toutes les modifications sont synchronisées';
+
+  @override
+  String get accountSyncNow => 'Synchroniser';
+
+  @override
+  String get accountPendingSyncJustNow => 'à l\'instant';
+
+  @override
+  String accountPendingSyncMinutes(int minutes) {
+    return 'il y a $minutes min';
+  }
+
+  @override
+  String accountPendingSyncHours(int hours) {
+    return 'il y a $hours h';
+  }
+
+  @override
+  String accountPendingSyncDays(int days) {
+    return 'il y a $days j';
+  }
 
   @override
   String outOfMaxScore(String maxScore) {

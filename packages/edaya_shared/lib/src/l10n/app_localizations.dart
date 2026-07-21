@@ -560,6 +560,48 @@ abstract class AppLocalizations {
   /// **'Could not load report card roster: {error}'**
   String couldNotLoadReportCardRoster(String error);
 
+  /// No description provided for @couldNotLoadReportCardComments.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load report card comments: {error}'**
+  String couldNotLoadReportCardComments(String error);
+
+  /// No description provided for @couldNotSaveReportCardComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save report card comment: {error}'**
+  String couldNotSaveReportCardComment(String error);
+
+  /// No description provided for @reportCardCommentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report card comments'**
+  String get reportCardCommentsTitle;
+
+  /// No description provided for @reportCardCommentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your comment'**
+  String get reportCardCommentHint;
+
+  /// No description provided for @reportCardCommentsReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'This report card is published and cannot be edited.'**
+  String get reportCardCommentsReadOnly;
+
+  /// No description provided for @reportCardCommentNoEditableFields.
+  ///
+  /// In en, this message translates to:
+  /// **'No comment fields are available for your role on this report card.'**
+  String get reportCardCommentNoEditableFields;
+
+  /// No description provided for @subjectComment.
+  ///
+  /// In en, this message translates to:
+  /// **'{subject} comment'**
+  String subjectComment(String subject);
+
   /// No description provided for @reportCardStatusDraft.
   ///
   /// In en, this message translates to:
@@ -1712,6 +1754,114 @@ abstract class AppLocalizations {
   /// **'Attendance complete'**
   String get attendanceComplete;
 
+  /// No description provided for @markAllPresent.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all present'**
+  String get markAllPresent;
+
+  /// No description provided for @attendanceModeGrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Grid'**
+  String get attendanceModeGrid;
+
+  /// No description provided for @attendanceModeSequential.
+  ///
+  /// In en, this message translates to:
+  /// **'Sequential'**
+  String get attendanceModeSequential;
+
+  /// No description provided for @attendanceExceptionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance · {studentName}'**
+  String attendanceExceptionTitle(String studentName);
+
+  /// No description provided for @attendanceReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get attendanceReasonLabel;
+
+  /// No description provided for @attendanceReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. illness, appointment'**
+  String get attendanceReasonHint;
+
+  /// No description provided for @attendanceNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get attendanceNotesLabel;
+
+  /// No description provided for @attendanceNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional context for the school office'**
+  String get attendanceNotesHint;
+
+  /// No description provided for @attendanceSavedLocally.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved locally — will sync when online'**
+  String get attendanceSavedLocally;
+
+  /// No description provided for @calendarTodayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get calendarTodayTitle;
+
+  /// No description provided for @calendarGoToToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to today'**
+  String get calendarGoToToday;
+
+  /// No description provided for @calendarCurrentSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get calendarCurrentSession;
+
+  /// No description provided for @calendarNextSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Up next'**
+  String get calendarNextSession;
+
+  /// No description provided for @calendarNoSessionsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'No sessions scheduled for today.'**
+  String get calendarNoSessionsToday;
+
+  /// No description provided for @calendarIncompleteAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance · {classLabel} {subjectLabel}'**
+  String calendarIncompleteAttendance(String classLabel, String subjectLabel);
+
+  /// No description provided for @sessionAttendanceComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance complete'**
+  String get sessionAttendanceComplete;
+
+  /// No description provided for @sessionAttendanceIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance incomplete'**
+  String get sessionAttendanceIncomplete;
+
+  /// No description provided for @logbookDraftRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored unsaved logbook draft'**
+  String get logbookDraftRestored;
+
   /// No description provided for @done.
   ///
   /// In en, this message translates to:
@@ -1915,6 +2065,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a valid max score.'**
   String get enterValidMaxScore;
+
+  /// No description provided for @assessmentDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Assessment date'**
+  String get assessmentDateLabel;
+
+  /// No description provided for @homeworkDueDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Homework due date'**
+  String get homeworkDueDateLabel;
+
+  /// No description provided for @assessmentDateRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an assessment date.'**
+  String get assessmentDateRequired;
+
+  /// No description provided for @homeworkDueDateRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a homework due date.'**
+  String get homeworkDueDateRequired;
+
+  /// No description provided for @invalidScoreValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a score between 0 and {maxScore}.'**
+  String invalidScoreValue(String maxScore);
+
+  /// No description provided for @syncStatusSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get syncStatusSaved;
+
+  /// No description provided for @syncStatusSavedLocally.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved locally'**
+  String get syncStatusSavedLocally;
+
+  /// No description provided for @syncStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting to sync'**
+  String get syncStatusPending;
+
+  /// No description provided for @syncStatusSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing'**
+  String get syncStatusSyncing;
+
+  /// No description provided for @syncStatusSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced'**
+  String get syncStatusSynced;
+
+  /// No description provided for @syncStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed'**
+  String get syncStatusFailed;
+
+  /// No description provided for @duplicateEvaluation.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get duplicateEvaluation;
+
+  /// No description provided for @completeEvaluation.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark complete'**
+  String get completeEvaluation;
+
+  /// No description provided for @ungradedOnlyFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Ungraded only'**
+  String get ungradedOnlyFilter;
+
+  /// No description provided for @fillAllMarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill all'**
+  String get fillAllMarks;
+
+  /// No description provided for @clearAllMarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get clearAllMarks;
+
+  /// No description provided for @familyVisibleSummaryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Family-visible summary'**
+  String get familyVisibleSummaryLabel;
+
+  /// No description provided for @familyVisiblePreviewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Family preview'**
+  String get familyVisiblePreviewLabel;
+
+  /// No description provided for @accountSyncSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization'**
+  String get accountSyncSectionTitle;
+
+  /// No description provided for @accountPendingSyncSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item waiting to sync} other{{count} items waiting to sync}}'**
+  String accountPendingSyncSummary(int count);
+
+  /// No description provided for @accountPendingSyncOldest.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest pending {age}'**
+  String accountPendingSyncOldest(String age);
+
+  /// No description provided for @accountPendingSyncNone.
+  ///
+  /// In en, this message translates to:
+  /// **'All changes are synced'**
+  String get accountPendingSyncNone;
+
+  /// No description provided for @accountSyncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get accountSyncNow;
+
+  /// No description provided for @accountPendingSyncJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'just now'**
+  String get accountPendingSyncJustNow;
+
+  /// No description provided for @accountPendingSyncMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min ago'**
+  String accountPendingSyncMinutes(int minutes);
+
+  /// No description provided for @accountPendingSyncHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hr ago'**
+  String accountPendingSyncHours(int hours);
+
+  /// No description provided for @accountPendingSyncDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} d ago'**
+  String accountPendingSyncDays(int days);
 
   /// No description provided for @outOfMaxScore.
   ///

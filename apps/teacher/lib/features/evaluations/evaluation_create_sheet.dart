@@ -55,6 +55,8 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
   String? _classSubjectId;
   String? _periodId;
   String _kind = 'quiz';
+  DateTime? _assessmentDate;
+  DateTime? _homeworkDueDate;
   bool _saving = false;
   String? _error;
 
@@ -171,6 +173,20 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
                 }
               },
             ),
+            const SizedBox(height: 12),
+            _DatePickerField(
+              label: context.tr.assessmentDateLabel,
+              value: _assessmentDate,
+              onPick: (date) => setState(() => _assessmentDate = date),
+            ),
+            if (_kind == 'homework') ...[
+              const SizedBox(height: 12),
+              _DatePickerField(
+                label: context.tr.homeworkDueDateLabel,
+                value: _homeworkDueDate,
+                onPick: (date) => setState(() => _homeworkDueDate = date),
+              ),
+            ],
             if (_error != null) ...[
               const SizedBox(height: 12),
               Text(
@@ -220,6 +236,16 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
       return;
     }
 
+    if (_assessmentDate == null) {
+      setState(() => _error = context.tr.assessmentDateRequired);
+      return;
+    }
+
+    if (_kind == 'homework' && _homeworkDueDate == null) {
+      setState(() => _error = context.tr.homeworkDueDateRequired);
+      return;
+    }
+
     setState(() {
       _saving = true;
       _error = null;
@@ -232,6 +258,8 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
       title: _titleController.text,
       maxScore: maxScore,
       kind: _kind,
+      assessmentDate: _assessmentDate!,
+      homeworkDueDate: _kind == 'homework' ? _homeworkDueDate : null,
     );
 
     if (!mounted) {
@@ -247,5 +275,51 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
     }
 
     context.pop();
+  }
+}
+
+class _DatePickerField extends StatelessWidget {
+  const _DatePickerField({
+    required this.label,
+    required this.value,
+    required this.onPick,
+  });
+
+  final String label;
+  final DateTime? value;
+  final ValueChanged<DateTime> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final display = value == null
+        ? context.tr.notRecorded
+        : MaterialLocalizations.of(context).formatMediumDate(value!);
+
+    return OutlinedButton(
+      onPressed: () async {
+        final now = DateTime.now();
+        final picked = await showDatePicker(
+          context: context,
+          initialDate: value ?? now,
+          firstDate: DateTime(now.year - 1),
+          lastDate: DateTime(now.year + 2),
+        );
+        if (picked != null) {
+          onPick(picked);
+        }
+      },
+      style: OutlinedButton.styleFrom(
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.labelMedium),
+          const SizedBox(height: 4),
+          Text(display),
+        ],
+      ),
+    );
   }
 }

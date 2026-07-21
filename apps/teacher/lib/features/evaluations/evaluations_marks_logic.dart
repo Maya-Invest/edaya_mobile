@@ -24,14 +24,23 @@ List<StudentMarkRow> applyStudentMark(
   required String studentId,
   String? resultId,
   double? score,
+  MarkSyncState? syncState,
 }) {
   return rows
       .map(
         (entry) => entry.studentId == studentId
-            ? entry.copyWith(resultId: resultId, score: score)
+            ? entry.copyWith(
+                resultId: resultId,
+                score: score,
+                syncState: syncState,
+              )
             : entry,
       )
       .toList();
+}
+
+int countGradedStudents(List<StudentMarkRow> students) {
+  return students.where((row) => row.score != null).length;
 }
 
 List<EvaluationSummary> patchEvaluationGradedCount({

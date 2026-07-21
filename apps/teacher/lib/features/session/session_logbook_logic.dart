@@ -1,4 +1,108 @@
+import 'dart:convert';
+
 import 'models/session_detail_models.dart';
+
+const _structuredLogbookPrefix = '{"edayaLogbook":';
+
+class StructuredLogbookContent {
+  const StructuredLogbookContent({
+    required this.content,
+    this.objectives = const [],
+    this.homework,
+    this.familySummary,
+  });
+
+  final String content;
+  final List<String> objectives;
+  final String? homework;
+  final String? familySummary;
+
+  bool get isEmpty =>
+      content.trim().isEmpty &&
+      objectives.isEmpty &&
+      (homework == null || homework!.trim().isEmpty) &&
+      (familySummary == null || familySummary!.trim().isEmpty);
+}
+
+StructuredLogbookContent decodeStructuredSessionNote(String? raw) {
+  final value = raw?.trim() ?? '';
+  if (value.isEmpty) {
+    return const StructuredLogbookContent(content: '');
+  }
+  if (!value.startsWith(_structuredLogbookPrefix)) {
+    return StructuredLogbookContent(content: value);
+  }
+
+  try {
+    final decoded = jsonDecode(value);
+    if (decoded is! Map<String, dynamic>) {
+      return StructuredLogbookContent(content: value);
+    }
+    final envelope = decoded['edayaLogbook'];
+    if (envelope is! Map<String, dynamic>) {
+      return StructuredLogbookContent(content: value);
+    }
+
+    final objectivesRaw = envelope['objectives'];
+    return StructuredLogbookContent(
+      content: envelope['content'] as String? ?? '',
+      objectives: objectivesRaw is List
+          ? objectivesRaw.map((item) => item.toString()).toList()
+          : const [],
+      homework: envelope['homework'] as String?,
+      familySummary: envelope['familySummary'] as String?,
+    );
+  } on Object {
+    return StructuredLogbookContent(content: value);
+  }
+}
+
+String encodeStructuredSessionNote(StructuredLogbookContent content) {
+  if (content.isEmpty) {
+    return '';
+  }
+
+  final hasStructuredFields = content.objectives.isNotEmpty ||
+      (content.homework?.trim().isNotEmpty ?? false) ||
+      (content.familySummary?.trim().isNotEmpty ?? false);
+
+  if (!hasStructuredFields) {
+    return normalizeSessionNote(content.content) ?? '';
+  }
+
+  return jsonEncode({
+    'edayaLogbook': {
+      'v': 1,
+      'content': content.content.trim(),
+      'objectives': content.objectives
+          .map((item) => item.trim())
+          .where((item) => item.isNotEmpty)
+          .toList(),
+      if (content.homework?.trim().isNotEmpty ?? false)
+        'homework': content.homework!.trim(),
+      if (content.familySummary?.trim().isNotEmpty ?? false)
+        'familySummary': content.familySummary!.trim(),
+    },
+  });
+}
+
+String composeFamilyVisiblePreview(StructuredLogbookContent content) {
+  final sections = <String>[];
+  if (content.content.trim().isNotEmpty) {
+    sections.add(content.content.trim());
+  }
+  if (content.objectives.isNotEmpty) {
+    sections.add(content.objectives.map((item) => '• $item').join('\n'));
+  }
+  if (content.homework?.trim().isNotEmpty ?? false) {
+    sections.add(content.homework!.trim());
+  }
+  final summary = content.familySummary?.trim();
+  if (summary != null && summary.isNotEmpty) {
+    return summary;
+  }
+  return sections.join('\n\n');
+}
 
 String? normalizeSessionNote(String? value) {
   final trimmed = value?.trim() ?? '';

@@ -16,6 +16,7 @@ class _RecordingSessionDetailController extends SessionDetailController {
     required super.session,
     required super.getAcademicYearId,
     required super.schoolClient,
+    super.outboxStore,
   });
 
   @override
@@ -58,7 +59,14 @@ Widget _attendanceFlowApp({
 }
 
 void main() {
-  setUp(Levit.reset);
+  setUp(() {
+    Levit.reset();
+    configureTeacherOutboxStoreFactory(InMemoryTeacherOutboxStore.new);
+  });
+
+  tearDown(() {
+    configureTeacherOutboxStoreFactory(null);
+  });
 
   testWidgets(
     'AttendanceFlowPage reuses shared SessionDetailController without a new scope',
@@ -75,6 +83,7 @@ void main() {
                 session: session,
                 getAcademicYearId: () => '2025-ci',
                 schoolClient: _unimplementedSchoolClient,
+                outboxStore: InMemoryTeacherOutboxStore(),
               ),
             );
           },
@@ -99,6 +108,7 @@ void main() {
       session: session,
       getAcademicYearId: () => '2025-ci',
       schoolClient: _unimplementedSchoolClient,
+      outboxStore: InMemoryTeacherOutboxStore(),
     );
 
     final args = AttendanceFlowArgs(session: session, controller: controller);

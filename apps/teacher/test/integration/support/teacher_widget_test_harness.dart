@@ -90,7 +90,7 @@ class TeacherWidgetTestHarness {
     );
   }
 
-  Widget buildRouterApp({String? initialRoute}) {
+  Widget buildRouterApp({String? initialRoute, Object? initialExtra}) {
     return LScope(
       name: 'teacher-widget-integration',
       dependencyFactory: (scope) {
@@ -101,6 +101,7 @@ class TeacherWidgetTestHarness {
         harness: this,
         useRouter: true,
         initialRoute: initialRoute,
+        initialExtra: initialExtra,
       ),
     );
   }
@@ -185,12 +186,14 @@ class _TeacherTestShell extends StatefulWidget {
     this.child,
     this.useRouter = false,
     this.initialRoute,
+    this.initialExtra,
   });
 
   final TeacherWidgetTestHarness harness;
   final Widget? child;
   final bool useRouter;
   final String? initialRoute;
+  final Object? initialExtra;
 
   @override
   State<_TeacherTestShell> createState() => _TeacherTestShellState();
@@ -214,7 +217,10 @@ class _TeacherTestShellState extends State<_TeacherTestShell> {
       }
       if (widget.useRouter) {
         final router = widget.harness._scope!.find<AppRouter>();
-        router.router.go(widget.initialRoute ?? '/calendar');
+        router.router.go(
+          widget.initialRoute ?? '/calendar',
+          extra: widget.initialExtra,
+        );
       }
       widget.harness._scope!.find<EdayaRouterRefresh>().notifyListeners();
       setState(() => _ready = true);

@@ -4,8 +4,10 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
+import '../../common/utils/entity_filters.dart';
 import '../context/academic_year_controller.dart';
 import '../context/teacher_context_controller.dart';
+import 'calendar_today_logic.dart';
 import 'models/teacher_session.dart';
 
 class CalendarController extends LevitController with LevitReactiveTasksMixin {
@@ -24,6 +26,8 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
   final weekStart = LxVar(startOfWeek(defaultCalendarDay()));
   final selectedDay = LxVar(defaultCalendarDay());
   final sessions = LxVar<List<TeacherSession>>(const []);
+  final attendanceCompletionBySessionId =
+      LxVar<Map<String, SessionAttendanceCompletion>>({});
   final errorMessage = LxVar('');
 
   @override
@@ -32,6 +36,7 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
     autoDispose(weekStart);
     autoDispose(selectedDay);
     autoDispose(sessions);
+    autoDispose(attendanceCompletionBySessionId);
     autoDispose(errorMessage);
 
     for (final subscription in [
@@ -89,6 +94,26 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
       ..sort((a, b) => a.startsAt.compareTo(b.startsAt));
   }
 
+  CalendarSessionFocus get todayFocus =>
+      resolveCalendarSessionFocus(sessions: sessions.value, now: DateTime.now());
+
+  bool get isSelectedDayToday => isCalendarDayToday(selectedDay.value);
+
+  List<TeacherSession> get incompleteAttendanceSessions {
+    final focus = todayFocus;
+    final lessonSessions = focus.todaySessions
+        .where((session) => session.kind == 'lesson')
+        .toList();
+    return sessionsWithIncompleteAttendance(
+      todayLessonSessions: lessonSessions,
+      completionBySessionId: attendanceCompletionBySessionId.value,
+    );
+  }
+
+  SessionAttendanceCompletion? completionForSession(String sessionId) {
+    return attendanceCompletionBySessionId.value[sessionId];
+  }
+
   String get displayErrorMessage {
     if (errorMessage.value.isNotEmpty) {
       return errorMessage.value;
@@ -115,6 +140,12 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
     final calendarDay = DateTime(day.year, day.month, day.day);
     weekStart(startOfWeek(calendarDay));
     selectedDay(calendarDay);
+  }
+
+  void goToToday() {
+    final today = defaultCalendarDay();
+    weekStart(startOfWeek(today));
+    selectedDay(today);
   }
 
   Future<void> loadCalendarData() async {
@@ -169,6 +200,7 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
 
         parsedSessions.sort((a, b) => a.startsAt.compareTo(b.startsAt));
         sessions(parsedSessions);
+        await _loadTodayAttendanceCompletion(parsedSessions);
       } on api.ApiError catch (error) {
         errorMessage(systemL10n().couldNotLoadCalendar('$error'));
         sessions(const []);
@@ -177,5 +209,50 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
         sessions(const []);
       }
     });
+  }
+
+  Future<void> _loadTodayAttendanceCompletion(
+    List<TeacherSession> loadedSessions,
+  ) async {
+    final focus = resolveCalendarSessionFocus(
+      sessions: loadedSessions,
+      now: DateTime.now(),
+    );
+    final lessonSessions = focus.todaySessions
+        .where((session) => session.kind == 'lesson')
+        .toList();
+    if (lessonSessions.isEmpty) {
+      attendanceCompletionBySessionId(const {});
+      return;
+    }
+
+    final client = _schoolClient();
+    final academicYearId = _academicYear.selectedYearId.value;
+    final completionBySessionId = <String, SessionAttendanceCompletion>{};
+
+    for (final session in lessonSessions) {
+      try {
+        final enrollmentRows = await client.enrollments.list(
+          activeEnrollmentsForClass(
+            session.classGroupId,
+            academicYearId: academicYearId,
+          ),
+        );
+        final attendanceRows = await listAttendanceForOccurrence(
+          client.attendance,
+          kind: session.kind,
+          occurrenceId: session.id,
+        );
+        completionBySessionId[session.id] = SessionAttendanceCompletion(
+          sessionId: session.id,
+          recordedCount: attendanceRows.length,
+          totalCount: enrollmentRows.length,
+        );
+      } on Object {
+        continue;
+      }
+    }
+
+    attendanceCompletionBySessionId(completionBySessionId);
   }
 }

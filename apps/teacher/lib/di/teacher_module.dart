@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -9,6 +11,7 @@ import '../features/context/teacher_context_controller.dart';
 import '../features/evaluations/evaluations_controller.dart';
 import '../features/report_cards/report_cards_controller.dart';
 import '../features/teaching/teaching_controller.dart';
+import '../features/offline/teacher_outbox_controller.dart';
 import '../navigation/notification_navigation.dart';
 
 /// Loads academic year, year-scoped grants, and teacher context after auth.
@@ -16,6 +19,7 @@ Future<void> initializeTeacherAuthenticatedContext() async {
   await EdayaRootScope.find<AcademicYearController>().loadYears();
   await EdayaRootScope.find<AppSessionController>().refreshGrants();
   await EdayaRootScope.find<TeacherContextController>().initializeFromSession();
+  await EdayaRootScope.find<TeacherOutboxController>().refreshSummary();
 }
 
 void registerTeacherDependencies(
@@ -117,6 +121,17 @@ void registerTeacherDependencies(
     () => TeachingController(
       teacherContext: scope.find<TeacherContextController>(),
       academicYear: scope.find<AcademicYearController>(),
+      schoolClient: scope.find<SchoolClientFactory>(),
+    ),
+    permanent: true,
+  );
+  bind<TeacherOutboxStore>(
+    () => openTeacherOutboxStore(),
+    permanent: true,
+  );
+  bind<TeacherOutboxController>(
+    () => TeacherOutboxController(
+      outboxStore: scope.find<TeacherOutboxStore>(),
       schoolClient: scope.find<SchoolClientFactory>(),
     ),
     permanent: true,

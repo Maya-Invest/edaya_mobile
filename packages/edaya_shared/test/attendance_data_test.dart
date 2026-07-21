@@ -45,6 +45,30 @@ void main() {
     },
   );
 
+  test('attendanceRecordPayload includes optional reason and notes', () {
+    expect(
+      attendanceRecordPayload(
+        kind: 'lesson',
+        occurrenceId: 'ls-1',
+        studentId: 'stu-1',
+        attendanceId: 'stu-1-ls-1',
+        status: 'absent',
+        createdAt: '2026-01-10T09:00:00.000Z',
+        reason: 'Illness',
+        notes: 'Parent called',
+      ),
+      {
+        'id': 'stu-1-ls-1',
+        'studentId': 'stu-1',
+        'status': 'absent',
+        'createdAt': '2026-01-10T09:00:00.000Z',
+        'lessonSessionId': 'ls-1',
+        'reason': 'Illness',
+        'notes': 'Parent called',
+      },
+    );
+  });
+
   test('listAttendanceForOccurrence queries the occurrence anchor field', () async {
     final transport = _QueuedAttendanceTransport([
       const <Map<String, dynamic>>[],

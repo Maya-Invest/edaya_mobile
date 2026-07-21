@@ -16,12 +16,14 @@ import '../features/evaluations/evaluations_page.dart';
 import '../features/evaluations/marks_entry_sheet.dart';
 import '../features/evaluations/models/evaluation_models.dart';
 import '../features/report_cards/models/report_card_roster_models.dart';
+import '../features/report_cards/report_card_comment_sheet.dart';
 import '../features/report_cards/report_card_roster_sheet.dart';
 import '../features/report_cards/report_cards_page.dart';
 import '../features/teaching/teaching_page.dart';
 import '../features/session/attendance_flow_page.dart';
 import '../features/session/session_details_sheet.dart';
 import '../features/session/session_route_args.dart';
+import '../navigation/teacher_route_loaders.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 final shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -109,6 +111,26 @@ class AppRouter extends LevitController implements EdayaAppRouter {
               routes: [
                 GoRoute(
                   parentNavigatorKey: rootNavigatorKey,
+                  path: 'sessions/:sessionId',
+                  pageBuilder: (context, state) {
+                    final sessionId = state.pathParameters['sessionId'];
+                    if (sessionId == null || sessionId.isEmpty) {
+                      return MaterialPage<void>(
+                        child: RouteErrorPage(
+                          message: context.tr.missingSessionDetailsRouteData,
+                        ),
+                      );
+                    }
+
+                    return ModalBottomSheetPage<void>(
+                      isScrollControlled: true,
+                      useSafeArea: true,
+                      child: TeacherSessionRouteLoader(sessionId: sessionId),
+                    );
+                  },
+                ),
+                GoRoute(
+                  parentNavigatorKey: rootNavigatorKey,
                   path: 'session-details',
                   pageBuilder: (context, state) {
                     final extra = state.extra;
@@ -155,6 +177,28 @@ class AppRouter extends LevitController implements EdayaAppRouter {
               routes: [
                 GoRoute(
                   parentNavigatorKey: rootNavigatorKey,
+                  path: 'assessments/:assessmentId/marks',
+                  pageBuilder: (context, state) {
+                    final assessmentId = state.pathParameters['assessmentId'];
+                    if (assessmentId == null || assessmentId.isEmpty) {
+                      return MaterialPage<void>(
+                        child: RouteErrorPage(
+                          message: context.tr.missingMarksEntryRouteData,
+                        ),
+                      );
+                    }
+
+                    return ModalBottomSheetPage<void>(
+                      isScrollControlled: true,
+                      useSafeArea: true,
+                      child: TeacherAssessmentMarksRouteLoader(
+                        assessmentId: assessmentId,
+                      ),
+                    );
+                  },
+                ),
+                GoRoute(
+                  parentNavigatorKey: rootNavigatorKey,
                   path: 'create',
                   pageBuilder: (context, state) {
                     return const ModalBottomSheetPage<void>(
@@ -196,6 +240,60 @@ class AppRouter extends LevitController implements EdayaAppRouter {
               routes: [
                 GoRoute(
                   parentNavigatorKey: rootNavigatorKey,
+                  path: 'classes/:classGroupId/periods/:periodId/roster',
+                  pageBuilder: (context, state) {
+                    final classGroupId = state.pathParameters['classGroupId'];
+                    final periodId = state.pathParameters['periodId'];
+                    if (classGroupId == null ||
+                        classGroupId.isEmpty ||
+                        periodId == null ||
+                        periodId.isEmpty) {
+                      return MaterialPage<void>(
+                        child: RouteErrorPage(
+                          message: context.tr.missingReportCardRosterRouteData,
+                        ),
+                      );
+                    }
+
+                    return ModalBottomSheetPage<void>(
+                      isScrollControlled: true,
+                      useSafeArea: true,
+                      child: TeacherReportCardRosterRouteLoader(
+                        classGroupId: classGroupId,
+                        periodId: periodId,
+                      ),
+                    );
+                  },
+                ),
+                GoRoute(
+                  parentNavigatorKey: rootNavigatorKey,
+                  path: 'results/:resultId/students/:studentId/comment',
+                  pageBuilder: (context, state) {
+                    final resultId = state.pathParameters['resultId'];
+                    final studentId = state.pathParameters['studentId'];
+                    if (resultId == null ||
+                        resultId.isEmpty ||
+                        studentId == null ||
+                        studentId.isEmpty) {
+                      return MaterialPage<void>(
+                        child: RouteErrorPage(
+                          message: context.tr.reportCardNotFound,
+                        ),
+                      );
+                    }
+
+                    return ModalBottomSheetPage<void>(
+                      isScrollControlled: true,
+                      useSafeArea: true,
+                      child: TeacherReportCardCommentRouteLoader(
+                        resultId: resultId,
+                        studentId: studentId,
+                      ),
+                    );
+                  },
+                ),
+                GoRoute(
+                  parentNavigatorKey: rootNavigatorKey,
                   path: 'roster',
                   pageBuilder: (context, state) {
                     final extra = state.extra;
@@ -213,6 +311,32 @@ class AppRouter extends LevitController implements EdayaAppRouter {
                       child: ReportCardRosterSheet(rosterArgs: extra),
                     );
                   },
+                  routes: [
+                    GoRoute(
+                      parentNavigatorKey: rootNavigatorKey,
+                      path: 'comment',
+                      pageBuilder: (context, state) {
+                        final extra = state.extra;
+                        if (extra is! ReportCardCommentRouteArgs) {
+                          return MaterialPage<void>(
+                            child: RouteErrorPage(
+                              message:
+                                  context.tr.missingReportCardRosterRouteData,
+                            ),
+                          );
+                        }
+
+                        return ModalBottomSheetPage<void>(
+                          isScrollControlled: true,
+                          useSafeArea: true,
+                          child: ReportCardCommentSheet(
+                            rosterArgs: extra.rosterArgs,
+                            student: extra.student,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),

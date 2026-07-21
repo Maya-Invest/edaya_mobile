@@ -37,11 +37,39 @@ Future<void> pumpTeacherShellUntil<T extends Widget>(
   WidgetTester tester,
   TeacherWidgetTestHarness harness, {
   String? initialRoute,
+  Object? initialExtra,
 }) async {
   await resetIntegrationTestSurface(tester);
   configureIntegrationTestViewport();
-  await tester.pumpWidget(harness.buildRouterApp(initialRoute: initialRoute));
+  await tester.pumpWidget(
+    harness.buildRouterApp(
+      initialRoute: initialRoute,
+      initialExtra: initialExtra,
+    ),
+  );
   await pumpUntilFound(tester, find.byType(T));
+}
+
+/// Opens [location] through the real teacher router (optionally with [extra]).
+Future<void> pumpTeacherRoute(
+  WidgetTester tester,
+  TeacherWidgetTestHarness harness, {
+  required String location,
+  Object? extra,
+  Duration settleDelay = const Duration(milliseconds: 1500),
+}) async {
+  await resetIntegrationTestSurface(tester);
+  configureIntegrationTestViewport();
+  await tester.pumpWidget(
+    harness.buildRouterApp(initialRoute: location, initialExtra: extra),
+  );
+  await tester.pump();
+  await tester.pump(settleDelay);
+}
+
+/// Asserts no Flutter framework errors were recorded during the last frame(s).
+void expectNoCapturedFlutterErrors(WidgetTester tester) {
+  expect(tester.takeException(), isNull);
 }
 
 Future<void> openEvaluationsTab(
@@ -377,6 +405,26 @@ Future<void> pumpUntilCalendarSettled(
     tester,
     find.text('No classes scheduled for this day.'),
   );
+}
+
+/// Waits until [finder] is visible, failing if a [RouteErrorPage] appears.
+Future<void> pumpUntilRouteReady(
+  WidgetTester tester,
+  Finder finder, {
+  Duration timeout = const Duration(seconds: 45),
+}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (DateTime.now().isBefore(deadline)) {
+    await tester.pump(const Duration(milliseconds: 200));
+    if (tester.any(find.byType(RouteErrorPage))) {
+      fail('Route resolved to RouteErrorPage while waiting for $finder');
+    }
+    if (tester.any(finder)) {
+      return;
+    }
+  }
+
+  fail('Timed out waiting for $finder');
 }
 
 /// Reads the active class filter label from [TeacherContextController].

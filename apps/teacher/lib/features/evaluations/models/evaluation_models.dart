@@ -37,6 +37,7 @@ class StudentMarkRow {
     this.resultId,
     this.score,
     this.marksLocked = false,
+    this.syncState = MarkSyncState.synced,
   });
 
   final String studentId;
@@ -46,6 +47,7 @@ class StudentMarkRow {
   final String? resultId;
   final double? score;
   final bool marksLocked;
+  final MarkSyncState syncState;
 
   static const Object _unset = Object();
 
@@ -53,6 +55,7 @@ class StudentMarkRow {
     Object? resultId = _unset,
     Object? score = _unset,
     bool? marksLocked,
+    MarkSyncState? syncState,
   }) {
     return StudentMarkRow(
       studentId: studentId,
@@ -64,6 +67,9 @@ class StudentMarkRow {
           : resultId as String?,
       score: identical(score, _unset) ? this.score : score as double?,
       marksLocked: marksLocked ?? this.marksLocked,
+      syncState: syncState ?? this.syncState,
     );
   }
 }
+
+enum MarkSyncState { synced, pending, failed }

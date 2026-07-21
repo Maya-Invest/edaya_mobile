@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../context/academic_year_controller.dart';
+import '../../navigation/teacher_route_paths.dart';
 import 'models/report_card_roster_models.dart';
 import 'report_card_roster_controller.dart';
 
@@ -89,7 +90,12 @@ class ReportCardRosterSheet extends LScopedView<ReportCardRosterController> {
                   final row = controller.students.value[index];
                   return Padding(
                     padding: EdgeInsets.only(top: index == 0 ? 0 : 8),
-                    child: _ReportCardStudentTile(row: row),
+                    child: _ReportCardStudentTile(
+                      row: row,
+                      onTap: row.hasReportCard
+                          ? () => _openCommentEditor(context, controller, row)
+                          : null,
+                    ),
                   );
                 },
               ),
@@ -99,12 +105,34 @@ class ReportCardRosterSheet extends LScopedView<ReportCardRosterController> {
       ],
     );
   }
+
+  Future<void> _openCommentEditor(
+    BuildContext context,
+    ReportCardRosterController controller,
+    ReportCardStudentRow row,
+  ) async {
+    final reportCardId = row.reportCardId;
+    if (reportCardId == null) {
+      return;
+    }
+
+    final saved = await context.push<bool>(
+      TeacherRoutePaths.reportCardComment(
+        resultId: reportCardId,
+        studentId: row.studentId,
+      ),
+    );
+    if (saved == true) {
+      await controller.loadRoster();
+    }
+  }
 }
 
 class _ReportCardStudentTile extends StatelessWidget {
-  const _ReportCardStudentTile({required this.row});
+  const _ReportCardStudentTile({required this.row, this.onTap});
 
   final ReportCardStudentRow row;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -115,6 +143,7 @@ class _ReportCardStudentTile extends StatelessWidget {
 
     return Card(
       child: ListTile(
+        onTap: onTap,
         leading: PersonAvatar(
           name: row.studentName,
           initials: row.studentInitials ?? '?',

@@ -19,6 +19,8 @@ Map<String, dynamic> attendanceRecordPayload({
   required String attendanceId,
   required String status,
   required String createdAt,
+  String? reason,
+  String? notes,
 }) {
   return {
     'id': attendanceId,
@@ -26,6 +28,8 @@ Map<String, dynamic> attendanceRecordPayload({
     'status': status,
     'createdAt': createdAt,
     ...attendanceAnchorPayload(kind: kind, occurrenceId: occurrenceId),
+    if (reason != null && reason.isNotEmpty) 'reason': reason,
+    if (notes != null && notes.isNotEmpty) 'notes': notes,
   };
 }
 

@@ -46,6 +46,21 @@ EntityQuery resultsForAssessment(String assessmentId) {
   return {'assessmentId': assessmentId};
 }
 
+EntityQuery resultsForAssessments(List<String> assessmentIds) {
+  if (assessmentIds.isEmpty) {
+    return {
+      'assessmentId': {
+        '\$in': ['__no_match__'],
+      },
+    };
+  }
+  return {
+    'assessmentId': {
+      '\$in': assessmentIds,
+    },
+  };
+}
+
 EntityQuery publishedReportCardsForClassPeriod(
   String classGroupId,
   String periodId,

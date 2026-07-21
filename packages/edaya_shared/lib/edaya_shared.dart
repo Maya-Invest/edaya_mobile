@@ -39,3 +39,7 @@ export 'src/features/account/account_profile_page.dart';
 export 'package:firebase_messaging/firebase_messaging.dart' show RemoteMessage;
 export 'src/features/push/push_notifications.dart';
 export 'src/ui/person_avatar.dart';
+export 'src/ui/session_card.dart';
+export 'src/ui/status_badge.dart';
+export 'src/ui/sync_indicator.dart';
+export 'src/offline/teacher_outbox_store.dart';

@@ -3,7 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
+import '../../navigation/teacher_route_paths.dart';
 import 'calendar_controller.dart';
+import 'widgets/calendar_today_segment.dart';
 import 'widgets/teacher_session_tile.dart';
 import 'widgets/week_day_selector.dart';
 
@@ -20,6 +22,17 @@ class CalendarPage extends LView<CalendarController> {
         onRetry: controller.loadCalendarData,
         child: Column(
           children: [
+            LWatch(
+              () => CalendarTodaySegment(
+                focus: controller.todayFocus,
+                incompleteAttendanceSessions:
+                    controller.incompleteAttendanceSessions,
+                showGoToToday: !controller.isSelectedDayToday,
+                onGoToToday: controller.goToToday,
+                onSessionTap: (session) =>
+                    context.push(TeacherRoutePaths.session(session.id)),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               child: WeekDaySelector(
@@ -72,8 +85,9 @@ class _CalendarBody extends StatelessWidget {
         final session = daySessions[index];
         return TeacherSessionTile(
           session: session,
+          completion: controller.completionForSession(session.id),
           onTap: () =>
-              context.push('/calendar/session-details', extra: session),
+              context.push(TeacherRoutePaths.session(session.id)),
         );
       },
     );

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -5,8 +7,11 @@ import 'package:levit_flutter/levit_flutter.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import '../calendar/models/teacher_session.dart';
 import '../context/academic_year_controller.dart';
+import 'attendance_exception_sheet.dart';
 import 'models/session_detail_models.dart';
 import 'session_detail_controller.dart';
+import 'session_logbook_draft_storage.dart';
+import 'session_logbook_logic.dart' as logbook;
 import 'session_route_args.dart';
 import 'widgets/attendance_row_tile.dart';
 
@@ -23,6 +28,7 @@ class SessionDetailsSheet extends LScopedView<SessionDetailController> {
         getAcademicYearId: () =>
             scope.find<AcademicYearController>().selectedYearId.value,
         schoolClient: scope.find<SchoolClientFactory>(),
+        outboxStore: scope.find<TeacherOutboxStore>(),
       ),
     );
   }
@@ -68,6 +74,16 @@ class SessionDetailsSheet extends LScopedView<SessionDetailController> {
                             ),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
+                          if (controller.pendingOutboxCount.value > 0)
+                            Text(
+                              context.tr.attendanceSavedLocally,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.tertiary,
+                                  ),
+                            ),
                         ],
                       ),
                     ),
@@ -150,20 +166,40 @@ class _SegmentBody extends StatelessWidget {
         }
         return Column(
           children: [
-            Align(
-              alignment: Alignment.centerRight,
-              child: FilledButton.icon(
-                onPressed: () => context.push(
-                  '/calendar/attendance-flow',
-                  extra: AttendanceFlowArgs(
-                    session: session,
-                    controller: controller,
+            Row(
+              children: [
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: () => context.push(
+                      '/calendar/attendance-flow',
+                      extra: AttendanceFlowArgs(
+                        session: session,
+                        controller: controller,
+                      ),
+                    ),
+                    icon: const Icon(Icons.swipe),
+                    label: Text(context.tr.takeAttendance),
                   ),
                 ),
-                icon: const Icon(Icons.swipe),
-                label: Text(context.tr.takeAttendance),
-              ),
+                const SizedBox(width: 8),
+                OutlinedButton(
+                  onPressed: controller.isBusy.value
+                      ? null
+                      : () async {
+                          await controller.markAllPresent();
+                        },
+                  child: Text(context.tr.markAllPresent),
+                ),
+              ],
             ),
+            if (controller.pendingOutboxCount.value > 0) ...[
+              const SizedBox(height: 8),
+              StatusBadge(
+                label: context.tr.attendanceSavedLocally,
+                icon: Icons.schedule_outlined,
+                tone: StatusBadgeTone.warning,
+              ),
+            ],
             const SizedBox(height: 8),
             Expanded(
               child: ListView.separated(
@@ -174,7 +210,7 @@ class _SegmentBody extends StatelessWidget {
                   return AttendanceRowTile(
                     row: row,
                     onStatusTap: () =>
-                        _showAttendanceDialog(context, controller, row),
+                        _showAttendanceException(context, controller, row),
                   );
                 },
               ),
@@ -186,29 +222,23 @@ class _SegmentBody extends StatelessWidget {
     }
   }
 
-  Future<void> _showAttendanceDialog(
+  Future<void> _showAttendanceException(
     BuildContext context,
     SessionDetailController controller,
     SessionStudentRow row,
   ) async {
-    final status = await showDialog<SessionAttendanceStatus>(
+    final result = await showAttendanceExceptionSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(row.studentName),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final option in SessionAttendanceStatus.values)
-              ListTile(
-                title: Text(option.label(context.tr)),
-                onTap: () => Navigator.of(context).pop(option),
-              ),
-          ],
-        ),
-      ),
+      row: row,
+      initialStatus: row.status,
     );
-    if (status != null && context.mounted) {
-      await controller.recordAttendance(row, status);
+    if (result != null && context.mounted) {
+      await controller.recordAttendance(
+        row,
+        result.status,
+        reason: result.reason,
+        notes: result.notes,
+      );
     }
   }
 }
@@ -224,24 +254,112 @@ class _LogbookPanel extends StatefulWidget {
 
 class _LogbookPanelState extends State<_LogbookPanel> {
   late final TextEditingController _sessionNoteController;
+  late final TextEditingController _objectivesController;
+  late final TextEditingController _homeworkController;
+  late final TextEditingController _familySummaryController;
   final List<_DraftEntryState> _draftEntries = [];
   bool _saving = false;
+  bool _draftRestored = false;
+  Timer? _autosaveTimer;
 
   @override
   void initState() {
     super.initState();
-    _sessionNoteController = TextEditingController(
-      text: widget.controller.sessionNote.value,
+    final structured = logbook.decodeStructuredSessionNote(
+      widget.controller.sessionNote.value,
     );
+    _sessionNoteController = TextEditingController(text: structured.content);
+    _objectivesController = TextEditingController(
+      text: structured.objectives.join('\n'),
+    );
+    _homeworkController = TextEditingController(text: structured.homework ?? '');
+    _familySummaryController = TextEditingController(
+      text: structured.familySummary ?? '',
+    );
+    for (final controller in [
+      _sessionNoteController,
+      _objectivesController,
+      _homeworkController,
+      _familySummaryController,
+    ]) {
+      controller.addListener(_scheduleDraftSave);
+    }
+    unawaited(_restoreDraftIfPresent());
   }
 
   @override
   void dispose() {
-    _sessionNoteController.dispose();
+    _autosaveTimer?.cancel();
+    for (final controller in [
+      _sessionNoteController,
+      _objectivesController,
+      _homeworkController,
+      _familySummaryController,
+    ]) {
+      controller.removeListener(_scheduleDraftSave);
+      controller.dispose();
+    }
     for (final entry in _draftEntries) {
       entry.dispose();
     }
     super.dispose();
+  }
+
+  void _scheduleDraftSave() {
+    _autosaveTimer?.cancel();
+    _autosaveTimer = Timer(const Duration(milliseconds: 500), () {
+      unawaited(_persistDraft());
+    });
+  }
+
+  Future<void> _restoreDraftIfPresent() async {
+    final draft = await SessionLogbookDraftStorage.load(
+      widget.controller.session.id,
+    );
+    if (!mounted || draft == null) {
+      return;
+    }
+
+    setState(() {
+      _sessionNoteController.text = draft.sessionNote;
+      _objectivesController.text = draft.objectives;
+      _homeworkController.text = draft.homework;
+      _familySummaryController.text = draft.familySummary;
+      for (final entry in draft.progressEntries) {
+        _draftEntries.add(
+          _DraftEntryState(
+            matterId: entry.matterId,
+            completedPercentage: entry.completedPercentage,
+            notes: entry.notes,
+            isEditingExisting: entry.isEditingExisting,
+          ),
+        );
+      }
+      _draftRestored = true;
+    });
+  }
+
+  Future<void> _persistDraft() async {
+    await SessionLogbookDraftStorage.save(
+      widget.controller.session.id,
+      SessionLogbookDraft(
+        sessionNote: _sessionNoteController.text,
+        objectives: _objectivesController.text,
+        homework: _homeworkController.text,
+        familySummary: _familySummaryController.text,
+        progressEntries: [
+          for (final entry in _draftEntries)
+            SessionLogbookDraftProgressEntry(
+              matterId: entry.matterId ?? '',
+              completedPercentage:
+                  int.tryParse(entry.progressController.text.trim()) ?? 0,
+              notes: entry.notesController.text,
+              isEditingExisting: entry.isEditingExisting,
+            ),
+        ],
+        updatedAt: DateTime.now(),
+      ),
+    );
   }
 
   Set<String> get _draftMatterIds =>
@@ -268,9 +386,11 @@ class _LogbookPanelState extends State<_LogbookPanel> {
               0,
           notes: matter?.sessionProgress?.notes ?? '',
           isEditingExisting: matter?.hasSessionProgress ?? false,
+          onChanged: _scheduleDraftSave,
         ),
       );
     });
+    _scheduleDraftSave();
   }
 
   void _removeDraftEntry(_DraftEntryState entry) {
@@ -278,6 +398,7 @@ class _LogbookPanelState extends State<_LogbookPanel> {
       entry.dispose();
       _draftEntries.remove(entry);
     });
+    _scheduleDraftSave();
   }
 
   List<SessionSubjectMatterOption> _matterChoicesForDraft(
@@ -363,12 +484,26 @@ class _LogbookPanelState extends State<_LogbookPanel> {
         return Center(child: Text(context.tr.noCurriculumChaptersLinked));
       }
 
-      if (_sessionNoteController.text != widget.controller.sessionNote.value) {
-        _sessionNoteController.text = widget.controller.sessionNote.value;
+      final encodedNote = widget.controller.sessionNote.value;
+      final structured = logbook.decodeStructuredSessionNote(encodedNote);
+      if (_sessionNoteController.text != structured.content) {
+        _sessionNoteController.text = structured.content;
+        _objectivesController.text = structured.objectives.join('\n');
+        _homeworkController.text = structured.homework ?? '';
+        _familySummaryController.text = structured.familySummary ?? '';
       }
 
       return ListView(
         children: [
+          if (_draftRestored) ...[
+            Text(
+              context.tr.logbookDraftRestored,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
           if (saveMessage.isNotEmpty) ...[
             Text(
               saveMessage,
@@ -465,6 +600,57 @@ class _LogbookPanelState extends State<_LogbookPanel> {
               ),
           const SizedBox(height: 20),
           Text(
+            context.tr.objectivesLabel,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _objectivesController,
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              hintText: context.tr.objectivesLabel,
+            ),
+            maxLines: 3,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            context.tr.homeworkLabel,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _homeworkController,
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              hintText: context.tr.homeworkLabel,
+            ),
+            maxLines: 2,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            context.tr.familyVisibleSummaryLabel,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _familySummaryController,
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              hintText: context.tr.familyVisibleSummaryLabel,
+            ),
+            maxLines: 3,
+          ),
+          const SizedBox(height: 12),
+          Card(
+            child: ListTile(
+              title: Text(context.tr.familyVisiblePreviewLabel),
+              subtitle: Text(
+                logbook.composeFamilyVisiblePreview(_structuredContent()),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
             context.tr.sessionNotesLabel,
             style: Theme.of(context).textTheme.titleSmall,
           ),
@@ -524,21 +710,35 @@ class _LogbookPanelState extends State<_LogbookPanel> {
     }
 
     setState(() => _saving = true);
+    final savedMessage = context.tr.logbookSaved;
+    final messenger = ScaffoldMessenger.of(context);
     final ok = await widget.controller.saveLogbook(
-      sessionNoteText: _sessionNoteController.text,
+      structuredContent: _structuredContent(),
       progressEntries: progressEntries,
     );
     if (mounted) {
       setState(() => _saving = false);
       if (ok) {
+        await SessionLogbookDraftStorage.clear(widget.controller.session.id);
         for (final entry in List<_DraftEntryState>.from(_draftEntries)) {
           _removeDraftEntry(entry);
         }
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(context.tr.logbookSaved)));
+        messenger.showSnackBar(SnackBar(content: Text(savedMessage)));
       }
     }
+  }
+
+  logbook.StructuredLogbookContent _structuredContent() {
+    return logbook.StructuredLogbookContent(
+      content: _sessionNoteController.text,
+      objectives: _objectivesController.text
+          .split('\n')
+          .map((line) => line.trim())
+          .where((line) => line.isNotEmpty)
+          .toList(),
+      homework: _homeworkController.text,
+      familySummary: _familySummaryController.text,
+    );
   }
 }
 
@@ -548,15 +748,24 @@ class _DraftEntryState {
     required int completedPercentage,
     required String notes,
     required this.isEditingExisting,
+    this.onChanged,
   }) : progressController = TextEditingController(text: '$completedPercentage'),
-       notesController = TextEditingController(text: notes);
+       notesController = TextEditingController(text: notes) {
+    progressController.addListener(_notifyChanged);
+    notesController.addListener(_notifyChanged);
+  }
 
   String? matterId;
   final TextEditingController progressController;
   final TextEditingController notesController;
   final bool isEditingExisting;
+  final VoidCallback? onChanged;
+
+  void _notifyChanged() => onChanged?.call();
 
   void dispose() {
+    progressController.removeListener(_notifyChanged);
+    notesController.removeListener(_notifyChanged);
     progressController.dispose();
     notesController.dispose();
   }

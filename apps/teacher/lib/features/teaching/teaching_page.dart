@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../calendar/models/teacher_session.dart';
+import '../../navigation/teacher_route_paths.dart';
 import 'models/teaching_models.dart';
 import 'teaching_controller.dart';
 
@@ -259,20 +259,7 @@ class _TeachingLogbookTab extends StatelessWidget {
   }
 
   void _openSession(BuildContext context, TeachingLogEntry entry) {
-    context.push(
-      '/calendar/session-details',
-      extra: TeacherSession(
-        id: entry.lessonSessionId,
-        title: entry.displayLabel,
-        kind: 'lesson',
-        startsAt: entry.startsAt,
-        endsAt: entry.endsAt,
-        classGroupId: entry.classGroupId,
-        classLabel: entry.classLabel,
-        subjectLabel: entry.subjectLabel,
-        classSubjectId: entry.classSubjectId,
-      ),
-    );
+    context.push(TeacherRoutePaths.session(entry.lessonSessionId));
   }
 }
 

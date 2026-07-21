@@ -17,13 +17,16 @@ class EvaluationsController extends LevitController
     required TeacherContextController teacherContext,
     required AcademicYearController academicYear,
     required SchoolClientFactory schoolClient,
+    TeacherOutboxStore? outboxStore,
   }) : _teacherContext = teacherContext,
        _academicYear = academicYear,
-       _schoolClient = schoolClient;
+       _schoolClient = schoolClient,
+       _outboxStore = outboxStore ?? openTeacherOutboxStore();
 
   final TeacherContextController _teacherContext;
   final AcademicYearController _academicYear;
   final SchoolClientFactory _schoolClient;
+  final TeacherOutboxStore _outboxStore;
 
   final evaluations = LxVar<List<EvaluationSummary>>(const []);
   final periods = LxVar<List<Map<String, dynamic>>>(const []);
@@ -194,13 +197,27 @@ class EvaluationsController extends LevitController
               ? systemL10n().subjectFallback
               : subjectNameById[subjectId] ?? systemL10n().subjectFallback;
 
+          final assessmentIds = assessmentRows
+              .map((row) => row['id'] as String)
+              .toList();
+          final allResults = await client.assessmentResults.list(
+            resultsForAssessments(assessmentIds),
+          );
+          final gradedByAssessment = <String, int>{};
+          for (final result in allResults) {
+            if (result['score'] == null) {
+              continue;
+            }
+            final assessmentId = result['assessmentId'] as String?;
+            if (assessmentId == null) {
+              continue;
+            }
+            gradedByAssessment[assessmentId] =
+                (gradedByAssessment[assessmentId] ?? 0) + 1;
+          }
+
           for (final assessment in assessmentRows) {
             final assessmentId = assessment['id'] as String;
-            final results = await client.assessmentResults.list(
-              resultsForAssessment(assessmentId),
-            );
-            final graded = results.where((row) => row['score'] != null).length;
-
             summaries.add(
               EvaluationSummary(
                 id: assessmentId,
@@ -215,7 +232,7 @@ class EvaluationsController extends LevitController
                     (assessment['startsAt'] as String?)?.substring(0, 10) ??
                     '',
                 maxScore: (assessment['maxScore'] as num?)?.toDouble() ?? 20,
-                gradedCount: graded,
+                gradedCount: gradedByAssessment[assessmentId] ?? 0,
                 totalStudents: totalStudents,
               ),
             );
@@ -343,6 +360,7 @@ class EvaluationsController extends LevitController
         studentId: row.studentId,
         resultId: resultId,
         score: score,
+        syncState: MarkSyncState.pending,
       ),
     );
 
@@ -357,35 +375,130 @@ class EvaluationsController extends LevitController
         ),
       );
 
-      _marksLoadGeneration++;
-      final roster = await fetchMarksRoster(evaluation);
-      marksStudents(roster.students);
-      marksErrorMessage(roster.errorMessage);
-      _patchEvaluationSummary(evaluation.id, roster.students);
+      marksStudents(
+        applyStudentMark(
+          marksStudents.value,
+          studentId: row.studentId,
+          resultId: resultId,
+          score: score,
+          syncState: MarkSyncState.synced,
+        ),
+      );
+      _patchEvaluationSummary(evaluation.id, marksStudents.value);
       return true;
     } on api.ApiError catch (error) {
-      marksStudents(
-        applyStudentMark(
-          marksStudents.value,
-          studentId: row.studentId,
-          resultId: previousResultId,
-          score: previousScore,
-        ),
+      return _enqueueMarkFailure(
+        evaluation: evaluation,
+        row: row,
+        score: score,
+        resultId: resultId,
+        previousScore: previousScore,
+        previousResultId: previousResultId,
+        error: _formatApiError(error),
       );
-      marksSaveMessage(systemL10n().couldNotSaveMark(_formatApiError(error)));
-      return false;
     } on Object catch (error) {
-      marksStudents(
-        applyStudentMark(
-          marksStudents.value,
-          studentId: row.studentId,
-          resultId: previousResultId,
-          score: previousScore,
+      return _enqueueMarkFailure(
+        evaluation: evaluation,
+        row: row,
+        score: score,
+        resultId: resultId,
+        previousScore: previousScore,
+        previousResultId: previousResultId,
+        error: '$error',
+      );
+    }
+  }
+
+  Future<bool> saveAllMarks(
+    EvaluationSummary evaluation,
+    Map<String, double> scoresByStudentId,
+  ) async {
+    var saved = true;
+    for (final entry in scoresByStudentId.entries) {
+      final row = marksStudents.value.firstWhere(
+        (candidate) => candidate.studentId == entry.key,
+        orElse: () => throw StateError('Missing student ${entry.key}'),
+      );
+      final ok = await saveMark(evaluation, row, entry.value);
+      saved = saved && ok;
+    }
+    return saved;
+  }
+
+  Future<String?> duplicateEvaluation(EvaluationSummary evaluation) async {
+    try {
+      final client = _schoolClient();
+      final source = await client.assessments.get(evaluation.id);
+      final newId = 'asm-${DateTime.now().millisecondsSinceEpoch}';
+      await client.createAssessment(
+        createAssessmentPayload(
+          id: newId,
+          classGroupId: evaluation.classGroupId,
+          classSubjectId: evaluation.classSubjectId,
+          periodId: evaluation.periodId,
+          title: '${evaluation.title} (copy)',
+          maxScore: evaluation.maxScore,
+          kind: source['kind'] as String? ?? 'quiz',
+          assessmentDate: DateTime.now(),
+          coefficient: (source['coefficient'] as num?)?.toDouble() ?? 1,
         ),
       );
-      marksSaveMessage(systemL10n().couldNotSaveMark('$error'));
-      return false;
+      await loadEvaluations();
+      return null;
+    } on Object catch (error) {
+      return systemL10n().couldNotCreateEvaluation('$error');
     }
+  }
+
+  Future<String?> completeEvaluation(EvaluationSummary evaluation) async {
+    try {
+      final client = _schoolClient();
+      await client.completeAssessment({'id': evaluation.id});
+      await loadEvaluations();
+      return null;
+    } on Object catch (error) {
+      return systemL10n().couldNotCreateEvaluation('$error');
+    }
+  }
+
+  Future<bool> _enqueueMarkFailure({
+    required EvaluationSummary evaluation,
+    required StudentMarkRow row,
+    required double score,
+    required String resultId,
+    required double? previousScore,
+    required String? previousResultId,
+    required String error,
+  }) async {
+    await _outboxStore.enqueue(
+      buildTeacherOutboxEntry(
+        id: resultId,
+        kind: TeacherOutboxKind.mark,
+        idempotencyKey: teacherMarkIdempotencyKey(
+          assessmentId: evaluation.id,
+          studentId: row.studentId,
+        ),
+        payload: markOutboxPayload(
+          assessmentId: evaluation.id,
+          studentId: row.studentId,
+          score: score,
+          resultId: resultId,
+        ),
+        lastError: error,
+      ),
+    );
+    marksStudents(
+      applyStudentMark(
+        marksStudents.value,
+        studentId: row.studentId,
+        resultId: resultId,
+        score: score,
+        syncState: MarkSyncState.pending,
+      ),
+    );
+    marksSaveMessage(systemL10n().attendanceSavedLocally);
+    _patchEvaluationSummary(evaluation.id, marksStudents.value);
+    return true;
   }
 
   void _patchEvaluationSummary(
@@ -529,6 +642,8 @@ class EvaluationCreateController extends LevitController
     required String periodId,
     required String title,
     required double maxScore,
+    required DateTime assessmentDate,
+    DateTime? homeworkDueDate,
     String kind = 'quiz',
   }) async {
     final trimmedTitle = title.trim();
@@ -555,6 +670,8 @@ class EvaluationCreateController extends LevitController
           title: trimmedTitle,
           maxScore: maxScore,
           kind: kind,
+          assessmentDate: assessmentDate,
+          homeworkDueDate: homeworkDueDate,
         ),
       );
       await _evaluations.loadEvaluations();

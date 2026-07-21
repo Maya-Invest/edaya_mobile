@@ -3,10 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
+import 'attendance_exception_sheet.dart';
 import '../calendar/models/teacher_session.dart';
 import '../context/academic_year_controller.dart';
 import 'models/session_detail_models.dart';
 import 'session_detail_controller.dart';
+import 'widgets/attendance_row_tile.dart';
+
+enum AttendanceFlowMode { grid, sequential }
 
 class AttendanceFlowPage extends StatelessWidget {
   const AttendanceFlowPage({super.key, required this.session, this.controller});
@@ -42,6 +46,7 @@ class _AttendanceFlowScopedPage extends LScopedView<SessionDetailController> {
         getAcademicYearId: () =>
             scope.find<AcademicYearController>().selectedYearId.value,
         schoolClient: scope.find<SchoolClientFactory>(),
+        outboxStore: scope.find<TeacherOutboxStore>(),
       ),
     );
   }
@@ -52,13 +57,23 @@ class _AttendanceFlowScopedPage extends LScopedView<SessionDetailController> {
   }
 }
 
-class _AttendanceFlowScaffold extends StatelessWidget {
+class _AttendanceFlowScaffold extends StatefulWidget {
   const _AttendanceFlowScaffold({required this.controller});
 
   final SessionDetailController controller;
 
   @override
+  State<_AttendanceFlowScaffold> createState() =>
+      _AttendanceFlowScaffoldState();
+}
+
+class _AttendanceFlowScaffoldState extends State<_AttendanceFlowScaffold> {
+  AttendanceFlowMode _mode = AttendanceFlowMode.grid;
+
+  @override
   Widget build(BuildContext context) {
+    final controller = widget.controller;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -68,6 +83,26 @@ class _AttendanceFlowScaffold extends StatelessWidget {
           icon: const Icon(Icons.close),
           onPressed: () => context.pop(),
         ),
+        actions: [
+          if (controller.supportsAttendanceRecording)
+            IconButton(
+              tooltip: _mode == AttendanceFlowMode.grid
+                  ? context.tr.attendanceModeSequential
+                  : context.tr.attendanceModeGrid,
+              onPressed: () {
+                setState(() {
+                  _mode = _mode == AttendanceFlowMode.grid
+                      ? AttendanceFlowMode.sequential
+                      : AttendanceFlowMode.grid;
+                });
+              },
+              icon: Icon(
+                _mode == AttendanceFlowMode.grid
+                    ? Icons.view_carousel_outlined
+                    : Icons.grid_view,
+              ),
+            ),
+        ],
       ),
       body: LWatch(() {
         if (!controller.supportsAttendanceRecording) {
@@ -109,7 +144,9 @@ class _AttendanceFlowScaffold extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        return _AttendanceFlowBody(controller: controller);
+        return _mode == AttendanceFlowMode.grid
+            ? _AttendanceGridBody(controller: controller)
+            : _AttendanceFlowBody(controller: controller);
       }),
     );
   }
@@ -328,6 +365,101 @@ class _AttendanceFlowBodyState extends State<_AttendanceFlowBody> {
       }
       _index = _firstUnmarkedIndex(students);
     });
+  }
+}
+
+class _AttendanceGridBody extends StatefulWidget {
+  const _AttendanceGridBody({required this.controller});
+
+  final SessionDetailController controller;
+
+  @override
+  State<_AttendanceGridBody> createState() => _AttendanceGridBodyState();
+}
+
+class _AttendanceGridBodyState extends State<_AttendanceGridBody> {
+  bool _markingAll = false;
+
+  Future<void> _markAllPresent() async {
+    setState(() => _markingAll = true);
+    await widget.controller.markAllPresent();
+    if (mounted) {
+      setState(() => _markingAll = false);
+    }
+  }
+
+  Future<void> _editRow(SessionStudentRow row) async {
+    final result = await showAttendanceExceptionSheet(
+      context: context,
+      row: row,
+      initialStatus: row.status,
+    );
+    if (result == null || !mounted) {
+      return;
+    }
+
+    final saved = await widget.controller.recordAttendance(
+      row,
+      result.status,
+      reason: result.reason,
+      notes: result.notes,
+    );
+    if (!mounted || saved) {
+      return;
+    }
+
+    final message = widget.controller.saveMessage.value;
+    if (message.isNotEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final students = widget.controller.students.value;
+    final recorded = students.where((row) => row.status != null).length;
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(context.tr.attendanceRecordedProgress(recorded, students.length)),
+              const SizedBox(height: 8),
+              FilledButton.icon(
+                onPressed: _markingAll ? null : _markAllPresent,
+                icon: _markingAll
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.done_all),
+                label: Text(context.tr.markAllPresent),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: students.length,
+            separatorBuilder: (_, _) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              final row = students[index];
+              return AttendanceRowTile(
+                row: row,
+                onStatusTap: () => _editRow(row),
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 }
 

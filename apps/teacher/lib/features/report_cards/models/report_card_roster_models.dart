@@ -12,6 +12,16 @@ class ReportCardRosterArgs {
   final String periodLabel;
 }
 
+class ReportCardCommentRouteArgs {
+  const ReportCardCommentRouteArgs({
+    required this.rosterArgs,
+    required this.student,
+  });
+
+  final ReportCardRosterArgs rosterArgs;
+  final ReportCardStudentRow student;
+}
+
 class ReportCardStudentRow {
   const ReportCardStudentRow({
     required this.studentId,

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -17,7 +15,9 @@ class MarksEntrySheet extends LView<EvaluationsController> {
   @override
   Widget buildView(BuildContext context, EvaluationsController controller) {
     if (controller.marksEvaluationId.value != evaluation.id) {
-      unawaited(controller.loadMarks(evaluation));
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        controller.loadMarks(evaluation);
+      });
     }
 
     return DraggableScrollableSheet(
@@ -28,225 +28,300 @@ class MarksEntrySheet extends LView<EvaluationsController> {
       builder: (context, scrollController) {
         return Material(
           color: Theme.of(context).scaffoldBackgroundColor,
-          child: LWatch(
-            () => _buildContent(context, scrollController, controller),
+          child: _MarksEntryContent(
+            evaluation: evaluation,
+            scrollController: scrollController,
           ),
         );
       },
     );
   }
+}
 
-  Widget _buildContent(
-    BuildContext context,
-    ScrollController scrollController,
-    EvaluationsController controller,
-  ) {
-    final isCurrentEvaluation =
-        controller.marksEvaluationId.value == evaluation.id;
-    final students = isCurrentEvaluation
-        ? controller.marksStudents.value
-        : const <StudentMarkRow>[];
-    final errorMessage = isCurrentEvaluation
-        ? controller.marksErrorMessage.value
-        : '';
-    final saveMessage = isCurrentEvaluation
-        ? controller.marksSaveMessage.value
-        : '';
-    final loading =
-        controller.isBusy.value &&
-        isCurrentEvaluation &&
-        students.isEmpty &&
-        errorMessage.isEmpty;
+class _MarksEntryContent extends StatefulWidget {
+  const _MarksEntryContent({
+    required this.evaluation,
+    required this.scrollController,
+  });
 
-    return ListView(
-      controller: scrollController,
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    evaluation.title,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  Text('${evaluation.classLabel} · ${evaluation.subjectLabel}'),
-                  Text(
-                    context.tr.outOfMaxScore(evaluation.maxScore.toString()),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              onPressed: () => context.pop(),
-              icon: const Icon(Icons.close),
-            ),
-          ],
-        ),
-        if (loading) ...[
-          const SizedBox(height: 32),
-          const Center(child: CircularProgressIndicator()),
-        ],
-        if (errorMessage.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          Text(
-            errorMessage,
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
-          ),
-          TextButton(
-            onPressed: () => controller.loadMarks(evaluation),
-            child: Text(context.tr.retry),
-          ),
-        ],
-        if (saveMessage.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          Text(
-            saveMessage,
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
-          ),
-        ],
-        if (!loading &&
-            students.isNotEmpty &&
-            students.every((row) => row.marksLocked)) ...[
-          const SizedBox(height: 12),
-          Text(
-            context.tr.marksEntryPeriodLockedHint,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.error,
-            ),
-          ),
-        ],
-        if (!loading) ...[
-          const SizedBox(height: 16),
-          if (students.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 32),
-              child: Center(child: Text(context.tr.noStudentsToRecord)),
-            )
-          else
-            for (var index = 0; index < students.length; index++) ...[
-              if (index > 0) const SizedBox(height: 8),
-              MarkRowTile(
-                key: ValueKey(students[index].studentId),
-                row: students[index],
-                onEditScore: () =>
-                    _editScore(context, controller, students[index]),
-              ),
-            ],
-        ],
-      ],
-    );
+  final EvaluationSummary evaluation;
+  final ScrollController scrollController;
+
+  @override
+  State<_MarksEntryContent> createState() => _MarksEntryContentState();
+}
+
+class _MarksEntryContentState extends State<_MarksEntryContent> {
+  final _scoreControllers = <String, TextEditingController>{};
+  final _focusNodes = <String, FocusNode>{};
+  String? _loadedEvaluationId;
+  var _ungradedOnly = false;
+
+  @override
+  void dispose() {
+    for (final controller in _scoreControllers.values) {
+      controller.dispose();
+    }
+    for (final node in _focusNodes.values) {
+      node.dispose();
+    }
+    super.dispose();
   }
 
-  Future<void> _editScore(
-    BuildContext context,
-    EvaluationsController controller,
-    StudentMarkRow row,
-  ) async {
-    final score = await showDialog<double>(
-      context: context,
-      builder: (dialogContext) {
-        return _ScoreEntryDialog(
-          studentName: row.studentName,
-          initialScore: row.score?.toString() ?? '',
-          maxScoreLabel: context.tr.outOfMaxScore(
-            evaluation.maxScore.toString(),
-          ),
-          scoreHint: context.tr.scoreHintOutOf(evaluation.maxScore.toString()),
-          saveLabel: context.tr.save,
-        );
-      },
-    );
-
-    if (!context.mounted || score == null) {
+  void _syncControllers(List<StudentMarkRow> students) {
+    if (_loadedEvaluationId == widget.evaluation.id) {
       return;
     }
 
-    final saved = await controller.saveMark(evaluation, row, score);
+    for (final controller in _scoreControllers.values) {
+      controller.dispose();
+    }
+    for (final node in _focusNodes.values) {
+      node.dispose();
+    }
+    _scoreControllers.clear();
+    _focusNodes.clear();
+
+    for (final row in students) {
+      _scoreControllers[row.studentId] = TextEditingController(
+        text: row.score?.toString() ?? '',
+      );
+      _focusNodes[row.studentId] = FocusNode();
+    }
+    _loadedEvaluationId = widget.evaluation.id;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = context.levit.find<EvaluationsController>();
+
+    return LWatch(() {
+      final isCurrentEvaluation =
+          controller.marksEvaluationId.value == widget.evaluation.id;
+      final students = isCurrentEvaluation
+          ? controller.marksStudents.value
+          : const <StudentMarkRow>[];
+      final errorMessage = isCurrentEvaluation
+          ? controller.marksErrorMessage.value
+          : '';
+      final saveMessage = isCurrentEvaluation
+          ? controller.marksSaveMessage.value
+          : '';
+      final loading =
+          controller.isBusy.value &&
+          isCurrentEvaluation &&
+          students.isEmpty &&
+          errorMessage.isEmpty;
+
+      if (students.isNotEmpty) {
+        _syncControllers(students);
+      }
+
+      final visibleStudents = _ungradedOnly
+          ? students.where((row) => row.score == null).toList()
+          : students;
+
+      return ListView(
+        controller: widget.scrollController,
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.evaluation.title,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    Text(
+                      '${widget.evaluation.classLabel} · ${widget.evaluation.subjectLabel}',
+                    ),
+                    Text(
+                      context.tr.outOfMaxScore(
+                        widget.evaluation.maxScore.toString(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () => context.pop(),
+                icon: const Icon(Icons.close),
+              ),
+            ],
+          ),
+          if (!loading && students.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilterChip(
+                  label: Text(context.tr.ungradedOnlyFilter),
+                  selected: _ungradedOnly,
+                  onSelected: (value) => setState(() => _ungradedOnly = value),
+                ),
+                ActionChip(
+                  label: Text(context.tr.fillAllMarks),
+                  onPressed: () => _fillAll(controller, students),
+                ),
+                ActionChip(
+                  label: Text(context.tr.clearAllMarks),
+                  onPressed: () => _clearAll(students),
+                ),
+              ],
+            ),
+          ],
+          if (loading) ...[
+            const SizedBox(height: 32),
+            const Center(child: CircularProgressIndicator()),
+          ],
+          if (errorMessage.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              errorMessage,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+            TextButton(
+              onPressed: () => controller.loadMarks(widget.evaluation),
+              child: Text(context.tr.retry),
+            ),
+          ],
+          if (saveMessage.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              saveMessage,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ],
+          if (!loading &&
+              students.isNotEmpty &&
+              students.every((row) => row.marksLocked)) ...[
+            const SizedBox(height: 12),
+            Text(
+              context.tr.marksEntryPeriodLockedHint,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+          ],
+          if (!loading) ...[
+            const SizedBox(height: 16),
+            if (visibleStudents.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 32),
+                child: Center(child: Text(context.tr.noStudentsToRecord)),
+              )
+            else
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final useGrid = constraints.maxWidth >= 600;
+                  if (!useGrid) {
+                    return Column(
+                      children: [
+                        for (var index = 0; index < visibleStudents.length; index++) ...[
+                          if (index > 0) const SizedBox(height: 8),
+                          _markTile(visibleStudents[index], controller),
+                        ],
+                      ],
+                    );
+                  }
+
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisExtent: 84,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                    ),
+                    itemCount: visibleStudents.length,
+                    itemBuilder: (context, index) =>
+                        _markTile(visibleStudents[index], controller),
+                  );
+                },
+              ),
+          ],
+        ],
+      );
+    });
+  }
+
+  Widget _markTile(StudentMarkRow row, EvaluationsController controller) {
+    return MarkRowTile(
+      key: ValueKey(row.studentId),
+      row: row,
+      maxScore: widget.evaluation.maxScore,
+      controller: _scoreControllers[row.studentId]!,
+      focusNode: _focusNodes[row.studentId],
+      onSubmitted: (score) => _saveScore(
+        context,
+        controller,
+        row,
+        score,
+      ),
+    );
+  }
+
+  void _fillAll(EvaluationsController controller, List<StudentMarkRow> students) {
+    for (final row in students) {
+      if (row.marksLocked) {
+        continue;
+      }
+      _scoreControllers[row.studentId]?.text =
+          widget.evaluation.maxScore.toString();
+    }
+  }
+
+  void _clearAll(List<StudentMarkRow> students) {
+    for (final row in students) {
+      if (row.marksLocked) {
+        continue;
+      }
+      _scoreControllers[row.studentId]?.clear();
+    }
+  }
+
+  Future<void> _saveScore(
+    BuildContext context,
+    EvaluationsController controller,
+    StudentMarkRow row,
+    double score, {
+    String? nextStudentId,
+  }) async {
+    if (score < 0 || score > widget.evaluation.maxScore) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr.invalidScoreValue(
+              widget.evaluation.maxScore.toString(),
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+
+    final saved = await controller.saveMark(widget.evaluation, row, score);
     if (!context.mounted) {
       return;
     }
 
-    final messenger = ScaffoldMessenger.of(context);
     if (saved) {
-      messenger.showSnackBar(SnackBar(content: Text(context.tr.save)));
+      if (nextStudentId != null) {
+        _focusNodes[nextStudentId]?.requestFocus();
+      }
       return;
     }
 
-    messenger.showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(controller.marksSaveMessage.value),
         backgroundColor: Theme.of(context).colorScheme.error,
       ),
     );
-  }
-}
-
-class _ScoreEntryDialog extends StatefulWidget {
-  const _ScoreEntryDialog({
-    required this.studentName,
-    required this.initialScore,
-    required this.maxScoreLabel,
-    required this.scoreHint,
-    required this.saveLabel,
-  });
-
-  final String studentName;
-  final String initialScore;
-  final String maxScoreLabel;
-  final String scoreHint;
-  final String saveLabel;
-
-  @override
-  State<_ScoreEntryDialog> createState() => _ScoreEntryDialogState();
-}
-
-class _ScoreEntryDialogState extends State<_ScoreEntryDialog> {
-  late final TextEditingController _scoreController;
-
-  @override
-  void initState() {
-    super.initState();
-    _scoreController = TextEditingController(text: widget.initialScore);
-  }
-
-  @override
-  void dispose() {
-    _scoreController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.studentName),
-      content: TextField(
-        controller: _scoreController,
-        autofocus: true,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        decoration: InputDecoration(
-          labelText: widget.maxScoreLabel,
-          hintText: widget.scoreHint,
-        ),
-        onSubmitted: (_) => _submit(),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
-        ),
-        FilledButton(onPressed: _submit, child: Text(widget.saveLabel)),
-      ],
-    );
-  }
-
-  void _submit() {
-    final parsed = double.tryParse(_scoreController.text.trim());
-    if (parsed == null) {
-      return;
-    }
-    Navigator.of(context).pop(parsed);
   }
 }

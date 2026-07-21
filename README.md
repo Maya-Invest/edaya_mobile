@@ -24,7 +24,7 @@ edaya_mobile/
 | App | Package | Audience | Notes |
 |-----|---------|----------|-------|
 | Guardian | `edaya_guardian` | Parents and guardians | `com.softilab.edaya.guardian` — calendar, academic records, fees, inbox, student switching; Firebase push |
-| Teacher | `edaya_teacher` | Teachers and staff | `com.softilab.edaya.staff` — calendar, evaluations, attendance; class filter |
+| Teacher | `edaya_teacher` | Teachers and staff | `com.softilab.edaya.staff` — calendar, evaluations, attendance; class filter. Sprint plan: [docs/sprints/teacher-app-implementation-plan.md](docs/sprints/teacher-app-implementation-plan.md) |
 
 Both apps share auth, bootstrap, theme, and most UI primitives via `edaya_shared`. Each app keeps a thin layer for routes, domain features, and app-specific preferences.
 

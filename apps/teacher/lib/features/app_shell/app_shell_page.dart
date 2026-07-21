@@ -33,36 +33,69 @@ class AppShellPage extends LScopedView<AppShellController> {
   Widget buildView(BuildContext context, AppShellController controller) {
     final location = GoRouterState.of(context).uri.toString();
     final selectedIndex = controller.selectedIndexForLocation(location);
-
-    return Scaffold(
-      appBar: TeacherAppBar(),
-      body: child,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex,
-        onDestinationSelected: controller.onDestinationSelected,
-        destinations: [
-          NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(Icons.calendar_month),
-            label: context.tr.navCalendar,
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.grade_outlined),
-            selectedIcon: Icon(Icons.grade),
-            label: context.tr.navEvaluations,
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.school_outlined),
-            selectedIcon: Icon(Icons.school),
-            label: context.tr.navTeaching,
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.description_outlined),
-            selectedIcon: Icon(Icons.description),
-            label: context.tr.navReportCards,
-          ),
-        ],
+    final destinations = [
+      NavigationDestination(
+        icon: Icon(Icons.calendar_month_outlined),
+        selectedIcon: Icon(Icons.calendar_month),
+        label: context.tr.navCalendar,
       ),
+      NavigationDestination(
+        icon: Icon(Icons.grade_outlined),
+        selectedIcon: Icon(Icons.grade),
+        label: context.tr.navEvaluations,
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.school_outlined),
+        selectedIcon: Icon(Icons.school),
+        label: context.tr.navTeaching,
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.description_outlined),
+        selectedIcon: Icon(Icons.description),
+        label: context.tr.navReportCards,
+      ),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useRail = constraints.maxWidth >= 600;
+        final body = child;
+
+        if (!useRail) {
+          return Scaffold(
+            appBar: TeacherAppBar(),
+            body: body,
+            bottomNavigationBar: NavigationBar(
+              selectedIndex: selectedIndex,
+              onDestinationSelected: controller.onDestinationSelected,
+              destinations: destinations,
+            ),
+          );
+        }
+
+        return Scaffold(
+          appBar: TeacherAppBar(),
+          body: Row(
+            children: [
+              NavigationRail(
+                selectedIndex: selectedIndex,
+                onDestinationSelected: controller.onDestinationSelected,
+                labelType: NavigationRailLabelType.all,
+                destinations: [
+                  for (final destination in destinations)
+                    NavigationRailDestination(
+                      icon: destination.icon,
+                      selectedIcon: destination.selectedIcon,
+                      label: Text(destination.label),
+                    ),
+                ],
+              ),
+              const VerticalDivider(width: 1),
+              Expanded(child: body),
+            ],
+          ),
+        );
+      },
     );
   }
 }

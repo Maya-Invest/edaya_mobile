@@ -1,9 +1,25 @@
 import 'package:edaya_api_client/edaya_api_client.dart';
 import 'package:edaya_integration_tests/edaya_integration_tests.dart';
 import 'package:edaya_teacher/common/utils/academic_period.dart';
+import 'package:edaya_teacher/features/calendar/models/teacher_session.dart';
+import 'package:edaya_teacher/features/evaluations/models/evaluation_models.dart';
+import 'package:edaya_teacher/features/report_cards/models/report_card_roster_models.dart';
 import 'package:edaya_teacher/features/report_cards/report_card_logic.dart';
+import 'package:edaya_teacher/navigation/teacher_entity_resolvers.dart';
 
 import 'teacher_widget_test_harness.dart';
+
+class TeacherReportCardCommentProbe {
+  const TeacherReportCardCommentProbe({
+    required this.resultId,
+    required this.studentId,
+    required this.studentName,
+  });
+
+  final String resultId;
+  final String studentId;
+  final String studentName;
+}
 
 class TeacherReportCardClassProbe {
   const TeacherReportCardClassProbe({
@@ -67,6 +83,13 @@ class TeacherProbeBundle {
     required this.classFilterProbe,
     required this.firstAssessmentTitle,
     required this.marksStudentCount,
+    required this.periodId,
+    required this.firstAssessmentId,
+    required this.resolvedSession,
+    required this.evaluationSummary,
+    required this.reportCardRosterArgs,
+    required this.reportCardCommentProbe,
+    required this.reportCardCommentRouteArgs,
   });
 
   final List<dynamic> timetableEvents;
@@ -78,6 +101,13 @@ class TeacherProbeBundle {
   final TeacherClassFilterProbe? classFilterProbe;
   final String? firstAssessmentTitle;
   final int marksStudentCount;
+  final String? periodId;
+  final String? firstAssessmentId;
+  final TeacherSession? resolvedSession;
+  final EvaluationSummary? evaluationSummary;
+  final ReportCardRosterArgs? reportCardRosterArgs;
+  final TeacherReportCardCommentProbe? reportCardCommentProbe;
+  final ReportCardCommentRouteArgs? reportCardCommentRouteArgs;
 
   TeacherReportCardClassProbe? get firstClassWithGeneratedReportCards {
     for (final row in reportCardClasses) {
@@ -163,7 +193,77 @@ class TeacherProbeBundle {
     final firstAssessmentTitle = evaluations?.assessments.isNotEmpty == true
         ? evaluations!.assessments.first['title'] as String?
         : null;
+    final firstAssessmentId = evaluations?.assessments.isNotEmpty == true
+        ? evaluations!.assessments.first['id'] as String?
+        : null;
     final marksStudentCount = evaluations?.enrollments.length ?? 0;
+
+    final classLabelById = {
+      for (final classGroup in context.assignedClassGroups)
+        classGroup['id'] as String:
+            classGroup['name'] as String? ?? classGroup['id'] as String,
+    };
+
+    TeacherSession? resolvedSession;
+    if (sessionProbe != null) {
+      final subjectLabelByClassSubjectId = await _subjectLabelsByClassSubject(
+        client,
+        classSubjectIds.toSet(),
+      );
+      resolvedSession = await resolveTeacherSession(
+        client,
+        sessionId: sessionProbe.lessonSessionId,
+        classLabelById: classLabelById,
+        subjectLabelByClassSubjectId: subjectLabelByClassSubjectId,
+      );
+    }
+
+    EvaluationSummary? evaluationSummary;
+    if (firstAssessmentId != null) {
+      evaluationSummary = await resolveEvaluationSummary(
+        client,
+        assessmentId: firstAssessmentId,
+        academicYearId: profile.academicYearId,
+        classLabelById: classLabelById,
+      );
+    }
+
+    ReportCardRosterArgs? reportCardRosterArgs;
+    TeacherReportCardClassProbe? reportClass;
+    for (final row in reportCardClasses) {
+      if (row.generatedCount > 0) {
+        reportClass = row;
+        break;
+      }
+    }
+    if (periodId != null && reportClass != null) {
+      reportCardRosterArgs = await resolveReportCardRosterArgs(
+        client,
+        classGroupId: reportClass.classGroupId,
+        periodId: periodId,
+      );
+    }
+
+    final reportCardCommentProbe = await _loadReportCardCommentProbe(
+      client,
+      classGroupIds: classGroupIds,
+      periodId: periodId,
+    );
+
+    ReportCardCommentRouteArgs? reportCardCommentRouteArgs;
+    if (reportCardCommentProbe != null) {
+      final target = await resolveReportCardCommentTarget(
+        client,
+        resultId: reportCardCommentProbe.resultId,
+        studentId: reportCardCommentProbe.studentId,
+      );
+      if (target != null) {
+        reportCardCommentRouteArgs = ReportCardCommentRouteArgs(
+          rosterArgs: target.rosterArgs,
+          student: target.student,
+        );
+      }
+    }
 
     return TeacherProbeBundle(
       timetableEvents: timetableEvents,
@@ -175,7 +275,84 @@ class TeacherProbeBundle {
       classFilterProbe: classFilterProbe,
       firstAssessmentTitle: firstAssessmentTitle,
       marksStudentCount: marksStudentCount,
+      periodId: periodId,
+      firstAssessmentId: firstAssessmentId,
+      resolvedSession: resolvedSession,
+      evaluationSummary: evaluationSummary,
+      reportCardRosterArgs: reportCardRosterArgs,
+      reportCardCommentProbe: reportCardCommentProbe,
+      reportCardCommentRouteArgs: reportCardCommentRouteArgs,
     );
+  }
+
+  static Future<Map<String, String>> _subjectLabelsByClassSubject(
+    SchoolClient client,
+    Set<String> classSubjectIds,
+  ) async {
+    if (classSubjectIds.isEmpty) {
+      return const {};
+    }
+
+    final rows = await client.classSubjects.list(
+      entitiesByIds(classSubjectIds.toList()),
+    );
+    final subjectIds = rows
+        .map((row) => row['subjectId'] as String?)
+        .whereType<String>()
+        .toList();
+    final subjects = subjectIds.isEmpty
+        ? <Map<String, dynamic>>[]
+        : await client.subjects.list(entitiesByIds(subjectIds));
+    final subjectNameById = {
+      for (final subject in subjects)
+        subject['id'] as String: subject['name'] as String? ?? '',
+    };
+
+    return {
+      for (final row in rows)
+        row['id'] as String:
+            subjectNameById[row['subjectId'] as String? ?? ''] ?? 'Subject',
+    };
+  }
+
+  static Future<TeacherReportCardCommentProbe?> _loadReportCardCommentProbe(
+    SchoolClient client, {
+    required List<String> classGroupIds,
+    required String? periodId,
+  }) async {
+    if (periodId == null) {
+      return null;
+    }
+
+    for (final classGroupId in classGroupIds) {
+      final results = await client.results.list({
+        'classGroupId': classGroupId,
+        'periodId': periodId,
+      });
+      for (final result in results) {
+        if (!reportCardIsGenerated(result)) {
+          continue;
+        }
+        final resultId = result['id'] as String?;
+        final studentId = result['studentId'] as String?;
+        if (resultId == null || studentId == null) {
+          continue;
+        }
+
+        final student = await client.students.get(studentId);
+        final firstName = student['firstName'] as String? ?? '';
+        final lastName = student['lastName'] as String? ?? '';
+        final fullName = '$firstName $lastName'.trim();
+
+        return TeacherReportCardCommentProbe(
+          resultId: resultId,
+          studentId: studentId,
+          studentName: fullName.isEmpty ? studentId : fullName,
+        );
+      }
+    }
+
+    return null;
   }
 
   static Future<List<String>> _loadRosterStudentNames(

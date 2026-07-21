@@ -31,6 +31,8 @@ class SessionStudentRow {
     this.photoUrl,
     this.attendanceId,
     this.status,
+    this.reason,
+    this.notes,
   });
 
   final String studentId;
@@ -39,10 +41,14 @@ class SessionStudentRow {
   final String? photoUrl;
   final String? attendanceId;
   final SessionAttendanceStatus? status;
+  final String? reason;
+  final String? notes;
 
   SessionStudentRow copyWith({
     String? attendanceId,
     SessionAttendanceStatus? status,
+    String? reason,
+    String? notes,
   }) {
     return SessionStudentRow(
       studentId: studentId,
@@ -51,6 +57,8 @@ class SessionStudentRow {
       photoUrl: photoUrl,
       attendanceId: attendanceId ?? this.attendanceId,
       status: status ?? this.status,
+      reason: reason ?? this.reason,
+      notes: notes ?? this.notes,
     );
   }
 }

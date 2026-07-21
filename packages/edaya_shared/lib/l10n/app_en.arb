@@ -133,6 +133,28 @@
       "error": {"type": "String"}
     }
   },
+  "couldNotLoadReportCardComments": "Could not load report card comments: {error}",
+  "@couldNotLoadReportCardComments": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "couldNotSaveReportCardComment": "Could not save report card comment: {error}",
+  "@couldNotSaveReportCardComment": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "reportCardCommentsTitle": "Report card comments",
+  "reportCardCommentHint": "Enter your comment",
+  "reportCardCommentsReadOnly": "This report card is published and cannot be edited.",
+  "reportCardCommentNoEditableFields": "No comment fields are available for your role on this report card.",
+  "subjectComment": "{subject} comment",
+  "@subjectComment": {
+    "placeholders": {
+      "subject": {"type": "String"}
+    }
+  },
   "reportCardStatusDraft": "Draft",
   "reportCardStatusPublished": "Published",
   "tooltipAccount": "Account",
@@ -545,6 +567,35 @@
     }
   },
   "attendanceComplete": "Attendance complete",
+  "markAllPresent": "Mark all present",
+  "attendanceModeGrid": "Grid",
+  "attendanceModeSequential": "Sequential",
+  "attendanceExceptionTitle": "Attendance · {studentName}",
+  "@attendanceExceptionTitle": {
+    "placeholders": {
+      "studentName": {"type": "String"}
+    }
+  },
+  "attendanceReasonLabel": "Reason",
+  "attendanceReasonHint": "e.g. illness, appointment",
+  "attendanceNotesLabel": "Notes",
+  "attendanceNotesHint": "Optional context for the school office",
+  "attendanceSavedLocally": "Saved locally — will sync when online",
+  "calendarTodayTitle": "Today",
+  "calendarGoToToday": "Go to today",
+  "calendarCurrentSession": "Now",
+  "calendarNextSession": "Up next",
+  "calendarNoSessionsToday": "No sessions scheduled for today.",
+  "calendarIncompleteAttendance": "Attendance · {classLabel} {subjectLabel}",
+  "@calendarIncompleteAttendance": {
+    "placeholders": {
+      "classLabel": {"type": "String"},
+      "subjectLabel": {"type": "String"}
+    }
+  },
+  "sessionAttendanceComplete": "Attendance complete",
+  "sessionAttendanceIncomplete": "Attendance incomplete",
+  "logbookDraftRestored": "Restored unsaved logbook draft",
   "done": "Done",
   "cancel": "Cancel",
   "reviewAgain": "Review again",
@@ -630,6 +681,63 @@
   "evaluationKindOther": "Other",
   "createEvaluation": "Create evaluation",
   "enterValidMaxScore": "Enter a valid max score.",
+  "assessmentDateLabel": "Assessment date",
+  "homeworkDueDateLabel": "Homework due date",
+  "assessmentDateRequired": "Select an assessment date.",
+  "homeworkDueDateRequired": "Select a homework due date.",
+  "invalidScoreValue": "Enter a score between 0 and {maxScore}.",
+  "@invalidScoreValue": {
+    "placeholders": {
+      "maxScore": {"type": "String"}
+    }
+  },
+  "syncStatusSaved": "Saved",
+  "syncStatusSavedLocally": "Saved locally",
+  "syncStatusPending": "Waiting to sync",
+  "syncStatusSyncing": "Syncing",
+  "syncStatusSynced": "Synced",
+  "syncStatusFailed": "Sync failed",
+  "duplicateEvaluation": "Duplicate",
+  "completeEvaluation": "Mark complete",
+  "ungradedOnlyFilter": "Ungraded only",
+  "fillAllMarks": "Fill all",
+  "clearAllMarks": "Clear all",
+  "familyVisibleSummaryLabel": "Family-visible summary",
+  "familyVisiblePreviewLabel": "Family preview",
+  "accountSyncSectionTitle": "Synchronization",
+  "accountPendingSyncSummary": "{count, plural, =1{1 item waiting to sync} other{{count} items waiting to sync}}",
+  "@accountPendingSyncSummary": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "accountPendingSyncOldest": "Oldest pending {age}",
+  "@accountPendingSyncOldest": {
+    "placeholders": {
+      "age": {"type": "String"}
+    }
+  },
+  "accountPendingSyncNone": "All changes are synced",
+  "accountSyncNow": "Sync now",
+  "accountPendingSyncJustNow": "just now",
+  "accountPendingSyncMinutes": "{minutes} min ago",
+  "@accountPendingSyncMinutes": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "accountPendingSyncHours": "{hours} hr ago",
+  "@accountPendingSyncHours": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "accountPendingSyncDays": "{days} d ago",
+  "@accountPendingSyncDays": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
   "outOfMaxScore": "Out of {maxScore}",
   "@outOfMaxScore": {
     "placeholders": {

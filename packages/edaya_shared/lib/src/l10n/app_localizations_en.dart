@@ -278,6 +278,35 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String couldNotLoadReportCardComments(String error) {
+    return 'Could not load report card comments: $error';
+  }
+
+  @override
+  String couldNotSaveReportCardComment(String error) {
+    return 'Could not save report card comment: $error';
+  }
+
+  @override
+  String get reportCardCommentsTitle => 'Report card comments';
+
+  @override
+  String get reportCardCommentHint => 'Enter your comment';
+
+  @override
+  String get reportCardCommentsReadOnly =>
+      'This report card is published and cannot be edited.';
+
+  @override
+  String get reportCardCommentNoEditableFields =>
+      'No comment fields are available for your role on this report card.';
+
+  @override
+  String subjectComment(String subject) {
+    return '$subject comment';
+  }
+
+  @override
   String get reportCardStatusDraft => 'Draft';
 
   @override
@@ -986,6 +1015,64 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attendanceComplete => 'Attendance complete';
 
   @override
+  String get markAllPresent => 'Mark all present';
+
+  @override
+  String get attendanceModeGrid => 'Grid';
+
+  @override
+  String get attendanceModeSequential => 'Sequential';
+
+  @override
+  String attendanceExceptionTitle(String studentName) {
+    return 'Attendance · $studentName';
+  }
+
+  @override
+  String get attendanceReasonLabel => 'Reason';
+
+  @override
+  String get attendanceReasonHint => 'e.g. illness, appointment';
+
+  @override
+  String get attendanceNotesLabel => 'Notes';
+
+  @override
+  String get attendanceNotesHint => 'Optional context for the school office';
+
+  @override
+  String get attendanceSavedLocally => 'Saved locally — will sync when online';
+
+  @override
+  String get calendarTodayTitle => 'Today';
+
+  @override
+  String get calendarGoToToday => 'Go to today';
+
+  @override
+  String get calendarCurrentSession => 'Now';
+
+  @override
+  String get calendarNextSession => 'Up next';
+
+  @override
+  String get calendarNoSessionsToday => 'No sessions scheduled for today.';
+
+  @override
+  String calendarIncompleteAttendance(String classLabel, String subjectLabel) {
+    return 'Attendance · $classLabel $subjectLabel';
+  }
+
+  @override
+  String get sessionAttendanceComplete => 'Attendance complete';
+
+  @override
+  String get sessionAttendanceIncomplete => 'Attendance incomplete';
+
+  @override
+  String get logbookDraftRestored => 'Restored unsaved logbook draft';
+
+  @override
   String get done => 'Done';
 
   @override
@@ -1110,6 +1197,105 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enterValidMaxScore => 'Enter a valid max score.';
+
+  @override
+  String get assessmentDateLabel => 'Assessment date';
+
+  @override
+  String get homeworkDueDateLabel => 'Homework due date';
+
+  @override
+  String get assessmentDateRequired => 'Select an assessment date.';
+
+  @override
+  String get homeworkDueDateRequired => 'Select a homework due date.';
+
+  @override
+  String invalidScoreValue(String maxScore) {
+    return 'Enter a score between 0 and $maxScore.';
+  }
+
+  @override
+  String get syncStatusSaved => 'Saved';
+
+  @override
+  String get syncStatusSavedLocally => 'Saved locally';
+
+  @override
+  String get syncStatusPending => 'Waiting to sync';
+
+  @override
+  String get syncStatusSyncing => 'Syncing';
+
+  @override
+  String get syncStatusSynced => 'Synced';
+
+  @override
+  String get syncStatusFailed => 'Sync failed';
+
+  @override
+  String get duplicateEvaluation => 'Duplicate';
+
+  @override
+  String get completeEvaluation => 'Mark complete';
+
+  @override
+  String get ungradedOnlyFilter => 'Ungraded only';
+
+  @override
+  String get fillAllMarks => 'Fill all';
+
+  @override
+  String get clearAllMarks => 'Clear all';
+
+  @override
+  String get familyVisibleSummaryLabel => 'Family-visible summary';
+
+  @override
+  String get familyVisiblePreviewLabel => 'Family preview';
+
+  @override
+  String get accountSyncSectionTitle => 'Synchronization';
+
+  @override
+  String accountPendingSyncSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items waiting to sync',
+      one: '1 item waiting to sync',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String accountPendingSyncOldest(String age) {
+    return 'Oldest pending $age';
+  }
+
+  @override
+  String get accountPendingSyncNone => 'All changes are synced';
+
+  @override
+  String get accountSyncNow => 'Sync now';
+
+  @override
+  String get accountPendingSyncJustNow => 'just now';
+
+  @override
+  String accountPendingSyncMinutes(int minutes) {
+    return '$minutes min ago';
+  }
+
+  @override
+  String accountPendingSyncHours(int hours) {
+    return '$hours hr ago';
+  }
+
+  @override
+  String accountPendingSyncDays(int days) {
+    return '$days d ago';
+  }
 
   @override
   String outOfMaxScore(String maxScore) {

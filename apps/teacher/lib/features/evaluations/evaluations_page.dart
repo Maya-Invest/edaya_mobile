@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
+import '../../navigation/teacher_route_paths.dart';
 import 'evaluations_controller.dart';
 import 'models/evaluation_models.dart';
 import 'widgets/academic_period_picker.dart';
@@ -84,7 +85,7 @@ class _EvaluationCard extends StatelessWidget {
           if (!context.mounted) {
             return;
           }
-          context.push('/evaluations/marks', extra: evaluation);
+          context.push(TeacherRoutePaths.assessmentMarks(evaluation.id));
         },
         title: Text(evaluation.title),
         subtitle: Text(
@@ -92,7 +93,36 @@ class _EvaluationCard extends StatelessWidget {
           '${context.tr.evaluationGradedProgress(evaluation.gradedCount, evaluation.totalStudents)}',
         ),
         isThreeLine: true,
-        trailing: const Icon(Icons.chevron_right),
+        trailing: PopupMenuButton<String>(
+          onSelected: (value) async {
+            switch (value) {
+              case 'duplicate':
+                final error = await controller.duplicateEvaluation(evaluation);
+                if (error != null && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(error)),
+                  );
+                }
+              case 'complete':
+                final error = await controller.completeEvaluation(evaluation);
+                if (error != null && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(error)),
+                  );
+                }
+            }
+          },
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'duplicate',
+              child: Text(context.tr.duplicateEvaluation),
+            ),
+            PopupMenuItem(
+              value: 'complete',
+              child: Text(context.tr.completeEvaluation),
+            ),
+          ],
+        ),
       ),
     );
   }

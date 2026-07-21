@@ -15,12 +15,15 @@ class SessionDetailController extends LevitController
     required this.session,
     required String? Function() getAcademicYearId,
     required SchoolClientFactory schoolClient,
+    TeacherOutboxStore? outboxStore,
   }) : _getAcademicYearId = getAcademicYearId,
-       _schoolClient = schoolClient;
+       _schoolClient = schoolClient,
+       _outboxStore = outboxStore ?? openTeacherOutboxStore();
 
   final TeacherSession session;
   final String? Function() _getAcademicYearId;
   final SchoolClientFactory _schoolClient;
+  final TeacherOutboxStore _outboxStore;
 
   final segment = LxVar(SessionDetailSegment.attendance);
   final students = LxVar<List<SessionStudentRow>>(const []);
@@ -30,6 +33,7 @@ class SessionDetailController extends LevitController
   final activityNotes = LxVar<String?>(null);
   final errorMessage = LxVar('');
   final saveMessage = LxVar('');
+  final pendingOutboxCount = LxVar(0);
 
   @override
   void onInit() {
@@ -42,7 +46,9 @@ class SessionDetailController extends LevitController
     autoDispose(activityNotes);
     autoDispose(errorMessage);
     autoDispose(saveMessage);
+    autoDispose(pendingOutboxCount);
     unawaited(loadDetail());
+    unawaited(refreshPendingOutboxCount());
   }
 
   int get recordedAttendanceCount =>
@@ -62,6 +68,7 @@ class SessionDetailController extends LevitController
     errorMessage('');
     await runTask(() async {
       try {
+        await syncPendingOutbox();
         final client = _schoolClient();
         final enrollmentRows = await client.enrollments.list(
           activeEnrollmentsForClass(
@@ -101,6 +108,8 @@ class SessionDetailController extends LevitController
             status: SessionAttendanceStatus.fromApi(
               attendance?['status'] as String?,
             ),
+            reason: attendance?['reason'] as String?,
+            notes: attendance?['notes'] as String?,
           );
         }).toList()..sort((a, b) => a.studentName.compareTo(b.studentName));
         students(roster);
@@ -165,48 +174,204 @@ class SessionDetailController extends LevitController
 
   Future<bool> recordAttendance(
     SessionStudentRow row,
-    SessionAttendanceStatus status,
-  ) async {
+    SessionAttendanceStatus status, {
+    String? reason,
+    String? notes,
+  }) async {
     if (!supportsAttendanceRecording) {
       saveMessage(systemL10n().attendanceRecordingLessonOnly);
       return false;
     }
 
     saveMessage('');
+    final attendanceId = row.attendanceId ?? '${row.studentId}-${session.id}';
+    final createdAt = DateTime.now().toUtc().toIso8601String();
+    final payload = attendanceRecordPayload(
+      kind: session.kind,
+      occurrenceId: session.id,
+      studentId: row.studentId,
+      attendanceId: attendanceId,
+      status: status.apiValue,
+      createdAt: createdAt,
+      reason: reason,
+      notes: notes,
+    );
+
     try {
       final client = _schoolClient();
-      final attendanceId = row.attendanceId ?? '${row.studentId}-${session.id}';
-      await client.recordAttendance(
-        attendanceRecordPayload(
-          kind: session.kind,
-          occurrenceId: session.id,
-          studentId: row.studentId,
-          attendanceId: attendanceId,
-          status: status.apiValue,
-          createdAt: DateTime.now().toUtc().toIso8601String(),
-        ),
-      );
+      await client.recordAttendance(payload);
+      await _removeAttendanceOutbox(row.studentId);
       students(
         students.value
             .map(
               (entry) => entry.studentId == row.studentId
-                  ? entry.copyWith(attendanceId: attendanceId, status: status)
+                  ? entry.copyWith(
+                      attendanceId: attendanceId,
+                      status: status,
+                      reason: reason,
+                      notes: notes,
+                    )
                   : entry,
             )
             .toList(),
       );
       return true;
     } on ApiError catch (error) {
-      saveMessage(systemL10n().couldNotSaveAttendance('$error'));
-      return false;
+      return _enqueueAttendanceFailure(
+        row: row,
+        status: status,
+        reason: reason,
+        notes: notes,
+        attendanceId: attendanceId,
+        createdAt: createdAt,
+        error: '$error',
+      );
     } on Object catch (error) {
-      saveMessage(systemL10n().couldNotSaveAttendance('$error'));
-      return false;
+      return _enqueueAttendanceFailure(
+        row: row,
+        status: status,
+        reason: reason,
+        notes: notes,
+        attendanceId: attendanceId,
+        createdAt: createdAt,
+        error: '$error',
+      );
     }
   }
 
+  Future<int> markAllPresent() async {
+    var savedCount = 0;
+    for (final row in students.value) {
+      if (row.status == SessionAttendanceStatus.present) {
+        continue;
+      }
+      final saved = await recordAttendance(row, SessionAttendanceStatus.present);
+      if (saved) {
+        savedCount++;
+      }
+    }
+    return savedCount;
+  }
+
+  Future<void> refreshPendingOutboxCount() async {
+    pendingOutboxCount(await _outboxStore.pendingCount());
+  }
+
+  Future<int> syncPendingOutbox() async {
+    final pending = await _outboxStore.listPending();
+    var syncedCount = 0;
+    final client = _schoolClient();
+
+    for (final entry in pending) {
+      final lessonSessionId = entry.payload['lessonSessionId'] as String? ??
+          (entry.payload['notePayload'] is Map
+              ? (entry.payload['notePayload'] as Map)['id'] as String?
+              : null);
+      final attendanceSessionId = entry.payload['lessonSessionId'] as String?;
+
+      final matchesSession = switch (entry.kind) {
+        TeacherOutboxKind.attendance =>
+          attendanceSessionId == session.id && supportsAttendanceRecording,
+        TeacherOutboxKind.logbook =>
+          lessonSessionId == session.id && supportsLogbook,
+        _ => false,
+      };
+      if (!matchesSession) {
+        continue;
+      }
+
+      try {
+        await syncTeacherOutboxEntry(client, entry);
+        await _outboxStore.remove(entry.id);
+        syncedCount++;
+      } on Object catch (error) {
+        await _outboxStore.upsert(
+          entry.copyWith(
+            state: TeacherOutboxState.failed,
+            attemptCount: entry.attemptCount + 1,
+            lastError: '$error',
+            updatedAt: DateTime.now(),
+          ),
+        );
+      }
+    }
+
+    if (syncedCount > 0) {
+      await loadDetail();
+    }
+    await refreshPendingOutboxCount();
+    return syncedCount;
+  }
+
+  Future<bool> _enqueueAttendanceFailure({
+    required SessionStudentRow row,
+    required SessionAttendanceStatus status,
+    required String? reason,
+    required String? notes,
+    required String attendanceId,
+    required String createdAt,
+    required String error,
+  }) async {
+    final payload = attendanceRecordPayload(
+      kind: session.kind,
+      occurrenceId: session.id,
+      studentId: row.studentId,
+      attendanceId: attendanceId,
+      status: status.apiValue,
+      createdAt: createdAt,
+      reason: reason,
+      notes: notes,
+    );
+    final now = DateTime.now();
+    await _outboxStore.enqueue(
+      TeacherOutboxEntry(
+        id: attendanceId,
+        kind: TeacherOutboxKind.attendance,
+        idempotencyKey: teacherAttendanceIdempotencyKey(
+          occurrenceId: session.id,
+          studentId: row.studentId,
+        ),
+        payload: payload,
+        state: TeacherOutboxState.pending,
+        attemptCount: 1,
+        lastError: error,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    students(
+      students.value
+          .map(
+            (entry) => entry.studentId == row.studentId
+                ? entry.copyWith(
+                    attendanceId: attendanceId,
+                    status: status,
+                    reason: reason,
+                    notes: notes,
+                  )
+                : entry,
+          )
+          .toList(),
+    );
+    saveMessage(systemL10n().attendanceSavedLocally);
+    await refreshPendingOutboxCount();
+    return true;
+  }
+
+  Future<void> _removeAttendanceOutbox(String studentId) async {
+    final pending = await _outboxStore.listPending();
+    for (final entry in pending) {
+      if (entry.kind == TeacherOutboxKind.attendance &&
+          entry.payload['studentId'] == studentId &&
+          entry.payload['lessonSessionId'] == session.id) {
+        await _outboxStore.remove(entry.id);
+      }
+    }
+    await refreshPendingOutboxCount();
+  }
+
   Future<bool> saveLogbook({
-    required String sessionNoteText,
+    required logbook.StructuredLogbookContent structuredContent,
     List<LogbookProgressDraft> progressEntries = const [],
   }) async {
     if (!supportsLogbook || session.classSubjectId == null) {
@@ -231,26 +396,27 @@ class SessionDetailController extends LevitController
     }
 
     saveMessage('');
+    final encodedNote = logbook.encodeStructuredSessionNote(structuredContent);
+    final progressOps = <Map<String, dynamic>>[];
+    final recordedAt = DateTime.now();
+    final client = _schoolClient();
+
     try {
-      final client = _schoolClient();
       final lessonSession = await client.lessonSessions.get(session.id);
-      await client.lessonSessions.save(
-        logbook.lessonSessionNotePayload(
-          lessonSession: lessonSession,
-          sessionNote: sessionNoteText,
-          displayLabelFallback: session.title,
-        ),
+      final notePayload = logbook.lessonSessionNotePayload(
+        lessonSession: lessonSession,
+        sessionNote: encodedNote,
+        displayLabelFallback: session.title,
       );
-      sessionNote(sessionNoteText.trim());
 
       for (final entry in progressEntries) {
         final matter = matterById[entry.matterId]!;
         final existing = matter.sessionProgress;
-        final recordedAt = DateTime.now();
 
         if (logbook.isProgressCreate(existing)) {
-          await client.recordLessonSessionProgress(
-            logbook.recordLessonProgressPayload(
+          progressOps.add({
+            'action': 'create',
+            'payload': logbook.recordLessonProgressPayload(
               id: logbook.newProgressId(session.id),
               classSubjectMatterId: matter.id,
               lessonSessionId: session.id,
@@ -258,28 +424,111 @@ class SessionDetailController extends LevitController
               notes: entry.notes,
               recordedAt: recordedAt,
             ),
-          );
+          });
         } else {
           final progressRow = await client.classSubjectProgress.get(
             existing!.id,
           );
-          await client.classSubjectProgress.save(
-            logbook.updateProgressPayload(
+          progressOps.add({
+            'action': 'update',
+            'payload': logbook.updateProgressPayload(
               existing: progressRow,
               completedPercentage: entry.completedPercentage,
               notes: entry.notes,
               recordedAt: recordedAt,
             ),
-          );
+          });
         }
       }
 
+      await client.lessonSessions.save(notePayload);
+      for (final op in progressOps) {
+        final action = op['action'] as String;
+        final payload = op['payload'] as Map<String, dynamic>;
+        if (action == 'create') {
+          await client.recordLessonSessionProgress(payload);
+        } else {
+          await client.classSubjectProgress.save(payload);
+        }
+      }
+
+      sessionNote(encodedNote);
       await loadDetail();
       return true;
     } on Object catch (error) {
-      saveMessage(systemL10n().couldNotSaveLogbook('$error'));
-      return false;
+      return _enqueueLogbookFailure(
+        encodedNote: encodedNote,
+        progressEntries: progressEntries,
+        matterById: matterById,
+        error: '$error',
+        prefetchedOps: progressOps,
+      );
     }
+  }
+
+  Future<bool> _enqueueLogbookFailure({
+    required String encodedNote,
+    required List<LogbookProgressDraft> progressEntries,
+    required Map<String, SessionSubjectMatterOption> matterById,
+    required String error,
+    List<Map<String, dynamic>> prefetchedOps = const [],
+  }) async {
+    final recordedAt = DateTime.now();
+    final progressOps = prefetchedOps.isNotEmpty
+        ? prefetchedOps
+        : <Map<String, dynamic>>[];
+
+    if (progressOps.isEmpty) {
+      for (final entry in progressEntries) {
+        final matter = matterById[entry.matterId];
+        if (matter == null) {
+          continue;
+        }
+        final existing = matter.sessionProgress;
+        if (logbook.isProgressCreate(existing)) {
+          progressOps.add({
+            'action': 'create',
+            'payload': logbook.recordLessonProgressPayload(
+              id: logbook.newProgressId(session.id),
+              classSubjectMatterId: matter.id,
+              lessonSessionId: session.id,
+              completedPercentage: entry.completedPercentage,
+              notes: entry.notes,
+              recordedAt: recordedAt,
+            ),
+          });
+        }
+      }
+    }
+
+    final notePayload = {
+      'id': session.id,
+      'sessionNote': logbook.normalizeSessionNote(encodedNote),
+      'displayLabel': session.title,
+    };
+
+    final now = DateTime.now();
+    await _outboxStore.enqueue(
+      buildTeacherOutboxEntry(
+        id: 'logbook-${session.id}-${now.millisecondsSinceEpoch}',
+        kind: TeacherOutboxKind.logbook,
+        idempotencyKey: teacherLogbookIdempotencyKey(
+          lessonSessionId: session.id,
+        ),
+        payload: {
+          'lessonSessionId': session.id,
+          ...logbookOutboxPayload(
+            notePayload: notePayload,
+            progressOps: progressOps,
+          ),
+        },
+        lastError: error,
+      ),
+    );
+    sessionNote(encodedNote);
+    saveMessage(systemL10n().attendanceSavedLocally);
+    await refreshPendingOutboxCount();
+    return true;
   }
 
   String _initials(String name) {

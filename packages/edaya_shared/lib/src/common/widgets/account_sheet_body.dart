@@ -12,10 +12,12 @@ class AccountSheetBody extends StatelessWidget {
     super.key,
     required this.session,
     this.profileHeader,
+    this.beforeSignOut,
   });
 
   final AppSessionController session;
   final Widget? profileHeader;
+  final Widget? beforeSignOut;
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +76,7 @@ class AccountSheetBody extends StatelessWidget {
                 },
               ),
             ],
+            if (beforeSignOut != null) beforeSignOut!,
             const SizedBox(height: 24),
             LWatch(
               () => OutlinedButton.icon(
