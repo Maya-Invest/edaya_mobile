@@ -6,6 +6,7 @@ environment:
 
 workspace:
   - apps/guardian
+  - apps/guardian_prototype
   - apps/teacher
   - packages/edaya_api_client
   - packages/edaya_auth
@@ -41,6 +42,9 @@ melos:
     generated:check:
       run: bash scripts/check-api-bindings-drift.sh
       description: Verify committed Dart bindings match spec/client-bindings.json.
+    run:guardian:prototype:
+      run: cd apps/guardian_prototype && flutter run
+      description: Run guardian UI prototype (mock data, no API).
     run:guardian:local:
       run: cd apps/guardian && flutter run --dart-define=API_URL=http://10.0.2.2:9999
       description: Run guardian app against local API (Android emulator).
@@ -71,6 +75,9 @@ melos:
     screenshots:guardian:review:
       run: bash scripts/guardian-design-review.sh
       description: Generate local guardian app screenshots for designer review (requires API).
+    screenshots:guardian-prototype:review:
+      run: bash scripts/guardian-prototype-design-review.sh
+      description: Generate guardian prototype screenshots (mock data, no API).
     clean:flutter:
       exec: flutter clean
       description: Run flutter clean in all Flutter apps.
