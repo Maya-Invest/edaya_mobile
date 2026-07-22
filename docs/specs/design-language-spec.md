@@ -117,7 +117,7 @@ Guardian surfaces are **borderless** by default. Separation comes from the `#F0F
 | Variant | Fill | Border | Shadow |
 |---------|------|--------|--------|
 | `SurfaceCard` | White | None | Yes |
-| `AttentionCard` | `primaryContainer` | None | Yes (primary-tinted) |
+| `AttentionCard` | Tone fill (`important` / `normal` / `message`) | None | Yes |
 | `ListRow` | White (via `SurfaceCard`) | None | Yes |
 | Unread row | `primaryContainer` @ 35% | None | Yes |
 | Header chip | White | None | Yes |
@@ -190,7 +190,15 @@ Borderless white card: 16px radius, soft shadow, 16px padding. **No outline.**
 
 ### `AttentionCard`
 
-Borderless primary-tinted surface for urgent items (overdue fee, unread message, absence). Title + subtitle + primary CTA. Shadow only — no border.
+Compact tappable row (icon well · title/subtitle · chevron). One layout; surface from tone:
+
+| Tone | Fill | Typical use |
+|------|------|-------------|
+| `important` | Error container (red) | Overdue fees |
+| `normal` | Primary container (blue) | Bulletin disponible |
+| `message` | White | Nouveaux messages |
+
+No hero / full-width button variant.
 
 ### `SummaryMetric`
 
@@ -226,7 +234,23 @@ Centered icon, title, body, optional retry/action button. No card wrapper unless
 
 ---
 
-## 6. Accessibility
+## 6. Responsive / tablet
+
+Breakpoints (aligned with Teacher):
+
+| Tier | Width | Chrome | Content |
+|------|-------|--------|---------|
+| Compact | &lt; 600 | Bottom `NavigationBar` | Single column |
+| Medium+ | ≥ 600 | `NavigationRail` (profile + help at rail bottom) | Max content width ~840 |
+| Expanded | ≥ 1000 | Rail + right overlay drawer | Detail floats over list (~40%); scrim dismisses |
+
+- Prefer the Agenda-style single content column; do not use a permanent split pane.
+- Right overlay drawer keeps shell chrome visible; compact still pushes detail as a full body under the shell.
+- Agenda, Scolarité, Fees, and Inbox details use the same drawer pattern on tablet.
+
+---
+
+## 7. Accessibility
 
 - Minimum touch target: 48×48 dp
 - Contrast: primary on white ≥ 4.5:1 for body text
@@ -236,7 +260,7 @@ Centered icon, title, body, optional retry/action button. No card wrapper unless
 
 ---
 
-## 7. Per-screen visual direction
+## 8. Per-screen visual direction
 
 Baseline “before” screenshots: `apps/guardian/design-review/phone-fr/`
 
@@ -266,7 +290,7 @@ Baseline “before” screenshots: `apps/guardian/design-review/phone-fr/`
 
 ---
 
-## 8. Font licensing
+## 9. Font licensing
 
 | Font | License | Production |
 |------|---------|------------|
@@ -275,7 +299,7 @@ Baseline “before” screenshots: `apps/guardian/design-review/phone-fr/`
 
 ---
 
-## 9. Phase mapping
+## 10. Phase mapping
 
 | Phase | Deliverable |
 |-------|-------------|

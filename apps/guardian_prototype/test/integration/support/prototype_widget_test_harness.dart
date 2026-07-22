@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
-import 'package:guardian_prototype/app/router.dart';
-import 'package:guardian_prototype/main.dart';
+import 'package:guardian_prototype/design/theme.dart';
+import 'package:guardian_prototype/di/prototype_module.dart';
 import 'package:guardian_prototype/mock/mock_store.dart';
+import 'package:levit_flutter/levit_flutter.dart';
 
 import 'design_review_capture.dart';
 
@@ -10,8 +12,22 @@ class PrototypeWidgetTestHarness {
   PrototypeWidgetTestHarness();
 
   late MockStore store;
-  late GoRouter router;
   Size? viewportSize;
+
+  LevitScope? _scope;
+
+  /// Levit scope after [buildApp] has been pumped.
+  LevitScope get scope {
+    final resolved = _scope;
+    if (resolved == null) {
+      throw StateError(
+        'Prototype harness: pump buildApp() before accessing scope/router',
+      );
+    }
+    return resolved;
+  }
+
+  GoRouter get router => scope.find<GoRouter>();
 
   void bootstrap({required bool authenticated}) {
     store = MockStore();
@@ -20,7 +36,6 @@ class PrototypeWidgetTestHarness {
     } else {
       store.signOut();
     }
-    router = createRouter(store);
   }
 
   Widget designReviewRoot({required Widget child}) {
@@ -38,6 +53,30 @@ class PrototypeWidgetTestHarness {
   }
 
   Widget buildApp() {
-    return GuardianPrototypeApp(store: store, router: router);
+    _scope = null;
+    return LScope(
+      name: 'guardian-prototype-test-${identityHashCode(this)}',
+      dependencyFactory: (scope) {
+        _scope = scope;
+        registerPrototypeDependencies(scope, store: store);
+      },
+      child: Builder(
+        builder: (context) {
+          return MaterialApp.router(
+            title: 'Edaya Guardian Prototype',
+            theme: PrototypeTheme.light,
+            locale: const Locale('fr', 'FR'),
+            supportedLocales: const [Locale('fr', 'FR')],
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            routerConfig: context.levit.find<GoRouter>(),
+            debugShowCheckedModeBanner: false,
+          );
+        },
+      ),
+    );
   }
 }

@@ -36,6 +36,14 @@ Five shell tabs (post-login → `/home`):
 
 Shell chrome: branded `PrototypeAppBar` + `StudentContextCard` (student / school / year). Legacy paths `/calendar/events`, `/scolarite/programme`, `/scolarite/cahier`, and `/scolarite/bulletins` redirect into the screens above.
 
+### Adaptive layout
+
+| Width | Chrome | Content |
+|-------|--------|---------|
+| &lt; 600 | Bottom navigation | Single column |
+| ≥ 600 | `NavigationRail` (profile + help at bottom) | Max content width ~840 |
+| ≥ 1000 | Rail + right overlay drawer (~40%) | Detail over list (Agenda, Scolarité, Fees, Inbox) |
+
 ## Screens
 
 ### Shell tabs
@@ -60,12 +68,15 @@ Shell chrome: branded `PrototypeAppBar` + `StudentContextCard` (student / school
 | `/scolarite/subject/:subject/cahier` | Cahier de classe |
 | `/grade/:id` | Détail note |
 | `/report-card/:id` | Bulletin |
-| `/fee/:id` | Détail frais |
-| `/payment/:id` | Reçu paiement |
-| `/message/:id` | Détail message |
-| `/settings` | Paramètres (stub) |
-| `/account` | Compte |
-| `/account/profile` | Profil (stub) |
+| `/fee/:id` | → `/fees/fee/:id` |
+| `/payment/:id` | → `/fees/payment/:id` |
+| `/message/:id` | → `/inbox/message/:id` |
+| `/fees/fee/:id` | Détail frais (nested; right drawer on tablet) |
+| `/fees/payment/:id` | Reçu paiement (nested) |
+| `/inbox/message/:id` | Détail message (nested; right drawer on tablet) |
+| `/account` | Compte (full page under shell) |
+| `/account/profile` | Profil (drawer on tablet) |
+| `/settings` | Paramètres (drawer on tablet) |
 
 ## Design review screenshots
 
@@ -91,4 +102,4 @@ See [`docs/specs/design-language-spec.md`](../../docs/specs/design-language-spec
 
 Production integration checklist: [`docs/plans/guardian-phase3-migration.md`](../../docs/plans/guardian-phase3-migration.md).
 
-Next engineering step on this prototype: introduce Levit controllers on top of mock data before API wiring.
+Levit: app `LScope` + feature `LScopedView` controllers over `MockStore` (see `lib/di/prototype_module.dart`). Phase-3 swaps the store for API clients.

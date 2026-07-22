@@ -4,13 +4,27 @@ library;
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:guardian_prototype/features/account_pages.dart';
-import 'package:guardian_prototype/features/calendar_pages.dart';
-import 'package:guardian_prototype/features/fees_inbox_pages.dart';
-import 'package:guardian_prototype/features/home_page.dart';
-import 'package:guardian_prototype/features/login_page.dart';
-import 'package:guardian_prototype/features/scolarite_pages.dart';
+import 'package:guardian_prototype/features/account/account_page.dart';
+import 'package:guardian_prototype/features/account/account_profile_page.dart';
+import 'package:guardian_prototype/features/account/settings_page.dart';
+import 'package:guardian_prototype/features/calendar/attendance_page.dart';
+import 'package:guardian_prototype/features/calendar/calendar_page.dart';
+import 'package:guardian_prototype/features/calendar/session_detail_page.dart';
+import 'package:guardian_prototype/features/fees/fee_detail_page.dart';
+import 'package:guardian_prototype/features/fees/fees_page.dart';
+import 'package:guardian_prototype/features/fees/payment_detail_page.dart';
+import 'package:guardian_prototype/features/home/home_page.dart';
+import 'package:guardian_prototype/features/inbox/inbox_page.dart';
+import 'package:guardian_prototype/features/inbox/message_detail_page.dart';
+import 'package:guardian_prototype/features/login/login_page.dart';
+import 'package:guardian_prototype/features/scolarite/grade_detail_page.dart';
+import 'package:guardian_prototype/features/scolarite/progress_page.dart';
+import 'package:guardian_prototype/features/scolarite/report_card_page.dart';
+import 'package:guardian_prototype/features/scolarite/results_page.dart';
+import 'package:guardian_prototype/features/scolarite/subject_grades_page.dart';
+import 'package:guardian_prototype/features/scolarite/subject_logbook_page.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:levit_flutter/levit_flutter.dart';
 
 import 'support/design_review_capture.dart';
 import 'support/design_review_config.dart';
@@ -22,6 +36,7 @@ import 'support/pump_prototype_page.dart';
 
 Future<void> main() async {
   setUpAll(() async {
+    Levit.enableAutoLinking();
     await initializeDateFormatting('fr_FR');
     await configureDesignReviewEnvironment();
   });
@@ -78,6 +93,7 @@ Future<void> main() async {
       ) async {
         harness.router.go(location);
         await tester.pump();
+        await tester.pump(); // flush shell detail-drawer present callbacks
         await tester.pump(const Duration(milliseconds: 400));
       }
 
@@ -166,14 +182,14 @@ Future<void> main() async {
           pageType: FeesPage,
         ),
         (
-          path: '/fee/f1',
+          path: '/fees/fee/f1',
           slug: '12-fee-details',
           title: 'Fee details',
           description: 'Fee line with installments and linked payments.',
           pageType: FeeDetailPage,
         ),
         (
-          path: '/payment/p1',
+          path: '/fees/payment/p1',
           slug: '13-payment-details',
           title: 'Payment details',
           description: 'Payment receipt.',
@@ -187,7 +203,7 @@ Future<void> main() async {
           pageType: InboxPage,
         ),
         (
-          path: '/message/m1',
+          path: '/inbox/message/m1',
           slug: '15-message-details',
           title: 'Message details',
           description: 'Inbox message content.',

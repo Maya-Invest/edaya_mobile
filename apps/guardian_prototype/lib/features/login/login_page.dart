@@ -1,33 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:levit_flutter/levit_flutter.dart';
 
-import '../design/components/surface_card.dart';
-import '../design/spacing.dart';
-import '../design/typography.dart';
-import '../mock/mock_store.dart';
+import '../../design/components/surface_card.dart';
+import '../../design/spacing.dart';
+import '../../design/typography.dart';
+import '../context/student_context_controller.dart';
+import 'login_controller.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key, required this.store});
-
-  final MockStore store;
-
-  @override
-  State<LoginPage> createState() => _LoginPageState();
-}
-
-class _LoginPageState extends State<LoginPage> {
-  final _email = TextEditingController(text: 'parent@demo.ci');
-  final _password = TextEditingController(text: '••••••••');
+class LoginPage extends LScopedView<LoginController> {
+  const LoginPage({super.key});
 
   @override
-  void dispose() {
-    _email.dispose();
-    _password.dispose();
-    super.dispose();
+  LoginController onConfigScope(LevitScope scope) {
+    return scope.put(
+      () => LoginController(
+        studentContext: scope.find<StudentContextController>(),
+      ),
+    );
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget buildView(BuildContext context, LoginController controller) {
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -61,20 +55,21 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: PrototypeSpacing.xl),
                         TextField(
-                          controller: _email,
+                          controller: controller.email,
                           decoration: const InputDecoration(labelText: 'E-mail'),
                           keyboardType: TextInputType.emailAddress,
                         ),
                         const SizedBox(height: PrototypeSpacing.md),
                         TextField(
-                          controller: _password,
-                          decoration: const InputDecoration(labelText: 'Mot de passe'),
+                          controller: controller.password,
+                          decoration:
+                              const InputDecoration(labelText: 'Mot de passe'),
                           obscureText: true,
                         ),
                         const SizedBox(height: PrototypeSpacing.xl),
                         FilledButton(
                           onPressed: () {
-                            widget.store.signIn();
+                            controller.signIn();
                             context.go('/home');
                           },
                           child: const Text('Se connecter'),

@@ -1,143 +1,255 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:levit_flutter/levit_flutter.dart';
 
 import '../design/colors.dart';
 import '../design/components/components.dart';
 import '../design/spacing.dart';
+import '../features/context/student_context_controller.dart';
 import '../mock/mock_store.dart';
+import 'shell_controller.dart';
 
-class PrototypeShell extends StatelessWidget {
-  const PrototypeShell({super.key, required this.store, required this.child});
+class PrototypeShell extends LScopedView<PrototypeShellController> {
+  const PrototypeShell({super.key, required this.child});
 
-  final MockStore store;
   final Widget child;
 
   static const _tabs = ['/home', '/calendar', '/scolarite', '/fees', '/inbox'];
 
+  static const _destinations = [
+    NavigationDestination(
+      icon: Icon(Icons.home_outlined),
+      selectedIcon: Icon(Icons.home),
+      label: 'Accueil',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.calendar_month_outlined),
+      selectedIcon: Icon(Icons.calendar_month),
+      label: 'Agenda',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.school_outlined),
+      selectedIcon: Icon(Icons.school),
+      label: 'Scolarité',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.payments_outlined),
+      selectedIcon: Icon(Icons.payments),
+      label: 'Frais',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.inbox_outlined),
+      selectedIcon: Icon(Icons.inbox),
+      label: 'Messages',
+    ),
+  ];
+
   int _indexForLocation(String location) {
+    if (location.startsWith('/session') ||
+        location.startsWith('/attendance')) {
+      return 1;
+    }
+    if (location.startsWith('/scolarite') ||
+        location.startsWith('/grade') ||
+        location.startsWith('/report-card')) {
+      return 2;
+    }
     for (var i = 0; i < _tabs.length; i++) {
       if (location.startsWith(_tabs[i])) return i;
     }
     return 0;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final location = GoRouterState.of(context).uri.toString();
-    final showNav = _tabs.any((t) => location.startsWith(t));
-    final index = _indexForLocation(location);
+  bool _showChrome(String location) {
+    return _tabs.any((t) => location.startsWith(t)) ||
+        location.startsWith('/session') ||
+        location.startsWith('/attendance') ||
+        location.startsWith('/grade') ||
+        location.startsWith('/report-card') ||
+        location.startsWith('/account') ||
+        location.startsWith('/settings');
+  }
 
-    return ListenableBuilder(
-      listenable: store,
-      builder: (context, _) {
-        final student = store.activeStudent;
-        final school = store.activeSchool;
-        return Scaffold(
-          backgroundColor: PrototypeColors.background,
-          appBar: showNav
-              ? PrototypeAppBar(
-                  onProfileTap: () => context.push('/account'),
-                  onHelpTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Centre d\'aide — prototype')),
-                    );
-                  },
-                )
-              : null,
-          body: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (showNav)
-                StudentContextCard(
-                  studentName: student.fullName,
-                  studentInitials: student.initials,
-                  classLabel: student.classLabel,
-                  schoolName: school.name,
-                  schoolYear: store.selectedYear,
-                  photoUrl: student.photoUrl,
-                  onSelectStudent: () => _showContextSheet(context),
-                ),
-              Expanded(child: child),
-            ],
-          ),
-          bottomNavigationBar: showNav
-              ? NavigationBar(
-                  selectedIndex: index,
-                  onDestinationSelected: (i) => context.go(_tabs[i]),
-                  destinations: const [
-                    NavigationDestination(
-                      icon: Icon(Icons.home_outlined),
-                      selectedIcon: Icon(Icons.home),
-                      label: 'Accueil',
-                    ),
-                    NavigationDestination(
-                      icon: Icon(Icons.calendar_month_outlined),
-                      selectedIcon: Icon(Icons.calendar_month),
-                      label: 'Agenda',
-                    ),
-                    NavigationDestination(
-                      icon: Icon(Icons.school_outlined),
-                      selectedIcon: Icon(Icons.school),
-                      label: 'Scolarité',
-                    ),
-                    NavigationDestination(
-                      icon: Icon(Icons.payments_outlined),
-                      selectedIcon: Icon(Icons.payments),
-                      label: 'Frais',
-                    ),
-                    NavigationDestination(
-                      icon: Icon(Icons.inbox_outlined),
-                      selectedIcon: Icon(Icons.inbox),
-                      label: 'Messages',
-                    ),
-                  ],
-                )
-              : null,
-        );
-      },
+  void _openHelp(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Centre d\'aide — prototype')),
     );
   }
 
-  void _showContextSheet(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (ctx) => ListenableBuilder(
-        listenable: store,
-        builder: (context, _) {
-          final groups = store.studentsBySchool;
-          return Padding(
-            padding: EdgeInsets.only(
-              left: PrototypeSpacing.md,
-              right: PrototypeSpacing.md,
-              top: PrototypeSpacing.md,
-              bottom: MediaQuery.viewInsetsOf(context).bottom + PrototypeSpacing.md,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+  @override
+  PrototypeShellController onConfigScope(LevitScope scope) {
+    return scope.put(
+      () => PrototypeShellController(
+        studentContext: scope.find<StudentContextController>(),
+      ),
+    );
+  }
+
+  @override
+  Widget buildView(BuildContext context, PrototypeShellController controller) {
+    final location = GoRouterState.of(context).uri.toString();
+    final showNav = _showChrome(location);
+    final index = _indexForLocation(location);
+    final ctx = controller.studentContext;
+
+    return LWatch(() {
+      ctx.storeTick.value;
+      final student = ctx.activeStudent;
+      final school = ctx.activeSchool;
+
+      final contextCard = StudentContextCard(
+        studentName: student.fullName,
+        studentInitials: student.initials,
+        classLabel: student.classLabel,
+        schoolName: school.name,
+        schoolYear: ctx.selectedYear,
+        photoUrl: student.photoUrl,
+        onSelectStudent: () => _showContextSheet(context, ctx),
+      );
+
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final useRail =
+              showNav && PrototypeBreakpoints.useNavigationRail(constraints.maxWidth);
+
+          final mainColumn = ShellChrome(
+            showHeader: showNav,
+            header: contextCard,
+            appBar: useRail ? const PrototypeAppBar() : null,
+            child: child,
+          );
+
+          if (!useRail) {
+            return Scaffold(
+              backgroundColor: PrototypeColors.background,
+              appBar: showNav
+                  ? PrototypeAppBar(
+                      onProfileTap: () => context.go('/account'),
+                      onHelpTap: () => _openHelp(context),
+                    )
+                  : null,
+              body: mainColumn,
+              bottomNavigationBar: showNav
+                  ? NavigationBar(
+                      selectedIndex: index,
+                      onDestinationSelected: (i) => context.go(_tabs[i]),
+                      destinations: _destinations,
+                    )
+                  : null,
+            );
+          }
+
+          return Scaffold(
+            backgroundColor: PrototypeColors.background,
+            body: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Mes enfants', style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: PrototypeSpacing.md),
-                for (var i = 0; i < groups.length; i++) ...[
-                  if (i > 0) const SizedBox(height: PrototypeSpacing.md),
-                  _SchoolStudentSection(
-                    group: groups[i],
-                    selectedYear: store.selectedYearForSchool(groups[i].school.id),
-                    onYearSelected: (year) =>
-                        store.selectYearForSchool(groups[i].school.id, year),
-                    activeStudentId: store.activeStudentId,
-                    onStudentSelected: (studentId) {
-                      store.selectStudent(studentId);
-                      Navigator.pop(context);
-                    },
+                NavigationRail(
+                  backgroundColor: PrototypeColors.background,
+                  selectedIndex: index,
+                  onDestinationSelected: (i) => context.go(_tabs[i]),
+                  labelType: NavigationRailLabelType.all,
+                  destinations: [
+                    for (final d in _destinations)
+                      NavigationRailDestination(
+                        icon: d.icon,
+                        selectedIcon: d.selectedIcon,
+                        label: Text(d.label),
+                      ),
+                  ],
+                  trailing: Expanded(
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          bottom: PrototypeSpacing.md,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              tooltip: 'Mon compte',
+                              icon: const Icon(Icons.account_circle_outlined),
+                              onPressed: () => context.go('/account'),
+                            ),
+                            IconButton(
+                              tooltip: 'Aide',
+                              icon: const Icon(Icons.help_outline),
+                              onPressed: () => _openHelp(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                ],
+                ),
+                VerticalDivider(
+                  width: 1,
+                  color: PrototypeColors.outlineVariant.withValues(alpha: 0.5),
+                ),
+                Expanded(child: mainColumn),
               ],
             ),
           );
         },
-      ),
+      );
+    });
+  }
+
+  void _showContextSheet(
+    BuildContext context,
+    StudentContextController studentContext,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return ListenableBuilder(
+          listenable: studentContext.store,
+          builder: (context, _) {
+            final groups = studentContext.studentsBySchool;
+            return Padding(
+              padding: EdgeInsets.only(
+                left: PrototypeSpacing.md,
+                right: PrototypeSpacing.md,
+                top: PrototypeSpacing.md,
+                bottom:
+                    MediaQuery.viewInsetsOf(context).bottom + PrototypeSpacing.md,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Mes enfants',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: PrototypeSpacing.md),
+                  for (var i = 0; i < groups.length; i++) ...[
+                    if (i > 0) const SizedBox(height: PrototypeSpacing.md),
+                    _SchoolStudentSection(
+                      group: groups[i],
+                      selectedYear: studentContext.store.selectedYearForSchool(
+                        groups[i].school.id,
+                      ),
+                      onYearSelected: (year) =>
+                          studentContext.selectYearForSchool(
+                        groups[i].school.id,
+                        year,
+                      ),
+                      activeStudentId: studentContext.activeStudentId,
+                      onStudentSelected: (studentId) {
+                        studentContext.selectStudent(studentId);
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

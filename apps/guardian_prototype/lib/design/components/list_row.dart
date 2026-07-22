@@ -16,6 +16,7 @@ class ListRow extends StatelessWidget {
     this.badgeTone,
     this.onTap,
     this.unread = false,
+    this.selected = false,
     this.tint,
   });
 
@@ -27,14 +28,21 @@ class ListRow extends StatelessWidget {
   final SemanticTone? badgeTone;
   final VoidCallback? onTap;
   final bool unread;
+  final bool selected;
   final Color? tint;
 
   @override
   Widget build(BuildContext context) {
+    final effectiveTint = tint ??
+        (selected
+            ? PrototypeColors.primaryContainer.withValues(alpha: 0.55)
+            : unread
+                ? PrototypeColors.primaryContainer.withValues(alpha: 0.35)
+                : null);
+
     return SurfaceCard(
       onTap: onTap,
-      tint: tint ??
-          (unread ? PrototypeColors.primaryContainer.withValues(alpha: 0.35) : null),
+      tint: effectiveTint,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
