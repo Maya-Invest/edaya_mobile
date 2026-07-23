@@ -307,7 +307,7 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
         final bDate = b.date ?? DateTime.fromMillisecondsSinceEpoch(0);
         return bDate.compareTo(aDate);
       });
-      latestGrades(entries.take(5).toList());
+      latestGrades(entries.take(3).toList());
     } on Object {
       latestGrades(const []);
     }

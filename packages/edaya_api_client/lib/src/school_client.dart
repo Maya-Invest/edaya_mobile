@@ -61,6 +61,16 @@ class SchoolClient {
   ) {
     return EntityResource(_transport, publicName).get(id);
   }
+
+  /// Presigned (or local-dev) download URL for an attachment.
+  Future<Map<String, dynamic>> getDownloadUrl({
+    required String attachmentId,
+  }) {
+    return _transport.request<Map<String, dynamic>>(
+      'GET',
+      schoolApiPath(['files', attachmentId, 'download-url']),
+    );
+  }
 }
 
 SchoolClient createSchoolClient(Transport transport) => SchoolClient(transport);

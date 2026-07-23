@@ -1,4 +1,4 @@
-import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_shared/edaya_shared.dart' hide LoginPage;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -20,6 +20,7 @@ import '../features/fees/payment_detail_page.dart';
 import '../features/home/home_page.dart';
 import '../features/inbox/inbox_page.dart';
 import '../features/inbox/message_detail_page.dart';
+import '../features/login/login_page.dart';
 import '../features/scolarite/grade_detail_page.dart';
 import '../features/scolarite/progress_page.dart';
 import '../features/scolarite/report_card_page.dart';
@@ -50,22 +51,8 @@ GoRouter createRouter({
       GoRoute(
         path: '/login',
         builder: (context, state) {
-          if (mockStore != null) {
-            return Scaffold(
-              body: Center(
-                child: FilledButton(
-                  onPressed: () {
-                    mockStore.signIn();
-                    context.go('/home');
-                  },
-                  child: const Text('Se connecter'),
-                ),
-              ),
-            );
-          }
           return LoginPage(
-            appTitle: context.tr.appTitleGuardian,
-            subtitle: context.tr.loginSubtitleGuardianDev,
+            mockStore: mockStore,
             defaultEmail: ApiConfig.devGuardianEmail,
             defaultPassword: ApiConfig.devPassword,
             onSignInSuccess: () async {

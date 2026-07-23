@@ -53,6 +53,10 @@ class ReportCardDetailPage extends LScopedView<ReportCardController> {
         ? '—'
         : card.overallAverage!.toStringAsFixed(1).replaceAll('.', ',');
 
+    final downloading =
+        controller.downloadStatus.value == ReportCardPdfStatus.downloading;
+    final downloadHint = controller.downloadMessage.value;
+
     return PrototypeDetailScaffold(
       embedded: embedded,
       fallbackRoute: '/scolarite/notes',
@@ -101,17 +105,57 @@ class ReportCardDetailPage extends LScopedView<ReportCardController> {
               ],
             ),
           ),
+          const SizedBox(height: PrototypeSpacing.md),
+          FilledButton.icon(
+            onPressed: downloading ? null : controller.downloadPdf,
+            icon: downloading
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.download_outlined),
+            label: Text(
+              downloading ? 'Téléchargement…' : 'Télécharger le PDF',
+            ),
+          ),
+          if (downloadHint.isNotEmpty) ...[
+            const SizedBox(height: PrototypeSpacing.sm),
+            Text(
+              downloadHint,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color:
+                    controller.downloadStatus.value ==
+                        ReportCardPdfStatus.failed
+                    ? PrototypeColors.error
+                    : null,
+              ),
+            ),
+          ],
           for (final section in card.sections) ...[
             const SizedBox(height: PrototypeSpacing.md),
             SectionHeader(title: section.name),
             for (final subject in section.subjects) ...[
               ListRow(
                 title: subject.name,
-                trailing: Text(
-                  subject.average.toStringAsFixed(1).replaceAll('.', ','),
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: PrototypeColors.primary,
-                  ),
+                trailing: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      subject.average.toStringAsFixed(1).replaceAll('.', ','),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: PrototypeColors.primary,
+                      ),
+                    ),
+                    if (subject.rank != null && card.classSize != null)
+                      Text(
+                        '${subject.rank}/${card.classSize}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: PrototypeColors.onSurfaceVariant,
+                        ),
+                      ),
+                  ],
                 ),
                 subtitle: subject.comment,
               ),

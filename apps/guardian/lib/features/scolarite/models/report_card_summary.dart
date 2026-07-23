@@ -109,6 +109,7 @@ class ReportCardSubjectMark {
   const ReportCardSubjectMark({
     required this.name,
     required this.average,
+    this.rank,
     this.comment,
   });
 
@@ -122,12 +123,14 @@ class ReportCardSubjectMark {
           json['name'] as String? ??
           systemL10n().subjectFallback,
       average: (json['average'] as num?)?.toDouble() ?? 0,
+      rank: json['rank'] as int?,
       comment: json['comment'] as String?,
     );
   }
 
   final String name;
   final double average;
+  final int? rank;
   final String? comment;
 }
 
