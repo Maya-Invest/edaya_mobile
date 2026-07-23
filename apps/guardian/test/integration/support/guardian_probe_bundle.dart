@@ -1,6 +1,6 @@
 import 'package:edaya_api_client/edaya_api_client.dart';
-import 'package:edaya_guardian/features/academic/models/grade_entry.dart';
-import 'package:edaya_guardian/features/academic/models/report_card_summary.dart';
+import 'package:edaya_guardian/features/scolarite/models/grade_entry.dart';
+import 'package:edaya_guardian/features/scolarite/models/report_card_summary.dart';
 import 'package:edaya_guardian/features/calendar/models/calendar_session.dart';
 import 'package:edaya_guardian/features/fees/models/payment_record.dart';
 import 'package:edaya_guardian/features/inbox/models/inbox_delivery.dart';

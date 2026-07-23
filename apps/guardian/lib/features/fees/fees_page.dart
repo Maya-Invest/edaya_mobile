@@ -1,14 +1,18 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import 'package:edaya_shared/edaya_shared.dart';
+import '../../app/formatters.dart';
+import '../../design/colors.dart';
+import '../../design/components/components.dart';
+import '../../design/spacing.dart';
 import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
+import 'fee_detail_controller.dart';
+import 'fee_widgets.dart';
 import 'fees_controller.dart';
-import 'models/payment_record.dart';
-import 'widgets/fee_tiles.dart';
-import 'widgets/fees_summary_card.dart';
+import 'models/student_fee_line.dart';
 
 class FeesPage extends LScopedView<FeesController> {
   const FeesPage({super.key});
@@ -26,91 +30,161 @@ class FeesPage extends LScopedView<FeesController> {
 
   @override
   Widget buildView(BuildContext context, FeesController controller) {
-    return LWatch(() {
-      final status = controller.dataStatus;
+    final path = GoRouterState.of(context).uri.path;
+    final selectedFeeId = path.startsWith('/fees/fee/')
+        ? path.split('/').last
+        : null;
+    final selectedPaymentId = path.startsWith('/fees/payment/')
+        ? path.split('/').last
+        : null;
 
-      return DataState(
-        status: status,
-        errorMessage: controller.errorMessage.value,
-        emptyMessage: controller.emptyMessage,
-        onRetry: controller.loadFeesData,
-        child: RefreshIndicator(
-          onRefresh: controller.loadFeesData,
-          child: _FeesBody(controller: controller),
-        ),
+    if (controller.dataStatus == DataStatus.loading) {
+      return const AdaptiveContent(
+        child: Center(child: CircularProgressIndicator()),
       );
-    });
-  }
-}
-
-class _FeesBody extends StatelessWidget {
-  const _FeesBody({required this.controller});
-
-  final FeesController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    final summary = controller.summary.value;
-    final lines = controller.feeLines.value;
-    final payments = controller.payments.value;
-
-    if (summary == null && lines.isEmpty && payments.isEmpty) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: [
-          const SizedBox(height: 48),
-          Center(child: Text(controller.emptyMessage)),
-        ],
+    }
+    if (controller.dataStatus == DataStatus.error) {
+      return AdaptiveContent(
+        child: EmptyState(title: controller.errorMessage.value),
+      );
+    }
+    if (controller.dataStatus == DataStatus.empty) {
+      return AdaptiveContent(
+        child: EmptyState(title: controller.emptyMessage),
       );
     }
 
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
-      children: [
-        if (summary != null) ...[
-          FeesSummaryCard(summary: summary),
-          const SizedBox(height: 16),
-        ],
-        Text(
-          context.tr.feeLinesSection,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: 8),
-        if (lines.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Text(context.tr.noFeeLinesForYear),
-          )
-        else
-          for (final line in lines) ...[
-            StudentFeeTile(line: line),
-            const SizedBox(height: 8),
-          ],
-        const SizedBox(height: 8),
-        Text(
-          context.tr.paymentsSection,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: 8),
-        if (payments.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Text(context.tr.noPaymentsRecordedYet),
-          )
-        else
-          for (final payment in payments) ...[
-            PaymentTile(
-              payment: payment,
-              onTap: () => _openPaymentDetails(context, payment),
-            ),
-            const SizedBox(height: 8),
-          ],
-      ],
-    );
-  }
+    final summary = controller.summary.value;
+    final progress = summary == null || summary.totalExpected == 0
+        ? 0.0
+        : (summary.totalPaid / summary.totalExpected).clamp(0.0, 1.0);
+    final currency = summary?.currency ?? 'EUR';
 
-  void _openPaymentDetails(BuildContext context, PaymentRecord payment) {
-    context.push('/fees/payment-details', extra: payment);
+    return AdaptiveContent(
+      child: ListView(
+        padding: const EdgeInsets.all(PrototypeSpacing.md),
+        children: [
+          const SectionHeader(title: 'Résumé'),
+          SurfaceCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: SummaryMetric(
+                        label: 'Attendu',
+                        value: formatMoney(
+                          summary?.totalExpected ?? 0,
+                          currency,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: SummaryMetric(
+                        label: 'Payé',
+                        value: formatMoney(summary?.totalPaid ?? 0, currency),
+                      ),
+                    ),
+                    Expanded(
+                      child: SummaryMetric(
+                        label: 'Solde',
+                        value: formatMoney(
+                          summary?.totalBalance ?? 0,
+                          currency,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: PrototypeSpacing.sm),
+                PrototypeProgressBar(value: progress),
+                const SizedBox(height: PrototypeSpacing.xs),
+                Text(
+                  '${(progress * 100).round()} % réglé',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: PrototypeColors.onSurfaceVariant,
+                  ),
+                ),
+                if ((summary?.overdueCount ?? 0) > 0) ...[
+                  const SizedBox(height: PrototypeSpacing.sm),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 16,
+                        color: PrototypeColors.error,
+                      ),
+                      const SizedBox(width: PrototypeSpacing.xxs),
+                      Expanded(
+                        child: Text(
+                          '${summary!.overdueCount} ligne de frais en retard',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: PrototypeColors.error),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: PrototypeSpacing.xl),
+          const SectionHeader(title: 'Lignes de frais'),
+          for (final fee in controller.feeLines.value) ...[
+            ListRow(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: fee.status == StudentFeeStatus.overdue
+                      ? PrototypeColors.errorContainer
+                      : PrototypeColors.primaryContainer,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.receipt_long_outlined,
+                  size: 20,
+                  color: fee.status == StudentFeeStatus.overdue
+                      ? PrototypeColors.error
+                      : PrototypeColors.primary,
+                ),
+              ),
+              title: fee.label,
+              subtitle:
+                  'Échéance ${fee.dueDate != null ? formatDate(fee.dueDate!) : '—'} · '
+                  '${fee.paymentCount} paiement${fee.paymentCount > 1 ? 's' : ''}',
+              selected: selectedFeeId == fee.id,
+              trailing: FeeAmountTrailing(
+                amount: formatMoney(fee.balance, fee.currency),
+                label: frenchFeeStatus(fee.status),
+                labelColor: fee.status == StudentFeeStatus.overdue
+                    ? PrototypeColors.error
+                    : null,
+                showChevron: true,
+              ),
+              onTap: () => context.go('/fees/fee/${fee.id}'),
+            ),
+            const SizedBox(height: PrototypeSpacing.xs),
+          ],
+          const SizedBox(height: PrototypeSpacing.xl),
+          const SectionHeader(title: 'Paiements'),
+          for (final payment in controller.payments.value) ...[
+            ListRow(
+              title: frenchPaymentMethod(payment.method),
+              subtitle:
+                  '${payment.feeLabel} · ${formatDate(payment.paymentDate)}',
+              selected: selectedPaymentId == payment.id,
+              trailing: FeeAmountTrailing(
+                amount: formatMoney(payment.amount, payment.currency),
+                label: 'Reçu',
+                showChevron: true,
+              ),
+              onTap: () => context.go('/fees/payment/${payment.id}'),
+            ),
+            const SizedBox(height: PrototypeSpacing.xs),
+          ],
+        ],
+      ),
+    );
   }
 }

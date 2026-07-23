@@ -1,11 +1,13 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import 'package:edaya_shared/edaya_shared.dart';
+import '../../app/formatters.dart';
+import '../../design/colors.dart';
+import '../../design/components/components.dart';
+import '../../design/spacing.dart';
 import 'inbox_controller.dart';
-import 'models/inbox_delivery.dart';
-import 'widgets/inbox_delivery_tile.dart';
 
 class InboxPage extends LScopedView<InboxController> {
   const InboxPage({super.key});
@@ -22,75 +24,88 @@ class InboxPage extends LScopedView<InboxController> {
 
   @override
   Widget buildView(BuildContext context, InboxController controller) {
-    return LWatch(() {
-      final status = controller.dataStatus;
+    final selectedId = GoRouterState.of(context).pathParameters['id'];
 
-      return DataState(
-        status: status,
-        errorMessage: controller.errorMessage.value,
-        emptyMessage: controller.emptyMessage,
-        onRetry: controller.loadInbox,
-        child: RefreshIndicator(
-          onRefresh: controller.loadInbox,
-          child: _InboxBody(controller: controller),
-        ),
+    if (controller.dataStatus == DataStatus.loading) {
+      return const AdaptiveContent(
+        child: Center(child: CircularProgressIndicator()),
       );
-    });
-  }
-}
+    }
+    if (controller.dataStatus == DataStatus.error) {
+      return AdaptiveContent(
+        child: EmptyState(title: controller.errorMessage.value),
+      );
+    }
 
-class _InboxBody extends StatelessWidget {
-  const _InboxBody({required this.controller});
-
-  final InboxController controller;
-
-  @override
-  Widget build(BuildContext context) {
     final deliveries = controller.deliveries.value;
-    final unreadCount = controller.unreadCount;
-
     if (deliveries.isEmpty) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: [
-          const SizedBox(height: 48),
-          Center(child: Text(controller.emptyMessage)),
-        ],
+      return AdaptiveContent(
+        child: EmptyState(title: controller.emptyMessage),
       );
     }
 
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
-      children: [
-        if (unreadCount > 0) ...[
-          Text(
-            context.tr.unreadCount(unreadCount),
-            style: Theme.of(context).textTheme.titleSmall,
+    return AdaptiveContent(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Text(
+              '${controller.unreadCount} non lu(s)',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ),
-          const SizedBox(height: 8),
-        ],
-        for (final delivery in deliveries) ...[
-          InboxDeliveryTile(
-            delivery: delivery,
-            onTap: () => _openMessageDetails(context, delivery),
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.all(PrototypeSpacing.md),
+              itemCount: deliveries.length,
+              separatorBuilder: (_, _) =>
+                  const SizedBox(height: PrototypeSpacing.xs),
+              itemBuilder: (context, i) {
+                final m = deliveries[i];
+                final selected = selectedId == m.id;
+                final sentAt = m.sortDate;
+                return ListRow(
+                  title: m.title,
+                  subtitle: m.body.length > 80
+                      ? '${m.body.substring(0, 80)}…'
+                      : m.body,
+                  unread: m.isUnread,
+                  selected: selected,
+                  badge: m.isUnread
+                      ? 'Nouveau'
+                      : sentAt == null
+                      ? 'Lu'
+                      : 'Lu · ${formatDate(sentAt)}',
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: m.isUnread
+                          ? PrototypeColors.primaryContainer
+                          : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.mail_outline,
+                      size: 20,
+                      color: m.isUnread
+                          ? PrototypeColors.primary
+                          : PrototypeColors.onSurfaceVariant,
+                    ),
+                  ),
+                  onTap: () => context.go('/inbox/message/${m.id}'),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    color: selected
+                        ? PrototypeColors.primary
+                        : PrototypeColors.onSurfaceVariant,
+                  ),
+                );
+              },
+            ),
           ),
-          const SizedBox(height: 8),
         ],
-      ],
+      ),
     );
-  }
-
-  Future<void> _openMessageDetails(
-    BuildContext context,
-    InboxDelivery delivery,
-  ) async {
-    final updated = await context.push<InboxDelivery>(
-      '/inbox/message',
-      extra: delivery,
-    );
-    if (updated != null) {
-      controller.applyDeliveryUpdate(updated);
-    }
   }
 }

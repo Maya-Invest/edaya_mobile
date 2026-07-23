@@ -1,55 +1,27 @@
-# Guardian Phase 3 — Production migration checklist
+# Guardian next-app — Parallel build (complete)
 
-> **Status:** Deferred. Complete after prototype sign-off in `apps/guardian_prototype`.
+> **Status:** Phase B cutover complete — production app is `apps/guardian` (former prototype). Archived IA: `apps/guardian_legacy`.
 
-## Prerequisites
+> **Strategy (historical):** Evolve `apps/guardian_prototype` into the new production Guardian. Keep old `apps/guardian` **untouched** until verified, then replace.
 
-- [ ] Design language spec approved (`docs/specs/design-language-spec.md`)
-- [ ] Prototype reviewed on 390px phone (FR labels, all routes)
-- [ ] Galak Round commercial license secured (or substitute font chosen)
+## Outcome
 
-## 1. Move design system to `edaya_shared`
+| Role | Path | Package |
+|------|------|---------|
+| Production Guardian | `apps/guardian` | `edaya_guardian` |
+| Archived pre-cutover IA | `apps/guardian_legacy` | `edaya_guardian_legacy` |
 
-| Prototype path | Production path |
-|----------------|-----------------|
-| `lib/design/colors.dart` | `packages/edaya_shared/lib/src/app/edaya_colors.dart` (extend) |
-| `lib/design/typography.dart` | `packages/edaya_shared/lib/src/app/edaya_typography.dart` |
-| `lib/design/spacing.dart` | `packages/edaya_shared/lib/src/app/edaya_spacing.dart` (new) |
-| `lib/design/theme.dart` | `packages/edaya_shared/lib/src/app/theme.dart` |
-| `lib/design/components/*` | `packages/edaya_shared/lib/src/ui/*` |
+Identity: Android/iOS `com.softilab.edaya.guardian`, Firebase configs + Play signing from the former production app.
 
-- [ ] Register fonts in `edaya_shared/pubspec.yaml`
-- [ ] Remove runtime `google_fonts` dependency from theme path
-- [ ] Export new components from `edaya_shared.dart`
+## Melos
 
-## 2. Guardian app IA
+- `run:guardian:local` / `run:guardian:staging` → new app
+- `run:guardian:legacy:local` / `run:guardian:legacy:staging` → archive
+- `screenshots:guardian:review` → new app design-review
+- `screenshots:guardian:legacy:review` → archived IA (API)
+- `test:integration` → live API tests for **new** `apps/guardian` (+ teacher + tooling)
 
-| Prototype route | Production route |
-|-----------------|------------------|
-| `/home` | `/home` (new) |
-| `/calendar` | `/calendar` |
-| `/scolarite/*` | `/scolarite/*` (merge `/academic` + `/evaluations`) |
-| `/fees` | `/fees` |
-| `/inbox` | `/inbox` |
+## Remaining follow-ups
 
-- [ ] Update `app_shell_controller.dart` tab indices
-- [ ] Add l10n keys: `navHome`, `navAgenda`, `navMessages`
-- [ ] Redirect `/academic` and `/evaluations` → `/scolarite`
-- [ ] Post-login → `/home`
-
-## 3. Screen mapping
-
-Map each prototype screen to production widget; replace `MockStore` with existing Levit controllers + API client.
-
-## 4. Verification
-
-- [ ] `bun run verify` in `edaya_mobile`
-- [ ] Regenerate `melos run screenshots:guardian:review`
-- [ ] Teacher app spot-check (shared theme)
-- [ ] Portal authorization unchanged
-
-## 5. Out of scope for Phase 3 initial pass
-
-- Live API aggregate endpoint for Home
-- Production auth / build flavors
-- App Store release with Galak demo font
+- Manual portal grant smoke (guardian actor) against local/staging with seeded demo accounts
+- Remove `apps/guardian_legacy` when no longer needed as fallback

@@ -1,5 +1,6 @@
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:edaya_guardian/app/router.dart';
+import 'package:edaya_guardian/design/theme.dart';
 import 'package:edaya_guardian/features/auth/session_storage.dart';
 import 'package:edaya_guardian/features/context/academic_year_controller.dart';
 import 'package:edaya_guardian/features/context/student_context_controller.dart';
@@ -9,10 +10,11 @@ import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_shared/src/features/settings/app_settings_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Wires guardian app controllers to a live [PortalSession] for widget tests.
+/// Wires the guardian app to a live [PortalSession] for widget tests.
 class GuardianWidgetTestHarness {
   GuardianWidgetTestHarness._({
     required this.portalSession,
@@ -45,6 +47,8 @@ class GuardianWidgetTestHarness {
     }
     return resolved;
   }
+
+  GoRouter get router => scope.find<GoRouter>();
 
   static Future<GuardianWidgetTestHarness> create({
     GuardianPortalProfile profile = GuardianPortalProfile.mariamKone,
@@ -94,10 +98,10 @@ class GuardianWidgetTestHarness {
     );
   }
 
-  /// Builds the widget tree for a guardian page under test.
+  /// Builds the widget tree for a guardian page under test (no shell router).
   Widget buildApp(Widget child) {
     return LScope(
-      name: 'guardian-widget-integration',
+      name: 'guardian-widget-integration-${identityHashCode(this)}',
       dependencyFactory: (scope) {
         _scope = scope;
         registerDependencies(scope);
@@ -106,10 +110,10 @@ class GuardianWidgetTestHarness {
     );
   }
 
-  /// Builds the authenticated shell with [AppRouter] (post-bootstrap).
-  Widget buildRouterApp({String? initialRoute, Object? initialExtra}) {
+  /// Builds the authenticated shell with [GoRouter] (post-bootstrap).
+  Widget buildRouterApp({String? initialRoute}) {
     return LScope(
-      name: 'guardian-widget-integration',
+      name: 'guardian-widget-integration-${identityHashCode(this)}',
       dependencyFactory: (scope) {
         _scope = scope;
         registerDependencies(scope);
@@ -118,7 +122,6 @@ class GuardianWidgetTestHarness {
         harness: this,
         useRouter: true,
         initialRoute: initialRoute,
-        initialExtra: initialExtra,
       ),
     );
   }
@@ -166,7 +169,8 @@ class GuardianWidgetTestHarness {
     studentContext.classGroupId(profile.primaryClassGroupId);
 
     final className =
-        context.primaryClassGroup['name'] as String? ?? profile.primaryClassGroupId;
+        context.primaryClassGroup['name'] as String? ??
+        profile.primaryClassGroupId;
     final level = context.primaryClassGroup['level'] as String?;
     studentContext.classLabel(
       level == null ? className : '$className · $level',
@@ -218,7 +222,8 @@ class GuardianWidgetTestHarness {
         pushNotifications: scope.find<PushNotificationService>(),
         routerRefresh: scope.find<EdayaRouterRefresh>(),
         validateGrants: (_) => null,
-        unauthorizedProfileMessage: () => systemL10n().signedInNoGuardianProfile,
+        unauthorizedProfileMessage: () =>
+            systemL10n().signedInNoGuardianProfile,
         resolveActorKind: () => 'guardian',
       ),
       permanent: true,
@@ -240,8 +245,8 @@ class GuardianWidgetTestHarness {
       ),
       permanent: true,
     );
-    scope.put<AppRouter>(
-      () => AppRouter(
+    scope.put<GoRouter>(
+      () => createRouter(
         session: scope.find<AppSessionController>(),
         routerRefresh: scope.find<EdayaRouterRefresh>(),
       ),
@@ -257,9 +262,7 @@ class GuardianWidgetTestHarness {
   }) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.light,
+      theme: PrototypeTheme.light,
       locale: locale ?? const Locale('fr'),
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -293,14 +296,12 @@ class _GuardianTestShell extends StatefulWidget {
     this.child,
     this.useRouter = false,
     this.initialRoute,
-    this.initialExtra,
   });
 
   final GuardianWidgetTestHarness harness;
   final Widget? child;
   final bool useRouter;
   final String? initialRoute;
-  final Object? initialExtra;
 
   @override
   State<_GuardianTestShell> createState() => _GuardianTestShellState();
@@ -323,14 +324,11 @@ class _GuardianTestShellState extends State<_GuardianTestShell> {
         return;
       }
       if (widget.useRouter) {
-        final router = widget.harness._scope!.find<AppRouter>();
-        final location = widget.initialRoute ??
-            (widget.harness.isGuest ? '/login' : '/calendar');
-        if (widget.initialExtra != null) {
-          router.router.push(location, extra: widget.initialExtra);
-        } else {
-          router.router.go(location);
-        }
+        final router = widget.harness._scope!.find<GoRouter>();
+        final location =
+            widget.initialRoute ??
+            (widget.harness.isGuest ? '/login' : '/home');
+        router.go(location);
       }
       widget.harness._scope!.find<EdayaRouterRefresh>().notifyListeners();
       setState(() => _ready = true);
@@ -366,13 +364,11 @@ class _GuardianTestShellState extends State<_GuardianTestShell> {
       );
     }
     if (widget.useRouter) {
-      final appRouter = widget.harness._scope!.find<AppRouter>();
+      final router = widget.harness._scope!.find<GoRouter>();
       return widget.harness.designReviewRoot(
         child: MaterialApp.router(
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.light,
-          darkTheme: AppTheme.dark,
-          themeMode: ThemeMode.light,
+          theme: PrototypeTheme.light,
           locale: locale,
           localizationsDelegates: const [
             AppLocalizations.delegate,
@@ -381,7 +377,7 @@ class _GuardianTestShellState extends State<_GuardianTestShell> {
             GlobalCupertinoLocalizations.delegate,
           ],
           supportedLocales: AppLocalizations.supportedLocales,
-          routerConfig: appRouter.config(),
+          routerConfig: router,
         ),
       );
     }

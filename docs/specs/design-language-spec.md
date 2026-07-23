@@ -1,10 +1,10 @@
-# Guardian Design Language Spec
+# Design Language Spec
 
-> **Applies to:** Guardian Flutter app  
+> **Applies to:** Guardian Flutter app and Teacher UI prototype (`apps/teacher_prototype`)  
 > **Audience:** Implementers and agents  
 > **Authority:** This document is normative. Implementations must be cross-checked against it.
 
-This spec defines the visual design language for the Guardian family companion: brand, color, type, spacing, elevation, cards, and accessibility. It does not define navigation, shell chrome, or named widgets beyond card surfaces.
+This spec defines the visual design language shared by the Guardian family companion and the Teacher Accueil-first prototype: brand, color, type, spacing, elevation, cards, and accessibility. Navigation and shell chrome are defined in [guardian-shell-spec.md](guardian-shell-spec.md) and [teacher-shell-spec.md](teacher-shell-spec.md).
 
 ---
 
@@ -14,7 +14,7 @@ Guardian is a **family companion** for school life — not a staff data terminal
 
 | Trait | Expression |
 |-------|------------|
-| Warm and approachable | Rounded geometry, soft shadows, Galak Round brand voice |
+| Warm and approachable | Rounded geometry, soft shadows, Nunito brand/UI voice |
 | Action-oriented | Home surfaces what needs attention; CTAs are obvious |
 | Trustworthy | Clear official vs provisional labels; calm empty states |
 | Child-aware | Student context always visible when content is child-specific |
@@ -63,19 +63,19 @@ Unread emphasis on list rows uses `primaryContainer` at **35%** opacity. Selecte
 
 ## 3. Typography
 
-Two-tier system. Galak Round is **display and brand only** (single weight). Nunito is the UI face.
+Single family for the current shipping surface: **Nunito** for brand wordmark, display, and UI. A dedicated display/brand face (previously Galak Round) is deferred until a store-safe license is available.
 
 | Role | Family | Usage |
 |------|--------|-------|
-| Brand wordmark | Galak Round | Login logo, app bar title `edaya` |
-| Display / headline | Galak Round | Screen heroes, large numbers |
+| Brand wordmark | Nunito (700) | Login logo, app bar title `edaya` |
+| Display / headline | Nunito (600) | Screen heroes, large numbers |
 | Title / body / label | Nunito | UI copy, nav, buttons, lists |
 
 | Style | Family | Size (sp) | Weight |
 |-------|--------|-----------|--------|
-| `displaySmall` | Galak | 32 | regular |
-| `headlineMedium` | Galak | 24 | regular |
-| `headlineSmall` | Galak | 20 | regular |
+| `displaySmall` | Nunito | 32 | 600 |
+| `headlineMedium` | Nunito | 24 | 600 |
+| `headlineSmall` | Nunito | 20 | 600 |
 | `titleLarge` | Nunito | 18 | 600 |
 | `titleMedium` | Nunito | 16 | 600 |
 | `titleSmall` | Nunito | 14 | 600 |
@@ -85,9 +85,7 @@ Two-tier system. Galak Round is **display and brand only** (single weight). Nuni
 | `labelLarge` | Nunito | 14 | 600 |
 | `labelSmall` | Nunito | 11 | 500 |
 
-Must not apply fake bold to Galak. Use Nunito for weight variation.
-
-Brand wordmark default: Galak, **28–40** sp for app bar / login, height ~1.05, letter spacing −0.5.
+Brand wordmark default: Nunito **700**, **28–40** sp for app bar / login, height ~1.05, letter spacing −0.5.
 
 ---
 
@@ -218,8 +216,8 @@ When the app has no custom animations, compliance is vacuous but the rule still 
 
 | Font | Constraint |
 |------|------------|
-| Galak Round Demo | Personal-use licensing; acquire commercial license before store release |
-| Nunito | Production-safe (SIL OFL) |
+| Nunito | Production-safe (SIL OFL); **current** brand + UI face |
+| Galak Round (or successor display face) | Deferred — not shipped until a store-safe commercial license is available |
 
 ---
 
@@ -230,6 +228,7 @@ The following must **not** be treated as design-language requirements:
 - Historical “before → after” production redesign tables
 - Phase / migration narratives that treat a prototype as the source of truth
 - Untokenized icon wells (ad-hoc padding 8 + radius 10) and raw Material `Colors.*` or one-off hex fills outside the palette tables above
+- Shipping Galak Round Demo (or any personal-use-only display font) in the app binary
 - Redefining chip `success` as green `successContainer` without changing §2
 - Card radius `lg` (20) as the default for attention or list cards (default remains `md` 16)
 - Progress track colored with `primaryLight` instead of `primaryContainer`

@@ -1,17 +1,36 @@
-# edaya_guardian
+# Edaya Guardian
 
-A new Flutter project.
+Flutter app for guardians and parents — Accueil-first IA with live API, auth, and FCM.
 
-## Getting Started
+**Deferred for v1:** justify absence, pay, reply. Home aggregates client-side.
 
-This project is a starting point for a Flutter application.
+## Run locally
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+cd apps/guardian
+flutter pub get
+flutter run --dart-define=API_URL=http://10.0.2.2:9999
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+From monorepo root:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+melos run run:guardian:local
+melos run run:guardian:staging
+```
+
+Archived pre-cutover IA: `apps/guardian_legacy` (`melos run run:guardian:legacy:local`).
+
+## Design review
+
+```bash
+melos run screenshots:guardian:review
+```
+
+Output: `apps/guardian/design-review/index.html`.
+
+## Specs
+
+- [design-language-spec](../../docs/specs/design-language-spec.md)
+- [guardian-shell-spec](../../docs/specs/guardian-shell-spec.md)
+- [guardian-shared-components-spec](../../docs/specs/guardian-shared-components-spec.md)

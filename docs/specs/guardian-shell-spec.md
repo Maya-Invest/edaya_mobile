@@ -101,7 +101,7 @@ Unauthenticated users must land on `/login`. Authenticated users on `/login` mus
 
 ### Brand app bar
 
-- Centered wordmark **`edaya`** (Galak Round brand style).
+- Centered wordmark **`edaya`** (Nunito brand style).
 - Canvas background matching the app scaffold (`#F0F7FF`); no elevation tint.
 - No automatic back leading on primary shell destinations.
 

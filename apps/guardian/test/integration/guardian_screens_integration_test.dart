@@ -1,33 +1,20 @@
 @Tags(['integration'])
 library;
 
-import 'package:edaya_guardian/features/academic/academic_controller.dart';
-import 'package:edaya_guardian/features/academic/academic_page.dart';
-import 'package:edaya_guardian/features/academic/grade_details_dialog.dart';
-import 'package:edaya_guardian/features/academic/widgets/grade_summary_cards.dart';
-import 'package:edaya_guardian/features/academic/widgets/report_card_tile.dart';
-import 'package:edaya_guardian/features/app_shell/app_shell_page.dart';
-import 'package:edaya_guardian/features/calendar/attendance_list_page.dart';
-import 'package:edaya_guardian/features/calendar/calendar_controller.dart';
+import 'package:edaya_guardian/app/shell_page.dart';
+import 'package:edaya_guardian/design/components/list_row.dart';
+import 'package:edaya_guardian/design/components/summary_metric.dart';
 import 'package:edaya_guardian/features/calendar/calendar_page.dart';
-import 'package:edaya_guardian/features/calendar/session_details_dialog.dart';
-import 'package:edaya_guardian/features/calendar/widgets/school_event_tile.dart';
-import 'package:edaya_guardian/features/calendar/widgets/session_tile.dart';
-import 'package:edaya_guardian/features/calendar/widgets/week_day_selector.dart';
+import 'package:edaya_guardian/features/calendar/session_detail_page.dart';
 import 'package:edaya_guardian/features/context/student_context_controller.dart';
-import 'package:edaya_guardian/features/evaluations/evaluations_controller.dart';
-import 'package:edaya_guardian/features/evaluations/evaluations_page.dart';
-import 'package:edaya_guardian/features/evaluations/widgets/academic_period_picker.dart';
 import 'package:edaya_guardian/features/fees/fees_page.dart';
-import 'package:edaya_guardian/features/fees/payment_details_dialog.dart';
-import 'package:edaya_guardian/features/fees/widgets/fee_tiles.dart';
-import 'package:edaya_guardian/features/fees/widgets/fees_summary_card.dart';
+import 'package:edaya_guardian/features/fees/payment_detail_page.dart';
+import 'package:edaya_guardian/features/home/home_page.dart';
 import 'package:edaya_guardian/features/inbox/inbox_page.dart';
-import 'package:edaya_guardian/features/inbox/message_details_dialog.dart';
-import 'package:edaya_guardian/features/inbox/widgets/inbox_delivery_tile.dart';
-import 'package:edaya_guardian/features/my_students/my_students_sheet.dart';
+import 'package:edaya_guardian/features/inbox/message_detail_page.dart';
+import 'package:edaya_guardian/features/scolarite/grade_detail_page.dart';
+import 'package:edaya_guardian/features/scolarite/results_page.dart';
 import 'package:edaya_integration_tests/edaya_integration_tests.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
@@ -66,46 +53,44 @@ void _mariamKoneSuite() {
   });
 
   group('shell', () {
-    testWidgets('AppShell shows bottom navigation and calendar tab', (
+    testWidgets('PrototypeShell shows bottom navigation and home tab', (
       tester,
     ) async {
-      await pumpGuardianShellUntil<CalendarPage>(tester, harness);
+      await pumpGuardianShellUntil<HomePage>(tester, harness);
 
-      expect(find.byType(AppShellPage), findsOneWidget);
-      expect(find.byType(NavigationBar), findsOneWidget);
-      expect(find.text('Calendar'), findsWidgets);
+      expectGuardianShellChrome();
+      expect(find.byType(HomePage), findsOneWidget);
+    });
+
+    testWidgets('PrototypeShell navigates to agenda tab', (tester) async {
+      await openCalendarTab(tester, harness);
       expect(find.byType(CalendarPage), findsOneWidget);
     });
 
-    testWidgets('AppShell navigates to academic tab', (tester) async {
-      await openAcademicTab(tester, harness);
+    testWidgets('PrototypeShell navigates to scolarité tab', (tester) async {
+      await openScolariteTab(tester, harness);
       tester.takeException();
-      expect(find.byType(AcademicPage), findsOneWidget);
+      expect(find.byType(ResultsPage), findsOneWidget);
     });
 
-    testWidgets('AppShell navigates to evaluations tab', (tester) async {
-      await openEvaluationsTab(tester, harness);
-      expect(find.byType(EvaluationsPage), findsOneWidget);
-    });
-
-    testWidgets('AppShell navigates to fees tab', (tester) async {
+    testWidgets('PrototypeShell navigates to fees tab', (tester) async {
       await openFeesTab(tester, harness);
       expect(find.byType(FeesPage), findsOneWidget);
-      expect(find.byType(FeesSummaryCard), findsOneWidget);
+      expect(find.text('Résumé'), findsWidgets);
     });
 
-    testWidgets('AppShell navigates to inbox tab', (tester) async {
+    testWidgets('PrototypeShell navigates to inbox tab', (tester) async {
       await openInboxTab(tester, harness);
       expect(find.byType(InboxPage), findsOneWidget);
     });
   });
 
   group('calendar', () {
-    testWidgets('CalendarPage shows week selector and seeded sessions', (
+    testWidgets('CalendarPage shows week controls and seeded sessions', (
       tester,
     ) async {
-      await pumpGuardianShellUntil<CalendarPage>(tester, harness);
-      await pumpUntilFound(tester, find.byType(WeekDaySelector));
+      await openCalendarTab(tester, harness);
+      await pumpUntilFound(tester, find.byTooltip('Semaine suivante'));
 
       expect(probes.calendar.timetableEvents, isNotEmpty);
       expect(probes.sessionProbe, isNotNull);
@@ -113,85 +98,54 @@ void _mariamKoneSuite() {
       await pumpUntilCalendarHasSessions(
         tester,
         preferDay: probes.sessionProbe?.sessionDay,
+        titleNeedle: probes.sessionProbe?.subjectLabel,
       );
-      expect(find.byType(SessionTile), findsWidgets);
+      expect(find.byType(ListRow), findsWidgets);
     });
 
-    testWidgets('session tile opens details dialog', (tester) async {
+    testWidgets('session row opens session detail page', (tester) async {
       final session = probes.sessionProbe;
       expect(session, isNotNull);
 
-      await pumpGuardianShellUntil<CalendarPage>(tester, harness);
+      await openCalendarTab(tester, harness);
       await pumpUntilCalendarHasSessions(
         tester,
         preferDay: session!.sessionDay,
-      );
-
-      await tapSessionTile(
-        tester,
         titleNeedle: session.subjectLabel,
       );
+
+      await tapSessionRow(tester, titleNeedle: session.subjectLabel);
       await tester.pump();
-      await pumpUntilFound(tester, find.byType(SessionDetailsDialog));
+      await pumpUntilFound(tester, find.byType(SessionDetailPage));
       expect(
         find.textContaining(session.subjectLabel.split(' ').first),
         findsWidgets,
       );
     });
 
-    testWidgets('CalendarPage events view lists school events when seeded', (
-      tester,
-    ) async {
-      await pumpGuardianShellUntil<CalendarPage>(tester, harness);
-      await pumpUntilFound(tester, find.byType(SegmentedButton<CalendarView>));
-      await tester.tap(find.text('Events'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 800));
-
-      if (probes.calendar.calendarEvents.isEmpty) {
-        expect(find.text('No school events for this period.'), findsWidgets);
-        return;
-      }
-
-      final eventNearReference = calendarEventNearReference(
-        probes.calendar.calendarEvents,
-      );
-      expect(eventNearReference, isNotNull);
-      final eventDay = DateTime.parse(
-        eventNearReference!['startDate'] as String,
-      );
-
-      await pumpUntilCalendarHasEvents(tester, preferDay: eventDay);
-      expect(find.byType(SchoolEventTile), findsWidgets);
-    });
-
     testWidgets('AttendanceListPage loads student attendance records', (
       tester,
     ) async {
-      await pumpGuardianPage(tester, harness, const AttendanceListPage());
+      await openAttendancePage(tester, harness);
 
-      expect(find.text('All attendance'), findsWidgets);
+      expect(find.text('Présences'), findsWidgets);
 
       if (probes.attendance.isNotEmpty) {
-        await pumpUntilFound(tester, find.byType(ListTile));
-        expect(find.byType(ListTile), findsWidgets);
+        await pumpUntilFound(tester, find.byType(ListRow));
+        expect(find.byType(ListRow), findsWidgets);
       } else {
-        expect(find.text('No attendance records for this student.'), findsOneWidget);
+        expect(find.text('Aucune présence enregistrée'), findsOneWidget);
       }
     });
   });
 
   group('student switch', () {
-    testWidgets('MyStudents sheet switches active linked student', (
-      tester,
-    ) async {
+    testWidgets('context sheet switches active linked student', (tester) async {
       final switchProbe = probes.studentSwitchProbe;
       expect(switchProbe, isNotNull);
 
-      await pumpGuardianShellUntil<CalendarPage>(tester, harness);
-      await tester.tap(find.byTooltip('My students'));
-      await tester.pump();
-      await pumpUntilFound(tester, find.byType(MyStudentsSheet));
+      await openCalendarTab(tester, harness);
+      await openStudentContextSheet(tester);
 
       await tapAlternateStudent(tester, switchProbe!);
 
@@ -213,114 +167,59 @@ void _mariamKoneSuite() {
     });
   });
 
-  group('academic', () {
-    testWidgets('AcademicPage shows curriculum progress from live API', (
+  group('scolarité', () {
+    testWidgets('ResultsPage shows programme progress from live API', (
       tester,
     ) async {
       expect(probes.academic.classSubjects, isNotEmpty);
 
-      await pumpGuardianPage(tester, harness, const AcademicPage());
-      await pumpUntilFound(
-        tester,
-        find.byType(SegmentedButton<AcademicDetailTab>),
-      );
+      await openScolariteTab(tester, harness);
       tester.takeException();
 
-      expect(probes.academic.classSubjects, isNotEmpty);
       await pumpUntilFound(
         tester,
-        find.byType(LinearProgressIndicator),
+        find.text('Avancement du programme'),
         timeout: const Duration(seconds: 45),
       );
-      expect(find.byType(LinearProgressIndicator), findsWidgets);
+      expect(find.text('Avancement du programme'), findsWidgets);
     });
 
-    testWidgets('AcademicPage logbook tab switches without error', (
-      tester,
-    ) async {
-      await pumpGuardianPage(tester, harness, const AcademicPage());
-      await pumpUntilFound(
-        tester,
-        find.byType(SegmentedButton<AcademicDetailTab>),
-      );
-
-      await tester.tap(find.byIcon(Icons.menu_book_outlined));
-      await tester.pump();
-      tester.takeException();
-
-      expect(find.byType(AcademicPage), findsOneWidget);
-    });
-  });
-
-  group('evaluations', () {
-    testWidgets('EvaluationsPage grades view loads period picker and summaries', (
-      tester,
-    ) async {
-      await pumpGuardianPage(tester, harness, const EvaluationsPage());
-      await pumpUntilFound(tester, find.byType(SegmentedButton<EvaluationsView>));
-
-      if (probes.academic.academicPeriods.isEmpty) {
-        return;
-      }
-
-      await pumpUntilFound(tester, find.byType(AcademicPeriodPicker));
-
-      if (probes.academic.assessmentResults.isEmpty) {
-        expect(find.text('No grades recorded for this period.'), findsWidgets);
-        return;
-      }
-
-      await pumpUntilFound(tester, find.byType(GradeSummaryCards));
-      expect(find.byType(GradeSummaryCards), findsOneWidget);
-    });
-
-    testWidgets('grade details dialog shows assessed title from live API', (
+    testWidgets('grade detail page shows assessed title from live API', (
       tester,
     ) async {
       final entry = probes.firstGradedEntry;
       expect(entry, isNotNull);
 
-      await pumpGuardianPage(
+      await pumpGuardianRoute(
         tester,
         harness,
-        GradeDetailsDialog(entry: entry!),
+        location: '/grade/${entry!.id}',
       );
-      await pumpUntilFound(tester, find.byType(GradeDetailsDialog));
+      await pumpUntilFound(tester, find.byType(GradeDetailPage));
       expect(find.textContaining(entry.title.split(' ').first), findsWidgets);
     });
 
-    testWidgets('EvaluationsPage reports view lists published report cards', (
+    testWidgets('ResultsPage lists published report cards when present', (
       tester,
     ) async {
-      await pumpGuardianPage(tester, harness, const EvaluationsPage());
-      await pumpUntilFound(tester, find.byType(SegmentedButton<EvaluationsView>));
-      await tester.tap(find.byIcon(Icons.description_outlined));
-      await tester.pump();
+      await openScolariteTab(tester, harness);
+      tester.takeException();
 
       if (probes.academic.reportCards.isEmpty) {
-        expect(find.byType(ReportCardTile), findsNothing);
         return;
       }
 
-      await pumpUntilFound(tester, find.byType(ReportCardTile));
-      expect(
-        find.byType(ReportCardTile),
-        findsNWidgets(probes.academic.reportCards.length),
-      );
+      await pumpUntilFound(tester, find.text('Bulletin'));
+      expect(find.text('Bulletin'), findsWidgets);
     });
   });
 
   group('fees', () {
     testWidgets('FeesPage loads billed fees from the live API', (tester) async {
-      await pumpGuardianPage(tester, harness, const FeesPage());
-      await pumpUntilFound(tester, find.byType(FeesSummaryCard));
+      await openFeesTab(tester, harness);
+      await pumpUntilFound(tester, find.text('Résumé'));
 
-      expect(find.byType(FeesSummaryCard), findsOneWidget);
-
-      final activeFees = probes.fees.studentFees
-          .where((row) => row['status'] != 'cancelled')
-          .length;
-      expect(find.byType(StudentFeeTile), findsNWidgets(activeFees));
+      expect(find.byType(SummaryMetric), findsWidgets);
 
       if (probes.fees.feeNamesById.isNotEmpty) {
         final firstFeeName = probes.fees.feeNamesById.values.first;
@@ -328,49 +227,52 @@ void _mariamKoneSuite() {
       }
     });
 
-    testWidgets('payment details dialog shows fee label from live API', (
+    testWidgets('payment detail page shows fee label from live API', (
       tester,
     ) async {
       final payment = probes.firstPayment;
       expect(payment, isNotNull);
 
-      await pumpGuardianPage(
+      await pumpGuardianRoute(
         tester,
         harness,
-        PaymentDetailsDialog(payment: payment!),
+        location: '/fees/payment/${payment!.id}',
       );
-      await pumpUntilFound(tester, find.byType(PaymentDetailsDialog));
+      await pumpUntilFound(tester, find.byType(PaymentDetailPage));
       expect(find.text(payment.feeLabel), findsWidgets);
     });
   });
 
   group('inbox', () {
     testWidgets('InboxPage lists guardian message deliveries', (tester) async {
-      await pumpGuardianPage(tester, harness, const InboxPage());
+      await openInboxTab(tester, harness);
 
       if (probes.inbox.deliveries.isEmpty) {
-        expect(find.text('No messages in your inbox yet.'), findsOneWidget);
+        expect(
+          find.text('Aucun message dans votre boîte de réception.'),
+          findsOneWidget,
+        );
         return;
       }
 
-      await pumpUntilFound(tester, find.byType(InboxDeliveryTile));
-      final tileCount = find.byType(InboxDeliveryTile).evaluate().length;
+      await pumpUntilFound(tester, find.byType(ListRow));
+      final tileCount = find.byType(ListRow).evaluate().length;
       expect(tileCount, greaterThan(0));
       expect(tileCount, lessThanOrEqualTo(probes.inbox.deliveries.length));
     });
 
-    testWidgets('message details dialog shows delivery title from live API', (
+    testWidgets('message detail page shows delivery title from live API', (
       tester,
     ) async {
       final delivery = probes.firstInboxDelivery;
       expect(delivery, isNotNull);
 
-      await pumpGuardianPage(
+      await pumpGuardianRoute(
         tester,
         harness,
-        MessageDetailsDialog(initialDelivery: delivery!),
+        location: '/inbox/message/${delivery!.id}',
       );
-      await pumpUntilFound(tester, find.byType(MessageDetailsDialog));
+      await pumpUntilFound(tester, find.byType(MessageDetailPage));
       expect(
         find.textContaining(delivery.title.split(' ').first),
         findsWidgets,
@@ -390,30 +292,28 @@ void _koffiYaoSuite() {
     probes = await GuardianProbeBundle.load(harness);
   });
 
-  testWidgets('multi-child shell loads calendar for primary student', (
+  testWidgets('multi-child shell loads home for primary student', (
     tester,
   ) async {
-    await pumpGuardianShellUntil<CalendarPage>(tester, harness);
+    await pumpGuardianShellUntil<HomePage>(tester, harness);
 
-    expect(find.byType(AppShellPage), findsOneWidget);
-    expect(find.byType(CalendarPage), findsOneWidget);
+    expect(find.byType(PrototypeShell), findsOneWidget);
+    expect(find.byType(HomePage), findsOneWidget);
     expect(harness.context!.linkedStudents.length, greaterThan(1));
   });
 
-  testWidgets('multi-child calendar shows week selector', (tester) async {
-    await pumpGuardianShellUntil<CalendarPage>(tester, harness);
-    await pumpUntilFound(tester, find.byType(WeekDaySelector));
-    expect(find.byType(WeekDaySelector), findsOneWidget);
+  testWidgets('multi-child calendar shows week controls', (tester) async {
+    await openCalendarTab(tester, harness);
+    await pumpUntilFound(tester, find.byTooltip('Semaine suivante'));
+    expect(find.byTooltip('Semaine suivante'), findsOneWidget);
   });
 
   testWidgets('multi-child guardian switches linked student', (tester) async {
     final switchProbe = probes.studentSwitchProbe;
     expect(switchProbe, isNotNull);
 
-    await pumpGuardianShellUntil<CalendarPage>(tester, harness);
-    await tester.tap(find.byTooltip('My students'));
-    await tester.pump();
-    await pumpUntilFound(tester, find.byType(MyStudentsSheet));
+    await openCalendarTab(tester, harness);
+    await openStudentContextSheet(tester);
 
     await tapAlternateStudent(tester, switchProbe!);
     await tester.pump();
@@ -427,10 +327,11 @@ void _koffiYaoSuite() {
     expect(activeId, switchProbe.alternateStudentId);
   });
 
-  testWidgets('multi-child fees page renders summary card', (tester) async {
-    await pumpGuardianPage(tester, harness, const FeesPage());
+  testWidgets('multi-child fees page renders summary', (tester) async {
+    await openFeesTab(tester, harness);
     await pumpUntilFound(tester, find.byType(FeesPage));
     tester.takeException();
     expect(find.byType(FeesPage), findsOneWidget);
+    expect(find.text('Résumé'), findsWidgets);
   });
 }

@@ -6,8 +6,9 @@ environment:
 
 workspace:
   - apps/guardian
-  - apps/guardian_prototype
+  - apps/guardian_legacy
   - apps/teacher
+  - apps/teacher_prototype
   - packages/edaya_api_client
   - packages/edaya_auth
   - packages/edaya_shared
@@ -42,18 +43,24 @@ melos:
     generated:check:
       run: bash scripts/check-api-bindings-drift.sh
       description: Verify committed Dart bindings match spec/client-bindings.json.
-    run:guardian:prototype:
-      run: cd apps/guardian_prototype && flutter run
-      description: Run guardian UI prototype (mock data, no API).
     run:guardian:local:
       run: cd apps/guardian && flutter run --dart-define=API_URL=http://10.0.2.2:9999
       description: Run guardian app against local API (Android emulator).
+    run:guardian:legacy:local:
+      run: cd apps/guardian_legacy && flutter run --dart-define=API_URL=http://10.0.2.2:9999
+      description: Run archived guardian IA against local API.
     run:teacher:local:
       run: cd apps/teacher && flutter run --dart-define=API_URL=http://localhost:9999
       description: Run teacher app against local API (localhost).
+    run:teacher:prototype:
+      run: cd apps/teacher_prototype && flutter run
+      description: Run teacher UI prototype (mock data, Accueil-first IA).
     run:guardian:staging:
       run: cd apps/guardian && flutter run
       description: Run guardian app (default staging API).
+    run:guardian:legacy:staging:
+      run: cd apps/guardian_legacy && flutter run
+      description: Run archived guardian IA (default staging API).
     run:teacher:staging:
       run: cd apps/teacher && flutter run
       description: Run teacher app (default staging API).
@@ -74,10 +81,13 @@ melos:
       description: Generate local teacher app screenshots for designer review (requires API).
     screenshots:guardian:review:
       run: bash scripts/guardian-design-review.sh
-      description: Generate local guardian app screenshots for designer review (requires API).
-    screenshots:guardian-prototype:review:
-      run: bash scripts/guardian-prototype-design-review.sh
-      description: Generate guardian prototype screenshots (mock data, no API).
+      description: Generate guardian app screenshots for designer review.
+    screenshots:guardian:legacy:review:
+      run: bash scripts/guardian-legacy-design-review.sh
+      description: Generate archived guardian IA screenshots (requires API).
+    screenshots:teacher-prototype:review:
+      run: bash scripts/teacher-prototype-design-review.sh
+      description: Generate teacher prototype screenshots (mock data, no API).
     clean:flutter:
       exec: flutter clean
       description: Run flutter clean in all Flutter apps.

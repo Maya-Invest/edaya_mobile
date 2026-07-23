@@ -1,16 +1,18 @@
-import 'package:edaya_guardian/features/academic/academic_page.dart';
+import 'package:edaya_guardian/app/shell_page.dart';
+import 'package:edaya_guardian/design/components/list_row.dart';
+import 'package:edaya_guardian/design/components/student_context_card.dart';
+import 'package:edaya_guardian/features/calendar/attendance_page.dart';
 import 'package:edaya_guardian/features/calendar/calendar_controller.dart';
 import 'package:edaya_guardian/features/calendar/calendar_page.dart';
-import 'package:edaya_guardian/features/calendar/widgets/school_event_tile.dart';
-import 'package:edaya_guardian/features/calendar/widgets/session_tile.dart';
-import 'package:edaya_guardian/features/calendar/widgets/week_day_selector.dart';
-import 'package:edaya_guardian/features/evaluations/evaluations_page.dart';
 import 'package:edaya_guardian/features/fees/fees_page.dart';
+import 'package:edaya_guardian/features/home/home_page.dart';
 import 'package:edaya_guardian/features/inbox/inbox_page.dart';
+import 'package:edaya_guardian/features/scolarite/results_page.dart';
 import 'package:edaya_integration_tests/edaya_integration_tests.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:levit_flutter/levit_flutter.dart';
 
 import 'guardian_probe_bundle.dart';
 import 'guardian_widget_test_harness.dart';
@@ -47,12 +49,11 @@ Future<void> pumpGuardianShellUntil<T extends Widget>(
   await pumpUntilFound(tester, find.byType(T));
 }
 
-/// Opens [location] through the real guardian router (optionally with [extra]).
+/// Opens [location] through the real guardian router.
 Future<void> pumpGuardianRoute(
   WidgetTester tester,
   GuardianWidgetTestHarness harness, {
   required String location,
-  Object? extra,
   Duration settleDelay = const Duration(milliseconds: 1500),
   DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
 }) async {
@@ -60,7 +61,7 @@ Future<void> pumpGuardianRoute(
   await configureDesignReviewViewport(tester, formFactor);
   harness.viewportSize = designReviewLogicalSize(formFactor);
   await tester.pumpWidget(
-    harness.buildRouterApp(initialRoute: location, initialExtra: extra),
+    harness.buildRouterApp(initialRoute: location),
   );
   await tester.pump();
   await tester.pump(settleDelay);
@@ -101,7 +102,21 @@ Future<void> pumpUntilRouteReady(
   fail('Timed out waiting for $finder');
 }
 
-Future<void> openAcademicTab(
+Future<void> openHomeTab(
+  WidgetTester tester,
+  GuardianWidgetTestHarness harness, {
+  DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
+}) async {
+  await pumpGuardianShellUntil<HomePage>(
+    tester,
+    harness,
+    initialRoute: '/home',
+    formFactor: formFactor,
+  );
+  await tester.pump(const Duration(milliseconds: 800));
+}
+
+Future<void> openCalendarTab(
   WidgetTester tester,
   GuardianWidgetTestHarness harness, {
   DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
@@ -109,38 +124,23 @@ Future<void> openAcademicTab(
   await pumpGuardianShellUntil<CalendarPage>(
     tester,
     harness,
+    initialRoute: '/calendar',
     formFactor: formFactor,
   );
-  await tester.tap(find.byIcon(Icons.school_outlined));
-  await tester.pump();
-  await pumpUntilFound(tester, find.byType(AcademicPage));
-  await tester.pump(const Duration(milliseconds: 1200));
-  tester.takeException();
-}
-
-Future<void> openAcademicLogbookTab(WidgetTester tester) async {
-  await tester.tap(find.byIcon(Icons.menu_book_outlined));
-  await tester.pump();
   await tester.pump(const Duration(milliseconds: 1200));
 }
 
-Future<void> openEvaluationsTab(
+Future<void> openScolariteTab(
   WidgetTester tester,
   GuardianWidgetTestHarness harness, {
   DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
 }) async {
-  await pumpGuardianShellUntil<EvaluationsPage>(
+  await pumpGuardianShellUntil<ResultsPage>(
     tester,
     harness,
-    initialRoute: '/evaluations',
+    initialRoute: '/scolarite/notes',
     formFactor: formFactor,
   );
-  await tester.pump(const Duration(milliseconds: 1200));
-}
-
-Future<void> openEvaluationsReportsView(WidgetTester tester) async {
-  await tester.tap(find.byIcon(Icons.description_outlined));
-  await tester.pump();
   await tester.pump(const Duration(milliseconds: 1200));
 }
 
@@ -172,199 +172,114 @@ Future<void> openInboxTab(
   await tester.pump(const Duration(milliseconds: 1200));
 }
 
-Future<void> openCalendarEventsView(WidgetTester tester) async {
-  await pumpUntilFound(tester, find.byType(SegmentedButton<CalendarView>));
-  await tester.tap(find.byIcon(Icons.event));
-  await tester.pump();
+Future<void> openAttendancePage(
+  WidgetTester tester,
+  GuardianWidgetTestHarness harness, {
+  DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
+}) async {
+  await pumpGuardianShellUntil<AttendanceListPage>(
+    tester,
+    harness,
+    initialRoute: '/attendance',
+    formFactor: formFactor,
+  );
   await tester.pump(const Duration(milliseconds: 1200));
 }
 
-/// Scans calendar weeks until at least one session tile is visible.
+/// Opens the student context sheet from the shell chrome.
+Future<void> openStudentContextSheet(WidgetTester tester) async {
+  await pumpUntilFound(tester, find.byType(StudentContextCard));
+  await tester.tap(find.byTooltip('Choisir un élève'));
+  await tester.pump();
+  await pumpUntilFound(tester, find.text('Mes enfants'));
+}
+
+CalendarController _calendarController(WidgetTester tester) {
+  // Resolve from a descendant inside LScopedView's buildView (page element
+  // itself sits above the controller scope).
+  final element = tester.element(find.text('Toutes les présences'));
+  return element.levit.find<CalendarController>();
+}
+
+/// Moves the live [CalendarController] to [day] and waits for data to load.
+Future<void> navigateCalendarWeekToDay(
+  WidgetTester tester,
+  DateTime day,
+) async {
+  final controller = _calendarController(tester);
+  final normalized = DateTime(day.year, day.month, day.day);
+  controller.weekStart(startOfWeek(normalized));
+  controller.selectDay(normalized);
+  await controller.loadCalendarData();
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 800));
+
+  final deadline = DateTime.now().add(const Duration(seconds: 20));
+  while (DateTime.now().isBefore(deadline)) {
+    await tester.pump(const Duration(milliseconds: 200));
+    if (!controller.isBusy.value) {
+      return;
+    }
+  }
+}
+
+/// Navigates to [preferDay] via the calendar controller until a session row appears.
 Future<void> pumpUntilCalendarHasSessions(
   WidgetTester tester, {
   DateTime? preferDay,
+  String? titleNeedle,
   Duration timeout = const Duration(seconds: 45),
 }) async {
   final targetDay = preferDay ?? integrationCalendarReferenceDay();
   await navigateCalendarWeekToDay(tester, targetDay);
-  await tester.pump(const Duration(milliseconds: 800));
-  if (tester.any(find.byType(SessionTile))) {
+  if (_sessionRows(tester, titleNeedle).evaluate().isNotEmpty) {
     return;
   }
 
+  final controller = _calendarController(tester);
   final deadline = DateTime.now().add(timeout);
-  var scanForward = true;
   while (DateTime.now().isBefore(deadline)) {
-    await tester.pump(const Duration(milliseconds: 500));
-    if (await _selectEachDayInVisibleWeek(tester)) {
-      return;
+    for (final day in controller.weekDays) {
+      controller.selectDay(day);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      if (_sessionRows(tester, titleNeedle).evaluate().isNotEmpty) {
+        return;
+      }
     }
 
-    final tooltip = scanForward ? 'Next week' : 'Previous week';
-    final weekNav = find.byTooltip(tooltip);
-    if (weekNav.evaluate().isEmpty) {
-      break;
+    controller.shiftWeek(1);
+    await controller.loadCalendarData();
+    await tester.pump(const Duration(milliseconds: 500));
+    if (_sessionRows(tester, titleNeedle).evaluate().isNotEmpty) {
+      return;
     }
-    await tester.tap(weekNav);
-    await tester.pump();
-    scanForward = !scanForward;
   }
 
   fail('No calendar sessions visible');
 }
 
-/// Scans calendar weeks until at least one school event tile is visible.
-Future<void> pumpUntilCalendarHasEvents(
-  WidgetTester tester, {
-  DateTime? preferDay,
-  Duration timeout = const Duration(seconds: 45),
-}) async {
-  final targetDay = preferDay ?? integrationCalendarReferenceDay();
-  await navigateCalendarWeekToDay(tester, targetDay);
-  await tester.pump(const Duration(milliseconds: 800));
-  if (tester.any(find.byType(SchoolEventTile))) {
-    return;
+Finder _sessionRows(WidgetTester tester, String? titleNeedle) {
+  if (titleNeedle == null || titleNeedle.isEmpty) {
+    return find.byType(ListRow);
   }
-
-  final deadline = DateTime.now().add(timeout);
-  var scanForward = true;
-  while (DateTime.now().isBefore(deadline)) {
-    await tester.pump(const Duration(milliseconds: 500));
-    if (await _selectEachDayUntilTile(tester, SchoolEventTile)) {
-      return;
+  final needle = titleNeedle.split(' ').first;
+  return find.byWidgetPredicate((widget) {
+    if (widget is! ListRow) {
+      return false;
     }
-
-    final tooltip = scanForward ? 'Next week' : 'Previous week';
-    final weekNav = find.byTooltip(tooltip);
-    if (weekNav.evaluate().isEmpty) {
-      break;
-    }
-    await tester.tap(weekNav);
-    await tester.pump();
-    scanForward = !scanForward;
-  }
-
-  fail('No school events visible in calendar');
+    return widget.title.contains(needle) ||
+        (widget.subtitle?.contains(needle) ?? false);
+  });
 }
 
-Future<bool> _selectEachDayUntilTile(
-  WidgetTester tester,
-  Type tileType,
-) async {
-  if (tester.any(find.byType(tileType))) {
-    return true;
-  }
-
-  final dayChips = find.descendant(
-    of: find.byType(WeekDaySelector),
-    matching: find.byType(InkWell),
-  );
-  if (dayChips.evaluate().length < 7) {
-    return false;
-  }
-
-  for (var index = 0; index < 7; index++) {
-    await tester.tap(dayChips.at(index));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 800));
-    if (tester.any(find.byType(tileType))) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-Future<bool> _selectEachDayInVisibleWeek(WidgetTester tester) async {
-  return _selectEachDayUntilTile(tester, SessionTile);
-}
-
-Future<void> _shiftCalendarWeek(WidgetTester tester, int direction) async {
-  final icon = direction >= 0 ? Icons.chevron_right : Icons.chevron_left;
-  final weekNav = find.byIcon(icon);
-  if (weekNav.evaluate().isEmpty) {
-    return;
-  }
-  await tester.tap(weekNav);
-  await tester.pump();
-}
-
-DateTime _weekStart(DateTime day) {
-  final normalized = DateTime(day.year, day.month, day.day);
-  return normalized.subtract(Duration(days: normalized.weekday - DateTime.monday));
-}
-
-Future<void> navigateCalendarWeekToDay(
-  WidgetTester tester,
-  DateTime day,
-) async {
-  final normalized = DateTime(day.year, day.month, day.day);
-  final targetWeekStart = _weekStart(normalized);
-  final currentWeekStart = _weekStart(DateTime.now());
-  final weekDelta = targetWeekStart.difference(currentWeekStart).inDays ~/ 7;
-
-  if (weekDelta != 0) {
-    final direction = weekDelta > 0 ? 1 : -1;
-    for (var step = 0; step < weekDelta.abs(); step++) {
-      await _shiftCalendarWeek(tester, direction);
-      await tester.pump(const Duration(milliseconds: 400));
-    }
-  }
-
-  await _tapDayChipForNumber(tester, normalized.day);
-  await tester.pump(const Duration(milliseconds: 1500));
-}
-
-Future<void> navigateCalendarToDay(
-  WidgetTester tester,
-  DateTime day,
-) async {
-  await navigateCalendarWeekToDay(tester, day);
-  if (tester.any(find.byType(SessionTile))) {
-    return;
-  }
-
-  await pumpUntilCalendarHasSessions(tester);
-}
-
-Future<void> _tapDayChipForNumber(WidgetTester tester, int dayNumber) async {
-  final dayChips = find.descendant(
-    of: find.byType(WeekDaySelector),
-    matching: find.byType(InkWell),
-  );
-  for (var index = 0; index < 7; index++) {
-    final chip = dayChips.at(index);
-    final numberFinder = find.descendant(
-      of: chip,
-      matching: find.text('$dayNumber'),
-    );
-    if (numberFinder.evaluate().isNotEmpty) {
-      await tester.tap(chip);
-      return;
-    }
-  }
-}
-
-Future<void> tapSessionTile(
+Future<void> tapSessionRow(
   WidgetTester tester, {
   String? titleNeedle,
 }) async {
-  if (titleNeedle != null) {
-    final needle = titleNeedle.split(' ').first;
-    final matchingTile = find.byWidgetPredicate((widget) {
-      if (widget is! SessionTile) {
-        return false;
-      }
-      final label = widget.session.subjectLabel ?? widget.session.title;
-      return label.contains(needle) || widget.session.title.contains(needle);
-    });
-    if (matchingTile.evaluate().isNotEmpty) {
-      await tester.tap(matchingTile.first);
-      return;
-    }
-  }
-
-  await tester.tap(find.byType(SessionTile).first);
+  final rows = _sessionRows(tester, titleNeedle);
+  expect(rows, findsWidgets);
+  await tester.tap(rows.first);
 }
 
 Future<void> tapAlternateStudent(
@@ -379,4 +294,15 @@ Future<void> tapAlternateStudent(
 
   final firstName = switchProbe.alternateStudentName.split(' ').first;
   await tester.tap(find.textContaining(firstName).first);
+}
+
+/// Confirms the authenticated shell chrome is mounted.
+void expectGuardianShellChrome() {
+  expect(find.byType(PrototypeShell), findsOneWidget);
+  expect(find.byType(NavigationBar), findsOneWidget);
+  expect(find.text('Accueil'), findsWidgets);
+  expect(find.text('Agenda'), findsWidgets);
+  expect(find.text('Scolarité'), findsWidgets);
+  expect(find.text('Frais'), findsWidgets);
+  expect(find.text('Messages'), findsWidgets);
 }

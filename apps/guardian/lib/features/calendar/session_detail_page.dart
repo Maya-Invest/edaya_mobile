@@ -1,0 +1,289 @@
+import 'package:edaya_shared/edaya_shared.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:levit_flutter/levit_flutter.dart';
+
+import '../../design/colors.dart';
+import '../../design/components/components.dart';
+import '../../design/session_category.dart';
+import '../../design/spacing.dart';
+import '../../mock/mock_store.dart' show HomeDayCategory;
+import '../context/student_context_controller.dart';
+import 'models/logbook_entry.dart';
+import 'session_detail_controller.dart';
+
+HomeDayCategory _categoryForKind(String kind) {
+  return switch (kind) {
+    'activity' => HomeDayCategory.activity,
+    'assessment' => HomeDayCategory.assessment,
+    _ => HomeDayCategory.lesson,
+  };
+}
+
+String _frenchAttendance(String? status) {
+  if (status == null) return '—';
+  return switch (status) {
+    'present' => 'Présent',
+    'absent' => 'Absent',
+    'late' => 'Retard',
+    'excused' => 'Excusé',
+    _ => status,
+  };
+}
+
+class SessionDetailPage extends LScopedView<SessionDetailController> {
+  const SessionDetailPage({super.key, required this.sessionId});
+
+  final String sessionId;
+
+  @override
+  SessionDetailController onConfigScope(LevitScope scope) {
+    return scope.put(
+      () => SessionDetailController(
+        sessionId: sessionId,
+        studentContext: scope.find<StudentContextController>(),
+        schoolClient: scope.find<SchoolClientFactory>(),
+      ),
+    );
+  }
+
+  @override
+  Widget buildView(BuildContext context, SessionDetailController controller) {
+    final embedded = PrototypeBreakpoints.detailDrawerActive(context);
+
+    if (controller.isBusy.value && controller.session.value == null) {
+      return PrototypeDetailScaffold(
+        embedded: embedded,
+        fallbackRoute: '/calendar',
+        title: 'Séance',
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final session = controller.session.value;
+    if (session == null) {
+      return PrototypeDetailScaffold(
+        embedded: embedded,
+        fallbackRoute: '/calendar',
+        title: 'Séance',
+        body: EmptyState(
+          title: controller.errorMessage.value.isEmpty
+              ? 'Séance introuvable'
+              : controller.errorMessage.value,
+        ),
+      );
+    }
+
+    final category = _categoryForKind(session.kind);
+    final attendanceLabel = _frenchAttendance(
+      controller.attendance.value?.status,
+    );
+    final textTheme = Theme.of(context).textTheme;
+    final timeFmt = DateFormat('HH:mm', 'fr_FR');
+
+    return PrototypeDetailScaffold(
+      embedded: embedded,
+      fallbackRoute: '/calendar',
+      titleWidget: Row(
+        children: [
+          SessionCategoryIcon(category: category, size: 18, padding: 6),
+          const SizedBox(width: PrototypeSpacing.xs),
+          Expanded(
+            child: Text(
+              session.subjectLabel ?? session.title,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(PrototypeSpacing.md),
+        children: [
+          SurfaceCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    StatusChip(
+                      label: switch (category) {
+                        HomeDayCategory.lesson => 'Cours',
+                        HomeDayCategory.activity => 'Activité',
+                        HomeDayCategory.assessment => 'Évaluation',
+                      },
+                      tone: switch (category) {
+                        HomeDayCategory.lesson => SemanticTone.info,
+                        HomeDayCategory.activity => SemanticTone.neutral,
+                        HomeDayCategory.assessment => SemanticTone.warning,
+                      },
+                    ),
+                    const Spacer(),
+                    StatusChip(
+                      label: attendanceLabel,
+                      tone: switch (attendanceLabel) {
+                        'Absent' => SemanticTone.error,
+                        'Retard' => SemanticTone.warning,
+                        _ => SemanticTone.success,
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: PrototypeSpacing.sm),
+                Text('Horaire', style: textTheme.labelSmall),
+                Text(
+                  '${timeFmt.format(session.startsAt)} – ${timeFmt.format(session.endsAt)}',
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: PrototypeSpacing.md),
+          switch (session.kind) {
+            'assessment' => _AssessmentSection(controller: controller),
+            'activity' => _ActivitySection(controller: controller),
+            _ => _LessonSection(logbook: controller.logbook.value),
+          },
+        ],
+      ),
+    );
+  }
+}
+
+class _LessonSection extends StatelessWidget {
+  const _LessonSection({required this.logbook});
+
+  final LogbookEntry? logbook;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionHeader(title: 'Cahier de textes'),
+        SurfaceCard(
+          child: logbook == null
+              ? Text(
+                  'Aucune entrée de cahier de textes pour cette séance.',
+                  style: textTheme.bodyMedium,
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      logbook!.chapter,
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: PrototypeSpacing.xs),
+                    Text(logbook!.content, style: textTheme.bodyMedium),
+                    const SizedBox(height: PrototypeSpacing.xs),
+                    Text(
+                      'Progression : ${logbook!.progress} %',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: PrototypeColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AssessmentSection extends StatelessWidget {
+  const _AssessmentSection({required this.controller});
+
+  final SessionDetailController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final title = controller.assessmentTitle.value;
+    if (title == null) {
+      return SurfaceCard(
+        child: Text(
+          'Aucun détail disponible pour cette évaluation.',
+          style: textTheme.bodyMedium,
+        ),
+      );
+    }
+
+    final score = controller.assessmentScore.value;
+    final maxScore = controller.assessmentMaxScore.value;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionHeader(title: 'Évaluation'),
+        SurfaceCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if ((controller.assessmentDescription.value ?? '').isNotEmpty) ...[
+                const SizedBox(height: PrototypeSpacing.sm),
+                Text(
+                  controller.assessmentDescription.value!,
+                  style: textTheme.bodyMedium,
+                ),
+              ],
+              if ((controller.assessmentInstructions.value ?? '').isNotEmpty) ...[
+                const SizedBox(height: PrototypeSpacing.sm),
+                Text('Consignes', style: textTheme.labelSmall),
+                Text(
+                  controller.assessmentInstructions.value!,
+                  style: textTheme.bodyMedium,
+                ),
+              ],
+            ],
+          ),
+        ),
+        if (score != null && maxScore != null) ...[
+          const SizedBox(height: PrototypeSpacing.md),
+          const SectionHeader(title: 'Note de l\'élève'),
+          SurfaceCard(
+            child: Text(
+              '${score.toStringAsFixed(0)}/${maxScore.toStringAsFixed(0)}',
+              style: textTheme.titleLarge?.copyWith(
+                color: PrototypeColors.primary,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _ActivitySection extends StatelessWidget {
+  const _ActivitySection({required this.controller});
+
+  final SessionDetailController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final notes = controller.activityNotes.value ??
+        controller.logbook.value?.content;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionHeader(title: 'Commentaire de l\'équipe'),
+        SurfaceCard(
+          child: Text(
+            (notes == null || notes.isEmpty)
+                ? 'Aucun commentaire partagé pour cette activité.'
+                : notes,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+      ],
+    );
+  }
+}
