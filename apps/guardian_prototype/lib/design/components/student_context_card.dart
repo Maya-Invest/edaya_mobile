@@ -104,9 +104,7 @@ class StudentContextCard extends StatelessWidget {
             ),
             IconButton(
               tooltip: 'Choisir un élève',
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-              icon: const Icon(Icons.expand_more, size: 22),
+              icon: const Icon(Icons.expand_more),
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               onPressed: onSelectStudent,
             ),

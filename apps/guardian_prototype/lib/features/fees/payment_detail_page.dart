@@ -25,63 +25,61 @@ class PaymentDetailPage extends LScopedView<PaymentDetailController> {
 
   @override
   Widget buildView(BuildContext context, PaymentDetailController controller) {
-    return LWatch(() {
-      controller.storeTick.value;
-      final store = controller.store;
-      final embedded = PrototypeBreakpoints.detailDrawerActive(context);
-      final payment = store.paymentById(controller.paymentId);
-      if (payment == null) {
-        return PrototypeDetailScaffold(
-          fallbackRoute: '/fees',
-          title: 'Reçu de paiement',
-          embedded: embedded,
-          body: const EmptyState(title: 'Paiement introuvable'),
-        );
-      }
+        controller.storeTick.value;
+    final store = controller.store;
+    final embedded = PrototypeBreakpoints.detailDrawerActive(context);
+    final payment = store.paymentById(controller.paymentId);
+    if (payment == null) {
       return PrototypeDetailScaffold(
         fallbackRoute: '/fees',
         title: 'Reçu de paiement',
         embedded: embedded,
-        body: ListView(
-          padding: const EdgeInsets.all(PrototypeSpacing.md),
-          children: [
-            SurfaceCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Montant',
-                          style: Theme.of(context).textTheme.labelSmall,
-                        ),
-                      ),
-                      Text(
-                        formatDate(payment.date),
+        body: const EmptyState(title: 'Paiement introuvable'),
+      );
+    }
+    return PrototypeDetailScaffold(
+      fallbackRoute: '/fees',
+      title: 'Reçu de paiement',
+      embedded: embedded,
+      body: ListView(
+        padding: const EdgeInsets.all(PrototypeSpacing.md),
+        children: [
+          SurfaceCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Montant',
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: PrototypeSpacing.xs),
-                  Text(
-                    formatMoney(payment.amount, payment.currency),
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: PrototypeColors.primary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                  const Divider(height: PrototypeSpacing.xl),
-                  SummaryMetric(label: 'Frais', value: payment.feeLabel),
-                  const SizedBox(height: PrototypeSpacing.sm),
-                  SummaryMetric(label: 'Mode', value: payment.method),
-                ],
-              ),
+                    ),
+                    Text(
+                      formatDate(payment.date),
+                      style: Theme.of(context).textTheme.labelSmall,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: PrototypeSpacing.xs),
+                Text(
+                  formatMoney(payment.amount, payment.currency),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: PrototypeColors.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const Divider(height: PrototypeSpacing.xl),
+                SummaryMetric(label: 'Frais', value: payment.feeLabel),
+                const SizedBox(height: PrototypeSpacing.sm),
+                SummaryMetric(label: 'Mode', value: payment.method),
+              ],
             ),
-          ],
-        ),
-      );
-    });
+          ),
+        ],
+      ),
+    );
   }
 }

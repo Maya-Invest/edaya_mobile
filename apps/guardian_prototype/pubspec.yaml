@@ -15,7 +15,7 @@ dependencies:
     sdk: flutter
   go_router: ^17.3.0
   intl: any
-  levit_flutter: ^0.0.8
+  levit_flutter: ^0.0.9
 
 dev_dependencies:
   flutter_test:

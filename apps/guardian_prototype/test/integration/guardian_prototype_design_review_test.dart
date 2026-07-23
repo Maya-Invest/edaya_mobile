@@ -233,8 +233,7 @@ Future<void> main() async {
       ];
 
       for (final formFactor in DesignReviewFormFactor.values) {
-        final layoutLabel =
-            formFactor == DesignReviewFormFactor.phone ? 'phone' : 'tablet';
+        final layoutLabel = formFactor.slug;
 
         final guestHarness = PrototypeWidgetTestHarness()
           ..bootstrap(authenticated: false);

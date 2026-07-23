@@ -23,7 +23,9 @@ Start with `LLM-Short.txt`. Open `LLM.txt` when the short doc is not enough.
    `Levit.find` when an `LScope` is in the tree.
 4. Call `Levit.enableAutoLinking()` in Flutter `main()` before `runApp`.
 5. Keep business logic in controllers/stores; keep widgets thin.
-6. Use `LWatch` for focused reactive rebuilds.
+6. Prefer reading reactives in `buildView` when `autoWatch` is true; use
+   focused `LWatch` only for subtrees. Prefer `showLevitModalBottomSheet` /
+   `showLevitDialog` for imperative overlays that resolve scoped deps.
 
 ## Repo checks
 

@@ -27,68 +27,66 @@ class SubjectLogbookPage extends LScopedView<SubjectLogbookController> {
 
   @override
   Widget buildView(BuildContext context, SubjectLogbookController controller) {
-    return LWatch(() {
-      controller.storeTick.value;
-      final embedded = PrototypeBreakpoints.detailDrawerActive(context);
-      final store = controller.store;
-      final subject = controller.subject;
-      final progress = store.progressForSubject(subject);
-      final entries = store.logbookForSubject(subject);
+        controller.storeTick.value;
+    final embedded = PrototypeBreakpoints.detailDrawerActive(context);
+    final store = controller.store;
+    final subject = controller.subject;
+    final progress = store.progressForSubject(subject);
+    final entries = store.logbookForSubject(subject);
 
-      return PrototypeDetailScaffold(
-        embedded: embedded,
-        fallbackRoute: '/scolarite/notes',
-        title: subject,
-        body: ListView(
-          padding: const EdgeInsets.all(PrototypeSpacing.md),
-          children: [
-            SurfaceCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Cahier de textes',
-                    style: Theme.of(context).textTheme.labelSmall,
-                  ),
-                  const SizedBox(height: PrototypeSpacing.xs),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${(progress * 100).round()} % du programme couvert',
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                      ),
-                      Text(
-                        store.statusForSubject(subject),
-                        style: Theme.of(context).textTheme.labelSmall,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: PrototypeSpacing.sm),
-                  PrototypeProgressBar(value: progress),
-                ],
-              ),
-            ),
-            const SizedBox(height: PrototypeSpacing.md),
-            const SectionHeader(title: 'Entrées'),
-            if (entries.isEmpty)
-              const EmptyState(
-                title: 'Aucune entrée pour cette matière',
-                message: 'Le cahier de textes sera affiché ici au fur et à mesure.',
-              )
-            else
-              for (final entry in entries) ...[
-                ListRow(
-                  title: entry.chapter,
-                  subtitle: '${formatDate(entry.date)} · ${entry.content}',
+    return PrototypeDetailScaffold(
+      embedded: embedded,
+      fallbackRoute: '/scolarite/notes',
+      title: subject,
+      body: ListView(
+        padding: const EdgeInsets.all(PrototypeSpacing.md),
+        children: [
+          SurfaceCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Cahier de textes',
+                  style: Theme.of(context).textTheme.labelSmall,
                 ),
                 const SizedBox(height: PrototypeSpacing.xs),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${(progress * 100).round()} % du programme couvert',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                    ),
+                    Text(
+                      store.statusForSubject(subject),
+                      style: Theme.of(context).textTheme.labelSmall,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: PrototypeSpacing.sm),
+                PrototypeProgressBar(value: progress),
               ],
-          ],
-        ),
-      );
-    });
+            ),
+          ),
+          const SizedBox(height: PrototypeSpacing.md),
+          const SectionHeader(title: 'Entrées'),
+          if (entries.isEmpty)
+            const EmptyState(
+              title: 'Aucune entrée pour cette matière',
+              message: 'Le cahier de textes sera affiché ici au fur et à mesure.',
+            )
+          else
+            for (final entry in entries) ...[
+              ListRow(
+                title: entry.chapter,
+                subtitle: '${formatDate(entry.date)} · ${entry.content}',
+              ),
+              const SizedBox(height: PrototypeSpacing.xs),
+            ],
+        ],
+      ),
+    );
   }
 }

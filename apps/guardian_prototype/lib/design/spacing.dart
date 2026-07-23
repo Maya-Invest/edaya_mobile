@@ -10,6 +10,12 @@ abstract final class PrototypeSpacing {
   static const lg = 20.0;
   static const xl = 24.0;
   static const xxl = 32.0;
+
+  /// Normative aliases (design-language spec).
+  static const screenPadding = md;
+  static const cardPadding = md;
+  static const sectionGap = xl;
+  static const listGap = xs;
 }
 
 abstract final class PrototypeRadii {

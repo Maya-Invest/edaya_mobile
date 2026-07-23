@@ -3,11 +3,11 @@ import 'package:go_router/go_router.dart';
 
 import 'breakpoints.dart';
 import 'master_detail.dart';
-import 'shell_chrome.dart';
 
 /// Hosts a list [master] with optional nested [detailChild] (GoRouter shell child).
 ///
-/// Compact: list or full-body detail under the shell.
+/// Compact / medium (&lt; expanded): list or detail under shell chrome (brand app
+/// bar when present + student context).
 /// Wide (≥ [PrototypeBreakpoints.expanded]): list stays full-width; detail opens
 /// as a full-height right overlay (title bar to bottom, beside the rail).
 class ListDetailHost extends StatelessWidget {
@@ -40,8 +40,10 @@ class ListDetailHost extends StatelessWidget {
             PrototypeBreakpoints.useDetailDrawer(constraints.maxWidth);
 
         if (!useDrawer) {
-          if (hasSelection) return detailChild;
-          return ShellChromeDrawerMaster(child: master);
+          // Always keep brand app bar (medium+) + student context above content.
+          return DetailDrawerMasterColumn(
+            child: hasSelection ? detailChild : master,
+          );
         }
 
         return DetailDrawerScaffold(

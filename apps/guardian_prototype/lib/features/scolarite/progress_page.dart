@@ -18,76 +18,74 @@ class ProgressOverviewPage extends LScopedView<ProgressController> {
 
   @override
   Widget buildView(BuildContext context, ProgressController controller) {
-    return LWatch(() {
-      controller.storeTick.value;
-      controller.expandedSubjectIds.value;
-      final embedded = PrototypeBreakpoints.detailDrawerActive(context);
-      final store = controller.store;
-      final summaries =
-          store.subjectProgressSummaries.where((s) => s.hasProgramme).toList();
-      final overall = store.overallProgramProgress;
-      final expandedSubjectIds = controller.expandedSubjectIds.value;
+        controller.storeTick.value;
+    controller.expandedSubjectIds.value;
+    final embedded = PrototypeBreakpoints.detailDrawerActive(context);
+    final store = controller.store;
+    final summaries =
+        store.subjectProgressSummaries.where((s) => s.hasProgramme).toList();
+    final overall = store.overallProgramProgress;
+    final expandedSubjectIds = controller.expandedSubjectIds.value;
 
-      return PrototypeDetailScaffold(
-        embedded: embedded,
-        fallbackRoute: '/scolarite/notes',
-        title: 'Avancement du programme',
-        body: ListView(
-          padding: const EdgeInsets.all(PrototypeSpacing.md),
-          children: [
-            SurfaceCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${(overall * 100).round()} % du programme couvert',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: PrototypeSpacing.xs),
-                  PrototypeProgressBar(value: overall),
-                  const SizedBox(height: PrototypeSpacing.xs),
-                  Text(
-                    'Moyenne indicative sur les matières suivies.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: PrototypeColors.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: PrototypeSpacing.xl),
-            for (var i = 0; i < summaries.length; i++) ...[
-              if (i > 0) const SizedBox(height: PrototypeSpacing.xl),
-              _SubjectProgressSectionHeader(
-                summary: summaries[i],
-                expanded: expandedSubjectIds.contains(summaries[i].subject),
-                onOpenLogbook: () => context.go(
-                  '/scolarite/subject/${MockStore.subjectRouteParam(summaries[i].subject)}/cahier',
+    return PrototypeDetailScaffold(
+      embedded: embedded,
+      fallbackRoute: '/scolarite/notes',
+      title: 'Avancement du programme',
+      body: ListView(
+        padding: const EdgeInsets.all(PrototypeSpacing.md),
+        children: [
+          SurfaceCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${(overall * 100).round()} % du programme couvert',
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-                onToggle: () => controller.toggleSubject(summaries[i].subject),
+                const SizedBox(height: PrototypeSpacing.xs),
+                PrototypeProgressBar(value: overall),
+                const SizedBox(height: PrototypeSpacing.xs),
+                Text(
+                  'Moyenne indicative sur les matières suivies.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: PrototypeColors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: PrototypeSpacing.xl),
+          for (var i = 0; i < summaries.length; i++) ...[
+            if (i > 0) const SizedBox(height: PrototypeSpacing.xl),
+            _SubjectProgressSectionHeader(
+              summary: summaries[i],
+              expanded: expandedSubjectIds.contains(summaries[i].subject),
+              onOpenLogbook: () => context.go(
+                '/scolarite/subject/${MockStore.subjectRouteParam(summaries[i].subject)}/cahier',
               ),
-              if (expandedSubjectIds.contains(summaries[i].subject)) ...[
-                for (final topic
-                    in store.topicsForSubject(summaries[i].subject)) ...[
-                  const SizedBox(height: PrototypeSpacing.xs),
-                  ListRow(
-                    title: topic.title,
-                    subtitle: topic.status,
-                    trailing: Text(
-                      '${(topic.progress * 100).round()} %',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: PrototypeColors.primary,
-                      ),
+              onToggle: () => controller.toggleSubject(summaries[i].subject),
+            ),
+            if (expandedSubjectIds.contains(summaries[i].subject)) ...[
+              for (final topic
+                  in store.topicsForSubject(summaries[i].subject)) ...[
+                const SizedBox(height: PrototypeSpacing.xs),
+                ListRow(
+                  title: topic.title,
+                  subtitle: topic.status,
+                  trailing: Text(
+                    '${(topic.progress * 100).round()} %',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: PrototypeColors.primary,
                     ),
                   ),
-                ],
-                const SizedBox(height: PrototypeSpacing.sm),
+                ),
               ],
+              const SizedBox(height: PrototypeSpacing.sm),
             ],
           ],
-        ),
-      );
-    });
+        ],
+      ),
+    );
   }
 }
 

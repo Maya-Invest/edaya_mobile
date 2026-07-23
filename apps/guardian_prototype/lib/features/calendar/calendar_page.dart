@@ -20,37 +20,35 @@ class CalendarPage extends LScopedView<CalendarController> {
 
   @override
   Widget buildView(BuildContext context, CalendarController controller) {
-    return LWatch(() {
-      controller.storeTick.value;
-      final store = controller.store;
+        controller.storeTick.value;
+    final store = controller.store;
 
-      return AdaptiveContent(
-        child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              PrototypeSpacing.md,
-              PrototypeSpacing.sm,
-              PrototypeSpacing.md,
-              0,
-            ),
-            child: Row(
-              children: [
-                Flexible(child: _CalendarDatePicker(store: store)),
-                TextButton.icon(
-                  onPressed: () => context.go('/attendance'),
-                  icon: const Icon(Icons.list_alt_outlined, size: 18),
-                  label: const Text('Toutes les présences'),
-                ),
-              ],
-            ),
+    return AdaptiveContent(
+      child: Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            PrototypeSpacing.md,
+            PrototypeSpacing.sm,
+            PrototypeSpacing.md,
+            0,
           ),
-          _WeekSelector(store: store),
-          Expanded(child: _MergedDayList(store: store)),
-        ],
+          child: Row(
+            children: [
+              Flexible(child: _CalendarDatePicker(store: store)),
+              TextButton.icon(
+                onPressed: () => context.go('/attendance'),
+                icon: const Icon(Icons.list_alt_outlined, size: 18),
+                label: const Text('Toutes les présences'),
+              ),
+            ],
+          ),
         ),
-      );
-    });
+        _WeekSelector(store: store),
+        Expanded(child: _MergedDayList(store: store)),
+      ],
+      ),
+    );
   }
 }
 

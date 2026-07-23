@@ -59,4 +59,46 @@ void main() {
     expect(find.byType(NavigationRail), findsOneWidget);
     expect(find.byType(NavigationBar), findsNothing);
   });
+
+  testWidgets('account clears primary tab selection', (tester) async {
+    final auth = PrototypeWidgetTestHarness()..bootstrap(authenticated: true);
+    await pumpPrototypeApp(
+      tester,
+      auth,
+      formFactor: DesignReviewFormFactor.phone,
+    );
+    auth.router.go('/account');
+    await tester.pumpAndSettle();
+
+    final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+    // Material requires an index; theme + identical icons keep none visually selected.
+    expect(bar.selectedIndex, 0);
+    final destinations = bar.destinations.cast<NavigationDestination>();
+    expect(destinations.length, 5);
+    for (final d in destinations) {
+      expect((d.selectedIcon as Icon).icon, (d.icon as Icon).icon);
+    }
+  });
+
+  testWidgets('medium width paints brand app bar on list hubs', (tester) async {
+    final auth = PrototypeWidgetTestHarness()..bootstrap(authenticated: true);
+    await pumpPrototypeApp(
+      tester,
+      auth,
+      formFactor: DesignReviewFormFactor.phone,
+    );
+    // Force medium band (rail, no detail drawer): 600 ≤ width < 1000.
+    const medium = Size(800, 1024);
+    tester.view.devicePixelRatio = 1.0;
+    await tester.binding.setSurfaceSize(medium);
+    tester.view.physicalSize = medium;
+    addTearDown(() async {
+      await resetIntegrationTestViewport(tester);
+    });
+    auth.router.go('/fees');
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavigationRail), findsOneWidget);
+    expect(find.text('edaya'), findsOneWidget);
+  });
 }

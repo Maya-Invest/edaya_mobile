@@ -20,128 +20,138 @@ class FeesPage extends LScopedView<FeesController> {
 
   @override
   Widget buildView(BuildContext context, FeesController controller) {
-    return LWatch(() {
-      controller.storeTick.value;
-      final store = controller.store;
-      final path = GoRouterState.of(context).uri.path;
-      final selectedFeeId = path.startsWith('/fees/fee/')
-          ? path.split('/').last
-          : null;
-      final selectedPaymentId = path.startsWith('/fees/payment/')
-          ? path.split('/').last
-          : null;
-      final progress = store.feeExpected == 0
-          ? 0.0
-          : (store.feePaid / store.feeExpected).clamp(0.0, 1.0);
+        controller.storeTick.value;
+    final store = controller.store;
+    final path = GoRouterState.of(context).uri.path;
+    final selectedFeeId = path.startsWith('/fees/fee/')
+        ? path.split('/').last
+        : null;
+    final selectedPaymentId = path.startsWith('/fees/payment/')
+        ? path.split('/').last
+        : null;
+    final progress = store.feeExpected == 0
+        ? 0.0
+        : (store.feePaid / store.feeExpected).clamp(0.0, 1.0);
 
-      return AdaptiveContent(
-        child: ListView(
-        padding: const EdgeInsets.all(PrototypeSpacing.md),
-        children: [
-          const SectionHeader(title: 'Résumé'),
-          SurfaceCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: SummaryMetric(
-                        label: 'Attendu',
-                        value: formatMoney(store.feeExpected, 'EUR'),
-                      ),
+    return AdaptiveContent(
+      child: ListView(
+      padding: const EdgeInsets.all(PrototypeSpacing.md),
+      children: [
+        const SectionHeader(title: 'Résumé'),
+        SurfaceCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: SummaryMetric(
+                      label: 'Attendu',
+                      value: formatMoney(store.feeExpected, 'EUR'),
                     ),
-                    Expanded(
-                      child: SummaryMetric(
-                        label: 'Payé',
-                        value: formatMoney(store.feePaid, 'EUR'),
-                      ),
-                    ),
-                    Expanded(
-                      child: SummaryMetric(
-                        label: 'Solde',
-                        value: formatMoney(store.feeBalance, 'EUR'),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: PrototypeSpacing.sm),
-                PrototypeProgressBar(value: progress),
-                const SizedBox(height: PrototypeSpacing.xs),
-                Text(
-                  '${(progress * 100).round()} % réglé',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: PrototypeColors.onSurfaceVariant,
                   ),
-                ),
-                if (store.overdueFeeCount > 0) ...[
-                  const SizedBox(height: PrototypeSpacing.sm),
-                  Text(
-                    '${store.overdueFeeCount} ligne de frais en retard',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: PrototypeColors.error,
+                  Expanded(
+                    child: SummaryMetric(
+                      label: 'Payé',
+                      value: formatMoney(store.feePaid, 'EUR'),
+                    ),
+                  ),
+                  Expanded(
+                    child: SummaryMetric(
+                      label: 'Solde',
+                      value: formatMoney(store.feeBalance, 'EUR'),
                     ),
                   ),
                 ],
-              ],
-            ),
+              ),
+              const SizedBox(height: PrototypeSpacing.sm),
+              PrototypeProgressBar(value: progress),
+              const SizedBox(height: PrototypeSpacing.xs),
+              Text(
+                '${(progress * 100).round()} % réglé',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: PrototypeColors.onSurfaceVariant,
+                ),
+              ),
+                if (store.overdueFeeCount > 0) ...[
+                  const SizedBox(height: PrototypeSpacing.sm),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 16,
+                        color: PrototypeColors.error,
+                      ),
+                      const SizedBox(width: PrototypeSpacing.xxs),
+                      Expanded(
+                        child: Text(
+                          '${store.overdueFeeCount} ligne de frais en retard',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: PrototypeColors.error,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+            ],
           ),
-          const SizedBox(height: PrototypeSpacing.xl),
-          const SectionHeader(title: 'Lignes de frais'),
-          for (final fee in store.feeLines) ...[
-            ListRow(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: fee.status == 'En retard'
-                      ? PrototypeColors.errorContainer
-                      : PrototypeColors.primaryContainer,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.receipt_long_outlined,
-                  size: 20,
-                  color: fee.status == 'En retard'
-                      ? PrototypeColors.error
-                      : PrototypeColors.primary,
-                ),
-              ),
-              title: fee.label,
-              subtitle:
-                  'Échéance ${fee.dueDate != null ? formatDate(fee.dueDate!) : '—'} · '
-                  '${fee.paymentCount} paiement${fee.paymentCount > 1 ? 's' : ''}',
-              selected: selectedFeeId == fee.id,
-              trailing: FeeAmountTrailing(
-                amount: formatMoney(fee.balance, fee.currency),
-                label: fee.status,
-                labelColor: fee.status == 'En retard'
-                    ? PrototypeColors.error
-                    : null,
-                showChevron: true,
-              ),
-              onTap: () => context.go('/fees/fee/${fee.id}'),
-            ),
-            const SizedBox(height: PrototypeSpacing.xs),
-          ],
-          const SizedBox(height: PrototypeSpacing.xl),
-          const SectionHeader(title: 'Paiements'),
-          for (final payment in store.payments) ...[
-            ListRow(
-              title: payment.method,
-              subtitle: '${payment.feeLabel} · ${formatDate(payment.date)}',
-              selected: selectedPaymentId == payment.id,
-              trailing: FeeAmountTrailing(
-                amount: formatMoney(payment.amount, payment.currency),
-                label: 'Reçu',
-                showChevron: true,
-              ),
-              onTap: () => context.go('/fees/payment/${payment.id}'),
-            ),
-            const SizedBox(height: PrototypeSpacing.xs),
-          ],
-        ],
         ),
-      );
-    });
+        const SizedBox(height: PrototypeSpacing.xl),
+        const SectionHeader(title: 'Lignes de frais'),
+        for (final fee in store.feeLines) ...[
+          ListRow(
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: fee.status == 'En retard'
+                    ? PrototypeColors.errorContainer
+                    : PrototypeColors.primaryContainer,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                Icons.receipt_long_outlined,
+                size: 20,
+                color: fee.status == 'En retard'
+                    ? PrototypeColors.error
+                    : PrototypeColors.primary,
+              ),
+            ),
+            title: fee.label,
+            subtitle:
+                'Échéance ${fee.dueDate != null ? formatDate(fee.dueDate!) : '—'} · '
+                '${fee.paymentCount} paiement${fee.paymentCount > 1 ? 's' : ''}',
+            selected: selectedFeeId == fee.id,
+            trailing: FeeAmountTrailing(
+              amount: formatMoney(fee.balance, fee.currency),
+              label: fee.status,
+              labelColor: fee.status == 'En retard'
+                  ? PrototypeColors.error
+                  : null,
+              showChevron: true,
+            ),
+            onTap: () => context.go('/fees/fee/${fee.id}'),
+          ),
+          const SizedBox(height: PrototypeSpacing.xs),
+        ],
+        const SizedBox(height: PrototypeSpacing.xl),
+        const SectionHeader(title: 'Paiements'),
+        for (final payment in store.payments) ...[
+          ListRow(
+            title: payment.method,
+            subtitle: '${payment.feeLabel} · ${formatDate(payment.date)}',
+            selected: selectedPaymentId == payment.id,
+            trailing: FeeAmountTrailing(
+              amount: formatMoney(payment.amount, payment.currency),
+              label: 'Reçu',
+              showChevron: true,
+            ),
+            onTap: () => context.go('/fees/payment/${payment.id}'),
+          ),
+          const SizedBox(height: PrototypeSpacing.xs),
+        ],
+      ],
+      ),
+    );
   }
 }

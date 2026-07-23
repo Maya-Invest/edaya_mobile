@@ -41,7 +41,7 @@ Shell chrome: branded `PrototypeAppBar` + `StudentContextCard` (student / school
 | Width | Chrome | Content |
 |-------|--------|---------|
 | &lt; 600 | Bottom navigation | Single column |
-| ≥ 600 | `NavigationRail` (profile + help at bottom) | Max content width ~840 |
+| ≥ 600 and &lt; 1000 | `NavigationRail` (profile + help at bottom) | Max content width ~840; brand app bar in content column |
 | ≥ 1000 | Rail + right overlay drawer (~40%) | Detail over list (Agenda, Scolarité, Fees, Inbox) |
 
 ## Screens
@@ -80,7 +80,7 @@ Shell chrome: branded `PrototypeAppBar` + `StudentContextCard` (student / school
 
 ## Design review screenshots
 
-Generate PNGs for every prototype route (phone + tablet) and an HTML gallery.
+Generate PNGs for every prototype route (**phone**, **medium**, **tablet**) and an HTML gallery.
 
 **Important:** stop `flutter run` and any other Flutter tests first — a leftover `flutter_tester` process can interfere with screenshot capture.
 
@@ -92,7 +92,7 @@ melos run screenshots:guardian-prototype:review
 bash scripts/guardian-prototype-design-review.sh
 ```
 
-Output: `apps/guardian_prototype/design-review/index.html` (mock data, no API). Expect ~10 seconds on a clean machine (38 PNGs).
+Output: `apps/guardian_prototype/design-review/index.html` (mock data, no API). Expect ~57 PNGs (19 routes × 3 form factors) on a clean machine.
 
 ## Design spec
 
@@ -102,4 +102,4 @@ See [`docs/specs/design-language-spec.md`](../../docs/specs/design-language-spec
 
 Production integration checklist: [`docs/plans/guardian-phase3-migration.md`](../../docs/plans/guardian-phase3-migration.md).
 
-Levit: app `LScope` + feature `LScopedView` controllers over `MockStore` (see `lib/di/prototype_module.dart`). Phase-3 swaps the store for API clients.
+Levit (`levit_flutter` ^0.0.9): app `LScope` + feature `LScopedView` controllers over `MockStore` (see `lib/di/prototype_module.dart`). Phase-3 swaps the store for API clients.

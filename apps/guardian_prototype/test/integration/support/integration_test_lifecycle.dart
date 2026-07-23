@@ -14,6 +14,8 @@ Future<void> resetIntegrationTestSurface(WidgetTester tester) async {
 Size designReviewLogicalSize(DesignReviewFormFactor formFactor) {
   return switch (formFactor) {
     DesignReviewFormFactor.phone => const Size(390, 844),
+    // Medium: navigation rail, no detail drawer (600 ≤ width < 1000).
+    DesignReviewFormFactor.medium => const Size(800, 1024),
     DesignReviewFormFactor.tablet => const Size(1200, 900),
   };
 }
@@ -30,6 +32,7 @@ Future<void> configureDesignReviewViewport(
 
 enum DesignReviewFormFactor {
   phone('phone'),
+  medium('medium'),
   tablet('tablet');
 
   const DesignReviewFormFactor(this.slug);

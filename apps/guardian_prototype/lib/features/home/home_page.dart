@@ -19,101 +19,99 @@ class HomePage extends LScopedView<HomeController> {
 
   @override
   Widget buildView(BuildContext context, HomeController controller) {
-    return LWatch(() {
-      controller.storeTick.value;
-      final store = controller.store;
-      final reportCard = store.currentPeriodReportCard;
+        controller.storeTick.value;
+    final store = controller.store;
+    final reportCard = store.currentPeriodReportCard;
 
-      final attentionCards = <Widget>[
-        if (store.overdueFeeCount > 0)
-          AttentionCard(
-            tone: AttentionTone.important,
-            title: 'Frais en retard',
-            subtitle:
-                '${store.overdueFeeCount} ligne(s) · Solde ${formatMoney(store.feeBalance, 'EUR')}',
-            icon: Icons.payments_outlined,
-            onTap: () => context.go('/fees'),
-          ),
-        if (reportCard != null)
-          AttentionCard(
-            tone: AttentionTone.normal,
-            title: 'Bulletin disponible',
-            subtitle: '${reportCard.period} · Moyenne ${reportCard.average}',
-            icon: Icons.description_outlined,
-            onTap: () => context.go('/scolarite/notes'),
-          ),
-        if (store.unreadCount > 0)
-          AttentionCard(
-            tone: AttentionTone.message,
-            title: 'Nouveaux messages',
-            subtitle: '${store.unreadCount} non lu(s)',
-            icon: Icons.mail_outline,
-            onTap: () => context.go('/inbox'),
-          ),
-      ];
+    final attentionCards = <Widget>[
+      if (store.overdueFeeCount > 0)
+        AttentionCard(
+          tone: AttentionTone.important,
+          title: 'Frais en retard',
+          subtitle:
+              '${store.overdueFeeCount} ligne(s) · Solde ${formatMoney(store.feeBalance, 'EUR')}',
+          icon: Icons.payments_outlined,
+          onTap: () => context.go('/fees'),
+        ),
+      if (reportCard != null)
+        AttentionCard(
+          tone: AttentionTone.normal,
+          title: 'Bulletin disponible',
+          subtitle: '${reportCard.period} · Moyenne ${reportCard.average}',
+          icon: Icons.description_outlined,
+          onTap: () => context.go('/scolarite/notes'),
+        ),
+      if (store.unreadCount > 0)
+        AttentionCard(
+          tone: AttentionTone.message,
+          title: 'Nouveaux messages',
+          subtitle: '${store.unreadCount} non lu(s)',
+          icon: Icons.mail_outline,
+          onTap: () => context.go('/inbox'),
+        ),
+    ];
 
-      return AdaptiveContent(
-        child: ListView(
-          padding: const EdgeInsets.all(PrototypeSpacing.md),
-          children: [
-            Text(
-              formatFullDate(DateTime.now()),
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: PrototypeSpacing.xl),
-            _AttentionBand(cards: attentionCards),
+    return AdaptiveContent(
+      child: ListView(
+        padding: const EdgeInsets.all(PrototypeSpacing.md),
+        children: [
+          Text(
+            formatFullDate(DateTime.now()),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: PrototypeSpacing.xl),
+          _AttentionBand(cards: attentionCards),
+          const SizedBox(height: PrototypeSpacing.xl),
+          _HomeDaySection(
+            store: store,
+            title: 'Aujourd\'hui',
+            dayOffset: 0,
+            onOpenCalendar: () {
+              controller.openCalendarDay(0);
+              context.go('/calendar');
+            },
+          ),
+          if (store.hasHomeDayPlan(1)) ...[
             const SizedBox(height: PrototypeSpacing.xl),
             _HomeDaySection(
               store: store,
-              title: 'Aujourd\'hui',
-              dayOffset: 0,
+              title: 'Demain',
+              dayOffset: 1,
               onOpenCalendar: () {
-                controller.openCalendarDay(0);
+                controller.openCalendarDay(1);
                 context.go('/calendar');
               },
             ),
-            if (store.hasHomeDayPlan(1)) ...[
-              const SizedBox(height: PrototypeSpacing.xl),
-              _HomeDaySection(
-                store: store,
-                title: 'Demain',
-                dayOffset: 1,
-                onOpenCalendar: () {
-                  controller.openCalendarDay(1);
-                  context.go('/calendar');
-                },
-              ),
-            ],
-            const SizedBox(height: PrototypeSpacing.xl),
-            const SectionHeader(title: 'Finances'),
-            for (final alert in store.homeFinanceAlerts) ...[
-              _FinanceAlertRow(alert: alert, onTap: () => context.go('/fees')),
-              const SizedBox(height: PrototypeSpacing.xs),
-            ],
-            const SizedBox(height: PrototypeSpacing.xl),
-            SectionHeader(
-              title: 'Dernières notes',
-              action: 'Tout voir',
-              onAction: () => context.go('/scolarite/notes'),
-            ),
-            for (final grade in store.latestGrades) ...[
-              ListRow(
-                title: grade.title,
-                subtitle: '${grade.subject} · ${formatDate(grade.date)}',
-                trailing: Text(
-                  '${grade.score.toInt()}/${grade.maxScore.toInt()}',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: PrototypeColors.primary,
-                      ),
-                ),
-                onTap: () => context.go('/scolarite/notes'),
-              ),
-              const SizedBox(height: PrototypeSpacing.xs),
-            ],
           ],
-        ),
-      );
-    });
+          const SizedBox(height: PrototypeSpacing.xl),
+          const SectionHeader(title: 'Finances'),
+          for (final alert in store.homeFinanceAlerts) ...[
+            _FinanceAlertRow(alert: alert, onTap: () => context.go('/fees')),
+            const SizedBox(height: PrototypeSpacing.xs),
+          ],
+          const SizedBox(height: PrototypeSpacing.xl),
+          SectionHeader(
+            title: 'Dernières notes',
+            action: 'Tout voir',
+            onAction: () => context.go('/scolarite/notes'),
+          ),
+          for (final grade in store.latestGrades) ...[
+            ListRow(
+              title: grade.title,
+              subtitle: '${grade.subject} · ${formatDate(grade.date)}',
+              trailing: Text(
+                '${grade.score.toInt()}/${grade.maxScore.toInt()}',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: PrototypeColors.primary,
+                    ),
+              ),
+              onTap: () => context.go('/scolarite/notes'),
+            ),
+            const SizedBox(height: PrototypeSpacing.xs),
+          ],
+        ],
+      ),
+    );
   }
 }
 

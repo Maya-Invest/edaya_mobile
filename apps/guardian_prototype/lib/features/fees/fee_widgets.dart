@@ -48,9 +48,18 @@ class FeeAmountTrailing extends StatelessWidget {
             ],
           ],
         ),
-        Text(
-          label,
-          style: textTheme.labelSmall?.copyWith(color: labelColor),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (labelColor != null) ...[
+              Icon(Icons.error_outline, size: 12, color: labelColor),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              label,
+              style: textTheme.labelSmall?.copyWith(color: labelColor),
+            ),
+          ],
         ),
       ],
     );

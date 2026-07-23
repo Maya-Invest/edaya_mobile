@@ -26,98 +26,96 @@ class SessionDetailPage extends LScopedView<SessionDetailController> {
 
   @override
   Widget buildView(BuildContext context, SessionDetailController controller) {
-    return LWatch(() {
-      controller.storeTick.value;
-      final embedded = PrototypeBreakpoints.detailDrawerActive(context);
-      final store = controller.store;
-      final session = store.sessionById(controller.sessionId);
-      if (session == null) {
-        return PrototypeDetailScaffold(
-          embedded: embedded,
-          fallbackRoute: '/calendar',
-          title: 'Séance',
-          body: const EmptyState(title: 'Séance introuvable'),
-        );
-      }
-
-      final logbook = store.logbookForSession(controller.sessionId);
-      final assessment = store.assessmentForSession(controller.sessionId);
-      final activity = store.activityForSession(controller.sessionId);
-      final textTheme = Theme.of(context).textTheme;
-
+        controller.storeTick.value;
+    final embedded = PrototypeBreakpoints.detailDrawerActive(context);
+    final store = controller.store;
+    final session = store.sessionById(controller.sessionId);
+    if (session == null) {
       return PrototypeDetailScaffold(
         embedded: embedded,
         fallbackRoute: '/calendar',
-        titleWidget: Row(
-          children: [
-            SessionCategoryIcon(category: session.category, size: 18, padding: 6),
-            const SizedBox(width: PrototypeSpacing.xs),
-            Expanded(
-              child: Text(
-                session.subject,
-                overflow: TextOverflow.ellipsis,
-              ),
+        title: 'Séance',
+        body: const EmptyState(title: 'Séance introuvable'),
+      );
+    }
+
+    final logbook = store.logbookForSession(controller.sessionId);
+    final assessment = store.assessmentForSession(controller.sessionId);
+    final activity = store.activityForSession(controller.sessionId);
+    final textTheme = Theme.of(context).textTheme;
+
+    return PrototypeDetailScaffold(
+      embedded: embedded,
+      fallbackRoute: '/calendar',
+      titleWidget: Row(
+        children: [
+          SessionCategoryIcon(category: session.category, size: 18, padding: 6),
+          const SizedBox(width: PrototypeSpacing.xs),
+          Expanded(
+            child: Text(
+              session.subject,
+              overflow: TextOverflow.ellipsis,
             ),
-          ],
-        ),
-        body: ListView(
-          padding: const EdgeInsets.all(PrototypeSpacing.md),
-          children: [
-            SurfaceCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      StatusChip(
-                        label: session.category.label,
-                        tone: _categoryTone(session.category),
-                      ),
-                      const Spacer(),
-                      StatusChip(
-                        label: session.attendance,
-                        tone: _attendanceTone(session.attendance),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: PrototypeSpacing.sm),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Enseignant', style: textTheme.labelSmall),
-                            Text(session.teacher),
-                          ],
-                        ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(PrototypeSpacing.md),
+        children: [
+          SurfaceCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    StatusChip(
+                      label: session.category.label,
+                      tone: _categoryTone(session.category),
+                    ),
+                    const Spacer(),
+                    StatusChip(
+                      label: session.attendance,
+                      tone: _attendanceTone(session.attendance),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: PrototypeSpacing.sm),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Horaire', style: textTheme.labelSmall),
-                          Text(formatTimeRange(session.startHour, session.endHour)),
+                          Text('Enseignant', style: textTheme.labelSmall),
+                          Text(session.teacher),
                         ],
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('Horaire', style: textTheme.labelSmall),
+                        Text(formatTimeRange(session.startHour, session.endHour)),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
             ),
-            const SizedBox(height: PrototypeSpacing.md),
-            switch (session.category) {
-              HomeDayCategory.lesson => _LessonDetailSection(logbook: logbook),
-              HomeDayCategory.assessment => _AssessmentDetailSection(
-                assessment: assessment,
-              ),
-              HomeDayCategory.activity => _ActivityDetailSection(activity: activity),
-            },
-          ],
-        ),
-      );
-    });
+          ),
+          const SizedBox(height: PrototypeSpacing.md),
+          switch (session.category) {
+            HomeDayCategory.lesson => _LessonDetailSection(logbook: logbook),
+            HomeDayCategory.assessment => _AssessmentDetailSection(
+              assessment: assessment,
+            ),
+            HomeDayCategory.activity => _ActivityDetailSection(activity: activity),
+          },
+        ],
+      ),
+    );
   }
 }
 
@@ -238,9 +236,8 @@ class _AssessmentDetailSection extends StatelessWidget {
               children: [
                 Text(
                   '${assessment!.score!.toStringAsFixed(0)}/${assessment!.maxScore!.toStringAsFixed(0)}',
-                  style: textTheme.headlineSmall?.copyWith(
+                  style: textTheme.titleLarge?.copyWith(
                     color: PrototypeColors.primary,
-                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const Spacer(),

@@ -18,35 +18,33 @@ class AttendanceListPage extends LScopedView<AttendanceController> {
 
   @override
   Widget buildView(BuildContext context, AttendanceController controller) {
-    return LWatch(() {
-      controller.storeTick.value;
-      final embedded = PrototypeBreakpoints.detailDrawerActive(context);
-      final store = controller.store;
+        controller.storeTick.value;
+    final embedded = PrototypeBreakpoints.detailDrawerActive(context);
+    final store = controller.store;
 
-      return PrototypeDetailScaffold(
-        embedded: embedded,
-        fallbackRoute: '/calendar',
-        title: 'Présences',
-        body: ListView.separated(
-          padding: const EdgeInsets.all(PrototypeSpacing.md),
-          itemCount: store.attendance.length,
-          separatorBuilder: (_, _) => const SizedBox(height: PrototypeSpacing.xs),
-          itemBuilder: (context, i) {
-            final a = store.attendance[i];
-            final tone = a.status == 'Absent'
-                ? SemanticTone.error
-                : a.status == 'Retard'
-                ? SemanticTone.warning
-                : SemanticTone.success;
-            return ListRow(
-              title: a.subject,
-              subtitle: formatDate(a.date),
-              badge: a.status,
-              badgeTone: tone,
-            );
-          },
-        ),
-      );
-    });
+    return PrototypeDetailScaffold(
+      embedded: embedded,
+      fallbackRoute: '/calendar',
+      title: 'Présences',
+      body: ListView.separated(
+        padding: const EdgeInsets.all(PrototypeSpacing.md),
+        itemCount: store.attendance.length,
+        separatorBuilder: (_, _) => const SizedBox(height: PrototypeSpacing.xs),
+        itemBuilder: (context, i) {
+          final a = store.attendance[i];
+          final tone = a.status == 'Absent'
+              ? SemanticTone.error
+              : a.status == 'Retard'
+              ? SemanticTone.warning
+              : SemanticTone.success;
+          return ListRow(
+            title: a.subject,
+            subtitle: formatDate(a.date),
+            badge: a.status,
+            badgeTone: tone,
+          );
+        },
+      ),
+    );
   }
 }

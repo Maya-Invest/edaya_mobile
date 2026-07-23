@@ -31,7 +31,7 @@ class LoginPage extends LScopedView<LoginController> {
               constraints: const BoxConstraints(maxWidth: 400),
               child: Column(
                 children: [
-                  Text('edaya', style: PrototypeTypography.brandWordmark(size: 48)),
+                  Text('edaya', style: PrototypeTypography.brandWordmark(size: 40)),
                   const SizedBox(height: PrototypeSpacing.xs),
                   Text(
                     'Espace famille',

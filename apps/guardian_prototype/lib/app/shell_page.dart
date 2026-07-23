@@ -44,7 +44,11 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
     ),
   ];
 
-  int _indexForLocation(String location) {
+  /// Primary tab index, or `null` when none should be highlighted (account/settings).
+  int? _indexForLocation(String location) {
+    if (location.startsWith('/account') || location.startsWith('/settings')) {
+      return null;
+    }
     if (location.startsWith('/session') ||
         location.startsWith('/attendance')) {
       return 1;
@@ -58,6 +62,19 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
       if (location.startsWith(_tabs[i])) return i;
     }
     return 0;
+  }
+
+  List<NavigationDestination> _navDestinations({required bool noneSelected}) {
+    if (!noneSelected) return _destinations;
+    // NavigationBar requires a selectedIndex; keep visuals fully unselected.
+    return [
+      for (final d in _destinations)
+        NavigationDestination(
+          icon: d.icon,
+          selectedIcon: d.icon,
+          label: d.label,
+        ),
+    ];
   }
 
   bool _showChrome(String location) {
@@ -92,115 +109,134 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
     final index = _indexForLocation(location);
     final ctx = controller.studentContext;
 
-    return LWatch(() {
-      ctx.storeTick.value;
-      final student = ctx.activeStudent;
-      final school = ctx.activeSchool;
+        ctx.storeTick.value;
+    final student = ctx.activeStudent;
+    final school = ctx.activeSchool;
 
-      final contextCard = StudentContextCard(
-        studentName: student.fullName,
-        studentInitials: student.initials,
-        classLabel: student.classLabel,
-        schoolName: school.name,
-        schoolYear: ctx.selectedYear,
-        photoUrl: student.photoUrl,
-        onSelectStudent: () => _showContextSheet(context, ctx),
-      );
+    final contextCard = StudentContextCard(
+      studentName: student.fullName,
+      studentInitials: student.initials,
+      classLabel: student.classLabel,
+      schoolName: school.name,
+      schoolYear: ctx.selectedYear,
+      photoUrl: student.photoUrl,
+      onSelectStudent: () => _showContextSheet(context, ctx),
+    );
 
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          final useRail =
-              showNav && PrototypeBreakpoints.useNavigationRail(constraints.maxWidth);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useRail =
+            showNav && PrototypeBreakpoints.useNavigationRail(constraints.maxWidth);
 
-          final mainColumn = ShellChrome(
-            showHeader: showNav,
-            header: contextCard,
-            appBar: useRail ? const PrototypeAppBar() : null,
-            child: child,
-          );
+        final mainColumn = ShellChrome(
+          showHeader: showNav,
+          header: contextCard,
+          appBar: useRail ? const PrototypeAppBar() : null,
+          child: child,
+        );
 
-          if (!useRail) {
-            return Scaffold(
-              backgroundColor: PrototypeColors.background,
-              appBar: showNav
-                  ? PrototypeAppBar(
-                      onProfileTap: () => context.go('/account'),
-                      onHelpTap: () => _openHelp(context),
-                    )
-                  : null,
-              body: mainColumn,
-              bottomNavigationBar: showNav
-                  ? NavigationBar(
-                      selectedIndex: index,
-                      onDestinationSelected: (i) => context.go(_tabs[i]),
-                      destinations: _destinations,
-                    )
-                  : null,
-            );
-          }
+        final noneSelected = index == null;
 
+        if (!useRail) {
           return Scaffold(
             backgroundColor: PrototypeColors.background,
-            body: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                NavigationRail(
-                  backgroundColor: PrototypeColors.background,
-                  selectedIndex: index,
-                  onDestinationSelected: (i) => context.go(_tabs[i]),
-                  labelType: NavigationRailLabelType.all,
-                  destinations: [
-                    for (final d in _destinations)
-                      NavigationRailDestination(
-                        icon: d.icon,
-                        selectedIcon: d.selectedIcon,
-                        label: Text(d.label),
+            appBar: showNav
+                ? PrototypeAppBar(
+                    onProfileTap: () => context.go('/account'),
+                    onHelpTap: () => _openHelp(context),
+                  )
+                : null,
+            body: mainColumn,
+            bottomNavigationBar: showNav
+                ? NavigationBarTheme(
+                    data: noneSelected
+                        ? NavigationBarThemeData(
+                            indicatorColor: Colors.transparent,
+                            iconTheme: WidgetStateProperty.all(
+                              IconThemeData(
+                                color: PrototypeColors.onSurfaceVariant,
+                              ),
+                            ),
+                            labelTextStyle: WidgetStateProperty.all(
+                              Theme.of(context).textTheme.labelMedium?.copyWith(
+                                color: PrototypeColors.onSurfaceVariant,
+                              ),
+                            ),
+                          )
+                        : const NavigationBarThemeData(),
+                    child: NavigationBar(
+                      selectedIndex: index ?? 0,
+                      onDestinationSelected: (i) => context.go(_tabs[i]),
+                      destinations: _navDestinations(
+                        noneSelected: noneSelected,
                       ),
-                  ],
-                  trailing: Expanded(
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          bottom: PrototypeSpacing.md,
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              tooltip: 'Mon compte',
-                              icon: const Icon(Icons.account_circle_outlined),
-                              onPressed: () => context.go('/account'),
-                            ),
-                            IconButton(
-                              tooltip: 'Aide',
-                              icon: const Icon(Icons.help_outline),
-                              onPressed: () => _openHelp(context),
-                            ),
-                          ],
-                        ),
+                    ),
+                  )
+                : null,
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: PrototypeColors.background,
+          body: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              NavigationRail(
+                backgroundColor: PrototypeColors.background,
+                selectedIndex: index,
+                onDestinationSelected: (i) => context.go(_tabs[i]),
+                labelType: NavigationRailLabelType.all,
+                destinations: [
+                  for (final d in _destinations)
+                    NavigationRailDestination(
+                      icon: d.icon,
+                      selectedIcon: noneSelected ? d.icon : d.selectedIcon,
+                      label: Text(d.label),
+                    ),
+                ],
+                trailing: Expanded(
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        bottom: PrototypeSpacing.md,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            tooltip: 'Mon compte',
+                            icon: const Icon(Icons.account_circle_outlined),
+                            onPressed: () => context.go('/account'),
+                          ),
+                          IconButton(
+                            tooltip: 'Aide',
+                            icon: const Icon(Icons.help_outline),
+                            onPressed: () => _openHelp(context),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
-                VerticalDivider(
-                  width: 1,
-                  color: PrototypeColors.outlineVariant.withValues(alpha: 0.5),
-                ),
-                Expanded(child: mainColumn),
-              ],
-            ),
-          );
-        },
-      );
-    });
+              ),
+              VerticalDivider(
+                width: 1,
+                color: PrototypeColors.outlineVariant.withValues(alpha: 0.5),
+              ),
+              Expanded(child: mainColumn),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void _showContextSheet(
     BuildContext context,
     StudentContextController studentContext,
   ) {
-    showModalBottomSheet<void>(
+    showLevitModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (ctx) {

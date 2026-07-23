@@ -25,50 +25,48 @@ class MessageDetailPage extends LScopedView<MessageDetailController> {
 
   @override
   Widget buildView(BuildContext context, MessageDetailController controller) {
-    return LWatch(() {
-      controller.storeTick.value;
-      final store = controller.store;
-      final embedded = PrototypeBreakpoints.detailDrawerActive(context);
-      final message = store.messageById(controller.messageId);
-      if (message == null) {
-        return PrototypeDetailScaffold(
-          fallbackRoute: '/inbox',
-          title: 'Message',
-          embedded: embedded,
-          body: const EmptyState(title: 'Message introuvable'),
-        );
-      }
+        controller.storeTick.value;
+    final store = controller.store;
+    final embedded = PrototypeBreakpoints.detailDrawerActive(context);
+    final message = store.messageById(controller.messageId);
+    if (message == null) {
       return PrototypeDetailScaffold(
         fallbackRoute: '/inbox',
         title: 'Message',
         embedded: embedded,
-        body: ListView(
-          padding: const EdgeInsets.all(PrototypeSpacing.md),
-          children: [
-            SurfaceCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    message.title,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: PrototypeSpacing.sm),
-                  StatusChip(
-                    label: formatDate(message.sentAt),
-                    tone: SemanticTone.neutral,
-                  ),
-                  const SizedBox(height: PrototypeSpacing.md),
-                  Text(
-                    message.body,
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+        body: const EmptyState(title: 'Message introuvable'),
       );
-    });
+    }
+    return PrototypeDetailScaffold(
+      fallbackRoute: '/inbox',
+      title: 'Message',
+      embedded: embedded,
+      body: ListView(
+        padding: const EdgeInsets.all(PrototypeSpacing.md),
+        children: [
+          SurfaceCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  message.title,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: PrototypeSpacing.sm),
+                StatusChip(
+                  label: formatDate(message.sentAt),
+                  tone: SemanticTone.neutral,
+                ),
+                const SizedBox(height: PrototypeSpacing.md),
+                Text(
+                  message.body,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

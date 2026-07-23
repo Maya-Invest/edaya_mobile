@@ -8,22 +8,24 @@ abstract final class PrototypeTypography {
 
   static TextTheme textTheme(TextTheme base, ColorScheme scheme) {
     return base.copyWith(
-      displaySmall: _galak(base.displaySmall, scheme.onSurface),
-      headlineMedium: _galak(base.headlineMedium, scheme.onSurface),
-      headlineSmall: _galak(base.headlineSmall, scheme.onSurface),
-      titleLarge: _nunito(base.titleLarge, scheme.onSurface, w600: true),
-      titleMedium: _nunito(base.titleMedium, scheme.onSurface, w600: true),
-      titleSmall: _nunito(base.titleSmall, scheme.onSurface, w600: true),
-      bodyLarge: _nunito(base.bodyLarge, scheme.onSurface),
-      bodyMedium: _nunito(base.bodyMedium, scheme.onSurface),
-      bodySmall: _nunito(base.bodySmall, scheme.onSurfaceVariant),
-      labelLarge: _nunito(base.labelLarge, scheme.onSurface, w600: true),
-      labelMedium: _nunito(base.labelMedium, scheme.onSurfaceVariant, w600: true),
-      labelSmall: _nunito(base.labelSmall, scheme.onSurfaceVariant),
+      displaySmall: _galak(32, scheme.onSurface),
+      headlineMedium: _galak(24, scheme.onSurface),
+      headlineSmall: _galak(20, scheme.onSurface),
+      titleLarge: _nunito(18, scheme.onSurface, weight: FontWeight.w600),
+      titleMedium: _nunito(16, scheme.onSurface, weight: FontWeight.w600),
+      titleSmall: _nunito(14, scheme.onSurface, weight: FontWeight.w600),
+      bodyLarge: _nunito(16, scheme.onSurface),
+      bodyMedium: _nunito(14, scheme.onSurface),
+      bodySmall: _nunito(12, scheme.onSurfaceVariant),
+      labelLarge: _nunito(14, scheme.onSurface, weight: FontWeight.w600),
+      labelMedium: _nunito(12, scheme.onSurfaceVariant, weight: FontWeight.w600),
+      labelSmall: _nunito(11, scheme.onSurfaceVariant, weight: FontWeight.w500),
     );
   }
 
+  /// Brand wordmark. [size] must stay in **28–40** sp.
   static TextStyle brandWordmark({double size = 40, Color? color}) {
+    assert(size >= 28 && size <= 40, 'brandWordmark size must be 28–40');
     return TextStyle(
       fontFamily: brandFamily,
       fontSize: size,
@@ -33,25 +35,26 @@ abstract final class PrototypeTypography {
     );
   }
 
-  static TextStyle _galak(TextStyle? base, Color color) {
+  static TextStyle _galak(double size, Color color) {
     return TextStyle(
       fontFamily: brandFamily,
-      fontSize: base?.fontSize,
-      height: base?.height ?? 1.15,
+      fontSize: size,
+      height: 1.15,
       color: color,
+      fontWeight: FontWeight.w400,
     );
   }
 
   static TextStyle _nunito(
-    TextStyle? base,
+    double size,
     Color color, {
-    bool w600 = false,
+    FontWeight weight = FontWeight.w400,
   }) {
     return TextStyle(
       fontFamily: uiFamily,
-      fontWeight: w600 ? FontWeight.w600 : FontWeight.w400,
-      fontSize: base?.fontSize,
-      height: base?.height ?? 1.4,
+      fontWeight: weight,
+      fontSize: size,
+      height: 1.4,
       color: color,
     );
   }

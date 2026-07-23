@@ -569,50 +569,50 @@ packages:
     dependency: transitive
     description:
       name: levit_dart
-      sha256: "3f07bf2aadf83a76d355269f82af3c6d3621ea6d8789a30776837c2499498d5f"
+      sha256: "98ca770bcb560c23ae99fb3100fa0020e4b9edcd514ccfaedc6d3a430f03845b"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.8"
+    version: "0.0.9"
   levit_dart_core:
     dependency: transitive
     description:
       name: levit_dart_core
-      sha256: "54ed9c24b131a98bfd59fd11d3303f41492be4f44615a6ee93df7c209a4719ad"
+      sha256: "25eeffd0d6fbbe4c8e637f52b02367a6954d1841bb2628e7c2795de1b13f5e8d"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.8"
+    version: "0.0.9"
   levit_flutter:
     dependency: transitive
     description:
       name: levit_flutter
-      sha256: "2fd5826e20583583d2473b2bf3692f18e10254785312f152aa9bbafb2cd4273a"
+      sha256: "0e8fd26ab933d9de21c4ceef0eb0d768cbaa87bf19ea4b30f0dfd8a21722cde2"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.8"
+    version: "0.0.9"
   levit_flutter_core:
     dependency: transitive
     description:
       name: levit_flutter_core
-      sha256: "411f08bd78a480ec950aeab41ea6cbcb5d19df2e0bc4adf4abdc6957d0892c78"
+      sha256: "1990f80a0b8cefc3d17827c862a18246850b7205fe315da8d344a438f9f274d5"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.8"
+    version: "0.0.9"
   levit_reactive:
     dependency: transitive
     description:
       name: levit_reactive
-      sha256: "5b378cb7233d668784fd3bbb1667e6b7f60c9c52f6158f781cf1697e74f53f03"
+      sha256: "5008f6c7d9c6c51cd7f491c71a9ad97f3e528850677beea91dee53a3ffb15119"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.8"
+    version: "0.0.9"
   levit_scope:
     dependency: transitive
     description:
       name: levit_scope
-      sha256: "70c3da32a29eda2bf9b6de90c09fe84f0e2553bfac1efda05e9f858e49154028"
+      sha256: "52072443b349d7202aaac15bd9caddaa0ba09a561b069f5d25d4472fd2a6dd7d"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.8"
+    version: "0.0.9"
   lints:
     dependency: transitive
     description:
