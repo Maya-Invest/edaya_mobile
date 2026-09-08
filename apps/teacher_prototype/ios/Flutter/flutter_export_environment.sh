@@ -1,0 +1,15 @@
+#!/bin/sh
+# This is a generated file; do not edit or check into version control.
+export "FLUTTER_ROOT=/Users/atoumbre/devs/flutter"
+export "FLUTTER_APPLICATION_PATH=/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/apps/guardian_prototype"
+export "FLUTTER_FRAMEWORK_SWIFT_PACKAGE_PATH=/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/apps/guardian_prototype/ios/Flutter/ephemeral/Packages/.packages/FlutterFramework"
+export "COCOAPODS_PARALLEL_CODE_SIGN=true"
+export "FLUTTER_TARGET=/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/apps/guardian_prototype/lib/main.dart"
+export "FLUTTER_BUILD_DIR=build"
+export "FLUTTER_BUILD_NAME=0.1.0"
+export "FLUTTER_BUILD_NUMBER=1"
+export "DART_DEFINES=RkxVVFRFUl9WRVJTSU9OPTMuNDQuNw==,RkxVVFRFUl9DSEFOTkVMPXN0YWJsZQ==,RkxVVFRFUl9HSVRfVVJMPWh0dHBzOi8vZ2l0aHViLmNvbS9mbHV0dGVyL2ZsdXR0ZXIuZ2l0,RkxVVFRFUl9GUkFNRVdPUktfUkVWSVNJT049ODRmYzVjYmIyMg==,RkxVVFRFUl9FTkdJTkVfUkVWSVNJT049NjljOGM2MTc5Mg==,RkxVVFRFUl9EQVJUX1ZFUlNJT049My4xMi4y"
+export "DART_OBFUSCATION=false"
+export "TRACK_WIDGET_CREATION=true"
+export "TREE_SHAKE_ICONS=false"
+export "PACKAGE_CONFIG=/Users/atoumbre/SoftiLab/maya_invest/edaya_mobile/.dart_tool/package_config.json"

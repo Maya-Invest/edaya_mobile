@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Edaya Guardian Prototype — design review</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, system-ui, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    body {
+      margin: 0;
+      padding: 2rem;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 2rem;
+    }
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: 1.75rem;
+    }
+    .meta {
+      color: #475569;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    .grid {
+      display: grid;
+      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    figure {
+      margin: 0;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 1rem;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    }
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #e2e8f0;
+    }
+    figcaption {
+      padding: 1rem 1.1rem 1.2rem;
+      display: grid;
+      gap: 0.35rem;
+    }
+    figcaption span {
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Edaya Guardian Prototype — design review</h1>
+    <p class="meta">
+      Generated 2026-07-22T23:54:45.648757Z<br />
+      Data: mock fixtures (no API)<br />
+      Locale: FR
+    </p>
+  </header>
+  <section class="grid">
+    <figure>
+      <img src="phone-fr/00-login.png" alt="Login (phone, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Login (phone, FR)</strong>
+        <span>Guardian sign-in screen (prototype).</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-fr/01-home.png" alt="Home (phone, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Home (phone, FR)</strong>
+        <span>Action centre with day plan and latest grades.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-fr/02-calendar.png" alt="Calendar (phone, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Calendar (phone, FR)</strong>
+        <span>Week agenda with lessons and school events.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-fr/03-attendance-list.png" alt="Attendance list (phone, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Attendance list (phone, FR)</strong>
+        <span>Attendance records for the active student.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-fr/04-session-details.png" alt="Session details (phone, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Session details (phone, FR)</strong>
+        <span>Lesson session summary.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-fr/05-scolarite-results.png" alt="Scolarité — results (phone, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Scolarité — results (phone, FR)</strong>
+        <span>Trimester results with subject averages.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-fr/06-scolarite-progress.png" alt="Scolarité — progress (phone, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Scolarité — progress (phone, FR)</strong>
+        <span>Curriculum progress by subject.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-fr/07-subject-grades.png" alt="Subject grades (phone, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Subject grades (phone, FR)</strong>
+        <span>Individual evaluations for a subject.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-fr/08-subject-logbook.png" alt="Subject logbook (phone, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Subject logbook (phone, FR)</strong>
+        <span>Cahier de textes entries for a subject.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-fr/09-grade-details.png" alt="Grade details (phone, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Grade details (phone, FR)</strong>
+        <span>Single evaluation detail.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-fr/10-report-card-details.png" alt="Report card details (phone, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Report card details (phone, FR)</strong>
+        <span>Published trimester bulletin.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-fr/11-fees.png" alt="Fees (phone, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Fees (phone, FR)</strong>
+        <span>Fee summary, lines, and payments.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-fr/12-fee-details.png" alt="Fee details (phone, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Fee details (phone, FR)</strong>
+        <span>Fee line with installments and linked payments.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-fr/13-payment-details.png" alt="Payment details (phone, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Payment details (phone, FR)</strong>
+        <span>Payment receipt.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-fr/14-inbox.png" alt="Inbox (phone, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Inbox (phone, FR)</strong>
+        <span>School message deliveries.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-fr/15-message-details.png" alt="Message details (phone, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Message details (phone, FR)</strong>
+        <span>Inbox message content.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-fr/16-settings.png" alt="Settings (phone, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Settings (phone, FR)</strong>
+        <span>App preferences.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-fr/17-account.png" alt="Account (phone, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Account (phone, FR)</strong>
+        <span>Account actions.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-fr/18-account-profile.png" alt="Account profile (phone, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Account profile (phone, FR)</strong>
+        <span>Editable guardian profile.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="medium-fr/00-login.png" alt="Login (medium, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Login (medium, FR)</strong>
+        <span>Guardian sign-in screen (prototype).</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="medium-fr/01-home.png" alt="Home (medium, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Home (medium, FR)</strong>
+        <span>Action centre with day plan and latest grades.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="medium-fr/02-calendar.png" alt="Calendar (medium, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Calendar (medium, FR)</strong>
+        <span>Week agenda with lessons and school events.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="medium-fr/03-attendance-list.png" alt="Attendance list (medium, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Attendance list (medium, FR)</strong>
+        <span>Attendance records for the active student.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="medium-fr/04-session-details.png" alt="Session details (medium, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Session details (medium, FR)</strong>
+        <span>Lesson session summary.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="medium-fr/05-scolarite-results.png" alt="Scolarité — results (medium, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Scolarité — results (medium, FR)</strong>
+        <span>Trimester results with subject averages.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="medium-fr/06-scolarite-progress.png" alt="Scolarité — progress (medium, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Scolarité — progress (medium, FR)</strong>
+        <span>Curriculum progress by subject.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="medium-fr/07-subject-grades.png" alt="Subject grades (medium, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Subject grades (medium, FR)</strong>
+        <span>Individual evaluations for a subject.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="medium-fr/08-subject-logbook.png" alt="Subject logbook (medium, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Subject logbook (medium, FR)</strong>
+        <span>Cahier de textes entries for a subject.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="medium-fr/09-grade-details.png" alt="Grade details (medium, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Grade details (medium, FR)</strong>
+        <span>Single evaluation detail.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="medium-fr/10-report-card-details.png" alt="Report card details (medium, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Report card details (medium, FR)</strong>
+        <span>Published trimester bulletin.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="medium-fr/11-fees.png" alt="Fees (medium, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Fees (medium, FR)</strong>
+        <span>Fee summary, lines, and payments.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="medium-fr/12-fee-details.png" alt="Fee details (medium, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Fee details (medium, FR)</strong>
+        <span>Fee line with installments and linked payments.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="medium-fr/13-payment-details.png" alt="Payment details (medium, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Payment details (medium, FR)</strong>
+        <span>Payment receipt.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="medium-fr/14-inbox.png" alt="Inbox (medium, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Inbox (medium, FR)</strong>
+        <span>School message deliveries.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="medium-fr/15-message-details.png" alt="Message details (medium, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Message details (medium, FR)</strong>
+        <span>Inbox message content.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="medium-fr/16-settings.png" alt="Settings (medium, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Settings (medium, FR)</strong>
+        <span>App preferences.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="medium-fr/17-account.png" alt="Account (medium, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Account (medium, FR)</strong>
+        <span>Account actions.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="medium-fr/18-account-profile.png" alt="Account profile (medium, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Account profile (medium, FR)</strong>
+        <span>Editable guardian profile.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-fr/00-login.png" alt="Login (tablet, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Login (tablet, FR)</strong>
+        <span>Guardian sign-in screen (prototype).</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-fr/01-home.png" alt="Home (tablet, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Home (tablet, FR)</strong>
+        <span>Action centre with day plan and latest grades.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-fr/02-calendar.png" alt="Calendar (tablet, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Calendar (tablet, FR)</strong>
+        <span>Week agenda with lessons and school events.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-fr/03-attendance-list.png" alt="Attendance list (tablet, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Attendance list (tablet, FR)</strong>
+        <span>Attendance records for the active student.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-fr/04-session-details.png" alt="Session details (tablet, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Session details (tablet, FR)</strong>
+        <span>Lesson session summary.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-fr/05-scolarite-results.png" alt="Scolarité — results (tablet, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Scolarité — results (tablet, FR)</strong>
+        <span>Trimester results with subject averages.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-fr/06-scolarite-progress.png" alt="Scolarité — progress (tablet, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Scolarité — progress (tablet, FR)</strong>
+        <span>Curriculum progress by subject.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-fr/07-subject-grades.png" alt="Subject grades (tablet, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Subject grades (tablet, FR)</strong>
+        <span>Individual evaluations for a subject.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-fr/08-subject-logbook.png" alt="Subject logbook (tablet, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Subject logbook (tablet, FR)</strong>
+        <span>Cahier de textes entries for a subject.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-fr/09-grade-details.png" alt="Grade details (tablet, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Grade details (tablet, FR)</strong>
+        <span>Single evaluation detail.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-fr/10-report-card-details.png" alt="Report card details (tablet, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Report card details (tablet, FR)</strong>
+        <span>Published trimester bulletin.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-fr/11-fees.png" alt="Fees (tablet, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Fees (tablet, FR)</strong>
+        <span>Fee summary, lines, and payments.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-fr/12-fee-details.png" alt="Fee details (tablet, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Fee details (tablet, FR)</strong>
+        <span>Fee line with installments and linked payments.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-fr/13-payment-details.png" alt="Payment details (tablet, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Payment details (tablet, FR)</strong>
+        <span>Payment receipt.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-fr/14-inbox.png" alt="Inbox (tablet, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Inbox (tablet, FR)</strong>
+        <span>School message deliveries.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-fr/15-message-details.png" alt="Message details (tablet, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Message details (tablet, FR)</strong>
+        <span>Inbox message content.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-fr/16-settings.png" alt="Settings (tablet, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Settings (tablet, FR)</strong>
+        <span>App preferences.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-fr/17-account.png" alt="Account (tablet, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Account (tablet, FR)</strong>
+        <span>Account actions.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-fr/18-account-profile.png" alt="Account profile (tablet, FR)" loading="lazy" />
+      <figcaption>
+        <strong>Account profile (tablet, FR)</strong>
+        <span>Editable guardian profile.</span>
+      </figcaption>
+    </figure>
+  </section>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Edaya Teacher — design review</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, system-ui, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    body {
+      margin: 0;
+      padding: 2rem;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 2rem;
+    }
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: 1.75rem;
+    }
+    .meta {
+      color: #475569;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    .grid {
+      display: grid;
+      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    figure {
+      margin: 0;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 1rem;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    }
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #e2e8f0;
+    }
+    figcaption {
+      padding: 1rem 1.1rem 1.2rem;
+      display: grid;
+      gap: 0.35rem;
+    }
+    figcaption span {
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Edaya Teacher — design review</h1>
+    <p class="meta">
+      Generated 2026-07-21T11:31:07.735400Z<br />
+      Account: a.toure@ecole-ci.edaya.dev<br />
+      API: http://localhost:9999<br />Locale: EN
+    </p>
+  </header>
+  <section class="grid">
+    <figure>
+      <img src="phone-en/00-login.png" alt="Login (phone, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Login (phone, EN)</strong>
+        <span>Staff sign-in screen.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-en/01-calendar.png" alt="Calendar (phone, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Calendar (phone, EN)</strong>
+        <span>Week view with seeded sessions.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-en/02-evaluations.png" alt="Evaluations (phone, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Evaluations (phone, EN)</strong>
+        <span>Assessment list for the active period.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-en/03-teaching-progress.png" alt="Teaching — progress (phone, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Teaching — progress (phone, EN)</strong>
+        <span>Curriculum progress for an assigned subject.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-en/04-teaching-logbook.png" alt="Teaching — logbook (phone, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Teaching — logbook (phone, EN)</strong>
+        <span>Session log entries for the selected subject.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-en/05-report-cards.png" alt="Report cards (phone, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Report cards (phone, EN)</strong>
+        <span>Class list for report-card comments.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-en/06-settings.png" alt="Settings (phone, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Settings (phone, EN)</strong>
+        <span>Language and app preferences.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-en/07-account.png" alt="Account (phone, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Account (phone, EN)</strong>
+        <span>Account actions sheet.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-en/08-account-profile.png" alt="Account profile (phone, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Account profile (phone, EN)</strong>
+        <span>Editable teacher profile.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-en/09-class-filter.png" alt="Class filter (phone, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Class filter (phone, EN)</strong>
+        <span>Filter calendar and lists by class.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-en/10-evaluation-create.png" alt="Create evaluation (phone, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Create evaluation (phone, EN)</strong>
+        <span>New assessment form.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-en/11-session-detail.png" alt="Session detail (phone, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Session detail (phone, EN)</strong>
+        <span>Attendance sheet for a seeded lesson.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-en/12-attendance-exception.png" alt="Attendance exception (phone, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Attendance exception (phone, EN)</strong>
+        <span>Record absence, lateness, or excuse.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-en/13-attendance-flow.png" alt="Attendance flow (phone, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Attendance flow (phone, EN)</strong>
+        <span>Swipe-based attendance capture.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-en/14-session-logbook.png" alt="Session logbook (phone, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Session logbook (phone, EN)</strong>
+        <span>Structured lesson log for a session.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-en/15-marks-entry.png" alt="Marks entry (phone, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Marks entry (phone, EN)</strong>
+        <span>Grade entry sheet for a seeded assessment.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-en/16-report-card-roster.png" alt="Report card roster (phone, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Report card roster (phone, EN)</strong>
+        <span>Student list for report-card comments.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="phone-en/17-report-card-comment.png" alt="Report card comment (phone, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Report card comment (phone, EN)</strong>
+        <span>Per-student report-card comment editor.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-en/00-login.png" alt="Login (tablet, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Login (tablet, EN)</strong>
+        <span>Staff sign-in screen.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-en/01-calendar.png" alt="Calendar (tablet, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Calendar (tablet, EN)</strong>
+        <span>Week view with seeded sessions.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-en/02-evaluations.png" alt="Evaluations (tablet, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Evaluations (tablet, EN)</strong>
+        <span>Assessment list for the active period.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-en/03-teaching-progress.png" alt="Teaching — progress (tablet, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Teaching — progress (tablet, EN)</strong>
+        <span>Curriculum progress for an assigned subject.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-en/04-teaching-logbook.png" alt="Teaching — logbook (tablet, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Teaching — logbook (tablet, EN)</strong>
+        <span>Session log entries for the selected subject.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-en/05-report-cards.png" alt="Report cards (tablet, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Report cards (tablet, EN)</strong>
+        <span>Class list for report-card comments.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-en/06-settings.png" alt="Settings (tablet, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Settings (tablet, EN)</strong>
+        <span>Language and app preferences.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-en/07-account.png" alt="Account (tablet, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Account (tablet, EN)</strong>
+        <span>Account actions sheet.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-en/08-account-profile.png" alt="Account profile (tablet, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Account profile (tablet, EN)</strong>
+        <span>Editable teacher profile.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-en/09-class-filter.png" alt="Class filter (tablet, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Class filter (tablet, EN)</strong>
+        <span>Filter calendar and lists by class.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-en/10-evaluation-create.png" alt="Create evaluation (tablet, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Create evaluation (tablet, EN)</strong>
+        <span>New assessment form.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-en/11-session-detail.png" alt="Session detail (tablet, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Session detail (tablet, EN)</strong>
+        <span>Attendance sheet for a seeded lesson.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-en/12-attendance-exception.png" alt="Attendance exception (tablet, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Attendance exception (tablet, EN)</strong>
+        <span>Record absence, lateness, or excuse.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-en/13-attendance-flow.png" alt="Attendance flow (tablet, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Attendance flow (tablet, EN)</strong>
+        <span>Swipe-based attendance capture.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-en/14-session-logbook.png" alt="Session logbook (tablet, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Session logbook (tablet, EN)</strong>
+        <span>Structured lesson log for a session.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-en/15-marks-entry.png" alt="Marks entry (tablet, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Marks entry (tablet, EN)</strong>
+        <span>Grade entry sheet for a seeded assessment.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-en/16-report-card-roster.png" alt="Report card roster (tablet, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Report card roster (tablet, EN)</strong>
+        <span>Student list for report-card comments.</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="tablet-en/17-report-card-comment.png" alt="Report card comment (tablet, EN)" loading="lazy" />
+      <figcaption>
+        <strong>Report card comment (tablet, EN)</strong>
+        <span>Per-student report-card comment editor.</span>
+      </figcaption>
+    </figure>
+  </section>
+</body>
+</html>

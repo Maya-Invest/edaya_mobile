@@ -14,7 +14,7 @@ Future<void> main() async {
   );
   registerEdayaFcmBackgroundHandler();
   ApiBaseUrlConfig.configure(
-    appDefaultUrl: ApiBaseUrlConfig.defaultForCurrentPlatform,
+    appDefaultUrl: ApiBaseUrlConfig.stagingUrl,
   );
   await ApiBaseUrlConfig.load();
   await AppSettingsController.preload();

@@ -357,7 +357,16 @@ Future<void> selectClassFilter(
   String classLabel,
 ) async {
   final tile = find.widgetWithText(ListTile, classLabel);
-  await tester.ensureVisible(tile);
+  await pumpUntilFound(tester, tile);
+  final sheetScrollable = find.descendant(
+    of: find.byType(ClassFilterSheet),
+    matching: find.byType(Scrollable),
+  );
+  if (sheetScrollable.evaluate().isNotEmpty) {
+    await tester.scrollUntilVisible(tile, 80, scrollable: sheetScrollable.first);
+  } else {
+    await tester.ensureVisible(tile);
+  }
   await tester.tap(tile);
   await tester.pump();
   await tester.pumpAndSettle();

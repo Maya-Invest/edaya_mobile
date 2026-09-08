@@ -65,55 +65,69 @@ class _ClassFilterBody extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              context.tr.schoolYear,
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: 4),
-            _SchoolYearSection(
-              academicYear: academicYear,
-              teacherContext: teacherContext,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              context.tr.classLabel,
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: 4),
-            LWatch(() {
-              final classes = teacherContext.assignedClasses.value;
-              final selected = teacherContext.classFilterId.value;
-
-              return Column(
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(context).height * 0.7,
+              ),
+              child: ListView(
+                shrinkWrap: true,
                 children: [
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(context.tr.allClasses),
-                    trailing: selected == null ? const Icon(Icons.check) : null,
-                    onTap: () async {
-                      await teacherContext.selectClassFilter(null);
-                      if (context.mounted) {
-                        context.pop();
-                      }
-                    },
+                  Text(
+                    context.tr.schoolYear,
+                    style: Theme.of(context).textTheme.titleSmall,
                   ),
-                  for (final assigned in classes)
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(assigned.label),
-                      trailing: selected == assigned.id
-                          ? const Icon(Icons.check)
-                          : null,
-                      onTap: () async {
-                        await teacherContext.selectClassFilter(assigned.id);
-                        if (context.mounted) {
-                          context.pop();
-                        }
-                      },
-                    ),
+                  const SizedBox(height: 4),
+                  _SchoolYearSection(
+                    academicYear: academicYear,
+                    teacherContext: teacherContext,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    context.tr.classLabel,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 4),
+                  LWatch(() {
+                    final classes = teacherContext.assignedClasses.value;
+                    final selected = teacherContext.classFilterId.value;
+
+                    return Column(
+                      children: [
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(context.tr.allClasses),
+                          trailing: selected == null
+                              ? const Icon(Icons.check)
+                              : null,
+                          onTap: () async {
+                            await teacherContext.selectClassFilter(null);
+                            if (context.mounted) {
+                              context.pop();
+                            }
+                          },
+                        ),
+                        for (final assigned in classes)
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(assigned.label),
+                            trailing: selected == assigned.id
+                                ? const Icon(Icons.check)
+                                : null,
+                            onTap: () async {
+                              await teacherContext.selectClassFilter(
+                                assigned.id,
+                              );
+                              if (context.mounted) {
+                                context.pop();
+                              }
+                            },
+                          ),
+                      ],
+                    );
+                  }),
                 ],
-              );
-            }),
+              ),
+            ),
           ],
         ),
       ),
