@@ -13,11 +13,6 @@ on:
         description: Run API integration tests
         type: boolean
         default: true
-      pr_base_ref:
-        description: PR base branch (selects api-dev image channel)
-        required: false
-        default: staging
-        type: string
 
 concurrency:
   group: pr-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -26,7 +21,6 @@ concurrency:
 permissions:
   actions: write
   contents: read
-  packages: read
 
 jobs:
   gate:
@@ -34,7 +28,6 @@ jobs:
     outputs:
       run_verify: ${{ steps.plan.outputs.run_verify }}
       run_integration: ${{ steps.plan.outputs.run_integration }}
-      api_dev_base_ref: ${{ steps.plan.outputs.api_dev_base_ref }}
     steps:
       - name: Plan jobs
         id: plan
@@ -42,11 +35,9 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "run_verify=${{ inputs.run_verify }}" >> "$GITHUB_OUTPUT"
             echo "run_integration=${{ inputs.run_integration }}" >> "$GITHUB_OUTPUT"
-            echo "api_dev_base_ref=${{ inputs.pr_base_ref }}" >> "$GITHUB_OUTPUT"
           else
             echo "run_verify=true" >> "$GITHUB_OUTPUT"
             echo "run_integration=true" >> "$GITHUB_OUTPUT"
-            echo "api_dev_base_ref=${{ github.event.pull_request.base.ref }}" >> "$GITHUB_OUTPUT"
           fi
 
   verify:
@@ -60,5 +51,5 @@ jobs:
       needs.gate.outputs.run_integration == 'true' &&
       (needs.verify.result == 'success' || needs.verify.result == 'skipped')
     uses: ./.github/workflows/_integration.yml
-    with:
-      api_dev_base_ref: ${{ needs.gate.outputs.api_dev_base_ref }}
+    secrets:
+      IDENTITY_CHECKOUT_TOKEN: ${{ secrets.IDENTITY_CHECKOUT_TOKEN }}

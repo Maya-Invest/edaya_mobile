@@ -2,83 +2,99 @@ name: Integration tests
 
 on:
   workflow_call:
-    inputs:
-      api_dev_base_ref:
-        description: Base branch used to select the api-dev image channel
+    secrets:
+      IDENTITY_CHECKOUT_TOKEN:
         required: true
-        type: string
 
 permissions:
   actions: write
   contents: read
-  packages: read
 
 jobs:
   integration:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Setup Flutter, Melos, and caches
-        uses: ./.github/actions/ci-flutter-melos
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          bun-version: 1.3.14
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Resolve api-dev image
-        id: api_dev_image
-        run: |
-          OWNER="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
-          case "${{ inputs.api_dev_base_ref }}" in
-            main|master) CHANNEL=production ;;
-            *) CHANNEL=staging ;;
-          esac
-          echo "ref=ghcr.io/${OWNER}/edaya-api-dev:${CHANNEL}" >> "$GITHUB_OUTPUT"
-
-      - name: Resolve api-dev image digest
-        id: api_dev_digest
-        run: |
-          DIGEST="$(docker buildx imagetools inspect "${{ steps.api_dev_image.outputs.ref }}" --format '{{json .Manifest.Digest}}' | tr -d '"')"
-          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
-
-      - name: Restore api-dev Docker image cache
+      - name: Cache Bun install
         uses: actions/cache@v6
-        id: api_dev_image_cache
         with:
-          path: /tmp/edaya-api-dev-image.tar
-          key: api-dev-image-${{ steps.api_dev_digest.outputs.digest }}
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ github.job }}
+          restore-keys: |
+            bun-${{ runner.os }}-
 
-      - name: Load or pull api-dev Docker image
-        env:
-          IMAGE: ${{ steps.api_dev_image.outputs.ref }}
+      - name: Resolve API source ref
+        id: api_source
         run: |
-          if [ -f /tmp/edaya-api-dev-image.tar ]; then
-            docker load -i /tmp/edaya-api-dev-image.tar
-          else
-            docker pull "$IMAGE"
-            docker save "$IMAGE" -o /tmp/edaya-api-dev-image.tar
+          HEAD="${{ github.head_ref || github.ref_name }}"
+          REF="$(bash .github/scripts/ci-api-source-ref.sh "$HEAD")"
+          echo "ref=${REF}" >> "$GITHUB_OUTPUT"
+          echo "Using Identity + school @${REF} (mobile head ${HEAD})"
+
+      - name: Assert Identity and school refs exist
+        env:
+          IDENTITY_CHECKOUT_TOKEN: ${{ secrets.IDENTITY_CHECKOUT_TOKEN }}
+        run: bash .github/scripts/ci-assert-sibling-ref.sh "${{ steps.api_source.outputs.ref }}"
+
+      - name: Checkout identity
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ github.repository_owner }}/edaya_identity
+          ref: ${{ steps.api_source.outputs.ref }}
+          path: .ci/edaya_identity
+          token: ${{ secrets.IDENTITY_CHECKOUT_TOKEN }}
+
+      - name: Checkout school
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ github.repository_owner }}/edaya_backend
+          ref: ${{ steps.api_source.outputs.ref }}
+          path: .ci/edaya_backend
+          token: ${{ secrets.IDENTITY_CHECKOUT_TOKEN }}
+
+      - name: Link sibling checkouts
+        run: |
+          set -euo pipefail
+          parent="$(dirname "$GITHUB_WORKSPACE")"
+          rm -rf "$parent/edaya_identity" "$parent/edaya_backend"
+          ln -sfn "$GITHUB_WORKSPACE/.ci/edaya_identity" "$parent/edaya_identity"
+          ln -sfn "$GITHUB_WORKSPACE/.ci/edaya_backend" "$parent/edaya_backend"
+          test -f "$parent/edaya_identity/package/identity-client/package.json"
+          test -f "$parent/edaya_backend/package.json"
+
+      - name: Start empty Identity and school
+        run: bash .github/scripts/ci-start-local-apis.sh start
+
+      - name: Seed demo-ci
+        run: |
+          set -euo pipefail
+          parent="$(dirname "$GITHUB_WORKSPACE")"
+          if ! (cd "$parent/edaya_backend" && bun repo seed --skip-profile-photos --skip-attachments); then
+            echo "--- identity.log ---" >&2
+            cat /tmp/edaya-ci-apis/identity.log >&2 || true
+            echo "--- school.log ---" >&2
+            cat /tmp/edaya-ci-apis/school.log >&2 || true
+            exit 1
           fi
 
-      - name: Start API dev container
-        run: bash .github/scripts/ci-api-dev-container.sh start "${{ inputs.api_dev_base_ref }}"
+      - name: Setup Flutter, Melos, and caches
+        uses: ./.github/actions/ci-flutter-melos
 
       - name: Integration tests
         env:
           EDAYA_INTEGRATION_TESTS: '1'
-          INTEGRATION_TARGET: staging
           EDAYA_AUTH_URL: http://127.0.0.1:9900
           EDAYA_API_URL: http://127.0.0.1:9999
         run: melos run test:integration
 
-      - name: Stop API dev container
+      - name: Stop Identity and school
         if: always()
-        run: bash .github/scripts/ci-api-dev-container.sh stop
+        run: bash .github/scripts/ci-start-local-apis.sh stop

@@ -210,6 +210,10 @@ melos exec --scope=edaya_auth -- flutter test
 
 Shared integration tests live in `tooling/integration_tests`. They use `edaya_auth` + `edaya_api_client` against a running API (local seed or staging).
 
+**PR CI** starts empty Identity (`:9900`) and school (`:9999`) from sibling checkouts, then runs `bun repo seed --skip-profile-photos --skip-attachments` (full demo-ci). Git refs follow the mobile head branch: `staging` → `@staging`, `main`/`master` → `@main`, anything else → `@dev`. The job needs repo secret `IDENTITY_CHECKOUT_TOKEN` (`contents:read` on `edaya_identity` and `edaya_backend`). Identity must have `dev`, `staging`, and `main` branches.
+
+Local `melos run test:integration` is unchanged: start Identity + school yourself and seed before running tests.
+
 ```bash
 # With local API on :9999 and demo teacher seeded
 melos run test:integration
