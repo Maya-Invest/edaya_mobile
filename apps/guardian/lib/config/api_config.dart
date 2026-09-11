@@ -2,9 +2,9 @@ import 'package:edaya_shared/edaya_shared.dart';
 
 /// API and dev credential configuration for the guardian app.
 ///
-/// The base URL defaults to staging (`https://staging.api.edayaplus.com`).
-/// Override at build time with `--dart-define=API_URL=...`, or change at
-/// runtime from Developer settings.
+/// The School API defaults to `https://staging.api.school.edayaplus.com`.
+/// Override it with `--dart-define=API_URL=...`; Identity is configured
+/// independently with `--dart-define=AUTH_URL=...`.
 ///
 /// Flutter web runs in the browser and calls the API directly, so the API must
 /// allow your dev origin via CORS (localhost origins are allowed in development).

@@ -103,7 +103,9 @@ class AuthClient {
       final data = Map<String, dynamic>.from(body as Map);
       final token = data['accessToken'] as String;
       final expiresAt = DateTime.parse(data['expiresAt'] as String);
-      if (!RegExp(r'^edaya_at_[A-Za-z0-9_-]{43}$').hasMatch(token) ||
+      final segments = token.split('.');
+      if (segments.length != 3 ||
+          segments.any((segment) => segment.isEmpty) ||
           !expiresAt.isAfter(DateTime.now())) {
         throw const AuthError(message: 'Invalid API token response');
       }

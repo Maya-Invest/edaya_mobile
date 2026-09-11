@@ -45,7 +45,10 @@ class GuardianWidgetTestHarness {
     final baseConfig = IntegrationConfig.fromEnvironment();
     final config = baseConfig.withGuardianEmail(profile.email);
 
-    ApiBaseUrlConfig.configure(appDefaultUrl: config.baseUrl);
+    ApiBaseUrlConfig.configure(
+      appDefaultUrl: config.baseUrl,
+      appDefaultAuthUrl: config.authUrl,
+    );
     await ApiBaseUrlConfig.saveOverride(config.baseUrl);
     await AppSettingsController.preload();
 

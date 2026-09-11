@@ -22,7 +22,7 @@ class PortalSession {
     required String actorKind,
     String? academicYearId,
   }) async {
-    final authClient = AuthClient(baseUrl: config.baseUrl);
+    final authClient = AuthClient(baseUrl: config.authUrl);
     final signIn = await authClient.signInWithEmail(
       email: config.email,
       password: config.password,

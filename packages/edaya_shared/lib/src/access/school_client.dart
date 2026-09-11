@@ -15,7 +15,7 @@ api.SchoolClient createEdayaSchoolClient(
 }) {
   return api.createSchoolClient(
     api.HttpTransport(
-      baseUrl: ApiBaseUrlConfig.baseUrl,
+      baseUrl: ApiBaseUrlConfig.apiBaseUrl,
       client: authClient.businessHttpClient,
       getAccessToken: authClient.getAccessToken,
       invalidateAccessToken: authClient.invalidateAccessToken,

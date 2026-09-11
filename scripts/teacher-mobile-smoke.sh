@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 export EDAYA_INTEGRATION_TESTS=1
+export EDAYA_AUTH_URL="${AUTH_URL:-${EDAYA_AUTH_URL:-http://localhost:9900}}"
 export EDAYA_API_URL="${BASE_URL:-${EDAYA_API_URL:-http://localhost:9999}}"
 export EDAYA_TEACHER_EMAIL="${TEACHER_EMAIL:-${EDAYA_TEACHER_EMAIL:-a.toure@ecole-ci.edaya.dev}}"
 export EDAYA_TEACHER_PASSWORD="${TEACHER_PASSWORD:-${EDAYA_TEACHER_PASSWORD:-DevPassword1!}}"

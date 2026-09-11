@@ -3,6 +3,7 @@ import 'dart:io';
 /// Environment-backed settings for live API integration tests.
 class IntegrationConfig {
   const IntegrationConfig({
+    required this.authUrl,
     required this.baseUrl,
     required this.email,
     required this.password,
@@ -17,6 +18,11 @@ class IntegrationConfig {
 
   factory IntegrationConfig.fromEnvironment() {
     return IntegrationConfig(
+      authUrl: _readEnv(
+        'EDAYA_AUTH_URL',
+        fallbackKeys: ['AUTH_URL'],
+        defaultValue: 'http://localhost:9900',
+      ).replaceAll(RegExp(r'/+$'), ''),
       baseUrl: _readEnv(
         'EDAYA_API_URL',
         fallbackKeys: ['BASE_URL'],
@@ -49,6 +55,7 @@ class IntegrationConfig {
     );
   }
 
+  final String authUrl;
   final String baseUrl;
   final String email;
   final String password;
@@ -68,6 +75,7 @@ class IntegrationConfig {
 
   IntegrationConfig withTeacherEmail(String email) {
     return IntegrationConfig(
+      authUrl: authUrl,
       baseUrl: baseUrl,
       email: email,
       password: password,
@@ -89,6 +97,7 @@ class IntegrationConfig {
 
   IntegrationConfig withStaffDirectorEmail([String? email]) {
     return IntegrationConfig(
+      authUrl: authUrl,
       baseUrl: baseUrl,
       email: email ?? defaultStaffDirectorEmail,
       password: password,

@@ -2,7 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-API_URL="${EDAYA_API_URL:-https://staging.api.edayaplus.com}"
+AUTH_URL="${EDAYA_AUTH_URL:-https://staging.identity.edayaplus.com}"
+API_URL="${EDAYA_API_URL:-https://staging.api.school.edayaplus.com}"
 APPS=(guardian teacher)
 
 if [[ $# -gt 0 ]]; then
@@ -22,11 +23,12 @@ build_app() {
   local app="$1"
   require_key_properties "$app"
 
-  echo "Building Play Store AAB for $app (API_URL=$API_URL)..."
+  echo "Building Play Store AAB for $app (AUTH_URL=$AUTH_URL, API_URL=$API_URL)..."
   (
     cd "$ROOT/apps/$app"
     flutter build appbundle \
       --release \
+      --dart-define="AUTH_URL=$AUTH_URL" \
       --dart-define="API_URL=$API_URL"
   )
 

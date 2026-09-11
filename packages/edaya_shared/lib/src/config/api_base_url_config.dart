@@ -1,21 +1,26 @@
-import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/l10n_lookup.dart';
 
-/// Resolves the API base URL for mobile apps.
+/// Resolves the Identity and School API base URLs for mobile apps.
 ///
-/// A [SharedPreferences] override takes precedence over the compile-time
-/// `--dart-define=API_URL` value so the API endpoint can be switched without
-/// rebuilding. Overrides work in all build modes, including release.
+/// A [SharedPreferences] override takes precedence over the compile-time School
+/// `--dart-define=API_URL` value so that endpoint can be switched without
+/// rebuilding. Identity uses the independent `--dart-define=AUTH_URL` value.
 abstract final class ApiBaseUrlConfig {
   ApiBaseUrlConfig._();
 
-  /// Known API endpoints for developer presets and build-time defines.
+  /// Known endpoints for developer presets and build-time defines.
   static const localUrl = 'http://localhost:9999';
+  static const localAuthUrl = 'http://localhost:9900';
   static const androidEmulatorUrl = 'http://10.0.2.2:9999';
-  static const stagingUrl = 'https://staging.api.edayaplus.com';
-  static const productionUrl = 'https://api.edayaplus.com';
+  static const androidEmulatorAuthUrl = 'http://10.0.2.2:9900';
+  static const stagingUrl = 'https://staging.api.school.edayaplus.com';
+  static const stagingAuthUrl = 'https://staging.identity.edayaplus.com';
+  static const productionUrl = 'https://api.school.edayaplus.com';
+  static const productionAuthUrl = 'https://identity.edayaplus.com';
 
   /// Default API origin for the current runtime (iOS/macOS → localhost, Android → 10.0.2.2).
   static String get defaultForCurrentPlatform {
@@ -30,15 +35,27 @@ abstract final class ApiBaseUrlConfig {
 
   static const _prefKey = 'edaya_api_base_url';
 
-  static const _dartDefineUrl = String.fromEnvironment('API_URL', defaultValue: '');
+  static const _dartDefineUrl = String.fromEnvironment(
+    'API_URL',
+    defaultValue: '',
+  );
+  static const _dartDefineAuthUrl = String.fromEnvironment(
+    'AUTH_URL',
+    defaultValue: '',
+  );
 
   static String? _appDefaultUrl;
+  static String? _appDefaultAuthUrl;
 
-  /// Sets the app-specific default when `--dart-define=API_URL` is not provided.
+  /// Sets app defaults when the corresponding dart-define is not provided.
   ///
   /// Call before [load] from each app's `main`.
-  static void configure({required String appDefaultUrl}) {
+  static void configure({
+    required String appDefaultUrl,
+    String? appDefaultAuthUrl,
+  }) {
     _appDefaultUrl = appDefaultUrl;
+    _appDefaultAuthUrl = appDefaultAuthUrl;
   }
 
   /// Build-time URL from `--dart-define=API_URL`, else the configured app default.
@@ -49,14 +66,27 @@ abstract final class ApiBaseUrlConfig {
     return _appDefaultUrl ?? stagingUrl;
   }
 
+  /// Build-time Identity URL, else the configured app Identity default.
+  static String get defaultAuthUrl {
+    if (_dartDefineAuthUrl.isNotEmpty) {
+      return _dartDefineAuthUrl;
+    }
+    return _appDefaultAuthUrl ?? stagingAuthUrl;
+  }
+
   /// Backwards-compatible alias for [defaultUrl].
   static String get compileTimeUrl => defaultUrl;
 
   static String _resolved = stagingUrl;
   static bool _hasOverride = false;
 
-  /// The resolved API base URL used by HTTP clients.
+  /// The resolved School API base URL used by School HTTP clients.
   static String get baseUrl => _resolved;
+
+  static String get apiBaseUrl => _resolved;
+
+  /// The Identity base URL used by [AuthClient].
+  static String get authBaseUrl => _coerceAuthUrlForPlatform(defaultAuthUrl);
 
   /// Whether the current URL comes from a persisted dev override.
   static bool get hasOverride => _hasOverride;
@@ -98,7 +128,7 @@ abstract final class ApiBaseUrlConfig {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_prefKey);
     final changed = _resolved != defaultUrl || _hasOverride;
-    _resolved = defaultUrl;
+    _resolved = _coerceUrlForPlatform(defaultUrl);
     _hasOverride = false;
     return changed;
   }
@@ -118,7 +148,9 @@ abstract final class ApiBaseUrlConfig {
       throw FormatException(systemL10n().enterValidApiUrl);
     }
 
-    return uri.replace(path: uri.path.replaceAll(RegExp(r'/+$'), '')).toString();
+    return uri
+        .replace(path: uri.path.replaceAll(RegExp(r'/+$'), ''))
+        .toString();
   }
 
   /// Maps Android loopback (`10.0.2.2`) to localhost on iOS/desktop simulators.
@@ -128,6 +160,16 @@ abstract final class ApiBaseUrlConfig {
     }
     if (url == androidEmulatorUrl) {
       return localUrl;
+    }
+    return url;
+  }
+
+  static String _coerceAuthUrlForPlatform(String url) {
+    if (kIsWeb || defaultTargetPlatform == TargetPlatform.android) {
+      return url;
+    }
+    if (url == androidEmulatorAuthUrl) {
+      return localAuthUrl;
     }
     return url;
   }

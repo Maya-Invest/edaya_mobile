@@ -15,6 +15,7 @@ Future<void> main() async {
   registerEdayaFcmBackgroundHandler();
   ApiBaseUrlConfig.configure(
     appDefaultUrl: ApiBaseUrlConfig.stagingUrl,
+    appDefaultAuthUrl: ApiBaseUrlConfig.stagingAuthUrl,
   );
   await ApiBaseUrlConfig.load();
   await AppSettingsController.preload();

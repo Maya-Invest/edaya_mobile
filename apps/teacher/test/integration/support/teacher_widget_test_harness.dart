@@ -50,7 +50,10 @@ class TeacherWidgetTestHarness {
     final baseConfig = IntegrationConfig.fromEnvironment();
     final config = baseConfig.withTeacherEmail(profile.email);
 
-    ApiBaseUrlConfig.configure(appDefaultUrl: config.baseUrl);
+    ApiBaseUrlConfig.configure(
+      appDefaultUrl: config.baseUrl,
+      appDefaultAuthUrl: config.authUrl,
+    );
     await ApiBaseUrlConfig.saveOverride(config.baseUrl);
     await AppSettingsController.preload();
 

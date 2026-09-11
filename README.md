@@ -152,10 +152,9 @@ Default API URL depends on the app (no `--dart-define` needed for local dev):
 Override at build time:
 
 ```bash
-flutter run --dart-define=API_URL=http://localhost:9999          # local API
-flutter run --dart-define=API_URL=http://10.0.2.2:9999           # Android emulator → local
-flutter run --dart-define=API_URL=http://192.168.1.10:9999       # LAN device → local
-flutter run --dart-define=API_URL=https://staging.api.edayaplus.com
+flutter run --dart-define=AUTH_URL=http://localhost:9900 --dart-define=API_URL=http://localhost:9999
+flutter run --dart-define=AUTH_URL=http://10.0.2.2:9900 --dart-define=API_URL=http://10.0.2.2:9999
+flutter run --dart-define=AUTH_URL=https://staging.identity.edayaplus.com --dart-define=API_URL=https://staging.api.school.edayaplus.com
 ```
 
 Or use Melos shortcuts:

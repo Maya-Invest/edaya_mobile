@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 String payload() => jsonEncode({
-  'accessToken': 'edaya_at_${'a' * 43}',
+  'accessToken': 'header.payload.signature',
   'expiresAt': DateTime.now().add(const Duration(minutes: 5)).toIso8601String(),
 });
 

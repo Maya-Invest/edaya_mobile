@@ -18,15 +18,15 @@ Future<String?> resolveIntegrationSkipReason() async {
 
   try {
     await client
-        .get(Uri.parse('${config.baseUrl}/auth/get-session'))
+        .get(Uri.parse('${config.authUrl}/auth/get-session'))
         .timeout(_probeTimeout);
     return null;
   } on SocketException {
-    return 'API not reachable at ${config.baseUrl}';
+    return 'Identity not reachable at ${config.authUrl}';
   } on HttpException {
-    return 'API not reachable at ${config.baseUrl}';
+    return 'Identity not reachable at ${config.authUrl}';
   } on TimeoutException {
-    return 'API not reachable at ${config.baseUrl} (timed out)';
+    return 'Identity not reachable at ${config.authUrl} (timed out)';
   } finally {
     client.close();
   }
