@@ -222,6 +222,7 @@ Environment variables:
 
 | Variable | Fallback | Default |
 |----------|----------|---------|
+| `EDAYA_AUTH_URL` | `AUTH_URL` | `http://localhost:9900` |
 | `EDAYA_API_URL` | `BASE_URL` | `http://localhost:9999` |
 | `EDAYA_TEACHER_EMAIL` | `TEACHER_EMAIL` | `a.toure@ecole-ci.edaya.dev` |
 | `EDAYA_TEACHER_PASSWORD` | `TEACHER_PASSWORD` | `DevPassword1!` |

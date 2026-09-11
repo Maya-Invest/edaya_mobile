@@ -33,19 +33,27 @@ case "$ACTION" in
       --name "$CONTAINER_NAME" \
       --detach \
       --rm \
+      --publish 127.0.0.1:9900:9900 \
       --publish 127.0.0.1:9999:9999 \
       --publish 127.0.0.1:9200:9200 \
       --memory 4g \
       "$IMAGE"
-    for i in $(seq 1 60); do
-      if curl -sf http://127.0.0.1:9999/reference > /dev/null; then
-        echo "API dev container ready: $IMAGE"
-        exit 0
+    for url in http://127.0.0.1:9900/ http://127.0.0.1:9999/reference; do
+      ready=0
+      for i in $(seq 1 120); do
+        if curl -sf "$url" > /dev/null; then
+          echo "Ready: $url"
+          ready=1
+          break
+        fi
+        sleep 2
+      done
+      if [ "$ready" -ne 1 ]; then
+        echo "Timed out waiting for $url in API dev container: $IMAGE" >&2
+        exit 1
       fi
-      sleep 2
     done
-    echo "Timed out waiting for API dev container: $IMAGE" >&2
-    exit 1
+    echo "API dev container ready: $IMAGE"
     ;;
   stop)
     docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
