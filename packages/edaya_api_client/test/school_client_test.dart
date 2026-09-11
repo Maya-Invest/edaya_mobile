@@ -44,7 +44,7 @@ void main() {
       completion({'id': 'subject-1', 'name': 'Mathematics'}),
     );
     await expectLater(
-      client.students.delete(id: 'student-1'),
+      client.subjects.delete(id: 'subject-1'),
       completion({'message': 'deleted'}),
     );
 
@@ -61,11 +61,33 @@ void main() {
       },
       {
         'method': 'POST',
-        'path': '/core/entities/students/delete',
-        'body': {'id': 'student-1'},
+        'path': '/core/entities/subjects/delete',
+        'body': {'id': 'subject-1'},
       },
     ]);
   });
+
+  test(
+    'command-owned resources reject generic mutations without sending a request',
+    () async {
+      final transport = RecordingTransport([]);
+      final client = createSchoolClient(transport);
+      await expectLater(
+        client.payments.save({'id': 'payment'}),
+        throwsStateError,
+      );
+      expect(() => client.payments.delete(id: 'payment'), throwsStateError);
+      expect(
+        () => client.studentFees.batchDelete(ids: ['fee']),
+        throwsStateError,
+      );
+      expect(
+        () => client.enrollments.batchSave(entities: []),
+        throwsStateError,
+      );
+      expect(transport.requests, isEmpty);
+    },
+  );
 
   test('uses generated command, query, and authorization paths', () async {
     final transport = RecordingTransport([

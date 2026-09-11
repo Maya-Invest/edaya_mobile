@@ -16,10 +16,9 @@ api.SchoolClient createEdayaSchoolClient(
   return api.createSchoolClient(
     api.HttpTransport(
       baseUrl: ApiBaseUrlConfig.baseUrl,
-      client: authClient.httpClient,
-      cookieHeader: edayaHttpUsesBrowserCredentials
-          ? null
-          : () => authClient.cookieHeader,
+      client: authClient.businessHttpClient,
+      getAccessToken: authClient.getAccessToken,
+      invalidateAccessToken: authClient.invalidateAccessToken,
       getAcademicYearId: getAcademicYearId,
       getActorKind: getActorKind,
       getActorId: getActorId,

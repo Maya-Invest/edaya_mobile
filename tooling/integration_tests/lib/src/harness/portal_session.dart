@@ -40,8 +40,9 @@ class PortalSession {
     final schoolClient = createSchoolClient(
       HttpTransport(
         baseUrl: config.baseUrl,
-        client: authClient.httpClient,
-        cookieHeader: () => authClient.cookieHeader,
+        client: authClient.businessHttpClient,
+        getAccessToken: authClient.getAccessToken,
+        invalidateAccessToken: authClient.invalidateAccessToken,
         getAcademicYearId: () => yearId,
         getActorKind: () => actorKind,
         getActorId: () => resolvedActorId,

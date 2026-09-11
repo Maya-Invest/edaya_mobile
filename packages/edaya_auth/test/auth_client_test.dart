@@ -6,47 +6,53 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
-  test('signInWithEmail stores session cookies and returns user', () async {
-    final client = AuthClient(
-      baseUrl: 'http://localhost:9999',
-      client: MockClient((request) async {
-        expect(request.url.path, '/auth/sign-in/email');
-        expect(jsonDecode(request.body), {
-          'email': 'teacher@school.edu',
-          'password': 'secret',
-        });
+  test(
+    'signInWithEmail stores signed renewal credentials and returns user',
+    () async {
+      final client = AuthClient(
+        baseUrl: 'http://localhost:9999',
+        client: MockClient((request) async {
+          expect(request.url.path, '/auth/edaya/native/sign-in/email');
+          expect(jsonDecode(request.body), {
+            'email': 'teacher@school.edu',
+            'password': 'secret',
+          });
 
-        return http.Response(
-          jsonEncode({
-            'user': {
-              'id': 'user-1',
-              'email': 'teacher@school.edu',
-              'name': 'Teacher',
+          return http.Response(
+            jsonEncode({
+              'renewalCredential': 'signed.synthetic-proof',
+              'user': {
+                'id': 'user-1',
+                'email': 'teacher@school.edu',
+                'name': 'Teacher',
+              },
+            }),
+            200,
+            headers: {
+              'set-cookie':
+                  'better-auth.session_token=abc123; Path=/; HttpOnly',
             },
-          }),
-          200,
-          headers: {
-            'set-cookie': 'better-auth.session_token=abc123; Path=/; HttpOnly',
-          },
-        );
-      }),
-    );
+          );
+        }),
+      );
 
-    final result = await client.signInWithEmail(
-      email: 'teacher@school.edu',
-      password: 'secret',
-    );
+      final result = await client.signInWithEmail(
+        email: 'teacher@school.edu',
+        password: 'secret',
+      );
 
-    expect(result.isSuccess, isTrue);
-    expect(result.data?.email, 'teacher@school.edu');
-    expect(client.cookieHeader, 'better-auth.session_token=abc123');
-  });
+      expect(result.isSuccess, isTrue);
+      expect(result.data?.email, 'teacher@school.edu');
+      expect(client.cookieHeader, isNull);
+      expect(client.renewalCredential, 'signed.synthetic-proof');
+    },
+  );
 
   test('getSession returns null when unauthenticated', () async {
     final client = AuthClient(
       baseUrl: 'http://localhost:9999',
       client: MockClient((request) async {
-        expect(request.url.path, '/auth/get-session');
+        expect(request.url.path, '/auth/edaya/session');
         return http.Response('', 401);
       }),
     );
@@ -60,7 +66,7 @@ void main() {
     final client = AuthClient(
       baseUrl: 'http://localhost:9999',
       client: MockClient((request) async {
-        expect(request.url.path, '/auth/sign-out');
+        expect(request.url.path, '/auth/edaya/sign-out');
         expect(request.headers['origin'], 'http://localhost:9999');
         expect(request.headers['content-type'], 'application/json');
         expect(jsonDecode(request.body), <String, dynamic>{});

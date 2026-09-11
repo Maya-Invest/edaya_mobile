@@ -69,7 +69,7 @@ void registerGuardianDependencies(LevitScope scope) {
   scope.put<EdayaAppRouter>(() => scope.find<AppRouter>(), permanent: true);
   scope.put<AppBootstrapController>(
     () => AppBootstrapController(
-      cookieJar: scope.find<CookieJar>(),
+      authClient: scope.find<AuthClient>(),
       sessionStorage: scope.find<SessionStorage>(),
       session: scope.find<AppSessionController>(),
       pushNotifications: scope.find<PushNotificationService>(),

@@ -187,6 +187,7 @@ Map<String, dynamic> _extractBindings(Map<String, dynamic> openApi) {
           bindings['entities'][key] = {
             'publicName': _readString(operation, entityPublicNameExtension),
             'schemaName': _readString(operation, responseSchemaExtension),
+            'publicOperations': _readPublicOperations(operation),
             'allowDirectSave': _readBoolean(
               operation,
               allowDirectSaveExtension,
@@ -395,6 +396,24 @@ Future<Map<String, dynamic>> _readBindingsFile(String path) async {
   return bindings;
 }
 
+Map<String, bool> _readPublicOperations(Map<String, dynamic> operation) {
+  final value = operation['x-edaya-public-operations'];
+  const keys = [
+    'create',
+    'update',
+    'delete',
+    'batchCreate',
+    'batchUpdate',
+    'batchDelete',
+  ];
+  if (value is! Map || keys.any((key) => value[key] is! bool)) {
+    throw StateError(
+      'Entity metadata requires explicit x-edaya-public-operations; re-export the backend contract',
+    );
+  }
+  return {for (final key in keys) key: value[key] as bool};
+}
+
 String _generateBindingsDart(Map<String, dynamic> bindings) {
   final entities = _entityMap(bindings['entities']);
   final commands = _stringMap(bindings['commands'], 'publicName');
@@ -403,10 +422,17 @@ String _generateBindingsDart(Map<String, dynamic> bindings) {
   final entityEntries = entities.entries
       .map((entry) {
         final binding = entry.value;
+        final operations = Map<String, dynamic>.from(
+          binding['publicOperations'] as Map,
+        );
+        final operationFields = operations.entries
+            .map((entry) => '${_dartString(entry.key)}: ${entry.value == true}')
+            .join(', ');
         return '''    ${_dartString(entry.key)}: EntityBinding(
       publicName: ${_dartString(binding['publicName'] as String)},
       schemaName: ${_dartString(binding['schemaName'] as String)},
       allowDirectSave: ${binding['allowDirectSave'] == true},
+      publicOperations: {$operationFields},
     ),''';
       })
       .join('\n');
@@ -431,11 +457,13 @@ class EntityBinding {
     required this.publicName,
     required this.schemaName,
     required this.allowDirectSave,
+    required this.publicOperations,
   });
 
   final String publicName;
   final String schemaName;
   final bool allowDirectSave;
+  final Map<String, bool> publicOperations;
 }
 
 abstract final class ClientBindings {

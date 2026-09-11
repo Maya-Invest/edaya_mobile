@@ -158,10 +158,7 @@ Future<void> pumpUntilCalendarHasEvents(
   fail('No school events visible in calendar');
 }
 
-Future<bool> _selectEachDayUntilTile(
-  WidgetTester tester,
-  Type tileType,
-) async {
+Future<bool> _selectEachDayUntilTile(WidgetTester tester, Type tileType) async {
   if (tester.any(find.byType(tileType))) {
     return true;
   }
@@ -202,7 +199,9 @@ Future<void> _shiftCalendarWeek(WidgetTester tester, int direction) async {
 
 DateTime _weekStart(DateTime day) {
   final normalized = DateTime(day.year, day.month, day.day);
-  return normalized.subtract(Duration(days: normalized.weekday - DateTime.monday));
+  return normalized.subtract(
+    Duration(days: normalized.weekday - DateTime.monday),
+  );
 }
 
 Future<void> navigateCalendarWeekToDay(
@@ -226,38 +225,13 @@ Future<void> navigateCalendarWeekToDay(
   await tester.pump(const Duration(milliseconds: 1500));
 }
 
-Future<void> navigateCalendarToDay(
-  WidgetTester tester,
-  DateTime day,
-) async {
+Future<void> navigateCalendarToDay(WidgetTester tester, DateTime day) async {
   await navigateCalendarWeekToDay(tester, day);
   if (tester.any(find.byType(SessionTile))) {
     return;
   }
 
   await pumpUntilCalendarHasSessions(tester);
-}
-
-bool _visibleWeekContainsDay(WidgetTester tester, DateTime day) {
-  final dayChips = find.descendant(
-    of: find.byType(WeekDaySelector),
-    matching: find.byType(InkWell),
-  );
-  if (dayChips.evaluate().length < 7) {
-    return false;
-  }
-
-  for (var index = 0; index < 7; index++) {
-    final chip = dayChips.at(index);
-    final numberFinder = find.descendant(
-      of: chip,
-      matching: find.text('${day.day}'),
-    );
-    if (numberFinder.evaluate().isNotEmpty) {
-      return true;
-    }
-  }
-  return false;
 }
 
 Future<void> _tapDayChipForNumber(WidgetTester tester, int dayNumber) async {
@@ -278,10 +252,7 @@ Future<void> _tapDayChipForNumber(WidgetTester tester, int dayNumber) async {
   }
 }
 
-Future<void> tapSessionTile(
-  WidgetTester tester, {
-  String? titleNeedle,
-}) async {
+Future<void> tapSessionTile(WidgetTester tester, {String? titleNeedle}) async {
   if (titleNeedle != null) {
     final needle = titleNeedle.split(' ').first;
     final matchingTile = find.byWidgetPredicate((widget) {
@@ -313,7 +284,9 @@ Future<void> pumpUntilGradesLoaded(
       continue;
     }
     if (expectedAssessmentTitle != null &&
-        tester.any(find.textContaining(expectedAssessmentTitle.split(' ').first))) {
+        tester.any(
+          find.textContaining(expectedAssessmentTitle.split(' ').first),
+        )) {
       return;
     }
     if (tester.any(find.text('No grades recorded for this period.'))) {

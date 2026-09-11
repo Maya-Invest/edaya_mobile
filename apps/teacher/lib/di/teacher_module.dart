@@ -141,7 +141,7 @@ void registerTeacherDependencies(
   if (includeBootstrap) {
     bind<AppBootstrapController>(
       () => AppBootstrapController(
-        cookieJar: scope.find<CookieJar>(),
+        authClient: scope.find<AuthClient>(),
         sessionStorage: scope.find<SessionStorage>(),
         session: scope.find<AppSessionController>(),
         pushNotifications: scope.find<PushNotificationService>(),

@@ -7,6 +7,7 @@ import 'auth_result.dart';
 import 'auth_session.dart';
 import 'auth_user.dart';
 import 'cookie_jar.dart';
+import 'http_client_factory.dart';
 
 typedef AuthBaseUrlProvider = String Function();
 
@@ -39,11 +40,90 @@ class AuthClient {
 
   http.Client get httpClient => _client;
 
-  String? get cookieHeader => _cookieJar.headerValue();
+  late final http.Client businessHttpClient = edayaHttpUsesBrowserCredentials
+      ? createEdayaHttpClient(withCredentials: false)
+      : _client;
+
+  String? get cookieHeader => null;
+
+  String? _renewalCredential;
+  String? _credentialOrigin;
+  String? _accessToken;
+  DateTime? _accessExpiresAt;
+  Future<String>? _pendingAccess;
+  int _generation = 0;
+
+  String? get renewalCredential => _renewalCredential;
+
+  void restoreRenewalCredential(String credential) {
+    clearCredentials();
+    _renewalCredential = credential;
+    _credentialOrigin = Uri.parse(baseUrl).origin;
+  }
+
+  void clearCredentials() {
+    _generation++;
+    _renewalCredential = null;
+    _credentialOrigin = null;
+    _accessToken = null;
+    _accessExpiresAt = null;
+    _pendingAccess = null;
+    _cookieJar.clear();
+  }
+
+  void invalidateAccessToken(String token) {
+    if (_accessToken == token) {
+      _accessToken = null;
+      _accessExpiresAt = null;
+    }
+  }
+
+  Future<String> getAccessToken() async {
+    _checkOrigin();
+    if (_accessToken != null &&
+        _accessExpiresAt!.isAfter(
+          DateTime.now().add(const Duration(seconds: 30)),
+        )) {
+      return _accessToken!;
+    }
+    return _pendingAccess ??= _issueAccessToken(_generation);
+  }
+
+  Future<String> _issueAccessToken(int generation) async {
+    try {
+      final response = await _send('POST', '/edaya/access-token', const {});
+      final body = _decodeBody(response);
+      if (response.statusCode >= 400) {
+        if (response.statusCode == 401 && generation == _generation)
+          clearCredentials();
+        throw _readError(body);
+      }
+      if (generation != _generation)
+        throw const AuthError(message: 'Authentication changed during renewal');
+      final data = Map<String, dynamic>.from(body as Map);
+      final token = data['accessToken'] as String;
+      final expiresAt = DateTime.parse(data['expiresAt'] as String);
+      if (!RegExp(r'^edaya_at_[A-Za-z0-9_-]{43}$').hasMatch(token) ||
+          !expiresAt.isAfter(DateTime.now())) {
+        throw const AuthError(message: 'Invalid API token response');
+      }
+      _accessToken = token;
+      _accessExpiresAt = expiresAt;
+      return token;
+    } finally {
+      if (generation == _generation) _pendingAccess = null;
+    }
+  }
+
+  void _checkOrigin() {
+    if (_credentialOrigin != null &&
+        _credentialOrigin != Uri.parse(baseUrl).origin)
+      clearCredentials();
+  }
 
   Future<AuthResult<AuthSessionSnapshot?>> getSession() async {
     try {
-      final response = await _send('GET', '/get-session');
+      final response = await _send('POST', '/edaya/session', const {});
       if (response.statusCode == 401 || response.statusCode == 404) {
         return const AuthResult.success(null);
       }
@@ -73,10 +153,12 @@ class AuthClient {
     required String email,
     required String password,
   }) {
-    return _postAuthUser('/sign-in/email', {
-      'email': email,
-      'password': password,
-    });
+    return _postAuthUser(
+      edayaHttpUsesBrowserCredentials
+          ? '/sign-in/email'
+          : '/edaya/native/sign-in/email',
+      {'email': email, 'password': password},
+    );
   }
 
   Future<AuthResult<void>> sendEmailOtp({
@@ -94,7 +176,12 @@ class AuthClient {
     required String email,
     required String otp,
   }) {
-    return _postAuthUser('/sign-in/email-otp', {'email': email, 'otp': otp});
+    return _postAuthUser(
+      edayaHttpUsesBrowserCredentials
+          ? '/sign-in/email-otp'
+          : '/edaya/native/sign-in/email-otp',
+      {'email': email, 'otp': otp},
+    );
   }
 
   Future<AuthResult<AuthUser>> signUpWithEmail({
@@ -110,14 +197,12 @@ class AuthClient {
   }
 
   Future<AuthResult<void>> signOut() async {
-    final response = await _send('POST', '/sign-out', const {});
-    if (response.statusCode >= 400) {
-      final body = _decodeBody(response);
-      return AuthResult.failure(_readError(body));
+    try {
+      final response = await _send('POST', '/edaya/sign-out', const {});
+      return _readVoidResult(response);
+    } finally {
+      clearCredentials();
     }
-
-    _cookieJar.clear();
-    return const AuthResult.success(null);
   }
 
   Future<AuthResult<AuthUser>> _postAuthUser(
@@ -139,6 +224,16 @@ class AuthClient {
         );
       }
 
+      clearCredentials();
+      if (!edayaHttpUsesBrowserCredentials && path.contains('/sign-in/')) {
+        final credential = (body as Map)['renewalCredential'];
+        if (credential is! String || !credential.contains('.')) {
+          return const AuthResult.failure(
+            AuthError(message: 'Login did not return a renewal credential'),
+          );
+        }
+        restoreRenewalCredential(credential);
+      }
       return AuthResult.success(AuthUser.fromJson(userJson));
     } on http.ClientException catch (error) {
       return AuthResult.failure(_networkError(error));
@@ -228,6 +323,7 @@ class AuthClient {
     String path, [
     Map<String, dynamic>? payload,
   ]) async {
+    _checkOrigin();
     final uri = _resolveUri(path);
     final headers = <String, String>{
       'Accept': 'application/json',
@@ -236,9 +332,11 @@ class AuthClient {
         'Content-Type': 'application/json',
     };
 
-    final cookies = _cookieJar.headerValue();
-    if (cookies != null) {
-      headers['Cookie'] = cookies;
+    if (!edayaHttpUsesBrowserCredentials &&
+        path.startsWith('/edaya/') &&
+        !path.startsWith('/edaya/native/') &&
+        _renewalCredential != null) {
+      headers['Authorization'] = 'Bearer $_renewalCredential';
     }
 
     final response = await _client.send(
@@ -251,7 +349,6 @@ class AuthClient {
 
     final bodyBytes = await response.stream.toBytes();
     final responseBody = utf8.decode(bodyBytes);
-    _cookieJar.updateFromHeader(response.headers['set-cookie']);
 
     return http.Response(
       responseBody,

@@ -5,7 +5,13 @@ import 'transport.dart';
 typedef EntityQuery = Map<String, dynamic>;
 
 class EntityResource {
-  EntityResource(this._transport, this.publicName);
+  EntityResource(
+    this._transport,
+    this.publicName, {
+    Map<String, bool> publicOperations = const {},
+  }) : _operations = Map.unmodifiable(publicOperations);
+
+  final Map<String, bool> _operations;
 
   final Transport _transport;
   final String publicName;
@@ -45,6 +51,7 @@ class EntityResource {
   }
 
   Future<Map<String, dynamic>> save(Map<String, dynamic> entity) async {
+    _requireOperations(['create', 'update']);
     final result = await _transport.request<Object?>(
       'POST',
       _path('save'),
@@ -54,6 +61,7 @@ class EntityResource {
   }
 
   Future<Map<String, dynamic>> delete({required String id}) {
+    _requireOperations(['delete']);
     return _transport.request<Map<String, dynamic>>(
       'POST',
       _path('delete'),
@@ -64,6 +72,7 @@ class EntityResource {
   Future<Map<String, dynamic>> batchSave({
     required List<Map<String, dynamic>> entities,
   }) {
+    _requireOperations(['batchCreate', 'batchUpdate']);
     return _transport.request<Map<String, dynamic>>(
       'POST',
       _path('batch-save'),
@@ -72,11 +81,20 @@ class EntityResource {
   }
 
   Future<Map<String, dynamic>> batchDelete({required List<String> ids}) {
+    _requireOperations(['batchDelete']);
     return _transport.request<Map<String, dynamic>>(
       'POST',
       _path('batch-delete'),
       options: TransportRequestOptions(body: {'ids': ids}),
     );
+  }
+
+  void _requireOperations(List<String> operations) {
+    if (operations.any((operation) => _operations[operation] != true)) {
+      throw StateError(
+        'Generic mutation is unavailable for $publicName; use a domain command',
+      );
+    }
   }
 
   String _path(String action) {

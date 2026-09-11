@@ -93,7 +93,7 @@ class AppSessionController extends LevitController {
     }
 
     await _sessionStorage.markLoggedIn();
-    await _sessionStorage.persist(_authClient.cookieJar);
+    await _sessionStorage.persist(_authClient);
     await _pushNotifications.registerForAuthenticatedUser();
     _routerRefresh.refresh();
     return null;
@@ -107,10 +107,13 @@ class AppSessionController extends LevitController {
     isSigningOut(true);
     try {
       await _pushNotifications.unregister();
-      await _authClient.signOut();
-      await _sessionStorage.markLoggedOut();
-      await _clearLocalSession();
-      _routerRefresh.refresh();
+      try {
+        await _authClient.signOut();
+      } finally {
+        await _sessionStorage.markLoggedOut();
+        await _clearLocalSession();
+        _routerRefresh.refresh();
+      }
     } finally {
       isSigningOut(false);
     }
@@ -178,7 +181,7 @@ class AppSessionController extends LevitController {
     _actorKindHeader = null;
     if (persistCookies) {
       await _sessionStorage.clearCookies();
-      _authClient.cookieJar.clear();
+      _authClient.clearCredentials();
     }
   }
 }

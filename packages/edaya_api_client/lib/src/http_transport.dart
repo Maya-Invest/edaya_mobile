@@ -14,7 +14,8 @@ class HttpTransport implements Transport {
     this.getActorKind,
     this.getActorId,
     this.getSchoolId,
-    this.cookieHeader,
+    this.getAccessToken,
+    this.invalidateAccessToken,
   });
 
   final String baseUrl;
@@ -23,7 +24,8 @@ class HttpTransport implements Transport {
   final String? Function()? getActorKind;
   final String? Function()? getActorId;
   final String? Function()? getSchoolId;
-  final String? Function()? cookieHeader;
+  final Future<String> Function()? getAccessToken;
+  final void Function(String)? invalidateAccessToken;
 
   http.Client get _client => client ?? http.Client();
 
@@ -63,17 +65,26 @@ class HttpTransport implements Transport {
       headers['X-School-Id'] = schoolId;
     }
 
-    final cookies = cookieHeader?.call();
-    if (cookies != null && cookies.isNotEmpty) {
-      headers['Cookie'] = cookies;
-    }
+    final token = await getAccessToken?.call();
+    headers.remove('Cookie');
+    if (token != null) headers['Authorization'] = 'Bearer $token';
 
-    final response = await _client.send(
+    var response = await _client.send(
       http.Request(method, uri)
         ..headers.addAll(headers)
         ..body = options?.body == null ? '' : jsonEncode(options!.body),
     );
 
+    if (response.statusCode == 401 && token != null) {
+      invalidateAccessToken?.call(token);
+      if (method == 'GET' || method == 'HEAD') {
+        await response.stream.drain<void>();
+        headers['Authorization'] = 'Bearer ${await getAccessToken!()}';
+        response = await _client.send(
+          http.Request(method, uri)..headers.addAll(headers),
+        );
+      }
+    }
     return _parseResponse<T>(path, response);
   }
 

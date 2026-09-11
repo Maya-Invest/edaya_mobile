@@ -8,7 +8,11 @@ class SchoolClient {
   SchoolClient(this._transport)
     : _entities = {
         for (final entry in ClientBindings.entities.entries)
-          entry.key: EntityResource(_transport, entry.value.publicName),
+          entry.key: EntityResource(
+            _transport,
+            entry.value.publicName,
+            publicOperations: entry.value.publicOperations,
+          ),
       };
 
   final Transport _transport;
