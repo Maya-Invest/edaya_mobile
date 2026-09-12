@@ -6,6 +6,10 @@ import 'api_error.dart';
 import 'entity_envelope.dart';
 import 'transport.dart';
 
+typedef AccessTokenProvider = Future<String> Function({required Uri resource});
+typedef AccessTokenInvalidator =
+    void Function({required Uri resource, required String token});
+
 class HttpTransport implements Transport {
   HttpTransport({
     required this.baseUrl,
@@ -24,8 +28,8 @@ class HttpTransport implements Transport {
   final String? Function()? getActorKind;
   final String? Function()? getActorId;
   final String? Function()? getSchoolId;
-  final Future<String> Function()? getAccessToken;
-  final void Function(String)? invalidateAccessToken;
+  final AccessTokenProvider? getAccessToken;
+  final AccessTokenInvalidator? invalidateAccessToken;
 
   http.Client get _client => client ?? http.Client();
 
@@ -65,7 +69,8 @@ class HttpTransport implements Transport {
       headers['X-School-Id'] = schoolId;
     }
 
-    final token = await getAccessToken?.call();
+    final resource = Uri.parse(uri.origin);
+    final token = await getAccessToken?.call(resource: resource);
     headers.remove('Cookie');
     if (token != null) headers['Authorization'] = 'Bearer $token';
 
@@ -76,10 +81,11 @@ class HttpTransport implements Transport {
     );
 
     if (response.statusCode == 401 && token != null) {
-      invalidateAccessToken?.call(token);
+      invalidateAccessToken?.call(resource: resource, token: token);
       if (method == 'GET' || method == 'HEAD') {
         await response.stream.drain<void>();
-        headers['Authorization'] = 'Bearer ${await getAccessToken!()}';
+        headers['Authorization'] =
+            'Bearer ${await getAccessToken!(resource: resource)}';
         response = await _client.send(
           http.Request(method, uri)..headers.addAll(headers),
         );
