@@ -4,12 +4,10 @@ class TeachingScope {
   const TeachingScope({
     this.classGroupIds = const {},
     this.classSubjectIds = const {},
-    this.sessionIds = const {},
   });
 
   final Set<String> classGroupIds;
   final Set<String> classSubjectIds;
-  final Set<String> sessionIds;
 }
 
 EntityQuery teacherAssignmentsForTeacherAndYear({
@@ -19,17 +17,6 @@ EntityQuery teacherAssignmentsForTeacherAndYear({
   return {'teacherId': teacherId, 'academicYearId': academicYearId};
 }
 
-TeachingScope teachingScopeFromTeacherPortalScope(TeacherPortalScope? scope) {
-  if (scope == null) {
-    return const TeachingScope();
-  }
-
-  return TeachingScope(
-    classGroupIds: scope.homeroomClassGroupIds.toSet(),
-    classSubjectIds: scope.classSubjectIds.toSet(),
-  );
-}
-
 TeachingScope teachingScopeFromTeacherAssignments(
   List<Map<String, dynamic>> assignments,
 ) {
@@ -37,7 +24,16 @@ TeachingScope teachingScopeFromTeacherAssignments(
   final classSubjectIds = <String>{};
 
   for (final assignment in assignments) {
-    if (assignment['status'] != 'active') {
+    final now = DateTime.now();
+    final startsAt = assignment['startsAt'] == null
+        ? null
+        : DateTime.parse(assignment['startsAt'] as String);
+    final endsAt = assignment['endsAt'] == null
+        ? null
+        : DateTime.parse(assignment['endsAt'] as String);
+    if (assignment['status'] != 'active' ||
+        (startsAt != null && startsAt.isAfter(now)) ||
+        (endsAt != null && !endsAt.isAfter(now))) {
       continue;
     }
 
@@ -59,14 +55,4 @@ TeachingScope teachingScopeFromTeacherAssignments(
     classGroupIds: classGroupIds,
     classSubjectIds: classSubjectIds,
   );
-}
-
-TeachingScope mergeTeachingScopes(
-  TeachingScope primary,
-  TeachingScope fallback,
-) {
-  if (primary.classGroupIds.isNotEmpty || primary.classSubjectIds.isNotEmpty) {
-    return primary;
-  }
-  return fallback;
 }

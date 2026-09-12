@@ -1,4 +1,3 @@
-import 'package:edaya_api_client/edaya_api_client.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:edaya_teacher/common/utils/entity_query.dart';
 
@@ -35,19 +34,30 @@ void main() {
 
       expect(scope.classGroupIds, {'cg-6a'});
       expect(scope.classSubjectIds, {'cs-maths-6a'});
-      expect(scope.sessionIds, isEmpty);
     },
   );
 
-  test('teachingScopeFromTeacherPortalScope reads grants scope payload', () {
-    final scope = teachingScopeFromTeacherPortalScope(
-      const TeacherPortalScope(
-        classSubjectIds: ['cs-maths-6a'],
-        homeroomClassGroupIds: ['cg-6a'],
-      ),
-    );
+  test('future and expired assignments do not populate teacher context', () {
+    final scope = teachingScopeFromTeacherAssignments([
+      {
+        'kind': 'subject',
+        'status': 'active',
+        'classSubjectId': 'expired',
+        'endsAt': '2000-01-01T00:00:00Z',
+      },
+      {
+        'kind': 'homeroom',
+        'status': 'active',
+        'classGroupId': 'future',
+        'startsAt': '2999-01-01T00:00:00Z',
+      },
+    ]);
+    expect(scope.classGroupIds, isEmpty);
+    expect(scope.classSubjectIds, isEmpty);
+  });
 
-    expect(scope.classGroupIds, {'cg-6a'});
-    expect(scope.classSubjectIds, {'cs-maths-6a'});
+  test('removed assignments cannot survive in a second scope source', () {
+    expect(teachingScopeFromTeacherAssignments([]).classSubjectIds, isEmpty);
+    expect(teachingScopeFromTeacherAssignments([]).classGroupIds, isEmpty);
   });
 }

@@ -151,19 +151,13 @@ class TeacherContextController extends LevitController
           teacherPhotoUrl(null);
         }
 
-        final scopeFromGrants = teachingScopeFromTeacherPortalScope(
-          grants.teacherScope,
-        );
         final assignments = await client.teacherAssignments.list(
           teacherAssignmentsForTeacherAndYear(
             teacherId: resolvedTeacherId,
             academicYearId: yearId,
           ),
         );
-        final teachingScope = mergeTeachingScopes(
-          scopeFromGrants,
-          teachingScopeFromTeacherAssignments(assignments),
-        );
+        final teachingScope = teachingScopeFromTeacherAssignments(assignments);
 
         final classGroupIds = teachingScope.classGroupIds;
         final taughtSubjectIds = teachingScope.classSubjectIds;

@@ -98,12 +98,15 @@ void main() {
         'actorId': 'actor-1',
         'schoolId': 'school-1',
         'assuranceLevel': 'standard',
-        'effectiveGrants': {
-          'permissions': ['STUDENT_READ'],
-          'scopeGrants': [],
-          'scopeIdsByPermission': {'QUERY_STUDENT_DETAIL_READ': 'student-1'},
-          'isElevated': false,
-        },
+        'grants': [
+          {
+            'permission': 'QUERY_STUDENT_DETAIL_READ',
+            'source': 'manual',
+            'scopes': [
+              {'kind': 'student', 'studentId': 'student-1'},
+            ],
+          },
+        ],
       },
     ]);
     final client = createSchoolClient(transport);
@@ -140,42 +143,45 @@ void main() {
     expect(grants.kind, 'staff');
     expect(grants.actorId, 'actor-1');
     expect(
-      grants.effectiveGrants.scopeIdsByPermission['QUERY_STUDENT_DETAIL_READ'],
+      (grants.grants.single.scopes.single as StudentGrantScope).studentId,
       'student-1',
     );
   });
 
-  test('parses portal actor capabilities and scope', () async {
-    final transport = RecordingTransport([
-      {
-        'kind': 'teacher',
-        'actorId': 'teacher-1',
-        'schoolId': 'school-1',
-        'assuranceLevel': 'standard',
-        'effectiveGrants': {
-          'permissions': [],
-          'scopeGrants': [],
-          'scopeIdsByPermission': {},
-          'isElevated': false,
+  test(
+    'parses the same typed action grant representation for portal actors',
+    () async {
+      final transport = RecordingTransport([
+        {
+          'kind': 'teacher',
+          'actorId': 'teacher-1',
+          'schoolId': 'school-1',
+          'assuranceLevel': 'standard',
+          'grants': [
+            {
+              'permission': 'ATTENDANCE_RECORD',
+              'source': 'relationship',
+              'academicYearId': 'year',
+              'scopes': [
+                {
+                  'kind': 'class_subject',
+                  'classGroupId': 'cg-1',
+                  'classSubjectId': 'cs-1',
+                },
+              ],
+            },
+          ],
         },
-        'capabilities': ['RecordSessionAttendance'],
-        'scope': {
-          'teaching': {
-            'classSubjectIds': ['cs-1'],
-          },
-          'homeroom': {
-            'classGroupIds': ['cg-1'],
-          },
-        },
-      },
-    ]);
-    final client = createSchoolClient(transport);
-
-    final grants = await client.effectiveGrants();
-
-    expect(grants.kind, 'teacher');
-    expect(grants.capabilities, ['RecordSessionAttendance']);
-    expect(grants.teacherScope?.classSubjectIds, ['cs-1']);
-    expect(grants.teacherScope?.homeroomClassGroupIds, ['cg-1']);
-  });
+      ]);
+      final grants = await createSchoolClient(transport).effectiveGrants();
+      expect(grants.kind, 'teacher');
+      expect(grants.grants.single.permission, 'ATTENDANCE_RECORD');
+      expect(grants.grants.single.source, GrantSource.relationship);
+      final scope =
+          grants.grants.single.scopes.single as ClassSubjectGrantScope;
+      expect(scope.classGroupId, 'cg-1');
+      expect(scope.classSubjectId, 'cs-1');
+      expect(grants.toJson().containsKey('scope'), isFalse);
+    },
+  );
 }

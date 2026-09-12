@@ -160,17 +160,6 @@ EntityQuery attendanceForLessonSession(String lessonSessionId) {
   return {'lessonSessionId': lessonSessionId};
 }
 
-TeacherTeachingScope teachingScopeFromGrants(EffectiveGrantsResponse grants) {
-  final scope = grants.teacherScope;
-  if (scope == null) {
-    return const TeacherTeachingScope();
-  }
-  return TeacherTeachingScope(
-    classGroupIds: scope.homeroomClassGroupIds.toSet(),
-    classSubjectIds: scope.classSubjectIds.toSet(),
-  );
-}
-
 TeacherTeachingScope teachingScopeFromAssignments(
   List<Map<String, dynamic>> assignments,
 ) {
@@ -178,7 +167,16 @@ TeacherTeachingScope teachingScopeFromAssignments(
   final classSubjectIds = <String>{};
 
   for (final assignment in assignments) {
-    if (assignment['status'] != 'active') {
+    final now = DateTime.now();
+    final startsAt = assignment['startsAt'] == null
+        ? null
+        : DateTime.parse(assignment['startsAt'] as String);
+    final endsAt = assignment['endsAt'] == null
+        ? null
+        : DateTime.parse(assignment['endsAt'] as String);
+    if (assignment['status'] != 'active' ||
+        (startsAt != null && startsAt.isAfter(now)) ||
+        (endsAt != null && !endsAt.isAfter(now))) {
       continue;
     }
     final kind = assignment['kind'] as String?;
@@ -199,16 +197,6 @@ TeacherTeachingScope teachingScopeFromAssignments(
     classGroupIds: classGroupIds,
     classSubjectIds: classSubjectIds,
   );
-}
-
-TeacherTeachingScope mergeTeachingScopes(
-  TeacherTeachingScope primary,
-  TeacherTeachingScope fallback,
-) {
-  if (primary.classGroupIds.isNotEmpty || primary.classSubjectIds.isNotEmpty) {
-    return primary;
-  }
-  return fallback;
 }
 
 Future<List<Map<String, dynamic>>> optionalEntityList(
@@ -249,12 +237,7 @@ Future<TeacherPortalContext> bootstrapTeacherPortal(
     academicPeriodsForYear(profile.academicYearId),
   );
 
-  final scopeFromGrants = teachingScopeFromGrants(grants);
-  final scopeFromAssignments = teachingScopeFromAssignments(assignments);
-  final teachingScope = mergeTeachingScopes(
-    scopeFromGrants,
-    scopeFromAssignments,
-  );
+  final teachingScope = teachingScopeFromAssignments(assignments);
 
   final classSubjectRows = teachingScope.classSubjectIds.isEmpty
       ? <Map<String, dynamic>>[]

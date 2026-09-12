@@ -65,11 +65,7 @@ void main() {
           actorId: 'ci-t1',
           schoolId: 'ci-school',
           assuranceLevel: 'standard',
-          effectiveGrants: EffectiveGrants(
-            permissions: [],
-            scopeIdsByPermission: {},
-            isElevated: false,
-          ),
+          grants: [],
         ),
         academicYears: [],
         teacherAssignments: [],
