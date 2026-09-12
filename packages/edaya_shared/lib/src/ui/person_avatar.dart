@@ -3,6 +3,8 @@ import 'package:edaya_auth/edaya_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
+import '../config/api_base_url_config.dart';
+
 /// Read-only avatar for staff, students, and guardians.
 ///
 /// [photoUrl] is typically `{API_URL}/core/files/{attachmentId}/content`, which
@@ -47,14 +49,25 @@ class _PersonAvatarState extends State<PersonAvatar> {
     if (source == null || source.isEmpty) return;
     try {
       final auth = context.levit.find<AuthClient>();
-      final base = Uri.parse(auth.baseUrl);
-      final uri = base.resolve(source);
+      final apiBase = Uri.parse(ApiBaseUrlConfig.apiBaseUrl);
+      final parsed = Uri.parse(source);
+      final uri = parsed.hasScheme ? parsed : apiBase.resolve(source);
       ImageProvider image;
-      if (uri.origin == base.origin && uri.path.startsWith('/core/files/')) {
-        final response = await auth.businessHttpClient.get(
+      if (uri.origin == apiBase.origin && uri.path.startsWith('/core/files/')) {
+        final resource = Uri.parse(uri.origin);
+        var token = await auth.getAccessToken(resource: resource);
+        var response = await auth.businessHttpClient.get(
           uri,
-          headers: {'Authorization': 'Bearer ${await auth.getAccessToken()}'},
+          headers: {'Authorization': 'Bearer $token'},
         );
+        if (response.statusCode == 401) {
+          auth.invalidateAccessToken(resource: resource, token: token);
+          token = await auth.getAccessToken(resource: resource);
+          response = await auth.businessHttpClient.get(
+            uri,
+            headers: {'Authorization': 'Bearer $token'},
+          );
+        }
         if (response.statusCode != 200) throw StateError('Image unavailable');
         image = MemoryImage(Uint8List.fromList(response.bodyBytes));
       } else {
@@ -62,8 +75,9 @@ class _PersonAvatarState extends State<PersonAvatar> {
       }
       if (mounted && generation == _generation) setState(() => _image = image);
     } catch (_) {
-      if (mounted && generation == _generation)
+      if (mounted && generation == _generation) {
         setState(() => _imageFailed = true);
+      }
     }
   }
 

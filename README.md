@@ -68,7 +68,7 @@ Mirrors the TypeScript `@edaya/api-client` package:
 
 - `Transport` abstraction for HTTP
 - `createSchoolClient()` with generated entity/command/query bindings
-- `HttpTransport` for cookie-aware requests against the API
+- `HttpTransport` for origin-pinned Bearer requests against the API
 - Typed `EffectiveGrantsResponse` for `/core/authorization/effective-grants`
 
 Bindings are generated from the published OpenAPI document (`x-edaya-*` operation extensions on core routes).
@@ -106,9 +106,10 @@ Better Auth client for mobile sign-in flows:
 - email + password sign-in
 - email OTP sign-in
 - sign-up and sign-out
-- in-memory cookie jar for session cookies
+- in-memory cookie jar for identity cookies
+- origin-keyed API access tokens (`getAccessToken(resource:)` / `invalidateAccessToken`)
 
-Auth routes live under `/auth/*` and are separate from the Core API client.
+Auth routes live under `/auth/*` and are separate from the Core API client. `POST /auth/edaya/access-token` sends `{ "resource": "<API origin>" }`. Each API origin has its own cached JWT; identity lifecycle calls use the renewal session, never an API access token.
 
 ## Wiring auth + API in an app
 

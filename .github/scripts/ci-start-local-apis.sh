@@ -53,7 +53,7 @@ overlay_identity_env() {
 	upsert_env "$file" IDENTITY_DIRECTORY_SECRET "$DIRECTORY_SECRET"
 	upsert_env "$file" REQUIRE_EMAIL_VERIFICATION false
 	upsert_env "$file" BETTER_AUTH_URL http://localhost:9900
-	upsert_env "$file" SCHOOL_API_ORIGIN http://localhost:9999
+	upsert_env "$file" FIRST_PARTY_API_ORIGINS http://localhost:9999
 }
 
 overlay_school_env() {
@@ -63,7 +63,7 @@ overlay_school_env() {
 	upsert_env "$file" IDENTITY_DIRECTORY_SECRET "$DIRECTORY_SECRET"
 	upsert_env "$file" IDENTITY_ISSUER http://localhost:9900
 	upsert_env "$file" IDENTITY_DIRECTORY_URL http://localhost:9900
-	upsert_env "$file" SCHOOL_API_ORIGIN http://localhost:9999
+	upsert_env "$file" API_ORIGIN http://localhost:9999
 	upsert_env "$file" LOG_LEVEL error
 	upsert_env "$file" LOCAL_FILES_URL http://localhost:9200
 	upsert_env "$file" LOCAL_FILES_ROOT .data/files

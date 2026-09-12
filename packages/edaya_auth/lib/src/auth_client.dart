@@ -11,6 +11,25 @@ import 'http_client_factory.dart';
 
 typedef AuthBaseUrlProvider = String Function();
 
+class _ResourceTokenState {
+  String? token;
+  DateTime? expiresAt;
+  Future<String>? pending;
+}
+
+Uri canonicalApiOrigin(Uri resource) {
+  if ((resource.scheme != 'http' && resource.scheme != 'https') ||
+      resource.host.isEmpty ||
+      resource.host.contains('*') ||
+      resource.hasQuery ||
+      resource.hasFragment ||
+      resource.userInfo.isNotEmpty ||
+      (resource.path.isNotEmpty && resource.path != '/')) {
+    throw const AuthError(message: 'Invalid API origin');
+  }
+  return Uri.parse(resource.origin);
+}
+
 class AuthClient {
   AuthClient({
     required String baseUrl,
@@ -48,9 +67,7 @@ class AuthClient {
 
   String? _renewalCredential;
   String? _credentialOrigin;
-  String? _accessToken;
-  DateTime? _accessExpiresAt;
-  Future<String>? _pendingAccess;
+  final Map<String, _ResourceTokenState> _accessTokens = {};
   int _generation = 0;
 
   String? get renewalCredential => _renewalCredential;
@@ -65,41 +82,51 @@ class AuthClient {
     _generation++;
     _renewalCredential = null;
     _credentialOrigin = null;
-    _accessToken = null;
-    _accessExpiresAt = null;
-    _pendingAccess = null;
+    _accessTokens.clear();
     _cookieJar.clear();
   }
 
-  void invalidateAccessToken(String token) {
-    if (_accessToken == token) {
-      _accessToken = null;
-      _accessExpiresAt = null;
+  void invalidateAccessToken({required Uri resource, required String token}) {
+    final origin = canonicalApiOrigin(resource).origin;
+    final state = _accessTokens[origin];
+    if (state?.token == token) {
+      state?.token = null;
+      state?.expiresAt = null;
     }
   }
 
-  Future<String> getAccessToken() async {
+  Future<String> getAccessToken({required Uri resource}) async {
     _checkOrigin();
-    if (_accessToken != null &&
-        _accessExpiresAt!.isAfter(
+    final origin = canonicalApiOrigin(resource).origin;
+    final state = _accessTokens.putIfAbsent(origin, _ResourceTokenState.new);
+    if (state.token != null &&
+        state.expiresAt!.isAfter(
           DateTime.now().add(const Duration(seconds: 30)),
         )) {
-      return _accessToken!;
+      return state.token!;
     }
-    return _pendingAccess ??= _issueAccessToken(_generation);
+    return state.pending ??= _issueAccessToken(_generation, origin, state);
   }
 
-  Future<String> _issueAccessToken(int generation) async {
+  Future<String> _issueAccessToken(
+    int generation,
+    String origin,
+    _ResourceTokenState state,
+  ) async {
     try {
-      final response = await _send('POST', '/edaya/access-token', const {});
+      final response = await _send('POST', '/edaya/access-token', {
+        'resource': origin,
+      });
       final body = _decodeBody(response);
       if (response.statusCode >= 400) {
-        if (response.statusCode == 401 && generation == _generation)
+        if (response.statusCode == 401 && generation == _generation) {
           clearCredentials();
+        }
         throw _readError(body);
       }
-      if (generation != _generation)
+      if (generation != _generation) {
         throw const AuthError(message: 'Authentication changed during renewal');
+      }
       final data = Map<String, dynamic>.from(body as Map);
       final token = data['accessToken'] as String;
       final expiresAt = DateTime.parse(data['expiresAt'] as String);
@@ -109,18 +136,19 @@ class AuthClient {
           !expiresAt.isAfter(DateTime.now())) {
         throw const AuthError(message: 'Invalid API token response');
       }
-      _accessToken = token;
-      _accessExpiresAt = expiresAt;
+      state.token = token;
+      state.expiresAt = expiresAt;
       return token;
     } finally {
-      if (generation == _generation) _pendingAccess = null;
+      if (generation == _generation) state.pending = null;
     }
   }
 
   void _checkOrigin() {
     if (_credentialOrigin != null &&
-        _credentialOrigin != Uri.parse(baseUrl).origin)
+        _credentialOrigin != Uri.parse(baseUrl).origin) {
       clearCredentials();
+    }
   }
 
   Future<AuthResult<AuthSessionSnapshot?>> getSession() async {
