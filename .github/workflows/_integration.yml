@@ -33,8 +33,10 @@ jobs:
 
       - name: Resolve API source ref
         id: api_source
+        env:
+          CANDIDATE_REF: ${{ github.head_ref || github.ref_name }}
         run: |
-          HEAD="${{ github.head_ref || github.ref_name }}"
+          HEAD="$CANDIDATE_REF"
           REF="$(bash .github/scripts/ci-api-source-ref.sh "$HEAD")"
           echo "ref=${REF}" >> "$GITHUB_OUTPUT"
           echo "Using Identity + school @${REF} (mobile head ${HEAD})"

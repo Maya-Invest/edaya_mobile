@@ -12,6 +12,11 @@ IDENTITY_ROOT="${IDENTITY_ROOT:-$PARENT/edaya_identity}"
 BACKEND_ROOT="${BACKEND_ROOT:-$PARENT/edaya_backend}"
 PID_DIR="${EDAYA_CI_API_PID_DIR:-/tmp/edaya-ci-apis}"
 WAIT_SCRIPT="$SCRIPT_DIR/ci-wait-for-url.sh"
+AUTH_PORT="${EDAYA_CI_AUTH_PORT:-9900}"
+API_PORT="${EDAYA_CI_API_PORT:-9999}"
+FILES_PORT="${EDAYA_CI_FILES_PORT:-9200}"
+AUTH_ORIGIN="http://127.0.0.1:$AUTH_PORT"
+API_ORIGIN="http://127.0.0.1:$API_PORT"
 
 TRUSTED_ORIGINS="http://localhost:5173,http://localhost:4173,http://127.0.0.1:5173,http://127.0.0.1:4173"
 DIRECTORY_SECRET="local-directory-secret"
@@ -52,8 +57,9 @@ overlay_identity_env() {
 	upsert_env "$file" WEBAPP_ORIGIN "$WEBAPP_ORIGIN"
 	upsert_env "$file" IDENTITY_DIRECTORY_SECRET "$DIRECTORY_SECRET"
 	upsert_env "$file" REQUIRE_EMAIL_VERIFICATION false
-	upsert_env "$file" BETTER_AUTH_URL http://localhost:9900
-	upsert_env "$file" FIRST_PARTY_API_ORIGINS http://localhost:9999
+	upsert_env "$file" PORT "$AUTH_PORT"
+	upsert_env "$file" BETTER_AUTH_URL "$AUTH_ORIGIN"
+	upsert_env "$file" FIRST_PARTY_API_ORIGINS "$API_ORIGIN"
 }
 
 overlay_school_env() {
@@ -61,14 +67,15 @@ overlay_school_env() {
 	upsert_env "$file" TRUSTED_ORIGINS "$TRUSTED_ORIGINS"
 	upsert_env "$file" WEBAPP_ORIGIN "$WEBAPP_ORIGIN"
 	upsert_env "$file" IDENTITY_DIRECTORY_SECRET "$DIRECTORY_SECRET"
-	upsert_env "$file" IDENTITY_ISSUER http://localhost:9900
-	upsert_env "$file" IDENTITY_DIRECTORY_URL http://localhost:9900
-	upsert_env "$file" API_ORIGIN http://localhost:9999
+	upsert_env "$file" PORT "$API_PORT"
+	upsert_env "$file" IDENTITY_ISSUER "$AUTH_ORIGIN"
+	upsert_env "$file" IDENTITY_DIRECTORY_URL "$AUTH_ORIGIN"
+	upsert_env "$file" API_ORIGIN "$API_ORIGIN"
 	upsert_env "$file" LOG_LEVEL error
-	upsert_env "$file" LOCAL_FILES_URL http://localhost:9200
+	upsert_env "$file" LOCAL_FILES_URL "http://127.0.0.1:$FILES_PORT"
 	upsert_env "$file" LOCAL_FILES_ROOT .data/files
 	upsert_env "$file" LOCAL_FILES_SECRET dev-local-files-secret
-	upsert_env "$file" LOCAL_FILES_PORT 9200
+	upsert_env "$file" LOCAL_FILES_PORT "$FILES_PORT"
 }
 
 dump_logs() {
@@ -140,23 +147,23 @@ case "$ACTION" in
 		overlay_school_env "$BACKEND_ROOT/apps/api/.env"
 
 		echo "Installing Identity dependencies"
-		(cd "$IDENTITY_ROOT" && bun install --frozen-lockfile || bun install)
+		(cd "$IDENTITY_ROOT" && bun install --frozen-lockfile)
 
 		echo "Installing school dependencies"
-		(cd "$BACKEND_ROOT" && bun install --frozen-lockfile || bun install)
+		(cd "$BACKEND_ROOT" && bun install --frozen-lockfile)
 
-		echo "Starting Identity on :9900 (empty, no seed)"
+		echo "Starting Identity on :$AUTH_PORT (empty, no seed)"
 		start_background "$PID_DIR/identity.pid" "$PID_DIR/identity.log" "$IDENTITY_ROOT" \
 			bun --filter @edaya/identity start
-		if ! bash "$WAIT_SCRIPT" http://127.0.0.1:9900/ 120; then
+		if ! bash "$WAIT_SCRIPT" "$AUTH_ORIGIN/" 120; then
 			dump_logs
 			exit 1
 		fi
 
-		echo "Starting school API on :9999 (empty, no seed)"
+		echo "Starting school API on :$API_PORT (empty, no seed)"
 		start_background "$PID_DIR/school.pid" "$PID_DIR/school.log" "$BACKEND_ROOT" \
 			bun repo dev
-		if ! bash "$WAIT_SCRIPT" http://127.0.0.1:9999/reference 120; then
+		if ! bash "$WAIT_SCRIPT" "$API_ORIGIN/reference" 120; then
 			dump_logs
 			exit 1
 		fi
@@ -164,10 +171,6 @@ case "$ACTION" in
 	stop)
 		kill_pidfile "$PID_DIR/school.pid"
 		kill_pidfile "$PID_DIR/identity.pid"
-		pkill -f '@edaya/identity' 2>/dev/null || true
-		pkill -f 'start-local-dev' 2>/dev/null || true
-		pkill -f '@edaya/api' 2>/dev/null || true
-		pkill -f '@edaya/local-files-server' 2>/dev/null || true
 		;;
 	*)
 		echo "Unknown action: $ACTION" >&2

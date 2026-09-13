@@ -100,14 +100,16 @@ class ActionGrant {
 
 String _identifier(Map<String, dynamic> json, String field) {
   final value = json[field];
-  if (value is! String || value.trim().isEmpty)
+  if (value is! String || value.trim().isEmpty) {
     throw FormatException('Grant scope requires $field');
+  }
   return value;
 }
 
 void _fields(Map<String, dynamic> json, Set<String> allowed) {
-  if (json.keys.any((key) => !allowed.contains(key)))
+  if (json.keys.any((key) => !allowed.contains(key))) {
     throw const FormatException('Unexpected grant scope field');
+  }
 }
 
 sealed class GrantScope {
@@ -149,10 +151,11 @@ sealed class GrantScope {
       case 'activity':
         _fields(json, {'kind', 'activityId', 'classGroupId'});
         if (!json.containsKey('activityId') &&
-            !json.containsKey('classGroupId'))
+            !json.containsKey('classGroupId')) {
           throw const FormatException(
             'Activity scope requires an activity or class',
           );
+        }
         return ActivityGrantScope(
           activityId: json.containsKey('activityId')
               ? _identifier(json, 'activityId')

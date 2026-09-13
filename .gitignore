@@ -40,3 +40,5 @@ __MACOSX/
 
 # Flutter macOS desktop (generated locally; team targets Android/iOS)
 **/macos/
+
+/release-apks/

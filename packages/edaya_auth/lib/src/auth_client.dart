@@ -229,7 +229,7 @@ class AuthClient {
   Future<AuthResult<void>> signOut() async {
     try {
       final response = await _send('POST', '/edaya/sign-out', const {});
-      return _readVoidResult(response);
+      return await _readVoidResult(response);
     } finally {
       clearCredentials();
     }
