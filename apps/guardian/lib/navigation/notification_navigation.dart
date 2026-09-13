@@ -1,11 +1,13 @@
 import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_api_client/edaya_api_client.dart';
 
 import '../access/app_runtime.dart';
+import '../common/utils/entity_filters.dart';
 import '../app/router.dart';
 import '../features/inbox/models/inbox_delivery.dart';
 
 /// Routes the user after they open a push notification in the guardian app.
-void handleGuardianNotificationOpened(RemoteMessage message) {
+Future<void> handleGuardianNotificationOpened(RemoteMessage message) async {
   if (!AppRuntime.session.isAuthenticated) {
     return;
   }
@@ -16,8 +18,6 @@ void handleGuardianNotificationOpened(RemoteMessage message) {
   }
 
   final router = AppRouter.find.router;
-  final data = notificationMessageData(message);
-  final notification = message.notification;
 
   if (link.path == '/inbox/message') {
     final deliveryId = link.deliveryId;
@@ -26,20 +26,38 @@ void handleGuardianNotificationOpened(RemoteMessage message) {
       return;
     }
 
-    final delivery = InboxDelivery(
-      id: deliveryId,
-      subjectId: data['subjectId'] ?? '',
-      status: InboxDeliveryStatus.fromApi(data['status']),
-      title:
-          data['title'] ??
-          notification?.title ??
-          systemL10n().messageDefaultTitle,
-      body: data['body'] ?? notification?.body ?? '',
-      announcementId: data['announcementId'],
-      eventKey: data['eventKey'],
-    );
     router.go('/inbox');
-    Future.microtask(() => router.push('/inbox/message', extra: delivery));
+    final subjectId = AppRuntime.session.user.value?.id;
+    final profile = AppRuntime.session.grants.value;
+    if (subjectId == null || profile == null || profile.kind != 'guardian') {
+      return;
+    }
+    try {
+      final rows = await AppRuntime.schoolClientInstance().messageDeliveries
+          .list({
+            ...deliveriesForGuardian(
+              subjectId: subjectId,
+              guardianId: profile.actorId,
+              schoolId: profile.schoolId,
+            ),
+            'id': deliveryId,
+            r'$limit': 1,
+          });
+      if (rows.isEmpty ||
+          AppRuntime.session.user.value?.id != subjectId ||
+          AppRuntime.session.grants.value?.kind != profile.kind ||
+          AppRuntime.session.grants.value?.actorId != profile.actorId ||
+          AppRuntime.session.grants.value?.schoolId != profile.schoolId) {
+        return;
+      }
+      await router.push(
+        '/inbox/message',
+        extra: InboxDelivery.fromJson(rows.first),
+      );
+    } on Object {
+      // The inbox remains available when a notification is no longer accessible.
+      return;
+    }
     return;
   }
 

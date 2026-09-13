@@ -12,6 +12,15 @@ EntityQuery paymentsForStudentFees(List<String> studentFeeIds) {
   return recordsForField('studentFeeId', studentFeeIds);
 }
 
-EntityQuery deliveriesForSubject(String subjectId) {
-  return {'subjectId': subjectId};
+EntityQuery deliveriesForGuardian({
+  required String subjectId,
+  required String guardianId,
+  required String schoolId,
+}) {
+  return {
+    'subjectId': subjectId,
+    'recipientKind': 'guardian',
+    'recipientId': guardianId,
+    'schoolId': schoolId,
+  };
 }

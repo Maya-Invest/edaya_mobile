@@ -139,6 +139,8 @@ final students = await schoolClient.students.list({'schoolId': grants.schoolId})
 
 Guardian and teacher wrap this in `AppSessionController` and `AppBootstrapController` from `edaya_shared`, with small app-specific hooks (grant validation, context initialization, push notifications).
 
+The guardian inbox queries the selected guardian profile and school together with the login subject. Profile switches and sign-out clear previous results and discard pending responses for the old identity. A push-message open fetches the current authorized delivery; push payload content is not a substitute for that record.
+
 ## Local development
 
 ### API URL

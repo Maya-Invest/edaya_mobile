@@ -19,6 +19,25 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
 
   final deliveries = LxVar<List<InboxDelivery>>(const []);
   final errorMessage = LxVar('');
+  int _loadVersion = 0;
+
+  ({String subjectId, String guardianId, String schoolId})? get _recipient {
+    final subjectId = _session.user.value?.id;
+    final profile = _session.grants.value;
+    if (subjectId == null ||
+        subjectId.isEmpty ||
+        profile == null ||
+        profile.kind != 'guardian' ||
+        profile.actorId.isEmpty ||
+        profile.schoolId.isEmpty) {
+      return null;
+    }
+    return (
+      subjectId: subjectId,
+      guardianId: profile.actorId,
+      schoolId: profile.schoolId,
+    );
+  }
 
   @override
   void onInit() {
@@ -27,8 +46,15 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
     autoDispose(errorMessage);
 
     autoDispose(_session.user.stream.listen((_) => unawaited(loadInbox())));
+    autoDispose(_session.grants.stream.listen((_) => unawaited(loadInbox())));
 
     unawaited(loadInbox());
+  }
+
+  @override
+  void onClose() {
+    _loadVersion++;
+    super.onClose();
   }
 
   DataStatus get dataStatus {
@@ -55,9 +81,10 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
   }
 
   Future<void> loadInbox() async {
-    final subjectId = _session.user.value?.id;
-    if (subjectId == null) {
-      deliveries(const []);
+    final version = ++_loadVersion;
+    final recipient = _recipient;
+    deliveries(const []);
+    if (recipient == null) {
       errorMessage('');
       return;
     }
@@ -66,8 +93,13 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
     await runTask(() async {
       try {
         final rows = await _schoolClient().messageDeliveries.list(
-          deliveriesForSubject(subjectId),
+          deliveriesForGuardian(
+            subjectId: recipient.subjectId,
+            guardianId: recipient.guardianId,
+            schoolId: recipient.schoolId,
+          ),
         );
+        if (version != _loadVersion || recipient != _recipient) return;
         final parsed = rows.map(InboxDelivery.fromJson).toList()
           ..sort((a, b) {
             final aTime = a.sortDate?.millisecondsSinceEpoch ?? 0;
@@ -76,9 +108,11 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
           });
         deliveries(parsed);
       } on api.ApiError catch (error) {
+        if (version != _loadVersion || recipient != _recipient) return;
         errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
         deliveries(const []);
       } on Object catch (error) {
+        if (version != _loadVersion || recipient != _recipient) return;
         errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
         deliveries(const []);
       }
