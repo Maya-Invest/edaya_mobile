@@ -326,7 +326,7 @@ Future<String?> findMaterializedLessonSessionId(
   };
   final rows = await client.lessonSessions.list({
     'classGroupId': classGroupId,
-    if (classSubjectId != null) 'classSubjectId': classSubjectId,
+    'classSubjectId': ?classSubjectId,
     'startsAt': dateFilter,
   });
   if (rows.isEmpty) {
