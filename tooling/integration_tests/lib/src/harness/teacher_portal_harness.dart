@@ -317,6 +317,7 @@ Future<String?> findMaterializedLessonSessionId(
   SchoolClient client,
   String classGroupId, {
   PlanningDateRange? range,
+  String? classSubjectId,
 }) async {
   final resolvedRange = range ?? _defaultPlanningDateRange();
   final dateFilter = {
@@ -325,6 +326,7 @@ Future<String?> findMaterializedLessonSessionId(
   };
   final rows = await client.lessonSessions.list({
     'classGroupId': classGroupId,
+    if (classSubjectId != null) 'classSubjectId': classSubjectId,
     'startsAt': dateFilter,
   });
   if (rows.isEmpty) {
@@ -362,7 +364,9 @@ Future<String?> resolveLessonSessionIdForClass(
   if (fromTimetable != null) {
     return fromTimetable;
   }
-  return findMaterializedLessonSessionId(client, classGroupId);
+  return findMaterializedLessonSessionId(
+    client, classGroupId, classSubjectId: classSubjectId,
+  );
 }
 
 /// Mirrors [SessionDetailController.loadDetail] reads for a lesson session.

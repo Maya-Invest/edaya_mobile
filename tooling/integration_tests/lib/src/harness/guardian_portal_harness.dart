@@ -390,39 +390,48 @@ Future<List<Map<String, dynamic>>> loadGuardianAttendance(
   return client.attendance.list(attendanceForStudent(studentId));
 }
 
-/// Staff-seeded unread delivery for the guardian inbox read probe.
-/// Uses a unique id per invocation so tests stay repeatable without re-seeding.
+/// Publish through the staff workflow, then resolve the delivery as its guardian.
+/// Direct delivery materialization is correctly reserved for system actors.
 Future<String> seedGuardianInboxProbeDelivery({
   required IntegrationConfig baseConfig,
+  required SchoolClient guardianClient,
   required String schoolId,
   required String guardianId,
   required String inboxSubjectId,
-  String announcementId = 'ci-ann-rentree',
 }) async {
   final staffSession = await PortalSession.signIn(
-    config: baseConfig.withStaffDirectorEmail(),
+    config: baseConfig.withSchoolOwnerEmail(),
     actorKind: 'staff',
     academicYearId: baseConfig.academicYearId,
   );
-  final deliveryId =
-      'inbox-probe-$guardianId-${DateTime.now().millisecondsSinceEpoch}';
-  final sentAt = DateTime.now().toUtc().toIso8601String();
-
-  await staffSession.schoolClient.recordDelivery({
-    'id': deliveryId,
+  final announcementId =
+      'inbox-probe-$guardianId-${DateTime.now().microsecondsSinceEpoch}';
+  await staffSession.schoolClient.createAnnouncement({
+    'id': announcementId,
     'schoolId': schoolId,
-    'announcementId': announcementId,
-    'subjectId': inboxSubjectId,
-    'title': 'Rentrée scolaire 2025',
-    'body':
-        'La rentrée des classes aura lieu le lundi 15 septembre à 7h30. Merci de vérifier la liste des fournitures.',
-    'recipientKind': 'guardian',
-    'recipientId': guardianId,
-    'status': 'sent',
-    'sentAt': sentAt,
+    'title': 'Staging inbox integration probe',
+    'content': 'Private test message for the selected guardian profile.',
+    'status': 'draft',
   });
-
-  return deliveryId;
+  await staffSession.schoolClient.addTarget({
+    'id': '$announcementId-target',
+    'announcementId': announcementId,
+    'targetKind': 'guardian',
+    'targetId': guardianId,
+  });
+  await staffSession.schoolClient.publishAnnouncement({
+    'announcementId': announcementId,
+  });
+  final deliveries = await guardianClient.messageDeliveries.list({
+    'announcementId': announcementId,
+  });
+  if (deliveries.length != 1 ||
+      deliveries.single['subjectId'] != inboxSubjectId ||
+      deliveries.single['recipientKind'] != 'guardian' ||
+      deliveries.single['recipientId'] != guardianId) {
+    throw StateError('Published probe did not resolve to the selected guardian');
+  }
+  return deliveries.single['id'] as String;
 }
 
 /// Mirrors [MessageDetailsController.markAsReadIfNeeded].

@@ -217,16 +217,18 @@ class TeacherProbeBundle {
 
     for (final classGroupId in classGroupIds) {
       final events = timetableByClass[classGroupId] ?? const [];
-      final preferredSubjectId = profile.expectedClassSubjectIds.isEmpty
-          ? null
-          : profile.expectedClassSubjectIds.first;
+      final taughtSubjects = context.classSubjects.where(
+        (row) => row['classGroupId'] == classGroupId &&
+            profile.expectedClassSubjectIds.contains(row['id']),
+      );
+      if (taughtSubjects.isEmpty) continue;
+      final preferredSubjectId = taughtSubjects.first['id'] as String;
       final lessonSessionId = await resolveLessonSessionIdForClass(
         client,
         classGroupId: classGroupId,
         timetableEvents: events,
-        classSubjectId: profile.kind == TeacherPortalKind.subject
-            ? preferredSubjectId
-            : null,
+        // Calendar tiles represent subjects this teacher actually teaches.
+        classSubjectId: preferredSubjectId,
       );
       if (lessonSessionId == null) {
         continue;

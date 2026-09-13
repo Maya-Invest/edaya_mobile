@@ -208,6 +208,7 @@ void _guardianPortalSuite(GuardianPortalProfile profile) {
       test('markDeliveryRead persists when unread delivery exists', () async {
         final deliveryId = await seedGuardianInboxProbeDelivery(
           baseConfig: baseConfig,
+          guardianClient: session.schoolClient,
           schoolId: context.grants.schoolId,
           guardianId: profile.guardianId,
           inboxSubjectId: context.inboxSubjectId,

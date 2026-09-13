@@ -92,14 +92,14 @@ class IntegrationConfig {
   /// Default guardian demo account (`ci-g1` parent of `ci-s1` in 6ème A).
   static const defaultGuardianEmail = 'm.kone@mail.ci';
 
-  /// Director staff account used to seed inbox probe deliveries in tests.
-  static const defaultStaffDirectorEmail = 'j.aka@ecole-ci.edaya.dev';
+  /// School owner used to publish private inbox fixtures through normal policies.
+  static const defaultSchoolOwnerEmail = 'a.kone@ecole-ci.edaya.dev';
 
-  IntegrationConfig withStaffDirectorEmail([String? email]) {
+  IntegrationConfig withSchoolOwnerEmail([String? email]) {
     return IntegrationConfig(
       authUrl: authUrl,
       baseUrl: baseUrl,
-      email: email ?? defaultStaffDirectorEmail,
+      email: email ?? defaultSchoolOwnerEmail,
       password: password,
       academicYearId: academicYearId,
       classGroupId: classGroupId,
