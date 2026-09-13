@@ -61,6 +61,7 @@ melos:
       description: Run generated drift check, analysis, and tests.
     test:integration:
       run: |
+        set -e
         cd tooling/integration_tests && EDAYA_INTEGRATION_TESTS=1 dart test --tags integration
         cd ../../apps/guardian && EDAYA_INTEGRATION_TESTS=1 flutter test test/integration --tags integration
         cd ../teacher && EDAYA_INTEGRATION_TESTS=1 flutter test test/integration --tags integration
