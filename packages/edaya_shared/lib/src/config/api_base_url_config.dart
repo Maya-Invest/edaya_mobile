@@ -17,10 +17,10 @@ abstract final class ApiBaseUrlConfig {
   static const localAuthUrl = 'http://localhost:9900';
   static const androidEmulatorUrl = 'http://10.0.2.2:9999';
   static const androidEmulatorAuthUrl = 'http://10.0.2.2:9900';
-  static const stagingUrl = 'https://staging.api.school.edayaplus.com';
-  static const stagingAuthUrl = 'https://staging.identity.edayaplus.com';
-  static const productionUrl = 'https://api.school.edayaplus.com';
-  static const productionAuthUrl = 'https://identity.edayaplus.com';
+  static const stagingUrl = 'https://staging.school.api.edayaplus.com';
+  static const stagingAuthUrl = 'https://staging.identity.api.edayaplus.com';
+  static const productionUrl = 'https://school.api.edayaplus.com';
+  static const productionAuthUrl = 'https://identity.api.edayaplus.com';
 
   /// Default API origin for the current runtime (iOS/macOS → localhost, Android → 10.0.2.2).
   static String get defaultForCurrentPlatform {

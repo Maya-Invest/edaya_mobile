@@ -236,6 +236,174 @@ abstract class AppLocalizations {
   /// **'Sign-in failed'**
   String get signInFailed;
 
+  /// No description provided for @createAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get createAccountTitle;
+
+  /// No description provided for @createAccountButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get createAccountButton;
+
+  /// No description provided for @fullNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name'**
+  String get fullNameLabel;
+
+  /// No description provided for @fullNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your name.'**
+  String get fullNameRequired;
+
+  /// No description provided for @verifyEmailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email'**
+  String get verifyEmailTitle;
+
+  /// No description provided for @otpLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification code'**
+  String get otpLabel;
+
+  /// No description provided for @verifyCodeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify and continue'**
+  String get verifyCodeButton;
+
+  /// No description provided for @resendCodeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code'**
+  String get resendCodeButton;
+
+  /// No description provided for @haveAccountSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account? Sign in'**
+  String get haveAccountSignIn;
+
+  /// No description provided for @needAccountSignUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Create an account'**
+  String get needAccountSignUp;
+
+  /// No description provided for @signUpFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-up failed'**
+  String get signUpFailed;
+
+  /// No description provided for @verificationCodeSent.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a code to {email}.'**
+  String verificationCodeSent(String email);
+
+  /// No description provided for @invitationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Join your school'**
+  String get invitationTitle;
+
+  /// No description provided for @invitationContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get invitationContinue;
+
+  /// No description provided for @invitationAcceptCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept invitation'**
+  String get invitationAcceptCta;
+
+  /// No description provided for @invitationAccepting.
+  ///
+  /// In en, this message translates to:
+  /// **'Linking your account…'**
+  String get invitationAccepting;
+
+  /// No description provided for @invitationSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is linked. Opening your family view.'**
+  String get invitationSuccess;
+
+  /// No description provided for @invitationWrongKind.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation is for another Edaya app.'**
+  String get invitationWrongKind;
+
+  /// No description provided for @invitationWrongAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation is for a different account. Sign out, then continue with the invited email.'**
+  String get invitationWrongAccount;
+
+  /// No description provided for @invitationSignOutSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out and continue'**
+  String get invitationSignOutSwitch;
+
+  /// No description provided for @invitationNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation link was not found.'**
+  String get invitationNotFound;
+
+  /// No description provided for @invitationExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation has expired. Ask the school office for a new link.'**
+  String get invitationExpired;
+
+  /// No description provided for @invitationRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation was replaced. Open the latest email or ask the school office to resend.'**
+  String get invitationRevoked;
+
+  /// No description provided for @invitationInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation is not valid.'**
+  String get invitationInvalid;
+
+  /// No description provided for @invitationAlreadyAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation was already used.'**
+  String get invitationAlreadyAccepted;
+
+  /// No description provided for @invitationLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this invitation. {error}'**
+  String invitationLoadError(String error);
+
+  /// No description provided for @invitationSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is invited as a guardian at {school}.'**
+  String invitationSummary(String name, String school);
+
+  /// No description provided for @invitationExpires.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires {date}'**
+  String invitationExpires(String date);
+
   /// No description provided for @signedInSchoolSessionUnavailable.
   ///
   /// In en, this message translates to:

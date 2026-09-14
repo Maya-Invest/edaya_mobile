@@ -48,6 +48,77 @@ void main() {
     },
   );
 
+  test(
+    'signUpWithEmail stores renewal credentials from the native sign-up endpoint',
+    () async {
+      final client = AuthClient(
+        baseUrl: 'http://localhost:9999',
+        client: MockClient((request) async {
+          expect(request.url.path, '/auth/edaya/native/sign-up/email');
+          expect(jsonDecode(request.body), {
+            'email': 'parent@school.edu',
+            'password': 'secret',
+            'name': 'Parent',
+          });
+
+          return http.Response(
+            jsonEncode({
+              'renewalCredential': 'signed.signup-proof',
+              'user': {
+                'id': 'user-2',
+                'email': 'parent@school.edu',
+                'name': 'Parent',
+              },
+            }),
+            200,
+          );
+        }),
+      );
+
+      final result = await client.signUpWithEmail(
+        email: 'parent@school.edu',
+        password: 'secret',
+        name: 'Parent',
+      );
+
+      expect(result.isSuccess, isTrue);
+      expect(result.data?.email, 'parent@school.edu');
+      expect(client.renewalCredential, 'signed.signup-proof');
+    },
+  );
+
+  test(
+    'signUpWithEmail succeeds without a credential when email verification is required',
+    () async {
+      final client = AuthClient(
+        baseUrl: 'http://localhost:9999',
+        client: MockClient((request) async {
+          return http.Response(
+            jsonEncode({
+              'requiresEmailVerification': true,
+              'user': {
+                'id': 'user-3',
+                'email': 'new@school.edu',
+                'name': 'New Parent',
+              },
+            }),
+            200,
+          );
+        }),
+      );
+
+      final result = await client.signUpWithEmail(
+        email: 'new@school.edu',
+        password: 'secret',
+        name: 'New Parent',
+      );
+
+      expect(result.isSuccess, isTrue);
+      expect(result.data?.email, 'new@school.edu');
+      expect(client.renewalCredential, isNull);
+    },
+  );
+
   test('getSession returns null when unauthenticated', () async {
     final client = AuthClient(
       baseUrl: 'http://localhost:9999',

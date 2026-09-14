@@ -2,7 +2,7 @@ import 'package:edaya_shared/edaya_shared.dart';
 
 /// API and dev credential configuration for the teacher app.
 ///
-/// The School API defaults to `https://staging.api.school.edayaplus.com`.
+/// The School API defaults to `https://staging.school.api.edayaplus.com`.
 /// Override it with `--dart-define=API_URL=...`; Identity is configured
 /// independently with `--dart-define=AUTH_URL=...`.
 abstract final class ApiConfig {

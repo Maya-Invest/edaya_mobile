@@ -6,7 +6,7 @@ import 'api_error.dart';
 import 'entity_envelope.dart';
 import 'transport.dart';
 
-typedef AccessTokenProvider = Future<String> Function({required Uri resource});
+typedef AccessTokenProvider = Future<String?> Function({required Uri resource});
 typedef AccessTokenInvalidator =
     void Function({required Uri resource, required String token});
 
@@ -72,7 +72,9 @@ class HttpTransport implements Transport {
     final resource = Uri.parse(uri.origin);
     final token = await getAccessToken?.call(resource: resource);
     headers.remove('Cookie');
-    if (token != null) headers['Authorization'] = 'Bearer $token';
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+    }
 
     var response = await _client.send(
       http.Request(method, uri)

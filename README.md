@@ -161,7 +161,7 @@ Override at build time:
 ```bash
 flutter run --dart-define=AUTH_URL=http://localhost:9900 --dart-define=API_URL=http://localhost:9999
 flutter run --dart-define=AUTH_URL=http://10.0.2.2:9900 --dart-define=API_URL=http://10.0.2.2:9999
-flutter run --dart-define=AUTH_URL=https://staging.identity.edayaplus.com --dart-define=API_URL=https://staging.api.school.edayaplus.com
+flutter run --dart-define=AUTH_URL=https://staging.identity.api.edayaplus.com --dart-define=API_URL=https://staging.school.api.edayaplus.com
 ```
 
 Or use Melos shortcuts:

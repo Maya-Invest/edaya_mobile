@@ -25,6 +25,7 @@ import '../features/fees/payment_details_dialog.dart';
 import '../features/inbox/inbox_page.dart';
 import '../features/inbox/models/inbox_delivery.dart';
 import '../features/inbox/message_details_dialog.dart';
+import '../features/invite/invitation_page.dart';
 import '../features/my_students/my_students_sheet.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -34,23 +35,29 @@ class AppRouter extends LevitController implements EdayaAppRouter {
   AppRouter({
     required AppSessionController session,
     required EdayaRouterRefresh routerRefresh,
+    required PendingInvitationStore pendingInvitation,
   }) : _session = session,
-       _routerRefresh = routerRefresh {
+       _routerRefresh = routerRefresh,
+       _pendingInvitation = pendingInvitation {
     router = GoRouter(
       navigatorKey: rootNavigatorKey,
       initialLocation: '/login',
       refreshListenable: _routerRefresh,
       redirect: (context, state) {
-        final isAuthenticated = _session.isAuthenticated;
-        final isAuthRoute = state.matchedLocation == '/login';
-
-        if (!isAuthenticated && !isAuthRoute) {
-          return '/login';
+        final incoming = parseInvitationDeepLink(state.uri);
+        if (incoming != null) {
+          _pendingInvitation.remember(incoming.token);
+        } else {
+          final routeToken = state.pathParameters['token'];
+          if (routeToken != null && routeToken.trim().isNotEmpty) {
+            _pendingInvitation.remember(routeToken);
+          }
         }
-        if (isAuthenticated && isAuthRoute) {
-          return '/calendar';
-        }
-        return null;
+        return resolveGuardianAuthRedirect(
+          isAuthenticated: _session.isAuthenticated,
+          matchedLocation: state.matchedLocation,
+          pendingInvitationToken: _pendingInvitation.token,
+        );
       },
       routes: [
         GoRoute(
@@ -60,11 +67,32 @@ class AppRouter extends LevitController implements EdayaAppRouter {
             subtitle: context.tr.loginSubtitleGuardianDev,
             defaultEmail: ApiConfig.devGuardianEmail,
             defaultPassword: ApiConfig.devPassword,
+            enableSignUp: true,
             onSignInSuccess: () async {
+              final pending = _pendingInvitation.token;
+              if (pending != null) {
+                AppRouter.find.router.go(invitationRoutePath(pending));
+                return;
+              }
               await EdayaRootScope.find<AcademicYearController>().loadYears();
               await EdayaRootScope.find<StudentContextController>()
                   .initializeFromSession();
               AppRouter.find.router.go('/calendar');
+            },
+          ),
+        ),
+        GoRoute(
+          path: '/invite/:token',
+          builder: (context, state) => InvitationPage(
+            token: state.pathParameters['token'] ?? '',
+            onAccepted: () async {
+              await EdayaRootScope.find<AcademicYearController>().loadYears();
+              await EdayaRootScope.find<StudentContextController>()
+                  .initializeFromSession();
+              AppRouter.find.router.go('/calendar');
+            },
+            onContinueToLogin: () async {
+              AppRouter.find.router.go('/login');
             },
           ),
         ),
@@ -258,6 +286,7 @@ class AppRouter extends LevitController implements EdayaAppRouter {
 
   final AppSessionController _session;
   final EdayaRouterRefresh _routerRefresh;
+  final PendingInvitationStore _pendingInvitation;
 
   static AppRouter get find => EdayaRootScope.find<AppRouter>();
 

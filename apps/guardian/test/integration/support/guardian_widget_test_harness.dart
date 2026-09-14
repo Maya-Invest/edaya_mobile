@@ -150,6 +150,10 @@ class GuardianWidgetTestHarness {
       () => AppSettingsController(),
       permanent: true,
     );
+    scope.put<PendingInvitationStore>(
+      () => PendingInvitationStore(),
+      permanent: true,
+    );
 
     registerSchoolClientFactory(
       scope,
@@ -169,6 +173,9 @@ class GuardianWidgetTestHarness {
         validateGrants: (_) => null,
         unauthorizedProfileMessage: () => systemL10n().signedInNoGuardianProfile,
         resolveActorKind: () => 'guardian',
+        allowUnlinkedIdentity: () =>
+            scope.find<PendingInvitationStore>().hasToken,
+        onSignOut: () => scope.find<PendingInvitationStore>().clear(),
       ),
       permanent: true,
     );
@@ -193,6 +200,7 @@ class GuardianWidgetTestHarness {
       () => AppRouter(
         session: scope.find<AppSessionController>(),
         routerRefresh: scope.find<EdayaRouterRefresh>(),
+        pendingInvitation: scope.find<PendingInvitationStore>(),
       ),
       permanent: true,
     );

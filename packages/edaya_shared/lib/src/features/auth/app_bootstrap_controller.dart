@@ -15,17 +15,20 @@ class AppBootstrapController extends LevitController {
     required AppSessionController session,
     required PushNotificationService pushNotifications,
     required Future<void> Function() initializeAuthenticatedContext,
+    Future<void> Function()? beforeRestore,
   }) : _authClient = authClient,
        _sessionStorage = sessionStorage,
        _session = session,
        _pushNotifications = pushNotifications,
-       _initializeAuthenticatedContext = initializeAuthenticatedContext;
+       _initializeAuthenticatedContext = initializeAuthenticatedContext,
+       _beforeRestore = beforeRestore;
 
   final AuthClient _authClient;
   final AuthSessionStorage _sessionStorage;
   final AppSessionController _session;
   final PushNotificationService _pushNotifications;
   final Future<void> Function() _initializeAuthenticatedContext;
+  final Future<void> Function()? _beforeRestore;
 
   final isReady = LxVar(false);
 
@@ -39,6 +42,7 @@ class AppBootstrapController extends LevitController {
   Future<void> _bootstrap() async {
     try {
       await _pushNotifications.initialize();
+      await _beforeRestore?.call();
       await _sessionStorage.restoreInto(_authClient);
       await _session.restoreSession();
       if (_session.isAuthenticated) {

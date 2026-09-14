@@ -86,6 +86,104 @@ class AppLocalizationsFr extends AppLocalizations {
   String get signInFailed => 'Échec de la connexion';
 
   @override
+  String get createAccountTitle => 'Créer un compte';
+
+  @override
+  String get createAccountButton => 'Créer un compte';
+
+  @override
+  String get fullNameLabel => 'Nom complet';
+
+  @override
+  String get fullNameRequired => 'Saisissez votre nom.';
+
+  @override
+  String get verifyEmailTitle => 'Vérifiez votre e-mail';
+
+  @override
+  String get otpLabel => 'Code de vérification';
+
+  @override
+  String get verifyCodeButton => 'Vérifier et continuer';
+
+  @override
+  String get resendCodeButton => 'Renvoyer le code';
+
+  @override
+  String get haveAccountSignIn => 'Vous avez déjà un compte ? Connectez-vous';
+
+  @override
+  String get needAccountSignUp => 'Créer un compte';
+
+  @override
+  String get signUpFailed => 'Échec de la création du compte';
+
+  @override
+  String verificationCodeSent(String email) {
+    return 'Nous avons envoyé un code à $email.';
+  }
+
+  @override
+  String get invitationTitle => 'Rejoindre l\'établissement';
+
+  @override
+  String get invitationContinue => 'Continuer';
+
+  @override
+  String get invitationAcceptCta => 'Accepter l\'invitation';
+
+  @override
+  String get invitationAccepting => 'Liaison du compte…';
+
+  @override
+  String get invitationSuccess =>
+      'Votre compte est relié. Ouverture de la vue famille.';
+
+  @override
+  String get invitationWrongKind =>
+      'Cette invitation concerne une autre application Edaya.';
+
+  @override
+  String get invitationWrongAccount =>
+      'Cette invitation concerne un autre compte. Déconnectez-vous, puis continuez avec l\'e-mail invité.';
+
+  @override
+  String get invitationSignOutSwitch => 'Se déconnecter et continuer';
+
+  @override
+  String get invitationNotFound => 'Ce lien d\'invitation est introuvable.';
+
+  @override
+  String get invitationExpired =>
+      'Cette invitation a expiré. Demandez un nouveau lien au secrétariat.';
+
+  @override
+  String get invitationRevoked =>
+      'Cette invitation a été remplacée. Ouvrez le dernier e-mail ou demandez un renvoi au secrétariat.';
+
+  @override
+  String get invitationInvalid => 'Cette invitation n\'est pas valide.';
+
+  @override
+  String get invitationAlreadyAccepted =>
+      'Cette invitation a déjà été utilisée.';
+
+  @override
+  String invitationLoadError(String error) {
+    return 'Impossible de charger cette invitation. $error';
+  }
+
+  @override
+  String invitationSummary(String name, String school) {
+    return '$name est invité(e) en tant que tuteur à $school.';
+  }
+
+  @override
+  String invitationExpires(String date) {
+    return 'Expire le $date';
+  }
+
+  @override
   String signedInSchoolSessionUnavailable(String error) {
     return 'Connecté, mais la session scolaire est indisponible : $error';
   }

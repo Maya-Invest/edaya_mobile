@@ -219,11 +219,12 @@ class AuthClient {
     required String password,
     required String name,
   }) {
-    return _postAuthUser('/sign-up/email', {
-      'email': email,
-      'password': password,
-      'name': name,
-    });
+    return _postAuthUser(
+      edayaHttpUsesBrowserCredentials
+          ? '/sign-up/email'
+          : '/edaya/native/sign-up/email',
+      {'email': email, 'password': password, 'name': name},
+    );
   }
 
   Future<AuthResult<void>> signOut() async {
@@ -255,14 +256,20 @@ class AuthClient {
       }
 
       clearCredentials();
-      if (!edayaHttpUsesBrowserCredentials && path.contains('/sign-in/')) {
-        final credential = (body as Map)['renewalCredential'];
-        if (credential is! String || !credential.contains('.')) {
+      if (!edayaHttpUsesBrowserCredentials &&
+          (path.contains('/sign-in/') || path.contains('/sign-up/'))) {
+        final data = Map<String, dynamic>.from(body as Map);
+        final credential = data['renewalCredential'];
+        if (credential is String && credential.contains('.')) {
+          restoreRenewalCredential(credential);
+        } else if (path.contains('/sign-up/') &&
+            data['requiresEmailVerification'] == true) {
+          // Sign-up created the account; verification continues with OTP.
+        } else {
           return const AuthResult.failure(
             AuthError(message: 'Login did not return a renewal credential'),
           );
         }
-        restoreRenewalCredential(credential);
       }
       return AuthResult.success(AuthUser.fromJson(userJson));
     } on http.ClientException catch (error) {

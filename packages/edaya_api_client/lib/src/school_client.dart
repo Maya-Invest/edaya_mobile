@@ -65,6 +65,18 @@ class SchoolClient {
   ) {
     return EntityResource(_transport, publicName).get(id);
   }
+
+  Future<T> requestRoute<T>(
+    String method,
+    String path, {
+    Object? body,
+  }) {
+    return _transport.request<T>(
+      method,
+      path.startsWith('/') ? path : '/$path',
+      options: body == null ? null : TransportRequestOptions(body: body),
+    );
+  }
 }
 
 SchoolClient createSchoolClient(Transport transport) => SchoolClient(transport);

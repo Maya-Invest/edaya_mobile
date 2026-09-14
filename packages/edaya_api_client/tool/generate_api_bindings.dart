@@ -486,6 +486,7 @@ String _generateSurfaceDart(Map<String, dynamic> bindings) {
   final entities = _entityMap(bindings['entities']);
   final commands = _stringMap(bindings['commands'], 'publicName');
   final queries = _stringMap(bindings['queries'], 'publicName');
+  final publicRoutes = _routeMap(bindings['public']);
 
   final entityGetters = entities.keys
       .map(
@@ -509,8 +510,13 @@ String _generateSurfaceDart(Map<String, dynamic> bindings) {
       )
       .join('\n\n');
 
+  final publicMethods = publicRoutes.entries
+      .map((entry) => _generateRouteMethod(entry.key, entry.value))
+      .join('\n\n');
+
   return '''$generatedHeader
 import '../entity_resource.dart';
+import '../paths.dart';
 import '../school_client.dart';
 
 extension GeneratedSchoolClientEntities on SchoolClient {
@@ -524,7 +530,67 @@ $commandMethods
 extension GeneratedSchoolClientQueries on SchoolClient {
 $queryMethods
 }
+
+extension GeneratedSchoolClientPublic on SchoolClient {
+$publicMethods
+}
 ''';
+}
+
+String _generateRouteMethod(String key, Map<String, dynamic> binding) {
+  final method = binding['method'];
+  final path = binding['path'];
+  if (method is! String || method.isEmpty) {
+    throw StateError('Public binding $key is missing method');
+  }
+  if (path is! String || path.isEmpty) {
+    throw StateError('Public binding $key is missing path');
+  }
+
+  final pathParams = binding['pathParams'];
+  final names = pathParams is List
+      ? pathParams.whereType<String>().where((name) => name.isNotEmpty).toList()
+      : const <String>[];
+  final hasBody = binding['requestSchemaName'] is String;
+  final basePath = binding['basePath'] is String
+      ? binding['basePath'] as String
+      : 'core';
+
+  final parameters = [
+    for (final name in names) 'required String $name',
+    if (hasBody) 'required Map<String, dynamic> payload',
+  ];
+  final signature = parameters.isEmpty ? '' : '{${parameters.join(', ')}}';
+  final paramsMap = names.isEmpty
+      ? 'const <String, String>{}'
+      : '{${names.map((name) => '${_dartString(name)}: $name').join(', ')}}';
+  final bodyArg = hasBody ? ',\n        body: payload' : '';
+
+  return '''  Future<Map<String, dynamic>> $key($signature) =>
+      requestRoute(
+        ${_dartString(method)},
+        resolveGeneratedPath(
+          ${_dartString(path)},
+          $paramsMap,
+          basePath: ${_dartString(basePath)},
+        )$bodyArg,
+      );''';
+}
+
+Map<String, Map<String, dynamic>> _routeMap(Object? value) {
+  if (value == null) {
+    return const {};
+  }
+  if (value is! Map<String, dynamic>) {
+    throw StateError('Bindings public section must be a JSON object');
+  }
+
+  return value.map((key, binding) {
+    if (binding is! Map<String, dynamic>) {
+      throw StateError('Public binding for $key must be a JSON object');
+    }
+    return MapEntry(key, binding);
+  });
 }
 
 Map<String, Map<String, dynamic>> _entityMap(Object? value) {

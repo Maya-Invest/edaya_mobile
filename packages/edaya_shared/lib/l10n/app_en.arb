@@ -38,6 +38,55 @@
   "emailLabel": "Email",
   "passwordLabel": "Password",
   "signInFailed": "Sign-in failed",
+  "createAccountTitle": "Create account",
+  "createAccountButton": "Create account",
+  "fullNameLabel": "Full name",
+  "fullNameRequired": "Enter your name.",
+  "verifyEmailTitle": "Verify your email",
+  "otpLabel": "Verification code",
+  "verifyCodeButton": "Verify and continue",
+  "resendCodeButton": "Resend code",
+  "haveAccountSignIn": "Already have an account? Sign in",
+  "needAccountSignUp": "Create an account",
+  "signUpFailed": "Sign-up failed",
+  "verificationCodeSent": "We sent a code to {email}.",
+  "@verificationCodeSent": {
+    "placeholders": {
+      "email": {"type": "String"}
+    }
+  },
+  "invitationTitle": "Join your school",
+  "invitationContinue": "Continue",
+  "invitationAcceptCta": "Accept invitation",
+  "invitationAccepting": "Linking your account…",
+  "invitationSuccess": "Your account is linked. Opening your family view.",
+  "invitationWrongKind": "This invitation is for another Edaya app.",
+  "invitationWrongAccount": "This invitation is for a different account. Sign out, then continue with the invited email.",
+  "invitationSignOutSwitch": "Sign out and continue",
+  "invitationNotFound": "This invitation link was not found.",
+  "invitationExpired": "This invitation has expired. Ask the school office for a new link.",
+  "invitationRevoked": "This invitation was replaced. Open the latest email or ask the school office to resend.",
+  "invitationInvalid": "This invitation is not valid.",
+  "invitationAlreadyAccepted": "This invitation was already used.",
+  "invitationLoadError": "Could not load this invitation. {error}",
+  "@invitationLoadError": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "invitationSummary": "{name} is invited as a guardian at {school}.",
+  "@invitationSummary": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "school": {"type": "String"}
+    }
+  },
+  "invitationExpires": "Expires {date}",
+  "@invitationExpires": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
   "signedInSchoolSessionUnavailable": "Signed in, but school session is unavailable: {error}",
   "@signedInSchoolSessionUnavailable": {
     "placeholders": {

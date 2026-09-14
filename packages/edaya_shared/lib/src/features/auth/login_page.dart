@@ -18,6 +18,7 @@ class LoginPage extends LScopedView<LoginController> {
     required this.defaultEmail,
     required this.defaultPassword,
     required this.onSignInSuccess,
+    this.enableSignUp = false,
   });
 
   final String appTitle;
@@ -25,6 +26,7 @@ class LoginPage extends LScopedView<LoginController> {
   final String defaultEmail;
   final String defaultPassword;
   final Future<void> Function() onSignInSuccess;
+  final bool enableSignUp;
 
   @override
   LoginController onConfigScope(LevitScope scope) {
@@ -35,6 +37,7 @@ class LoginPage extends LScopedView<LoginController> {
         defaultEmail: defaultEmail,
         defaultPassword: defaultPassword,
         onSignInSuccess: onSignInSuccess,
+        enableSignUp: enableSignUp,
       ),
     );
   }
@@ -60,38 +63,92 @@ class LoginPage extends LScopedView<LoginController> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    Text(
-                      context.tr.signInTitle,
-                      style: Theme.of(context).textTheme.headlineSmall,
-                      textAlign: TextAlign.start,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      subtitle,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      textAlign: TextAlign.start,
-                    ),
+                    LWatch(() {
+                      final mode = controller.mode.value;
+                      final title = switch (mode) {
+                        LoginMode.signUp => context.tr.createAccountTitle,
+                        LoginMode.verifyOtp => context.tr.verifyEmailTitle,
+                        LoginMode.signIn => context.tr.signInTitle,
+                      };
+                      final description = mode == LoginMode.verifyOtp
+                          ? context.tr.verificationCodeSent(
+                              controller.email.value.trim(),
+                            )
+                          : subtitle;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            title,
+                            style: Theme.of(context).textTheme.headlineSmall,
+                            textAlign: TextAlign.start,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            description,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                            textAlign: TextAlign.start,
+                          ),
+                        ],
+                      );
+                    }),
                     const SizedBox(height: 24),
-                    TextFormField(
-                      initialValue: controller.email.value,
-                      keyboardType: TextInputType.emailAddress,
-                      autofillHints: const [AutofillHints.email],
-                      decoration: InputDecoration(
-                        labelText: context.tr.emailLabel,
-                      ),
-                      onChanged: (value) => controller.email(value),
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      initialValue: controller.password.value,
-                      obscureText: true,
-                      autofillHints: const [AutofillHints.password],
-                      decoration: InputDecoration(
-                        labelText: context.tr.passwordLabel,
-                      ),
-                      onChanged: (value) => controller.password(value),
-                    ),
-                    const SizedBox(height: 16),
+                    LWatch(() {
+                      final mode = controller.mode.value;
+                      return Column(
+                        key: ValueKey(mode),
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (mode == LoginMode.signUp) ...[
+                            TextFormField(
+                              initialValue: controller.name.value,
+                              textCapitalization: TextCapitalization.words,
+                              autofillHints: const [AutofillHints.name],
+                              decoration: InputDecoration(
+                                labelText: context.tr.fullNameLabel,
+                              ),
+                              onChanged: (value) => controller.name(value),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                          if (mode != LoginMode.verifyOtp) ...[
+                            TextFormField(
+                              initialValue: controller.email.value,
+                              keyboardType: TextInputType.emailAddress,
+                              autofillHints: const [AutofillHints.email],
+                              decoration: InputDecoration(
+                                labelText: context.tr.emailLabel,
+                              ),
+                              onChanged: (value) => controller.email(value),
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              initialValue: controller.password.value,
+                              obscureText: true,
+                              autofillHints: mode == LoginMode.signUp
+                                  ? const [AutofillHints.newPassword]
+                                  : const [AutofillHints.password],
+                              decoration: InputDecoration(
+                                labelText: context.tr.passwordLabel,
+                              ),
+                              onChanged: (value) => controller.password(value),
+                            ),
+                            const SizedBox(height: 16),
+                          ] else ...[
+                            TextFormField(
+                              initialValue: controller.otp.value,
+                              keyboardType: TextInputType.number,
+                              autofillHints: const [AutofillHints.oneTimeCode],
+                              decoration: InputDecoration(
+                                labelText: context.tr.otpLabel,
+                              ),
+                              onChanged: (value) => controller.otp(value),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                        ],
+                      );
+                    }),
                     LWatch(() {
                       final message = controller.errorMessage.value;
                       if (message.isEmpty) {
@@ -111,7 +168,7 @@ class LoginPage extends LScopedView<LoginController> {
                       () => FilledButton(
                         onPressed: controller.isBusy.value
                             ? null
-                            : controller.signInWithPassword,
+                            : controller.submit,
                         child: controller.isBusy.value
                             ? const SizedBox(
                                 width: 20,
@@ -120,9 +177,53 @@ class LoginPage extends LScopedView<LoginController> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : Text(context.tr.signInButton),
+                            : Text(
+                                switch (controller.mode.value) {
+                                  LoginMode.signUp =>
+                                    context.tr.createAccountButton,
+                                  LoginMode.verifyOtp =>
+                                    context.tr.verifyCodeButton,
+                                  LoginMode.signIn => context.tr.signInButton,
+                                },
+                              ),
                       ),
                     ),
+                    if (enableSignUp)
+                      LWatch(() {
+                        final mode = controller.mode.value;
+                        if (mode == LoginMode.verifyOtp) {
+                          return Column(
+                            children: [
+                              const SizedBox(height: 12),
+                              TextButton(
+                                onPressed: controller.isBusy.value
+                                    ? null
+                                    : controller.resendOtp,
+                                child: Text(context.tr.resendCodeButton),
+                              ),
+                              TextButton(
+                                onPressed: controller.showSignIn,
+                                child: Text(context.tr.haveAccountSignIn),
+                              ),
+                            ],
+                          );
+                        }
+                        return Column(
+                          children: [
+                            const SizedBox(height: 12),
+                            TextButton(
+                              onPressed: mode == LoginMode.signUp
+                                  ? controller.showSignIn
+                                  : controller.showSignUp,
+                              child: Text(
+                                mode == LoginMode.signUp
+                                    ? context.tr.haveAccountSignIn
+                                    : context.tr.needAccountSignUp,
+                              ),
+                            ),
+                          ],
+                        );
+                      }),
                     if (DeveloperSettingsConfig.enabled) ...[
                       const SizedBox(height: 24),
                       const DevApiUrlSettings(compact: true),

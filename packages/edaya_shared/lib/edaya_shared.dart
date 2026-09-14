@@ -31,6 +31,8 @@ export 'src/features/auth/app_session_controller.dart';
 export 'src/features/auth/auth_session_storage.dart';
 export 'src/features/auth/login_controller.dart';
 export 'src/features/auth/login_page.dart';
+export 'src/features/invite/invitation_deep_link.dart';
+export 'src/features/invite/pending_invitation_store.dart';
 export 'src/features/settings/app_settings_controller.dart';
 export 'src/features/settings/settings_page.dart';
 export 'src/features/account/account_profile_header.dart';

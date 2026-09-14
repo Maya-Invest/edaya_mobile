@@ -17,7 +17,12 @@ api.SchoolClient createEdayaSchoolClient(
     api.HttpTransport(
       baseUrl: ApiBaseUrlConfig.apiBaseUrl,
       client: authClient.businessHttpClient,
-      getAccessToken: authClient.getAccessToken,
+      getAccessToken: ({required Uri resource}) async {
+        if (authClient.renewalCredential == null) {
+          return null;
+        }
+        return authClient.getAccessToken(resource: resource);
+      },
       invalidateAccessToken: authClient.invalidateAccessToken,
       getAcademicYearId: getAcademicYearId,
       getActorKind: getActorKind,

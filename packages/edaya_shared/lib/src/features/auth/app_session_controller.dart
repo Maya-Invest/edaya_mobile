@@ -23,6 +23,8 @@ class AppSessionController extends LevitController {
     required String Function() unauthorizedProfileMessage,
     Future<String?> Function()? resolveAcademicYearId,
     String? Function()? resolveActorKind,
+    bool Function()? allowUnlinkedIdentity,
+    Future<void> Function()? onSignOut,
   }) : _authClient = authClient,
        _sessionStorage = sessionStorage,
        _pushNotifications = pushNotifications,
@@ -30,7 +32,9 @@ class AppSessionController extends LevitController {
        _validateGrants = validateGrants,
        _unauthorizedProfileMessage = unauthorizedProfileMessage,
        _resolveAcademicYearId = resolveAcademicYearId,
-       _resolveActorKind = resolveActorKind;
+       _resolveActorKind = resolveActorKind,
+       _allowUnlinkedIdentity = allowUnlinkedIdentity,
+       _onSignOut = onSignOut;
 
   final AuthClient _authClient;
   final AuthSessionStorage _sessionStorage;
@@ -40,6 +44,8 @@ class AppSessionController extends LevitController {
   final String Function() _unauthorizedProfileMessage;
   final Future<String?> Function()? _resolveAcademicYearId;
   final String? Function()? _resolveActorKind;
+  final bool Function()? _allowUnlinkedIdentity;
+  final Future<void> Function()? _onSignOut;
 
   String? _academicYearIdHeader;
   String? _actorKindHeader;
@@ -52,6 +58,10 @@ class AppSessionController extends LevitController {
   final isSigningOut = LxVar(false);
 
   bool get isAuthenticated => user.value != null;
+
+  bool get allowUnlinkedIdentity => _allowUnlinkedIdentity?.call() ?? false;
+
+  bool get hasSchoolSession => grants.value != null;
 
   @override
   void onInit() {
@@ -77,7 +87,11 @@ class AppSessionController extends LevitController {
 
       final error = await _loadSchoolSession(result.data!.user);
       if (error != null) {
-        await _clearLocalSession(persistCookies: false);
+        if (allowUnlinkedIdentity) {
+          await _completeIdentityOnly(result.data!.user);
+        } else {
+          await _clearLocalSession(persistCookies: false);
+        }
       } else {
         await _pushNotifications.registerForAuthenticatedUser();
       }
@@ -89,6 +103,10 @@ class AppSessionController extends LevitController {
   Future<String?> completeSignIn(AuthUser signedInUser) async {
     final error = await _loadSchoolSession(signedInUser);
     if (error != null) {
+      if (allowUnlinkedIdentity) {
+        await _completeIdentityOnly(signedInUser);
+        return null;
+      }
       return error;
     }
 
@@ -112,6 +130,7 @@ class AppSessionController extends LevitController {
       } finally {
         await _sessionStorage.markLoggedOut();
         await _clearLocalSession();
+        await _onSignOut?.call();
         _routerRefresh.refresh();
       }
     } finally {
@@ -135,7 +154,19 @@ class AppSessionController extends LevitController {
       return null;
     }
 
-    return _loadSchoolSession(user.value!);
+    final error = await _loadSchoolSession(user.value!);
+    if (error == null && grants.value != null) {
+      await _pushNotifications.registerForAuthenticatedUser();
+    }
+    return error;
+  }
+
+  Future<void> _completeIdentityOnly(AuthUser signedInUser) async {
+    user(signedInUser);
+    grants(null);
+    await _sessionStorage.markLoggedIn();
+    await _sessionStorage.persist(_authClient);
+    _routerRefresh.refresh();
   }
 
   Future<String?> _loadSchoolSession(AuthUser signedInUser) async {

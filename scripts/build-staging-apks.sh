@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-AUTH_URL="https://staging.identity.edayaplus.com"
-API_URL="https://staging.api.school.edayaplus.com"
+AUTH_URL="https://staging.identity.api.edayaplus.com"
+API_URL="https://staging.school.api.edayaplus.com"
 test "${RELEASE_TARGET:-staging}" = staging
 flutter --version --machine | python3 -c 'import json,sys; assert json.load(sys.stdin)["frameworkVersion"] == "3.44.8", "Flutter 3.44.8 required"'
 mkdir -p "$ROOT/release-apks"

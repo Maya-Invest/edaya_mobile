@@ -2,8 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-AUTH_URL="${EDAYA_AUTH_URL:-https://staging.identity.edayaplus.com}"
-API_URL="${EDAYA_API_URL:-https://staging.api.school.edayaplus.com}"
+AUTH_URL="${EDAYA_AUTH_URL:-https://staging.identity.api.edayaplus.com}"
+API_URL="${EDAYA_API_URL:-https://staging.school.api.edayaplus.com}"
 APPS=(guardian teacher)
 
 if [[ $# -gt 0 ]]; then

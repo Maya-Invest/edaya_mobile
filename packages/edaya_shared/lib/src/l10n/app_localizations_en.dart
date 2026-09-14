@@ -86,6 +86,102 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInFailed => 'Sign-in failed';
 
   @override
+  String get createAccountTitle => 'Create account';
+
+  @override
+  String get createAccountButton => 'Create account';
+
+  @override
+  String get fullNameLabel => 'Full name';
+
+  @override
+  String get fullNameRequired => 'Enter your name.';
+
+  @override
+  String get verifyEmailTitle => 'Verify your email';
+
+  @override
+  String get otpLabel => 'Verification code';
+
+  @override
+  String get verifyCodeButton => 'Verify and continue';
+
+  @override
+  String get resendCodeButton => 'Resend code';
+
+  @override
+  String get haveAccountSignIn => 'Already have an account? Sign in';
+
+  @override
+  String get needAccountSignUp => 'Create an account';
+
+  @override
+  String get signUpFailed => 'Sign-up failed';
+
+  @override
+  String verificationCodeSent(String email) {
+    return 'We sent a code to $email.';
+  }
+
+  @override
+  String get invitationTitle => 'Join your school';
+
+  @override
+  String get invitationContinue => 'Continue';
+
+  @override
+  String get invitationAcceptCta => 'Accept invitation';
+
+  @override
+  String get invitationAccepting => 'Linking your account…';
+
+  @override
+  String get invitationSuccess =>
+      'Your account is linked. Opening your family view.';
+
+  @override
+  String get invitationWrongKind => 'This invitation is for another Edaya app.';
+
+  @override
+  String get invitationWrongAccount =>
+      'This invitation is for a different account. Sign out, then continue with the invited email.';
+
+  @override
+  String get invitationSignOutSwitch => 'Sign out and continue';
+
+  @override
+  String get invitationNotFound => 'This invitation link was not found.';
+
+  @override
+  String get invitationExpired =>
+      'This invitation has expired. Ask the school office for a new link.';
+
+  @override
+  String get invitationRevoked =>
+      'This invitation was replaced. Open the latest email or ask the school office to resend.';
+
+  @override
+  String get invitationInvalid => 'This invitation is not valid.';
+
+  @override
+  String get invitationAlreadyAccepted => 'This invitation was already used.';
+
+  @override
+  String invitationLoadError(String error) {
+    return 'Could not load this invitation. $error';
+  }
+
+  @override
+  String invitationSummary(String name, String school) {
+    return '$name is invited as a guardian at $school.';
+  }
+
+  @override
+  String invitationExpires(String date) {
+    return 'Expires $date';
+  }
+
+  @override
   String signedInSchoolSessionUnavailable(String error) {
     return 'Signed in, but school session is unavailable: $error';
   }

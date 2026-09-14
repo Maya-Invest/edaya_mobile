@@ -2,6 +2,7 @@
 // Do not edit manually.
 
 import '../entity_resource.dart';
+import '../paths.dart';
 import '../school_client.dart';
 
 extension GeneratedSchoolClientEntities on SchoolClient {
@@ -484,4 +485,26 @@ extension GeneratedSchoolClientQueries on SchoolClient {
 
   Future<Map<String, dynamic>> resolveTimetableSpace(Map<String, dynamic> payload) =>
       runQuery("resolve-timetable-space", payload);
+}
+
+extension GeneratedSchoolClientPublic on SchoolClient {
+  Future<Map<String, dynamic>> previewInvitation({required String token}) =>
+      requestRoute(
+        "GET",
+        resolveGeneratedPath(
+          "public/invitations/{token}",
+          {"token": token},
+          basePath: "root",
+        ),
+      );
+
+  Future<Map<String, dynamic>> acceptInvitation({required String token}) =>
+      requestRoute(
+        "POST",
+        resolveGeneratedPath(
+          "public/invitations/{token}/accept",
+          {"token": token},
+          basePath: "root",
+        ),
+      );
 }

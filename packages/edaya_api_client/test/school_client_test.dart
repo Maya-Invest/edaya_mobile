@@ -196,4 +196,34 @@ void main() {
       expect(grants.toJson().containsKey('scope'), isFalse);
     },
   );
+
+  test('uses generated public invitation paths at the API root', () async {
+    final transport = RecordingTransport([
+      {
+        'status': 'pending',
+        'kind': 'guardian',
+        'targetId': 'guardian-1',
+        'schoolName': 'École',
+        'inviteeName': 'Parent',
+      },
+      {'kind': 'guardian', 'entity': {'id': 'guardian-1'}},
+    ]);
+    final client = createSchoolClient(transport);
+
+    await client.previewInvitation(token: 'invite token/+');
+    await client.acceptInvitation(token: 'invite token/+');
+
+    expect(transport.requests, [
+      {
+        'method': 'GET',
+        'path': '/public/invitations/invite%20token%2F%2B',
+        'body': null,
+      },
+      {
+        'method': 'POST',
+        'path': '/public/invitations/invite%20token%2F%2B/accept',
+        'body': null,
+      },
+    ]);
+  });
 }
