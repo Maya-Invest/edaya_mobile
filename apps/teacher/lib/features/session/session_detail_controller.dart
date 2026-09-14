@@ -197,10 +197,20 @@ class SessionDetailController extends LevitController
       );
       return true;
     } on ApiError catch (error) {
-      saveMessage(systemL10n().couldNotSaveAttendance('$error'));
+      saveMessage(
+        mutationFailureMessage(
+          error,
+          systemL10n().couldNotSaveAttendance('$error'),
+        ),
+      );
       return false;
     } on Object catch (error) {
-      saveMessage(systemL10n().couldNotSaveAttendance('$error'));
+      saveMessage(
+        mutationFailureMessage(
+          error,
+          systemL10n().couldNotSaveAttendance('$error'),
+        ),
+      );
       return false;
     }
   }
@@ -277,7 +287,12 @@ class SessionDetailController extends LevitController
       await loadDetail();
       return true;
     } on Object catch (error) {
-      saveMessage(systemL10n().couldNotSaveLogbook('$error'));
+      saveMessage(
+        mutationFailureMessage(
+          error,
+          systemL10n().couldNotSaveLogbook('$error'),
+        ),
+      );
       return false;
     }
   }

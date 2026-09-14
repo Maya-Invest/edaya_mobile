@@ -357,11 +357,13 @@ class EvaluationsController extends LevitController
         ),
       );
 
-      _marksLoadGeneration++;
-      final roster = await fetchMarksRoster(evaluation);
-      marksStudents(roster.students);
-      marksErrorMessage(roster.errorMessage);
-      _patchEvaluationSummary(evaluation.id, roster.students);
+      await refreshAfterMutation(() async {
+        _marksLoadGeneration++;
+        final roster = await fetchMarksRoster(evaluation);
+        marksStudents(roster.students);
+        marksErrorMessage(roster.errorMessage);
+        _patchEvaluationSummary(evaluation.id, roster.students);
+      }, showWarning: (message) => marksSaveMessage(message));
       return true;
     } on api.ApiError catch (error) {
       marksStudents(
@@ -372,7 +374,12 @@ class EvaluationsController extends LevitController
           score: previousScore,
         ),
       );
-      marksSaveMessage(systemL10n().couldNotSaveMark(_formatApiError(error)));
+      marksSaveMessage(
+        mutationFailureMessage(
+          error,
+          systemL10n().couldNotSaveMark(_formatApiError(error)),
+        ),
+      );
       return false;
     } on Object catch (error) {
       marksStudents(
@@ -383,7 +390,9 @@ class EvaluationsController extends LevitController
           score: previousScore,
         ),
       );
-      marksSaveMessage(systemL10n().couldNotSaveMark('$error'));
+      marksSaveMessage(
+        mutationFailureMessage(error, systemL10n().couldNotSaveMark('$error')),
+      );
       return false;
     }
   }
@@ -561,9 +570,15 @@ class EvaluationCreateController extends LevitController
       _evaluations.selectPeriod(periodId);
       return null;
     } on api.ApiError catch (error) {
-      return systemL10n().couldNotCreateEvaluation('$error');
+      return mutationFailureMessage(
+        error,
+        systemL10n().couldNotCreateEvaluation('$error'),
+      );
     } on Object catch (error) {
-      return systemL10n().couldNotCreateEvaluation('$error');
+      return mutationFailureMessage(
+        error,
+        systemL10n().couldNotCreateEvaluation('$error'),
+      );
     }
   }
 }

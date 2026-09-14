@@ -73,6 +73,18 @@ void main() {
       final transport = RecordingTransport([]);
       final client = createSchoolClient(transport);
       await expectLater(
+        client.attachments.save({'id': 'attachment', 'status': 'ready'}),
+        throwsStateError,
+      );
+      expect(
+        () => client.attachments.delete(id: 'attachment'),
+        throwsStateError,
+      );
+      expect(
+        () => client.attachments.batchSave(entities: []),
+        throwsStateError,
+      );
+      await expectLater(
         client.payments.save({'id': 'payment'}),
         throwsStateError,
       );

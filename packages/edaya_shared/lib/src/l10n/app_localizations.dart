@@ -2107,6 +2107,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'12-hour'**
   String get settingsTimeFormat12h;
+
+  /// No description provided for @mutationConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'This change conflicts with the current record. Reload it and review before trying again.'**
+  String get mutationConflict;
+
+  /// No description provided for @mutationSavedRefreshFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your change was saved, but the screen could not refresh. Reopen this screen to see the saved result.'**
+  String get mutationSavedRefreshFailed;
 }
 
 class _AppLocalizationsDelegate

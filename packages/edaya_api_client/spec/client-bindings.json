@@ -160,14 +160,14 @@
       "publicName": "attachments",
       "schemaName": "Attachment",
       "publicOperations": {
-        "create": true,
-        "update": true,
-        "delete": true,
-        "batchCreate": true,
-        "batchUpdate": true,
-        "batchDelete": true
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
       },
-      "allowDirectSave": true
+      "allowDirectSave": false
     },
     "resources": {
       "publicName": "resources",

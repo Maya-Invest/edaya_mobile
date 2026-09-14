@@ -1231,4 +1231,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsTimeFormat12h => '12 heures';
+
+  @override
+  String get mutationConflict =>
+      'Cette modification est en conflit avec les données actuelles. Rechargez-les et vérifiez-les avant de réessayer.';
+
+  @override
+  String get mutationSavedRefreshFailed =>
+      'Votre modification est enregistrée, mais l’affichage n’a pas pu être actualisé. Rouvrez cet écran pour voir le résultat.';
 }

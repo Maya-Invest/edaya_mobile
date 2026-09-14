@@ -92,8 +92,8 @@ abstract final class ClientBindings {
     "attachments": EntityBinding(
       publicName: "attachments",
       schemaName: "Attachment",
-      allowDirectSave: true,
-      publicOperations: {"create": true, "update": true, "delete": true, "batchCreate": true, "batchUpdate": true, "batchDelete": true},
+      allowDirectSave: false,
+      publicOperations: {"create": false, "update": false, "delete": false, "batchCreate": false, "batchUpdate": false, "batchDelete": false},
     ),
     "resources": EntityBinding(
       publicName: "resources",

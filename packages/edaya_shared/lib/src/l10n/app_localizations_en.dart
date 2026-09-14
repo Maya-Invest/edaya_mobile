@@ -1218,4 +1218,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTimeFormat12h => '12-hour';
+
+  @override
+  String get mutationConflict =>
+      'This change conflicts with the current record. Reload it and review before trying again.';
+
+  @override
+  String get mutationSavedRefreshFailed =>
+      'Your change was saved, but the screen could not refresh. Reopen this screen to see the saved result.';
 }

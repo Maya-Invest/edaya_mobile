@@ -396,7 +396,6 @@ class FcmPushNotificationService implements PushNotificationService {
         return;
       }
       await _registerToken(token);
-      debugPrint('FCM token: ${await FirebaseMessaging.instance.getToken()}');
     } on Object {
       // APNS token not available yet (common on iOS Simulator).
     }
@@ -537,10 +536,8 @@ class FcmPushNotificationService implements PushNotificationService {
   }
 
   Future<void> _registerToken(String token) async {
-    if (_registeredToken == token) {
-      return;
-    }
-
+    // Re-register for the current authenticated school even when Firebase
+    // returns the same token after a session or school-context change.
     try {
       await _schoolClientFactory().registerPushDevice({
         'token': token,

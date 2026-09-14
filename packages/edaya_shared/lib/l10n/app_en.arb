@@ -694,5 +694,7 @@
   "settingsTimeFormat": "Time format",
   "settingsTimeFormatSystem": "System default",
   "settingsTimeFormat24h": "24-hour",
-  "settingsTimeFormat12h": "12-hour"
+  "settingsTimeFormat12h": "12-hour",
+  "mutationConflict": "This change conflicts with the current record. Reload it and review before trying again.",
+  "mutationSavedRefreshFailed": "Your change was saved, but the screen could not refresh. Reopen this screen to see the saved result."
 }

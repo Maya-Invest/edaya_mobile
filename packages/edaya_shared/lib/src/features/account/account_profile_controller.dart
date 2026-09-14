@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../access/school_client.dart';
+import '../../api/mutation_feedback.dart';
 import '../../common/widgets/data_state.dart';
 import '../../l10n/l10n_lookup.dart';
 import '../auth/app_session_controller.dart';
@@ -143,14 +144,26 @@ class AccountProfileController extends LevitController
         profile: updated,
       );
       profile(updated);
-      await onProfileSaved?.call(updated);
       saveMessage(systemL10n().accountProfileUpdateSuccess);
+      await refreshAfterMutation(() async {
+        await onProfileSaved?.call(updated);
+      }, showWarning: (message) => saveMessage(message));
       return true;
     } on api.ApiError catch (error) {
-      saveMessage(systemL10n().accountProfileSaveError('$error'));
+      saveMessage(
+        mutationFailureMessage(
+          error,
+          systemL10n().accountProfileSaveError('$error'),
+        ),
+      );
       return false;
     } on Object catch (error) {
-      saveMessage(systemL10n().accountProfileSaveError('$error'));
+      saveMessage(
+        mutationFailureMessage(
+          error,
+          systemL10n().accountProfileSaveError('$error'),
+        ),
+      );
       return false;
     } finally {
       isSaving(false);

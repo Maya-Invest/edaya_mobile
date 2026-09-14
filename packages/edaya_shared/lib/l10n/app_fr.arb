@@ -334,5 +334,7 @@
   "settingsTimeFormat": "Format de l'heure",
   "settingsTimeFormatSystem": "Par défaut du système",
   "settingsTimeFormat24h": "24 heures",
-  "settingsTimeFormat12h": "12 heures"
+  "settingsTimeFormat12h": "12 heures",
+  "mutationConflict": "Cette modification est en conflit avec les données actuelles. Rechargez-les et vérifiez-les avant de réessayer.",
+  "mutationSavedRefreshFailed": "Votre modification est enregistrée, mais l’affichage n’a pas pu être actualisé. Rouvrez cet écran pour voir le résultat."
 }
