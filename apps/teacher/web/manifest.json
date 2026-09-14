@@ -3,9 +3,9 @@
     "short_name": "Edaya Staff",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#F0F7FF",
+    "background_color": "#2563EB",
     "theme_color": "#2563EB",
-    "description": "A new Flutter project.",
+    "description": "EDAYA Teacher school workspace.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -390,39 +390,60 @@ Future<List<Map<String, dynamic>>> loadGuardianAttendance(
   return client.attendance.list(attendanceForStudent(studentId));
 }
 
-/// Staff-seeded unread delivery for the guardian inbox read probe.
-/// Uses a unique id per invocation so tests stay repeatable without re-seeding.
+/// Publishes a unique, guardian-targeted announcement through the staff workflow.
+/// Delivery records belong to the notification system, not the staff actor.
 Future<String> seedGuardianInboxProbeDelivery({
   required IntegrationConfig baseConfig,
+  required SchoolClient guardianClient,
   required String schoolId,
   required String guardianId,
   required String inboxSubjectId,
-  String announcementId = 'ci-ann-rentree',
 }) async {
   final staffSession = await PortalSession.signIn(
-    config: baseConfig.withStaffDirectorEmail(),
+    config: baseConfig.withStaffOwnerEmail(),
     actorKind: 'staff',
     academicYearId: baseConfig.academicYearId,
   );
-  final deliveryId =
-      'inbox-probe-$guardianId-${DateTime.now().millisecondsSinceEpoch}';
-  final sentAt = DateTime.now().toUtc().toIso8601String();
+  final announcementId =
+      'inbox-probe-$guardianId-${DateTime.now().microsecondsSinceEpoch}';
 
-  await staffSession.schoolClient.recordDelivery({
-    'id': deliveryId,
+  await staffSession.schoolClient.createAnnouncement({
+    'id': announcementId,
     'schoolId': schoolId,
+    'title': 'Integration inbox read probe',
+    'content': 'Isolated integration fixture for the guardian inbox.',
+    'status': 'draft',
+  });
+  await staffSession.schoolClient.addTarget({
+    'id': '$announcementId-target',
     'announcementId': announcementId,
-    'subjectId': inboxSubjectId,
-    'title': 'Rentrée scolaire 2025',
-    'body':
-        'La rentrée des classes aura lieu le lundi 15 septembre à 7h30. Merci de vérifier la liste des fournitures.',
-    'recipientKind': 'guardian',
-    'recipientId': guardianId,
-    'status': 'sent',
-    'sentAt': sentAt,
+    'targetKind': 'guardian',
+    'targetId': guardianId,
+  });
+  await staffSession.schoolClient.publishAnnouncement({
+    'announcementId': announcementId,
   });
 
-  return deliveryId;
+  // Publishing schedules delivery materialization in the background. Read as
+  // the recipient and wait for this fixture, without reusing a prior read item.
+  final deadline = DateTime.now().add(const Duration(seconds: 20));
+  while (DateTime.now().isBefore(deadline)) {
+    final deliveries = await guardianClient.messageDeliveries.list({
+      'subjectId': inboxSubjectId,
+      'announcementId': announcementId,
+    });
+    for (final delivery in deliveries) {
+      if (delivery['announcementId'] == announcementId &&
+          delivery['subjectId'] == inboxSubjectId &&
+          delivery['recipientKind'] == 'guardian' &&
+          delivery['recipientId'] == guardianId &&
+          (delivery['status'] == 'pending' || delivery['status'] == 'sent')) {
+        return delivery['id'] as String;
+      }
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+  }
+  throw StateError('No unread guardian delivery for $announcementId');
 }
 
 /// Mirrors [MessageDetailsController.markAsReadIfNeeded].
@@ -440,6 +461,10 @@ Future<void> probeGuardianMarkDeliveryRead(
   final deliveryIdFromResult = result['id'] as String?;
   if (deliveryIdFromResult != deliveryId) {
     throw StateError('markDeliveryRead returned unexpected delivery id');
+  }
+  final persisted = await client.messageDeliveries.get(deliveryId);
+  if (persisted['status'] != 'read') {
+    throw StateError('Delivery $deliveryId did not persist its read status');
   }
 }
 

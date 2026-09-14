@@ -43,7 +43,6 @@ class AcademicPeriodPicker extends StatelessWidget {
       initialValue: selectedPeriodId,
       decoration: InputDecoration(
         labelText: context.tr.periodLabel,
-        border: const OutlineInputBorder(),
         isDense: true,
       ),
       items: [

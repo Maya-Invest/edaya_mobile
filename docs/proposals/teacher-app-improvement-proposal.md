@@ -1,5 +1,7 @@
 # Edaya Teacher App — Final-Form Improvement Proposal
 
+> Historical, unapproved feature proposal. Product ideas require separate approval; visual instructions are superseded. Current source and the mobile design-language specification govern UI work.
+
 **Status:** Proposed  
 **Date:** 2026-07-12  
 **Scope:** `apps/teacher`, shared mobile foundations, and supporting API capabilities  
@@ -551,42 +553,9 @@ Unrestricted parent-teacher chat should not be an early priority. It introduces 
 - Include unread and priority indicators with text and icons.
 - Preserve the message even if its target deep link is unavailable.
 
-## 9. UI system and responsive design
+## 9. Retired visual proposal
 
-The shared Material theme provides a good base, but a final app needs a small, explicit teacher component system:
-
-- Session card.
-- Action/task card.
-- Student row.
-- Status badge.
-- Completion bar.
-- Context selector.
-- Sync indicator.
-- Empty, error, offline, and permission states.
-- Form section.
-- Sticky action footer.
-- Master-detail scaffold.
-
-### Visual hierarchy
-
-- Use one dominant action per screen.
-- Reduce repeated generic bordered cards when grouping or dividers are sufficient.
-- Keep metadata subordinate to class, subject, student, or task identity.
-- Use consistent spacing and type roles rather than local one-off styles.
-- Reserve error red for actual failure or destructive state.
-- Do not color all student text according to attendance status; use a badge or leading status marker.
-
-### Accessibility quality bar
-
-- Support 200% text scaling without clipping.
-- Add screen-reader labels for progress, status, avatars, and icon-only actions.
-- Maintain at least 48dp interactive targets.
-- Use logical focus and keyboard order.
-- Validate contrast in light and dark themes.
-- Pair every color with text or iconography.
-- Test French layouts and longer school/class names.
-- Respect reduced-motion settings.
-- Test phone portrait, phone landscape, tablet portrait, and tablet landscape.
+The previous component/visual prescription has been superseded by EDAYA UI 1.0.0. Valid accessibility and reuse guidance is incorporated in the current mobile design-language specification. Task cards, sync indicators, offline states and master/detail navigation remain historical, unapproved feature ideas; they are not part of the current rebrand.
 
 ## 10. Technical foundation recommendations
 

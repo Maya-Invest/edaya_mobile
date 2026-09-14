@@ -10,10 +10,12 @@ import '../../report_cards/report_cards_controller.dart';
 import '../../teaching/teaching_controller.dart';
 
 class TeacherAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const TeacherAppBar({super.key});
+  const TeacherAppBar({super.key, this.textScale = 1});
+
+  final double textScale;
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 28);
+  Size get preferredSize => Size.fromHeight(104 * textScale);
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +25,7 @@ class TeacherAppBar extends StatelessWidget implements PreferredSizeWidget {
     final isReportCards = location.startsWith('/report-cards');
 
     return AppBar(
+      toolbarHeight: 104 * textScale,
       leading: IconButton(
         tooltip: context.tr.tooltipAccount,
         icon: const Icon(Icons.account_circle_outlined),
@@ -104,8 +107,24 @@ class _AppBarTitle extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: Theme.of(context).textTheme.titleMedium),
-        Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+        Tooltip(
+          message: title,
+          child: Text(
+            title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
+        Tooltip(
+          message: subtitle,
+          child: Text(
+            subtitle,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
       ],
     );
   }

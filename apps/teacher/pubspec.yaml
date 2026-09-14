@@ -36,14 +36,14 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: ../../branding/icons/icon_teacher.png
+  image_path: ../../branding/icons/teacher.png
   remove_alpha_ios: true
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: ../../branding/icons/icon_teacher.png
+  adaptive_icon_background: "#2563EB"
+  adaptive_icon_foreground: ../../branding/icons/teacher-foreground.png
   web:
     generate: true
-    image_path: ../../branding/icons/icon_teacher.png
-    background_color: "#F0F7FF"
+    image_path: ../../branding/icons/teacher.png
+    background_color: "#2563EB"
     theme_color: "#2563EB"
 
 flutter:

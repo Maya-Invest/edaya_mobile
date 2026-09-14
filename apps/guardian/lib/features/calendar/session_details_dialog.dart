@@ -43,6 +43,7 @@ class SessionDetailsDialog extends LScopedView<SessionDetailsController> {
                 IconButton(
                   onPressed: () => context.pop(),
                   icon: const Icon(Icons.close),
+                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                 ),
               ],
             ),

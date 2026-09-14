@@ -320,12 +320,14 @@ Future<void> tapAlternateStudent(
   WidgetTester tester,
   GuardianStudentSwitchProbe switchProbe,
 ) async {
+  // The sheet can mount before its linked-student data arrives.
+  final firstName = switchProbe.alternateStudentName.split(' ').first;
+  await pumpUntilFound(tester, find.textContaining(firstName).hitTestable());
   final fullName = find.text(switchProbe.alternateStudentName);
   if (fullName.evaluate().isNotEmpty) {
     await tester.tap(fullName.first);
     return;
   }
 
-  final firstName = switchProbe.alternateStudentName.split(' ').first;
-  await tester.tap(find.textContaining(firstName).first);
+  await tester.tap(find.textContaining(firstName).hitTestable().first);
 }

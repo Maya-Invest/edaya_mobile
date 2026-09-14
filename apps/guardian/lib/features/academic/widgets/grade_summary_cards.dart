@@ -18,28 +18,18 @@ class GradeSummaryCards extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.tr;
-    return Row(
+    return ResponsiveMetrics(
+      minimumWidth: 100,
       children: [
-        Expanded(
-          child: _SummaryCard(
-            label: l10n.average,
-            value: overallAverage == null
-                ? l10n.noScoreDash
-                : overallAverage!.toStringAsFixed(1),
-            suffix: l10n.scoreOutOfTwenty,
-          ),
+        _SummaryCard(
+          label: l10n.average,
+          value: overallAverage == null
+              ? l10n.noScoreDash
+              : overallAverage!.toStringAsFixed(1),
+          suffix: l10n.scoreOutOfTwenty,
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _SummaryCard(label: l10n.graded, value: '$gradedCount'),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _SummaryCard(
-            label: l10n.pending,
-            value: '${totalCount - gradedCount}',
-          ),
-        ),
+        _SummaryCard(label: l10n.graded, value: '$gradedCount'),
+        _SummaryCard(label: l10n.pending, value: '${totalCount - gradedCount}'),
       ],
     );
   }
@@ -65,7 +55,10 @@ class _SummaryCard extends StatelessWidget {
             Text.rich(
               TextSpan(
                 text: value,
-                style: Theme.of(context).textTheme.titleLarge,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontSize: 20,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
                 children: suffix == null
                     ? null
                     : [

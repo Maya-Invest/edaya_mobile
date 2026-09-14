@@ -53,8 +53,15 @@ melos:
     run:teacher:staging:
       run: cd apps/teacher && flutter run
       description: Run teacher app (default staging API).
+    brand:check:
+      run: python3 scripts/brand-check.py
+      description: Verify EDAYA tokens, assets, contrast and visual literals.
+    brand:generate:
+      run: python3 scripts/brand-tokens.py
+      description: Generate local Dart brand tokens from the versioned snapshot.
     verify:
       run: |
+        melos run brand:check &&
         melos run generated:check &&
         melos run analyze &&
         melos run test

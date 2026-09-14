@@ -1,54 +1,75 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-import 'edaya_colors.dart';
+import 'edaya_tokens.g.dart';
 
-/// Typography tokens for the Edaya design system.
-///
-/// UI copy uses Nunito (rounded sans). Display headings use a heavier Nunito
-/// weight until Galak Round Demo is bundled under `assets/fonts/`.
+/// Locally bundled, offline typography. Logos are assets, never UI text.
 abstract final class EdayaTypography {
-  static const brandFontFamily = 'GalakRound';
+  static const _package = 'edaya_shared';
 
-  static TextTheme textTheme(TextTheme base, ColorScheme colorScheme) {
-    final theme = GoogleFonts.nunitoTextTheme(base).apply(
-      bodyColor: colorScheme.onSurface,
-      displayColor: colorScheme.onSurface,
+  static TextStyle heading({required double fontSize, required Color color}) =>
+      TextStyle(
+        fontFamily: EdayaTokens.headingFont,
+        package: _package,
+        fontSize: fontSize,
+        fontWeight: FontWeight.w600,
+        height: 1.3,
+        letterSpacing: -0.3,
+        color: color,
+      );
+
+  static TextTheme textTheme(TextTheme base, ColorScheme colors) {
+    final theme = base.apply(
+      fontFamily: EdayaTokens.bodyFont,
+      package: _package,
+      bodyColor: colors.onSurface,
+      displayColor: colors.onSurface,
     );
-
     return theme.copyWith(
-      displayLarge: _displayStyle(theme.displayLarge, colorScheme.onSurface),
-      displayMedium: _displayStyle(theme.displayMedium, colorScheme.onSurface),
-      displaySmall: _displayStyle(theme.displaySmall, colorScheme.onSurface),
-      headlineLarge: _displayStyle(theme.headlineLarge, colorScheme.onSurface),
-      titleMedium: theme.titleMedium?.copyWith(color: colorScheme.onSurface),
-      titleSmall: theme.titleSmall?.copyWith(color: colorScheme.onSurface),
-      bodySmall: theme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-      labelSmall: theme.labelSmall?.copyWith(
-        color: colorScheme.onSurfaceVariant,
+      displayLarge: heading(fontSize: 36, color: colors.onSurface),
+      displayMedium: heading(fontSize: 32, color: colors.onSurface),
+      displaySmall: heading(fontSize: 28, color: colors.onSurface),
+      headlineLarge: heading(fontSize: 28, color: colors.onSurface),
+      headlineMedium: heading(
+        fontSize: EdayaTokens.typeMobilePage,
+        color: colors.onSurface,
       ),
-    );
-  }
-
-  static TextStyle brandWordmark({
-    double fontSize = 40,
-    Color color = EdayaColors.onBackground,
-  }) {
-    return GoogleFonts.nunito(
-      fontWeight: FontWeight.w800,
-      fontSize: fontSize,
-      color: color,
-      height: 1.1,
-    );
-  }
-
-  static TextStyle _displayStyle(TextStyle? base, Color color) {
-    return GoogleFonts.nunito(
-      fontWeight: FontWeight.w800,
-      fontSize: base?.fontSize,
-      height: base?.height,
-      letterSpacing: base?.letterSpacing,
-      color: color,
+      headlineSmall: heading(
+        fontSize: EdayaTokens.typeMobilePage,
+        color: colors.onSurface,
+      ),
+      titleLarge: heading(
+        fontSize: EdayaTokens.typeSection,
+        color: colors.onSurface,
+      ),
+      titleMedium: theme.titleMedium?.copyWith(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        height: 1.4,
+      ),
+      titleSmall: theme.titleSmall?.copyWith(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        height: 1.4,
+      ),
+      bodyLarge: theme.bodyLarge?.copyWith(fontSize: 16, height: 1.5),
+      bodyMedium: theme.bodyMedium?.copyWith(fontSize: 14, height: 1.5),
+      bodySmall: theme.bodySmall?.copyWith(
+        fontSize: 12,
+        height: 1.5,
+        color: colors.onSurfaceVariant,
+      ),
+      labelLarge: theme.labelLarge?.copyWith(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+      ),
+      labelMedium: theme.labelMedium?.copyWith(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+      ),
+      labelSmall: theme.labelSmall?.copyWith(
+        fontSize: 12,
+        color: colors.onSurfaceVariant,
+      ),
     );
   }
 }

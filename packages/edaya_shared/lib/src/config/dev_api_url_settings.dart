@@ -109,7 +109,6 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
           autofillHints: const [AutofillHints.url],
           decoration: InputDecoration(
             labelText: context.tr.apiBaseUrlLabel,
-            border: const OutlineInputBorder(),
             hintText: ApiBaseUrlConfig.stagingUrl,
           ),
           enabled: !_isSaving,

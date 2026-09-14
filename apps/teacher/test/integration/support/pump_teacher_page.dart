@@ -53,7 +53,9 @@ Future<void> openEvaluationsTab(
     harness,
     initialRoute: '/evaluations',
   );
-  await harness.scope.find<EvaluationsController>().reloadPeriodsAndEvaluations();
+  await harness.scope
+      .find<EvaluationsController>()
+      .reloadPeriodsAndEvaluations();
   await tester.pump(const Duration(milliseconds: 1500));
 }
 
@@ -67,9 +69,9 @@ Future<void> openTeachingTab(
   await tester.pump();
   await pumpUntilFound(tester, find.byType(TeachingPage));
   if (classSubjectId != null) {
-    await harness.scope
-        .find<TeachingController>()
-        .selectSubject(classSubjectId);
+    await harness.scope.find<TeachingController>().selectSubject(
+      classSubjectId,
+    );
     await tester.pump(const Duration(milliseconds: 1500));
   } else {
     await tester.pump(const Duration(milliseconds: 1200));
@@ -147,18 +149,20 @@ Future<bool> _selectEachDayInVisibleWeek(WidgetTester tester) async {
 }
 
 Future<void> _shiftCalendarWeek(WidgetTester tester, int direction) async {
-  final icon = direction >= 0 ? Icons.chevron_right : Icons.chevron_left;
-  final weekNav = find.byIcon(icon);
-  if (weekNav.evaluate().isEmpty) {
-    return;
-  }
+  final weekNav = find
+      .byTooltip(direction >= 0 ? 'Next week' : 'Previous week')
+      .hitTestable();
+  // Do not silently skip a requested week while the previous one is loading.
+  await pumpUntilFound(tester, weekNav);
   await tester.tap(weekNav);
   await tester.pump();
 }
 
 DateTime _weekStart(DateTime day) {
   final normalized = DateTime(day.year, day.month, day.day);
-  return normalized.subtract(Duration(days: normalized.weekday - DateTime.monday));
+  return normalized.subtract(
+    Duration(days: normalized.weekday - DateTime.monday),
+  );
 }
 
 Future<void> navigateCalendarWeekToDay(
@@ -182,10 +186,7 @@ Future<void> navigateCalendarWeekToDay(
   await tester.pump(const Duration(milliseconds: 1500));
 }
 
-Future<void> navigateCalendarToDay(
-  WidgetTester tester,
-  DateTime day,
-) async {
+Future<void> navigateCalendarToDay(WidgetTester tester, DateTime day) async {
   for (var attempt = 0; attempt < 52; attempt++) {
     await tester.pump(const Duration(milliseconds: 400));
     if (_visibleWeekContainsDay(tester, day)) {
@@ -225,21 +226,16 @@ bool _visibleWeekContainsDay(WidgetTester tester, DateTime day) {
 }
 
 Future<void> _tapDayChipForNumber(WidgetTester tester, int dayNumber) async {
-  final dayChips = find.descendant(
-    of: find.byType(WeekDaySelector),
-    matching: find.byType(InkWell),
-  );
-  for (var index = 1; index <= 7; index++) {
-    final chip = dayChips.at(index);
-    final numberFinder = find.descendant(
-      of: chip,
-      matching: find.text('$dayNumber'),
-    );
-    if (numberFinder.evaluate().isNotEmpty) {
-      await tester.tap(chip);
-      return;
-    }
-  }
+  // Week changes briefly replace the selector with a loading surface. Wait for
+  // the actual day to become tappable instead of indexing transient InkWells.
+  final number = find
+      .descendant(
+        of: find.byType(WeekDaySelector),
+        matching: find.text('$dayNumber'),
+      )
+      .hitTestable();
+  await pumpUntilFound(tester, number);
+  await tester.tap(number.first);
 }
 
 /// Waits until evaluations finish loading for the active period.
@@ -343,6 +339,7 @@ Future<void> tapTeacherSessionTile(
 
   await tester.tap(find.byType(TeacherSessionTile).first);
 }
+
 Future<void> openClassFilterSheet(WidgetTester tester) async {
   final filterButton = find.byIcon(Icons.filter_list);
   await tester.ensureVisible(filterButton);
@@ -352,10 +349,7 @@ Future<void> openClassFilterSheet(WidgetTester tester) async {
 }
 
 /// Selects a class in the filter sheet and waits for it to close.
-Future<void> selectClassFilter(
-  WidgetTester tester,
-  String classLabel,
-) async {
+Future<void> selectClassFilter(WidgetTester tester, String classLabel) async {
   final tile = find.widgetWithText(ListTile, classLabel);
   await pumpUntilFound(tester, tile);
   final sheetScrollable = find.descendant(
@@ -363,7 +357,11 @@ Future<void> selectClassFilter(
     matching: find.byType(Scrollable),
   );
   if (sheetScrollable.evaluate().isNotEmpty) {
-    await tester.scrollUntilVisible(tile, 80, scrollable: sheetScrollable.first);
+    await tester.scrollUntilVisible(
+      tile,
+      80,
+      scrollable: sheetScrollable.first,
+    );
   } else {
     await tester.ensureVisible(tile);
   }
@@ -382,10 +380,7 @@ Future<void> pumpUntilCalendarSettled(
     return;
   }
 
-  await pumpUntilFound(
-    tester,
-    find.text('No classes scheduled for this day.'),
-  );
+  await pumpUntilFound(tester, find.text('No classes scheduled for this day.'));
 }
 
 /// Reads the active class filter label from [TeacherContextController].

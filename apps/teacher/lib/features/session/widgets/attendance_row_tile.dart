@@ -31,7 +31,10 @@ class AttendanceRowTile extends StatelessWidget {
           photoUrl: row.photoUrl,
         ),
         title: Text(row.studentName),
-        subtitle: Text(row.status?.label(context.tr) ?? context.tr.notRecorded),
+        subtitle: Text(
+          row.status?.label(context.tr) ?? context.tr.notRecorded,
+          style: TextStyle(color: statusColor, fontWeight: FontWeight.w500),
+        ),
         trailing: FilledButton.tonal(
           style: FilledButton.styleFrom(
             minimumSize: const Size(88, 44),
@@ -41,7 +44,6 @@ class AttendanceRowTile extends StatelessWidget {
           onPressed: onStatusTap,
           child: Text(row.status == null ? context.tr.record : context.tr.edit),
         ),
-        textColor: statusColor,
       ),
     );
   }

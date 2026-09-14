@@ -28,7 +28,7 @@ class MarkRowTile extends StatelessWidget {
         subtitle: Text(
           scoreLabel,
           style: row.marksLocked
-              ? TextStyle(color: Theme.of(context).colorScheme.error)
+              ? TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)
               : null,
         ),
         trailing: FilledButton.tonal(

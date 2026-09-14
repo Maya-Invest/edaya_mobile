@@ -1,124 +1,20 @@
-# Guardian prototype — design review pack
+# Current EDAYA Guardian review
 
-Generated: 2026-07-22T23:54:45.648757Z
-Data: mock fixtures (no API)
-Locale: FR
+Design system **1.0.0**. [Open gallery](index.html) · [Capture provenance](manifest.json) · [Mobile specification](../../../docs/specs/design-language-spec.md) · [Component registry](../../../docs/specs/shared-components-spec.md).
 
-Open `index.html` in a browser to browse screenshots.
+These captures render current production pages/components with deterministic, fictional fixtures. They establish presentation and layout, not live API or authentication success. Each manifest entry records app, source revision plus working-tree source digest, design version, locale, viewport, theme, text scale and capture time. Only the current app is represented.
 
-## Screens
+| Example | Review annotations |
+|---|---|
+| Calendar | Current Calendar page and five-destination navigation; active student/name wraps; school year is independently readable; existing lesson hierarchy remains. |
+| Fees | Current Fees page, unchanged amounts/calculations and detail access; summaries wrap instead of squeezing values into fixed columns. Overdue text retains its semantic meaning. |
+| Login | Current shared login fields and callbacks, supplied vertical artwork, local Inter/Poppins, clear heading hierarchy. |
+| Dark mode | Existing light/dark/system preferences remain; navy surfaces, readable sky actions, separate semantic colors. |
+| Large text | 200% text, long names and large values. Scrollable content and wrapped metrics retain information. Standard navigation labels wrap. |
+| Keyboard inset | Login with a simulated 320px keyboard inset; password focus and submit visibility are checked. The OS keyboard itself is not rendered by widget tests. |
 
-- **Login (phone, FR)** — `phone-fr/00-login.png`
-  Guardian sign-in screen (prototype).
-- **Home (phone, FR)** — `phone-fr/01-home.png`
-  Action centre with day plan and latest grades.
-- **Calendar (phone, FR)** — `phone-fr/02-calendar.png`
-  Week agenda with lessons and school events.
-- **Attendance list (phone, FR)** — `phone-fr/03-attendance-list.png`
-  Attendance records for the active student.
-- **Session details (phone, FR)** — `phone-fr/04-session-details.png`
-  Lesson session summary.
-- **Scolarité — results (phone, FR)** — `phone-fr/05-scolarite-results.png`
-  Trimester results with subject averages.
-- **Scolarité — progress (phone, FR)** — `phone-fr/06-scolarite-progress.png`
-  Curriculum progress by subject.
-- **Subject grades (phone, FR)** — `phone-fr/07-subject-grades.png`
-  Individual evaluations for a subject.
-- **Subject logbook (phone, FR)** — `phone-fr/08-subject-logbook.png`
-  Cahier de textes entries for a subject.
-- **Grade details (phone, FR)** — `phone-fr/09-grade-details.png`
-  Single evaluation detail.
-- **Report card details (phone, FR)** — `phone-fr/10-report-card-details.png`
-  Published trimester bulletin.
-- **Fees (phone, FR)** — `phone-fr/11-fees.png`
-  Fee summary, lines, and payments.
-- **Fee details (phone, FR)** — `phone-fr/12-fee-details.png`
-  Fee line with installments and linked payments.
-- **Payment details (phone, FR)** — `phone-fr/13-payment-details.png`
-  Payment receipt.
-- **Inbox (phone, FR)** — `phone-fr/14-inbox.png`
-  School message deliveries.
-- **Message details (phone, FR)** — `phone-fr/15-message-details.png`
-  Inbox message content.
-- **Settings (phone, FR)** — `phone-fr/16-settings.png`
-  App preferences.
-- **Account (phone, FR)** — `phone-fr/17-account.png`
-  Account actions.
-- **Account profile (phone, FR)** — `phone-fr/18-account-profile.png`
-  Editable guardian profile.
-- **Login (medium, FR)** — `medium-fr/00-login.png`
-  Guardian sign-in screen (prototype).
-- **Home (medium, FR)** — `medium-fr/01-home.png`
-  Action centre with day plan and latest grades.
-- **Calendar (medium, FR)** — `medium-fr/02-calendar.png`
-  Week agenda with lessons and school events.
-- **Attendance list (medium, FR)** — `medium-fr/03-attendance-list.png`
-  Attendance records for the active student.
-- **Session details (medium, FR)** — `medium-fr/04-session-details.png`
-  Lesson session summary.
-- **Scolarité — results (medium, FR)** — `medium-fr/05-scolarite-results.png`
-  Trimester results with subject averages.
-- **Scolarité — progress (medium, FR)** — `medium-fr/06-scolarite-progress.png`
-  Curriculum progress by subject.
-- **Subject grades (medium, FR)** — `medium-fr/07-subject-grades.png`
-  Individual evaluations for a subject.
-- **Subject logbook (medium, FR)** — `medium-fr/08-subject-logbook.png`
-  Cahier de textes entries for a subject.
-- **Grade details (medium, FR)** — `medium-fr/09-grade-details.png`
-  Single evaluation detail.
-- **Report card details (medium, FR)** — `medium-fr/10-report-card-details.png`
-  Published trimester bulletin.
-- **Fees (medium, FR)** — `medium-fr/11-fees.png`
-  Fee summary, lines, and payments.
-- **Fee details (medium, FR)** — `medium-fr/12-fee-details.png`
-  Fee line with installments and linked payments.
-- **Payment details (medium, FR)** — `medium-fr/13-payment-details.png`
-  Payment receipt.
-- **Inbox (medium, FR)** — `medium-fr/14-inbox.png`
-  School message deliveries.
-- **Message details (medium, FR)** — `medium-fr/15-message-details.png`
-  Inbox message content.
-- **Settings (medium, FR)** — `medium-fr/16-settings.png`
-  App preferences.
-- **Account (medium, FR)** — `medium-fr/17-account.png`
-  Account actions.
-- **Account profile (medium, FR)** — `medium-fr/18-account-profile.png`
-  Editable guardian profile.
-- **Login (tablet, FR)** — `tablet-fr/00-login.png`
-  Guardian sign-in screen (prototype).
-- **Home (tablet, FR)** — `tablet-fr/01-home.png`
-  Action centre with day plan and latest grades.
-- **Calendar (tablet, FR)** — `tablet-fr/02-calendar.png`
-  Week agenda with lessons and school events.
-- **Attendance list (tablet, FR)** — `tablet-fr/03-attendance-list.png`
-  Attendance records for the active student.
-- **Session details (tablet, FR)** — `tablet-fr/04-session-details.png`
-  Lesson session summary.
-- **Scolarité — results (tablet, FR)** — `tablet-fr/05-scolarite-results.png`
-  Trimester results with subject averages.
-- **Scolarité — progress (tablet, FR)** — `tablet-fr/06-scolarite-progress.png`
-  Curriculum progress by subject.
-- **Subject grades (tablet, FR)** — `tablet-fr/07-subject-grades.png`
-  Individual evaluations for a subject.
-- **Subject logbook (tablet, FR)** — `tablet-fr/08-subject-logbook.png`
-  Cahier de textes entries for a subject.
-- **Grade details (tablet, FR)** — `tablet-fr/09-grade-details.png`
-  Single evaluation detail.
-- **Report card details (tablet, FR)** — `tablet-fr/10-report-card-details.png`
-  Published trimester bulletin.
-- **Fees (tablet, FR)** — `tablet-fr/11-fees.png`
-  Fee summary, lines, and payments.
-- **Fee details (tablet, FR)** — `tablet-fr/12-fee-details.png`
-  Fee line with installments and linked payments.
-- **Payment details (tablet, FR)** — `tablet-fr/13-payment-details.png`
-  Payment receipt.
-- **Inbox (tablet, FR)** — `tablet-fr/14-inbox.png`
-  School message deliveries.
-- **Message details (tablet, FR)** — `tablet-fr/15-message-details.png`
-  Inbox message content.
-- **Settings (tablet, FR)** — `tablet-fr/16-settings.png`
-  App preferences.
-- **Account (tablet, FR)** — `tablet-fr/17-account.png`
-  Account actions.
-- **Account profile (tablet, FR)** — `tablet-fr/18-account-profile.png`
-  Editable guardian profile.
+## Refreshing evidence
+
+From this app directory, run `EDAYA_CAPTURE_DESIGN_REVIEW=1 flutter test test/design_review_test.dart`. The test loads bundled fonts and Material icons, renders current widgets and rejects layout exceptions. Run `python3 scripts/brand-gallery.py` from the repository root afterward to regenerate metadata and the HTML index. Then run `melos run verify` and applicable live journeys against isolated fixtures.
+
+Current galleries replace retired screenshot packs. Keep before/after comparisons in temporary QA artifacts; do not retain superseded visual directives here. A design change updates tokens, specs, registry and gallery metadata together.

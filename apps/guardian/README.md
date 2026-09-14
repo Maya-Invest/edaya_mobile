@@ -1,17 +1,9 @@
-# edaya_guardian
+# EDAYA Guardian
 
-A new Flutter project.
+Current Flutter app: Calendar, Academic, Evaluations, Fees, Inbox; student/year switching. Authentication, routing and domain controllers are preserved through UI work.
 
-## Getting Started
+Run from this directory with `flutter run` and the existing `AUTH_URL` / `API_URL` defines. Build and signing instructions remain in the root README and `android-signing/README.md`.
 
-This project is a starting point for a Flutter application.
+UI contract: [mobile design language](../../docs/specs/design-language-spec.md). Shared foundation: `packages/edaya_shared`, EDAYA tokens 1.0.0, local Poppins/Inter and supplied artwork. Human brief: `edaya_frontend/docs/reference/edaya-ui-brief.md` in the frontend repository (not a build dependency).
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+[Current visual review](design-review/README.md) renders production pages/components with isolated fixtures. Generate from this directory using `EDAYA_CAPTURE_DESIGN_REVIEW=1 flutter test test/design_review_test.dart`. These captures do not test live API authentication. Run `melos run verify` at repository root; relevant live journeys use `melos run test:integration` with isolated seeded services.

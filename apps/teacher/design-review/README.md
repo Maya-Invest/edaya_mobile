@@ -1,83 +1,20 @@
-# Teacher app — design review pack
+# Current EDAYA Teacher review
 
-Generated: 2026-07-21T11:31:07.735400Z
-Teacher account: a.toure@ecole-ci.edaya.dev
-API: http://localhost:9999
-Locale: EN
+Design system **1.0.0**. [Open gallery](index.html) · [Capture provenance](manifest.json) · [Mobile specification](../../../docs/specs/design-language-spec.md) · [Component registry](../../../docs/specs/shared-components-spec.md).
 
-Open `index.html` in a browser to browse screenshots.
+These captures render current production pages/components with deterministic, fictional fixtures. They establish presentation and layout, not live API or authentication success. Each manifest entry records app, source revision plus working-tree source digest, design version, locale, viewport, theme, text scale and capture time. Only the current app is represented.
 
-## Screens
+| Example | Review annotations |
+|---|---|
+| Calendar | Current Calendar page and four-destination navigation; class/session context remains prominent; restrained blue emphasis and tablet content bounds. |
+| Attendance/marks components | Explicit composition of production `AttendanceRowTile` and `MarkRowTile`, not a replacement attendance or marks screen. Student identity stays neutral, status remains labeled, and published marks retain disabled editing. |
+| Login | Current shared login fields and callbacks, supplied vertical artwork, local Inter/Poppins, clear heading hierarchy. |
+| Dark mode | Existing light/dark/system preferences remain; navy surfaces, readable sky actions, separate semantic colors. |
+| Large text | 200% text, long names and large values. Scrollable content and wrapped metrics retain information. Standard navigation labels wrap. |
+| Keyboard inset | Login with a simulated 320px keyboard inset; password focus and submit visibility are checked. The OS keyboard itself is not rendered by widget tests. |
 
-- **Login (phone, EN)** — `phone-en/00-login.png`
-  Staff sign-in screen.
-- **Calendar (phone, EN)** — `phone-en/01-calendar.png`
-  Week view with seeded sessions.
-- **Evaluations (phone, EN)** — `phone-en/02-evaluations.png`
-  Assessment list for the active period.
-- **Teaching — progress (phone, EN)** — `phone-en/03-teaching-progress.png`
-  Curriculum progress for an assigned subject.
-- **Teaching — logbook (phone, EN)** — `phone-en/04-teaching-logbook.png`
-  Session log entries for the selected subject.
-- **Report cards (phone, EN)** — `phone-en/05-report-cards.png`
-  Class list for report-card comments.
-- **Settings (phone, EN)** — `phone-en/06-settings.png`
-  Language and app preferences.
-- **Account (phone, EN)** — `phone-en/07-account.png`
-  Account actions sheet.
-- **Account profile (phone, EN)** — `phone-en/08-account-profile.png`
-  Editable teacher profile.
-- **Class filter (phone, EN)** — `phone-en/09-class-filter.png`
-  Filter calendar and lists by class.
-- **Create evaluation (phone, EN)** — `phone-en/10-evaluation-create.png`
-  New assessment form.
-- **Session detail (phone, EN)** — `phone-en/11-session-detail.png`
-  Attendance sheet for a seeded lesson.
-- **Attendance exception (phone, EN)** — `phone-en/12-attendance-exception.png`
-  Record absence, lateness, or excuse.
-- **Attendance flow (phone, EN)** — `phone-en/13-attendance-flow.png`
-  Swipe-based attendance capture.
-- **Session logbook (phone, EN)** — `phone-en/14-session-logbook.png`
-  Structured lesson log for a session.
-- **Marks entry (phone, EN)** — `phone-en/15-marks-entry.png`
-  Grade entry sheet for a seeded assessment.
-- **Report card roster (phone, EN)** — `phone-en/16-report-card-roster.png`
-  Student list for report-card comments.
-- **Report card comment (phone, EN)** — `phone-en/17-report-card-comment.png`
-  Per-student report-card comment editor.
-- **Login (tablet, EN)** — `tablet-en/00-login.png`
-  Staff sign-in screen.
-- **Calendar (tablet, EN)** — `tablet-en/01-calendar.png`
-  Week view with seeded sessions.
-- **Evaluations (tablet, EN)** — `tablet-en/02-evaluations.png`
-  Assessment list for the active period.
-- **Teaching — progress (tablet, EN)** — `tablet-en/03-teaching-progress.png`
-  Curriculum progress for an assigned subject.
-- **Teaching — logbook (tablet, EN)** — `tablet-en/04-teaching-logbook.png`
-  Session log entries for the selected subject.
-- **Report cards (tablet, EN)** — `tablet-en/05-report-cards.png`
-  Class list for report-card comments.
-- **Settings (tablet, EN)** — `tablet-en/06-settings.png`
-  Language and app preferences.
-- **Account (tablet, EN)** — `tablet-en/07-account.png`
-  Account actions sheet.
-- **Account profile (tablet, EN)** — `tablet-en/08-account-profile.png`
-  Editable teacher profile.
-- **Class filter (tablet, EN)** — `tablet-en/09-class-filter.png`
-  Filter calendar and lists by class.
-- **Create evaluation (tablet, EN)** — `tablet-en/10-evaluation-create.png`
-  New assessment form.
-- **Session detail (tablet, EN)** — `tablet-en/11-session-detail.png`
-  Attendance sheet for a seeded lesson.
-- **Attendance exception (tablet, EN)** — `tablet-en/12-attendance-exception.png`
-  Record absence, lateness, or excuse.
-- **Attendance flow (tablet, EN)** — `tablet-en/13-attendance-flow.png`
-  Swipe-based attendance capture.
-- **Session logbook (tablet, EN)** — `tablet-en/14-session-logbook.png`
-  Structured lesson log for a session.
-- **Marks entry (tablet, EN)** — `tablet-en/15-marks-entry.png`
-  Grade entry sheet for a seeded assessment.
-- **Report card roster (tablet, EN)** — `tablet-en/16-report-card-roster.png`
-  Student list for report-card comments.
-- **Report card comment (tablet, EN)** — `tablet-en/17-report-card-comment.png`
-  Per-student report-card comment editor.
+## Refreshing evidence
+
+From this app directory, run `EDAYA_CAPTURE_DESIGN_REVIEW=1 flutter test test/design_review_test.dart`. The test loads bundled fonts and Material icons, renders current widgets and rejects layout exceptions. Run `python3 scripts/brand-gallery.py` from the repository root afterward to regenerate metadata and the HTML index. Then run `melos run verify` and applicable live journeys against isolated fixtures.
+
+Current galleries replace retired screenshot packs. Keep before/after comparisons in temporary QA artifacts; do not retain superseded visual directives here. A design change updates tokens, specs, registry and gallery metadata together.

@@ -1,0 +1,7 @@
+---
+description: EDAYA mobile UI foundations and scope
+globs: apps/{guardian,teacher}/**,packages/edaya_shared/**
+alwaysApply: false
+---
+
+Read `docs/specs/design-language-spec.md` and `docs/specs/shared-components-spec.md` before UI work. Use the versioned shared manifest, generated tokens, locally bundled Poppins/Inter and supplied artwork. Preserve existing navigation and all business logic. Reuse current components, support FR/EN, text scaling and light/dark/system settings. Historical feature proposals and screenshots are not specifications. Run `melos run verify`; update current visual evidence when shared design changes.
