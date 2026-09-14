@@ -25,7 +25,10 @@ class SessionTile extends StatelessWidget {
             ),
           ].join(' · '),
         ),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: Icon(
+          Icons.chevron_right,
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ),
     );
   }

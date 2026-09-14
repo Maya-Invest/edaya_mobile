@@ -20,25 +20,19 @@ class FeesSummaryCard extends StatelessWidget {
           children: [
             Text(l10n.summary, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
-            Row(
+            ResponsiveMetrics(
               children: [
-                Expanded(
-                  child: _Metric(
-                    label: l10n.expected,
-                    value: formatMoney(summary.totalExpected, summary.currency),
-                  ),
+                _Metric(
+                  label: l10n.expected,
+                  value: formatMoney(summary.totalExpected, summary.currency),
                 ),
-                Expanded(
-                  child: _Metric(
-                    label: l10n.paid,
-                    value: formatMoney(summary.totalPaid, summary.currency),
-                  ),
+                _Metric(
+                  label: l10n.paid,
+                  value: formatMoney(summary.totalPaid, summary.currency),
                 ),
-                Expanded(
-                  child: _Metric(
-                    label: l10n.balance,
-                    value: formatMoney(summary.totalBalance, summary.currency),
-                  ),
+                _Metric(
+                  label: l10n.balance,
+                  value: formatMoney(summary.totalBalance, summary.currency),
                 ),
               ],
             ),
@@ -69,7 +63,12 @@ class _Metric extends StatelessWidget {
       children: [
         Text(label, style: Theme.of(context).textTheme.labelSmall),
         const SizedBox(height: 4),
-        Text(value, style: Theme.of(context).textTheme.titleSmall),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
       ],
     );
   }

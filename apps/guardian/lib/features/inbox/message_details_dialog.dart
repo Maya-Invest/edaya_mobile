@@ -91,6 +91,7 @@ class MessageDetailsDialog extends LScopedView<MessageDetailsController> {
                   IconButton(
                     onPressed: () => context.pop(controller.delivery.value),
                     icon: const Icon(Icons.close),
+                    tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                   ),
                 ],
               ),

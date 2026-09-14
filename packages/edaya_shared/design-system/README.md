@@ -1,0 +1,11 @@
+# EDAYA design-system source — 1.0.0
+
+The frontend `design-system/tokens.json` is canonical. Mobile commits an identical local snapshot; builds never read a sibling checkout. Generate/check with `python3 scripts/brand-tokens.py` / `--check`. Mobile imports a reviewed snapshot with `--sync-from /path/to/tokens.json`.
+
+`assets.json` records SHA-256 integrity for bundled artwork, fonts and licenses. `visual-literals.json` records existing per-file color/type/geometry literals as migration debt, not permission to add new values. `python3 scripts/brand-check.py` rejects increases, missing/changed assets, runtime font fetching, generated drift and inaccessible semantic text pairs. Update an approved inventory explicitly with `--record-reviewed-baseline`; inspect that diff rather than accepting a wholesale regeneration. Checks operate locally and run in repository verification.
+
+Artwork source: supplied EDAYA outlined SVGs. Mobile PNGs and native launch/icon resolutions are derived without changing paths/shapes. In the mobile repo, run `node scripts/brand-assets.mjs` with sharp 0.35.4 available. For an isolated toolchain: install sharp into a temporary directory and point `EDAYA_ASSET_TOOLCHAIN` to that directory's package.json. Generated assets are committed, so normal Flutter builds need no Node tooling.
+
+Fonts: official Google Fonts repositories `ofl/inter/Inter[opsz,wght].ttf` and `ofl/poppins/Poppins-SemiBold.ttf`, retrieved 2026-09-13. OFL licenses are bundled beside them. Web bundles Inter variable WOFF2 and Poppins 600 WOFF2. Flutter bundles Inter static weights 400/500/600/700 (optical size 14) and Poppins 600 TTF. Conversion uses fontTools 4.65.0 and Brotli 1.2.0; source/output integrity is recorded in the asset inventory. Do not silently update fonts from an unpinned download.
+
+Launcher artwork uses centered safe padding: adaptive foregrounds and Android launch symbols occupy at most 43% of the square width; web maskable artwork uses 56%. This keeps the outlined symbol inside circular masks. Android launch padding follows the [Android splash-screen dimensions](https://developer.android.com/develop/ui/views/launch/splash-screen#dimensions). iOS application icons are opaque RGB PNGs; existing image dimensions and launch behavior remain unchanged.

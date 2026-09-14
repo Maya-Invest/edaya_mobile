@@ -1,0 +1,325 @@
+{
+  "app": "guardian",
+  "designSystemVersion": "1.0.0",
+  "sourceDigestInputs": [
+    "apps/guardian/lib",
+    "apps/teacher/lib",
+    "packages/edaya_shared/lib",
+    "packages/edaya_shared/assets",
+    "packages/edaya_shared/design-system/tokens.json"
+  ],
+  "captures": [
+    {
+      "file": "current/calendar-phone-en-dark.png",
+      "app": "guardian",
+      "sourceRevision": "aa114e60f5d5d7a293924ba5951f971f841fdfb1",
+      "sourceDigest": "65b52efdee9a56e46f9a076455c42260567eae1102d60e2248af3960e684adce",
+      "sourceState": "working-tree",
+      "designSystemVersion": "1.0.0",
+      "locale": "en",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "imagePixels": {
+        "width": 390,
+        "height": 844
+      },
+      "textScale": 1,
+      "keyboardInset": 0,
+      "captureKind": "production-page",
+      "fixtureSource": "deterministic widget fixture; production widgets, no network; not a live API journey",
+      "capturedAt": "2026-09-13T21:50:01.455057+00:00",
+      "sha256": "325d5c93eee7441bfe1721150d46cad7038e2cd392edae419707ea313f2b1156"
+    },
+    {
+      "file": "current/calendar-phone-fr-large.png",
+      "app": "guardian",
+      "sourceRevision": "aa114e60f5d5d7a293924ba5951f971f841fdfb1",
+      "sourceDigest": "65b52efdee9a56e46f9a076455c42260567eae1102d60e2248af3960e684adce",
+      "sourceState": "working-tree",
+      "designSystemVersion": "1.0.0",
+      "locale": "fr",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "imagePixels": {
+        "width": 390,
+        "height": 844
+      },
+      "textScale": 2,
+      "keyboardInset": 0,
+      "captureKind": "production-page",
+      "fixtureSource": "deterministic widget fixture; production widgets, no network; not a live API journey",
+      "capturedAt": "2026-09-13T21:50:03.728332+00:00",
+      "sha256": "e7b793656a18503dcdb2b99523417924eaee61f56a08988585d8d1167f9b09cb"
+    },
+    {
+      "file": "current/calendar-phone-fr-light.png",
+      "app": "guardian",
+      "sourceRevision": "aa114e60f5d5d7a293924ba5951f971f841fdfb1",
+      "sourceDigest": "65b52efdee9a56e46f9a076455c42260567eae1102d60e2248af3960e684adce",
+      "sourceState": "working-tree",
+      "designSystemVersion": "1.0.0",
+      "locale": "fr",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "imagePixels": {
+        "width": 390,
+        "height": 844
+      },
+      "textScale": 1,
+      "keyboardInset": 0,
+      "captureKind": "production-page",
+      "fixtureSource": "deterministic widget fixture; production widgets, no network; not a live API journey",
+      "capturedAt": "2026-09-13T21:49:59.459091+00:00",
+      "sha256": "051699d81cf1b64df10d29ef3c51bd0e990b0d7e721f64e0061e7c7c932eb567"
+    },
+    {
+      "file": "current/calendar-tablet-en-light.png",
+      "app": "guardian",
+      "sourceRevision": "aa114e60f5d5d7a293924ba5951f971f841fdfb1",
+      "sourceDigest": "65b52efdee9a56e46f9a076455c42260567eae1102d60e2248af3960e684adce",
+      "sourceState": "working-tree",
+      "designSystemVersion": "1.0.0",
+      "locale": "en",
+      "theme": "light",
+      "viewport": {
+        "width": 1024,
+        "height": 1366
+      },
+      "imagePixels": {
+        "width": 1024,
+        "height": 1366
+      },
+      "textScale": 1,
+      "keyboardInset": 0,
+      "captureKind": "production-page",
+      "fixtureSource": "deterministic widget fixture; production widgets, no network; not a live API journey",
+      "capturedAt": "2026-09-13T21:50:02.700654+00:00",
+      "sha256": "28f0d1665ab305b93a0170f894b0246671a6a7d3ab4eadacb82c32dacc7622c9"
+    },
+    {
+      "file": "current/fees-phone-en-dark.png",
+      "app": "guardian",
+      "sourceRevision": "aa114e60f5d5d7a293924ba5951f971f841fdfb1",
+      "sourceDigest": "65b52efdee9a56e46f9a076455c42260567eae1102d60e2248af3960e684adce",
+      "sourceState": "working-tree",
+      "designSystemVersion": "1.0.0",
+      "locale": "en",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "imagePixels": {
+        "width": 390,
+        "height": 844
+      },
+      "textScale": 1,
+      "keyboardInset": 0,
+      "captureKind": "production-page",
+      "fixtureSource": "deterministic widget fixture; production widgets, no network; not a live API journey",
+      "capturedAt": "2026-09-13T21:50:01.963847+00:00",
+      "sha256": "8e6c9ec004217deaaffdeffa0e552af82c22a6bf284a8ae361d483b7d0ce9936"
+    },
+    {
+      "file": "current/fees-phone-fr-large.png",
+      "app": "guardian",
+      "sourceRevision": "aa114e60f5d5d7a293924ba5951f971f841fdfb1",
+      "sourceDigest": "65b52efdee9a56e46f9a076455c42260567eae1102d60e2248af3960e684adce",
+      "sourceState": "working-tree",
+      "designSystemVersion": "1.0.0",
+      "locale": "fr",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "imagePixels": {
+        "width": 390,
+        "height": 844
+      },
+      "textScale": 2,
+      "keyboardInset": 0,
+      "captureKind": "production-page",
+      "fixtureSource": "deterministic widget fixture; production widgets, no network; not a live API journey",
+      "capturedAt": "2026-09-13T21:50:03.911119+00:00",
+      "sha256": "47ec645d94292f76ba49ace80d7013c1acd88ab9426735473ead9d55349c6f58"
+    },
+    {
+      "file": "current/fees-phone-fr-light.png",
+      "app": "guardian",
+      "sourceRevision": "aa114e60f5d5d7a293924ba5951f971f841fdfb1",
+      "sourceDigest": "65b52efdee9a56e46f9a076455c42260567eae1102d60e2248af3960e684adce",
+      "sourceState": "working-tree",
+      "designSystemVersion": "1.0.0",
+      "locale": "fr",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "imagePixels": {
+        "width": 390,
+        "height": 844
+      },
+      "textScale": 1,
+      "keyboardInset": 0,
+      "captureKind": "production-page",
+      "fixtureSource": "deterministic widget fixture; production widgets, no network; not a live API journey",
+      "capturedAt": "2026-09-13T21:49:59.820822+00:00",
+      "sha256": "045012a4b4921b2e9884cda50d79cbb7196964494e0f738d7231f4bbc210681d"
+    },
+    {
+      "file": "current/fees-tablet-en-light.png",
+      "app": "guardian",
+      "sourceRevision": "aa114e60f5d5d7a293924ba5951f971f841fdfb1",
+      "sourceDigest": "65b52efdee9a56e46f9a076455c42260567eae1102d60e2248af3960e684adce",
+      "sourceState": "working-tree",
+      "designSystemVersion": "1.0.0",
+      "locale": "en",
+      "theme": "light",
+      "viewport": {
+        "width": 1024,
+        "height": 1366
+      },
+      "imagePixels": {
+        "width": 1024,
+        "height": 1366
+      },
+      "textScale": 1,
+      "keyboardInset": 0,
+      "captureKind": "production-page",
+      "fixtureSource": "deterministic widget fixture; production widgets, no network; not a live API journey",
+      "capturedAt": "2026-09-13T21:50:03.177276+00:00",
+      "sha256": "b8f834908a1fcbd43ed89024e3b51b2c6ba7545a73992ace09675d175e819371"
+    },
+    {
+      "file": "current/login-phone-en-dark.png",
+      "app": "guardian",
+      "sourceRevision": "aa114e60f5d5d7a293924ba5951f971f841fdfb1",
+      "sourceDigest": "65b52efdee9a56e46f9a076455c42260567eae1102d60e2248af3960e684adce",
+      "sourceState": "working-tree",
+      "designSystemVersion": "1.0.0",
+      "locale": "en",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "imagePixels": {
+        "width": 390,
+        "height": 844
+      },
+      "textScale": 1,
+      "keyboardInset": 0,
+      "captureKind": "production-page",
+      "fixtureSource": "deterministic widget fixture; production widgets, no network; not a live API journey",
+      "capturedAt": "2026-09-13T21:50:02.162063+00:00",
+      "sha256": "06efb4490783b3f6fc90fd41ecd0766aef7c021c471a813b38b7d35362801452"
+    },
+    {
+      "file": "current/login-phone-en-keyboard.png",
+      "app": "guardian",
+      "sourceRevision": "aa114e60f5d5d7a293924ba5951f971f841fdfb1",
+      "sourceDigest": "65b52efdee9a56e46f9a076455c42260567eae1102d60e2248af3960e684adce",
+      "sourceState": "working-tree",
+      "designSystemVersion": "1.0.0",
+      "locale": "en",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "imagePixels": {
+        "width": 390,
+        "height": 844
+      },
+      "textScale": 1,
+      "keyboardInset": 320,
+      "captureKind": "production-page",
+      "fixtureSource": "deterministic widget fixture; production widgets, no network; not a live API journey",
+      "capturedAt": "2026-09-13T21:50:04.843176+00:00",
+      "sha256": "24b86f281399568b1c97da042980d38f79821b1bf559801903f4d15100610b67"
+    },
+    {
+      "file": "current/login-phone-fr-large.png",
+      "app": "guardian",
+      "sourceRevision": "aa114e60f5d5d7a293924ba5951f971f841fdfb1",
+      "sourceDigest": "65b52efdee9a56e46f9a076455c42260567eae1102d60e2248af3960e684adce",
+      "sourceState": "working-tree",
+      "designSystemVersion": "1.0.0",
+      "locale": "fr",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "imagePixels": {
+        "width": 390,
+        "height": 844
+      },
+      "textScale": 2,
+      "keyboardInset": 0,
+      "captureKind": "production-page",
+      "fixtureSource": "deterministic widget fixture; production widgets, no network; not a live API journey",
+      "capturedAt": "2026-09-13T21:50:04.117646+00:00",
+      "sha256": "835e9b9ee980f061c0e0b97176ac7377b0a1b37be3484eb8d5f6fe6906bb63ad"
+    },
+    {
+      "file": "current/login-phone-fr-light.png",
+      "app": "guardian",
+      "sourceRevision": "aa114e60f5d5d7a293924ba5951f971f841fdfb1",
+      "sourceDigest": "65b52efdee9a56e46f9a076455c42260567eae1102d60e2248af3960e684adce",
+      "sourceState": "working-tree",
+      "designSystemVersion": "1.0.0",
+      "locale": "fr",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "imagePixels": {
+        "width": 390,
+        "height": 844
+      },
+      "textScale": 1,
+      "keyboardInset": 0,
+      "captureKind": "production-page",
+      "fixtureSource": "deterministic widget fixture; production widgets, no network; not a live API journey",
+      "capturedAt": "2026-09-13T21:50:00.836772+00:00",
+      "sha256": "548a28367c3c8a9386ead665078a22f311026bb5547ee28e24594637110fe064"
+    },
+    {
+      "file": "current/login-tablet-en-light.png",
+      "app": "guardian",
+      "sourceRevision": "aa114e60f5d5d7a293924ba5951f971f841fdfb1",
+      "sourceDigest": "65b52efdee9a56e46f9a076455c42260567eae1102d60e2248af3960e684adce",
+      "sourceState": "working-tree",
+      "designSystemVersion": "1.0.0",
+      "locale": "en",
+      "theme": "light",
+      "viewport": {
+        "width": 1024,
+        "height": 1366
+      },
+      "imagePixels": {
+        "width": 1024,
+        "height": 1366
+      },
+      "textScale": 1,
+      "keyboardInset": 0,
+      "captureKind": "production-page",
+      "fixtureSource": "deterministic widget fixture; production widgets, no network; not a live API journey",
+      "capturedAt": "2026-09-13T21:50:03.392319+00:00",
+      "sha256": "4302f0a17d7f08ac1da0f3b090b04cb5ef6bc4003819a6b4a89ed4d9b7218d17"
+    }
+  ]
+}

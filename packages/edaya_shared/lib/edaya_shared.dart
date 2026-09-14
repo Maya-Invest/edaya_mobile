@@ -39,3 +39,6 @@ export 'src/features/account/account_profile_page.dart';
 export 'package:firebase_messaging/firebase_messaging.dart' show RemoteMessage;
 export 'src/features/push/push_notifications.dart';
 export 'src/ui/person_avatar.dart';
+export 'src/app/edaya_tokens.g.dart';
+export 'src/ui/edaya_brand_logo.dart';
+export 'src/ui/responsive_metrics.dart';

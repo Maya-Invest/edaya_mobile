@@ -35,8 +35,16 @@ class AppShellPage extends LScopedView<AppShellController> {
     final selectedIndex = controller.selectedIndexForLocation(location);
 
     return Scaffold(
-      appBar: TeacherAppBar(),
-      body: child,
+      appBar: TeacherAppBar(
+        textScale: MediaQuery.textScalerOf(context).scale(14) / 14,
+      ),
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1120),
+          child: child,
+        ),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: controller.onDestinationSelected,

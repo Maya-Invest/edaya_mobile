@@ -62,14 +62,14 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: ../../branding/icons/icon_gardian.png
+  image_path: ../../branding/icons/guardian.png
   remove_alpha_ios: true
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: ../../branding/icons/icon_gardian.png
+  adaptive_icon_foreground: ../../branding/icons/guardian-foreground.png
   web:
     generate: true
-    image_path: ../../branding/icons/icon_gardian.png
-    background_color: "#F0F7FF"
+    image_path: ../../branding/icons/guardian.png
+    background_color: "#FFFFFF"
     theme_color: "#2563EB"
 
 # For information on the generic Dart part of this file, see the

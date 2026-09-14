@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../l10n/l10n_extension.dart';
+import '../../ui/edaya_brand_logo.dart';
 
 import '../../config/developer_settings_config.dart';
 import '../../config/dev_api_url_settings.dart';
@@ -52,16 +53,23 @@ class LoginPage extends LScopedView<LoginController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    const Center(
+                      child: EdayaBrandLogo(
+                        variant: EdayaLogoVariant.vertical,
+                        width: 112,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                     Text(
                       context.tr.signInTitle,
                       style: Theme.of(context).textTheme.headlineSmall,
-                      textAlign: TextAlign.center,
+                      textAlign: TextAlign.start,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       subtitle,
                       style: Theme.of(context).textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
+                      textAlign: TextAlign.start,
                     ),
                     const SizedBox(height: 24),
                     TextFormField(
@@ -70,7 +78,6 @@ class LoginPage extends LScopedView<LoginController> {
                       autofillHints: const [AutofillHints.email],
                       decoration: InputDecoration(
                         labelText: context.tr.emailLabel,
-                        border: const OutlineInputBorder(),
                       ),
                       onChanged: (value) => controller.email(value),
                     ),
@@ -81,7 +88,6 @@ class LoginPage extends LScopedView<LoginController> {
                       autofillHints: const [AutofillHints.password],
                       decoration: InputDecoration(
                         labelText: context.tr.passwordLabel,
-                        border: const OutlineInputBorder(),
                       ),
                       onChanged: (value) => controller.password(value),
                     ),

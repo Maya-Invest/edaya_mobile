@@ -66,6 +66,7 @@ class _AttendanceFlowScaffold extends StatelessWidget {
         ),
         leading: IconButton(
           icon: const Icon(Icons.close),
+          tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
           onPressed: () => context.pop(),
         ),
       ),

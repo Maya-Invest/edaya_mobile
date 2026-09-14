@@ -7,10 +7,12 @@ import '../../context/academic_year_controller.dart';
 import '../../context/student_context_controller.dart';
 
 class GuardianAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const GuardianAppBar({super.key});
+  const GuardianAppBar({super.key, this.textScale = 1});
+
+  final double textScale;
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 28);
+  Size get preferredSize => Size.fromHeight(88 * textScale + 48);
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +21,7 @@ class GuardianAppBar extends StatelessWidget implements PreferredSizeWidget {
         return LView<AcademicYearController>(
           builder: (context, academicYear) {
             return _GuardianAppBarContent(
+              textScale: textScale,
               studentContext: studentContext,
               academicYear: academicYear,
             );
@@ -32,19 +35,22 @@ class GuardianAppBar extends StatelessWidget implements PreferredSizeWidget {
 class _GuardianAppBarContent extends StatelessWidget
     implements PreferredSizeWidget {
   const _GuardianAppBarContent({
+    required this.textScale,
     required this.studentContext,
     required this.academicYear,
   });
 
+  final double textScale;
   final StudentContextController studentContext;
   final AcademicYearController academicYear;
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 28);
+  Size get preferredSize => Size.fromHeight(88 * textScale + 48);
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      toolbarHeight: 88 * textScale,
       leading: IconButton(
         tooltip: context.tr.tooltipAccount,
         icon: const Icon(Icons.account_circle_outlined),
@@ -77,27 +83,46 @@ class _GuardianAppBarContent extends StatelessWidget
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    student.fullName,
-                    style: Theme.of(context).textTheme.titleMedium,
+                  Tooltip(
+                    message: student.fullName,
+                    child: Text(
+                      student.fullName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                   ),
-                  Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+                  Tooltip(
+                    message: subtitle,
+                    child: Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
                 ],
               ),
             ),
           ],
         );
       }),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(48),
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: LWatch(() {
+            final yearLabel =
+                academicYear.selectedYearLabel ?? context.tr.schoolYear;
+            return TextButton.icon(
+              onPressed: () => context.push('/academic-year-picker'),
+              icon: const Icon(Icons.expand_more, size: 18),
+              label: Text(yearLabel),
+            );
+          }),
+        ),
+      ),
       actions: [
-        LWatch(() {
-          final yearLabel =
-              academicYear.selectedYearLabel ?? context.tr.schoolYear;
-          return TextButton.icon(
-            onPressed: () => context.push('/academic-year-picker'),
-            icon: const Icon(Icons.expand_more, size: 18),
-            label: Text(yearLabel),
-          );
-        }),
         IconButton(
           tooltip: context.tr.tooltipMyStudents,
           icon: const Icon(Icons.people_outline),

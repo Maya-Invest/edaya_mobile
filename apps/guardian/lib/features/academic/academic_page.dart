@@ -103,10 +103,7 @@ class _SubjectSelector extends StatelessWidget {
       return DropdownButtonFormField<String>(
         isExpanded: true,
         initialValue: selectedSubjectId,
-        decoration: InputDecoration(
-          labelText: context.tr.classSubjectLabel,
-          border: const OutlineInputBorder(),
-        ),
+        decoration: InputDecoration(labelText: context.tr.classSubjectLabel),
         items: [
           for (final subject in subjects)
             DropdownMenuItem(

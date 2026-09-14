@@ -42,6 +42,7 @@ class MyStudentsSheet extends LScopedView<GuardianStudentsController> {
                 IconButton(
                   onPressed: () => context.pop(),
                   icon: const Icon(Icons.close),
+                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                 ),
               ],
             ),

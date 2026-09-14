@@ -28,7 +28,7 @@ class InboxDeliveryTile extends StatelessWidget {
             : Icon(Icons.mail_outline, color: colorScheme.onSurfaceVariant),
         title: Text(
           delivery.title,
-          maxLines: 1,
+          maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: isUnread
               ? theme.textTheme.titleSmall

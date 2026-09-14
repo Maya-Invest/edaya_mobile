@@ -1,8 +1,8 @@
-# Edaya Guardian app — Improvement proposal
+# Edaya Guardian app — Historical feature proposal
 
 | Field | Value |
 |---|---|
-| Status | Proposal |
+| Status | Historical, unapproved feature proposal |
 | Date | 12 July 2026 |
 | Scope | `apps/guardian`, guardian-facing shared mobile foundations, and supporting API changes |
 | Objective | Move the working proof of concept toward a secure, reliable, high-value production guardian experience |
@@ -554,136 +554,11 @@ Guardians Vault should begin as a narrowly scoped secure document area after off
 
 The AI student portal should remain a separate safeguarded student experience. It should not be used to compensate for missing core guardian journeys, data correctness, or school workflow design.
 
-## UX and UI proposal
+## Historical UX feature proposals (unapproved)
 
-### Design principles
+The previous visual specification, conceptual Home mockup and responsive navigation prescription have been retired. The following feature ideas are retained for separate product evaluation: Home/action centre; OTP and recovery access; school support and legal links; offline/stale indicators; document downloads; full-screen detail flows; per-destination retained state; and attention/action summaries. None is authorized by the current UI-only rebrand. Existing navigation, routes, details, developer settings and auth methods remain as implemented.
 
-1. Action before navigation.
-2. Child context is always visible when it matters.
-3. Official data and provisional calculations are clearly distinguished.
-4. Urgency is conveyed by copy, icon, and structure—not color alone.
-5. Long content uses full-screen details.
-6. Cached/stale/offline states are explicit.
-7. Empty states explain why content is empty and what to do next.
-8. School configuration can hide unavailable modules without leaving broken navigation.
-
-### Sign-in and onboarding
-
-Replace the current development-oriented sign-in screen with:
-
-- Edaya Guardian brand/logo.
-- Welcome text explaining school-provided access.
-- Email field.
-- Password field with show/hide control.
-- Primary sign-in action.
-- `Use a one-time code` alternative.
-- `Forgot password?` action.
-- School/account support link.
-- Privacy and terms links.
-- Clear staging/internal build badge only outside production.
-
-### Home layout
-
-```text
-┌─────────────────────────────────────┐
-│ [Avatar] Aïcha Koné · 6e A      [●] │
-│ Année 2025–2026                    │
-├─────────────────────────────────────┤
-│ Action requise                     │
-│ Absence à justifier · aujourd’hui  │
-│                         [Justifier] │
-├─────────────────────────────────────┤
-│ Aujourd’hui                        │
-│ 10:00 Mathématiques · Salle 12     │
-│ 14:00 Activité sportive            │
-├─────────────────────────────────────┤
-│ Dernière note       Solde frais    │
-│ 16/20 Français      35 000 FCFA    │
-├─────────────────────────────────────┤
-│ 2 nouveaux messages                │
-└─────────────────────────────────────┘
-```
-
-This is conceptual, not a pixel specification.
-
-### Component system
-
-Add reusable components for:
-
-- Guardian context switcher.
-- Attention/action card.
-- Status chip with semantic icon and label.
-- Summary metric.
-- Timeline row.
-- Amount and balance presentation.
-- Score with scale and provisional/official label.
-- Child/global scope badge.
-- Skeleton list/card.
-- Offline/stale banner.
-- Empty state with action.
-- Error state with support/reference code.
-- Document row and download state.
-
-### Visual hierarchy
-
-The current design uses similar outlined cards for most information. The final design should reserve prominent surfaces for important or actionable content.
-
-- Use a strong attention surface for unresolved absences, urgent messages, and overdue fees.
-- Use lightweight list rows for ordinary history.
-- Use consistent semantic states: success, information, warning, overdue/error, pending, unread.
-- Use subject accents carefully and consistently.
-- Use typography to distinguish title, context, value, and metadata.
-- Bundle fonts as application assets; do not depend on runtime font fetching.
-- Use guardian-specific iconography and brand artwork in onboarding and empty states.
-
-### Long details and modal usage
-
-Bottom sheets should be limited to short choices such as:
-
-- Child selection.
-- Academic-year selection.
-- A compact filter selector.
-
-Use full-screen routes for:
-
-- Report cards.
-- Message detail.
-- Session/logbook detail.
-- Attendance justification.
-- Fee and instalment detail.
-- Payment receipt.
-- Documents.
-
-### Accessibility
-
-Required validation:
-
-- Screen readers on iOS and Android.
-- 200% text scaling.
-- Minimum 44×44 iOS and 48×48 Android touch targets.
-- No status conveyed by color alone.
-- Logical focus order.
-- Semantic labels for progress indicators, scores, unread state, and amounts.
-- Contrast validation in light and dark themes.
-- Reduced-motion behavior.
-- Keyboard and navigation-rail support for tablet/web layouts.
-
-Known layout pressure points:
-
-- Five long bottom-navigation labels.
-- Seven weekday controls in one row.
-- Up to four academic periods in a segmented control.
-- Student name, class, year, account, and student switcher in one app bar.
-- Three fee summary metrics in one row.
-
-### Responsive design
-
-Suggested breakpoints/behaviors:
-
-- Compact phone: bottom navigation, single-column content.
-- Large phone/small tablet: constrained content width and wider cards.
-- Tablet/web: navigation rail, optional master/detail layout, max content width.
-- Landscape: preserve usable vertical content and avoid oversized global app bars.
+Applicable accessibility, typography, semantic status, long-name/amount and component-reuse guidance has moved into the current mobile design-language specification. Earlier findings describe the July audit, not today's app behavior.
 
 ## Data, performance, and architecture proposal
 

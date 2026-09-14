@@ -1,90 +1,85 @@
 import 'package:flutter/material.dart';
 
-import 'edaya_colors.dart';
+import 'edaya_tokens.g.dart';
 import 'edaya_typography.dart';
 
 abstract final class AppTheme {
   static const _lightColorScheme = ColorScheme(
     brightness: Brightness.light,
-    primary: EdayaColors.primary,
-    onPrimary: Colors.white,
-    primaryContainer: EdayaColors.primaryContainer,
-    onPrimaryContainer: EdayaColors.onBackground,
-    secondary: EdayaColors.primaryLight,
-    onSecondary: EdayaColors.onBackground,
-    secondaryContainer: EdayaColors.secondaryContainer,
-    onSecondaryContainer: EdayaColors.onBackground,
-    tertiary: EdayaColors.accent,
-    onTertiary: EdayaColors.onBackground,
-    tertiaryContainer: EdayaColors.accentContainer,
-    onTertiaryContainer: EdayaColors.onBackground,
-    error: Color(0xFFDC2626),
-    onError: Colors.white,
-    errorContainer: Color(0xFFFEE2E2),
-    onErrorContainer: Color(0xFF7F1D1D),
-    surface: Colors.white,
-    onSurface: EdayaColors.onBackground,
-    onSurfaceVariant: EdayaColors.onSurfaceVariant,
-    outline: EdayaColors.outline,
-    outlineVariant: EdayaColors.outlineVariant,
+    primary: EdayaTokens.lightPrimary,
+    onPrimary: EdayaTokens.lightPrimaryForeground,
+    primaryContainer: EdayaTokens.lightPrimaryContainer,
+    onPrimaryContainer: EdayaTokens.lightForeground,
+    secondary: EdayaTokens.lightSky,
+    onSecondary: EdayaTokens.lightPrimaryForeground,
+    secondaryContainer: EdayaTokens.lightSkySoft,
+    onSecondaryContainer: EdayaTokens.lightForeground,
+    tertiary: EdayaTokens.lightHighlight,
+    onTertiary: EdayaTokens.lightHighlightForeground,
+    tertiaryContainer: EdayaTokens.lightHighlightSoft,
+    onTertiaryContainer: EdayaTokens.lightHighlight,
+    error: EdayaTokens.lightDestructive,
+    onError: EdayaTokens.lightDestructiveForeground,
+    errorContainer: EdayaTokens.lightDestructiveSoft,
+    onErrorContainer: EdayaTokens.lightDestructive,
+    surface: EdayaTokens.lightCard,
+    onSurface: EdayaTokens.lightForeground,
+    onSurfaceVariant: EdayaTokens.lightMutedForeground,
+    outline: EdayaTokens.lightInput,
+    outlineVariant: EdayaTokens.lightBorder,
+    surfaceTint: EdayaTokens.lightPrimary,
+    surfaceContainerHighest: EdayaTokens.lightSecondary,
     shadow: Colors.black,
     scrim: Colors.black,
-    inverseSurface: EdayaColors.onBackground,
-    onInverseSurface: EdayaColors.background,
-    inversePrimary: EdayaColors.primaryLight,
-    surfaceTint: EdayaColors.primary,
   );
 
   static ThemeData get light => _buildTheme(
     brightness: Brightness.light,
     colorScheme: _lightColorScheme,
-    scaffoldBackground: EdayaColors.background,
-    cardColor: Colors.white,
-    inputFillColor: Colors.white,
-    appBarBackground: EdayaColors.background,
-    navBarBackground: Colors.white,
+    scaffoldBackground: EdayaTokens.lightBackground,
+    cardColor: EdayaTokens.lightCard,
+    inputFillColor: EdayaTokens.lightCard,
+    appBarBackground: EdayaTokens.lightCard,
+    navBarBackground: EdayaTokens.lightCard,
   );
 
   static const _darkColorScheme = ColorScheme(
     brightness: Brightness.dark,
-    primary: EdayaColors.primary,
-    onPrimary: Colors.white,
-    primaryContainer: Color(0xFF1D4ED8),
-    onPrimaryContainer: Color(0xFFEFF6FF),
-    secondary: EdayaColors.primaryLight,
-    onSecondary: EdayaColors.onBackground,
-    secondaryContainer: Color(0xFF1E3A8A),
-    onSecondaryContainer: Color(0xFFDBEAFE),
-    tertiary: EdayaColors.accent,
-    onTertiary: EdayaColors.onBackground,
-    tertiaryContainer: Color(0xFF92400E),
-    onTertiaryContainer: Color(0xFFFEF3C7),
-    error: Color(0xFFF87171),
-    onError: EdayaColors.onBackground,
-    errorContainer: Color(0xFF7F1D1D),
-    onErrorContainer: Color(0xFFFEE2E2),
-    surface: Color(0xFF1E293B),
-    onSurface: Color(0xFFF1F5F9),
-    onSurfaceVariant: Color(0xFFCBD5E1),
-    outline: Color(0xFF64748B),
-    outlineVariant: Color(0xFF475569),
+    primary: EdayaTokens.darkPrimary,
+    onPrimary: EdayaTokens.darkPrimaryForeground,
+    primaryContainer: EdayaTokens.darkPrimaryContainer,
+    onPrimaryContainer: EdayaTokens.darkForeground,
+    secondary: EdayaTokens.darkSky,
+    onSecondary: EdayaTokens.darkPrimaryForeground,
+    secondaryContainer: EdayaTokens.darkSkySoft,
+    onSecondaryContainer: EdayaTokens.darkForeground,
+    tertiary: EdayaTokens.darkHighlight,
+    onTertiary: EdayaTokens.darkHighlightForeground,
+    tertiaryContainer: EdayaTokens.darkHighlightSoft,
+    onTertiaryContainer: EdayaTokens.darkHighlight,
+    error: EdayaTokens.darkDestructive,
+    onError: EdayaTokens.darkDestructiveForeground,
+    errorContainer: EdayaTokens.darkDestructiveSoft,
+    onErrorContainer: EdayaTokens.darkDestructive,
+    surface: EdayaTokens.darkCard,
+    onSurface: EdayaTokens.darkForeground,
+    onSurfaceVariant: EdayaTokens.darkMutedForeground,
+    outline: EdayaTokens.darkInput,
+    outlineVariant: EdayaTokens.darkBorder,
+    surfaceTint: EdayaTokens.darkPrimary,
+    surfaceContainerHighest: EdayaTokens.darkSecondary,
     shadow: Colors.black,
     scrim: Colors.black,
-    inverseSurface: Color(0xFFF1F5F9),
-    onInverseSurface: EdayaColors.onBackground,
-    inversePrimary: EdayaColors.primaryLight,
-    surfaceTint: EdayaColors.primary,
-    surfaceContainerHighest: Color(0xFF334155),
   );
 
   static ThemeData get dark => _buildTheme(
     brightness: Brightness.dark,
     colorScheme: _darkColorScheme,
-    scaffoldBackground: const Color(0xFF0F172A),
-    cardColor: const Color(0xFF1E293B),
-    inputFillColor: const Color(0xFF1E293B),
-    appBarBackground: const Color(0xFF0F172A),
-    navBarBackground: const Color(0xFF1E293B),
+    scaffoldBackground: EdayaTokens.darkBackground,
+    cardColor: EdayaTokens.darkCard,
+    inputFillColor: EdayaTokens.darkCard,
+    appBarBackground: EdayaTokens.darkCard,
+    navBarBackground: EdayaTokens.darkCard,
   );
 
   static ThemeData _buildTheme({
@@ -111,8 +106,8 @@ abstract final class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: EdayaTypography.brandWordmark(
-          fontSize: 22,
+        titleTextStyle: EdayaTypography.heading(
+          fontSize: EdayaTokens.typeMobilePage,
           color: colorScheme.onSurface,
         ),
       ),
@@ -120,7 +115,7 @@ abstract final class AppTheme {
         color: cardColor,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(EdayaTokens.radiusSurface),
           side: BorderSide(color: colorScheme.outlineVariant),
         ),
       ),
@@ -128,28 +123,74 @@ abstract final class AppTheme {
         filled: true,
         fillColor: inputFillColor,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(EdayaTokens.radiusControl),
           borderSide: BorderSide(color: colorScheme.outline),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.outlineVariant),
+          borderRadius: BorderRadius.circular(EdayaTokens.radiusControl),
+          borderSide: BorderSide(color: colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(EdayaTokens.radiusControl),
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+        errorMaxLines: 4,
         labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: colorScheme.primary,
           foregroundColor: colorScheme.onPrimary,
-          minimumSize: const Size.fromHeight(48),
+          minimumSize: const Size(48, 48),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(EdayaTokens.radiusControl),
           ),
         ),
+      ),
+      listTileTheme: ListTileThemeData(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        titleTextStyle: EdayaTypography.textTheme(
+          base.textTheme,
+          colorScheme,
+        ).titleMedium,
+        subtitleTextStyle: EdayaTypography.textTheme(
+          base.textTheme,
+          colorScheme,
+        ).bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+        iconColor: colorScheme.onSurfaceVariant,
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: cardColor,
+        surfaceTintColor: Colors.transparent,
+        constraints: const BoxConstraints(maxWidth: 840),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(EdayaTokens.radiusOverlay),
+          ),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: cardColor,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(EdayaTokens.radiusOverlay),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          side: BorderSide(color: colorScheme.outline),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(EdayaTokens.radiusControl),
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(minimumSize: const Size(44, 44)),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: colorScheme.primary,
@@ -160,7 +201,10 @@ abstract final class AppTheme {
         indicatorColor: colorScheme.primaryContainer,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
-          return TextStyle(
+          return EdayaTypography.textTheme(
+            base.textTheme,
+            colorScheme,
+          ).labelSmall?.copyWith(
             color: selected
                 ? colorScheme.primary
                 : colorScheme.onSurfaceVariant,

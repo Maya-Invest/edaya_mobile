@@ -26,7 +26,10 @@ class TeacherSessionTile extends StatelessWidget {
           '${context.tr.timeRange(context.formatTimeOfDay(session.startsAt), context.formatTimeOfDay(session.endsAt))}',
         ),
         isThreeLine: true,
-        trailing: const Icon(Icons.chevron_right),
+        trailing: Icon(
+          Icons.chevron_right,
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ),
     );
   }

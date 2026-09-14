@@ -40,6 +40,7 @@ class PaymentDetailsDialog extends LScopedView<PaymentDetailsController> {
                 IconButton(
                   onPressed: () => context.pop(),
                   icon: const Icon(Icons.close),
+                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                 ),
               ],
             ),

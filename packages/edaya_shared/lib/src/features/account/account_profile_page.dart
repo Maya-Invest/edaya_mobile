@@ -88,10 +88,7 @@ class _ProfileForm extends StatelessWidget {
         const SizedBox(height: 24),
         TextField(
           controller: controller.firstNameController,
-          decoration: InputDecoration(
-            labelText: context.tr.firstNameLabel,
-            border: const OutlineInputBorder(),
-          ),
+          decoration: InputDecoration(labelText: context.tr.firstNameLabel),
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.givenName],
           onChanged: (_) => controller.markFormChanged(),
@@ -99,10 +96,7 @@ class _ProfileForm extends StatelessWidget {
         const SizedBox(height: 16),
         TextField(
           controller: controller.lastNameController,
-          decoration: InputDecoration(
-            labelText: context.tr.lastNameLabel,
-            border: const OutlineInputBorder(),
-          ),
+          decoration: InputDecoration(labelText: context.tr.lastNameLabel),
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.familyName],
           onChanged: (_) => controller.markFormChanged(),
@@ -110,10 +104,7 @@ class _ProfileForm extends StatelessWidget {
         const SizedBox(height: 16),
         TextField(
           controller: controller.emailController,
-          decoration: InputDecoration(
-            labelText: context.tr.emailLabel,
-            border: const OutlineInputBorder(),
-          ),
+          decoration: InputDecoration(labelText: context.tr.emailLabel),
           keyboardType: TextInputType.emailAddress,
           textInputAction: controller.showsPhoneField
               ? TextInputAction.next
@@ -125,10 +116,7 @@ class _ProfileForm extends StatelessWidget {
           const SizedBox(height: 16),
           TextField(
             controller: controller.phoneController,
-            decoration: InputDecoration(
-              labelText: context.tr.phoneLabel,
-              border: const OutlineInputBorder(),
-            ),
+            decoration: InputDecoration(labelText: context.tr.phoneLabel),
             keyboardType: TextInputType.phone,
             textInputAction: TextInputAction.done,
             autofillHints: const [AutofillHints.telephoneNumber],

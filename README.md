@@ -28,6 +28,10 @@ edaya_mobile/
 
 Both apps share auth, bootstrap, theme, and most UI primitives via `edaya_shared`. Each app keeps a thin layer for routes, domain features, and app-specific preferences.
 
+## UI foundations
+
+EDAYA UI 1.0.0 uses the [mobile design-language specification](docs/specs/design-language-spec.md), a local shared token snapshot, bundled fonts and supplied logos. The human UI brief lives in the frontend reference docs. Current review galleries are under each current app; historical proposals are unapproved feature records, not redesign instructions. `melos run verify` includes brand drift and asset checks.
+
 ## Prerequisites
 
 - Flutter stable (Dart SDK ^3.11)

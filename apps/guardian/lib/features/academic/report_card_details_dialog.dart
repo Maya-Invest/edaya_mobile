@@ -63,6 +63,7 @@ class ReportCardDetailsDialog extends LScopedView<ReportCardDetailsController> {
                     IconButton(
                       onPressed: () => context.pop(),
                       icon: const Icon(Icons.close),
+                      tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                     ),
                   ],
                 ),

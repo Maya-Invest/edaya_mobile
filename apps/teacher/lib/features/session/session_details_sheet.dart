@@ -74,6 +74,7 @@ class SessionDetailsSheet extends LScopedView<SessionDetailController> {
                     IconButton(
                       onPressed: () => context.pop(),
                       icon: const Icon(Icons.close),
+                      tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                     ),
                   ],
                 ),
@@ -476,10 +477,7 @@ class _LogbookPanelState extends State<_LogbookPanel> {
           const SizedBox(height: 8),
           TextField(
             controller: _sessionNoteController,
-            decoration: InputDecoration(
-              hintText: context.tr.sessionNotesHint,
-              border: const OutlineInputBorder(),
-            ),
+            decoration: InputDecoration(hintText: context.tr.sessionNotesHint),
             maxLines: 4,
           ),
           const SizedBox(height: 16),
@@ -623,7 +621,6 @@ class _ProgressDraftCard extends StatelessWidget {
                 initialValue: draft.matterId,
                 decoration: InputDecoration(
                   labelText: context.tr.pickSubjectMatterTitle,
-                  border: const OutlineInputBorder(),
                 ),
                 items: [
                   for (final matter in matterChoices)
@@ -645,7 +642,6 @@ class _ProgressDraftCard extends StatelessWidget {
                 controller: draft.progressController,
                 decoration: InputDecoration(
                   labelText: context.tr.lessonProgressPercentLabel,
-                  border: const OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
               ),
@@ -654,7 +650,6 @@ class _ProgressDraftCard extends StatelessWidget {
                 controller: draft.notesController,
                 decoration: InputDecoration(
                   labelText: context.tr.matterNotesLabel,
-                  border: const OutlineInputBorder(),
                 ),
                 maxLines: 3,
               ),

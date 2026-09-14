@@ -20,10 +20,12 @@ Demo accounts: `a.toure@ecole-ci.edaya.dev` (subject), `k.diomande@ecole-ci.eday
 - Academic reads (periods, assessments, curriculum, **published report cards**)
 - Fees reads (`studentFees`, `payments`, `fees.get`)
 - Calendar/timetable + school events + student attendance list
-- Inbox list + **`markDeliveryRead`** write probe (staff seeds a fresh unread delivery per test)
+- Inbox list + **`markDeliveryRead`** write probe, followed by a separate read to confirm persistence
 - Negative authorization (`createAssessment`, `staffMembers.get`, `teachers.list`)
 
 Demo accounts: `m.kone@mail.ci` (children `ci-s1` + `ci-s10`), `k.yao@mail.ci` (`ci-s4`, `ci-s7`, `ci-s8`).
+
+Each inbox probe uses the seeded owner (`a.kone@ecole-ci.edaya.dev`) to create and publish a unique announcement targeted to that guardian. It waits for the notification workflow to materialize an unread delivery, then reads and marks it as the guardian. The director fixture has class-scoped send grants and cannot address direct recipients; delivery-history writes remain system-only. Run these write probes against disposable seeded data with local-log notification delivery.
 
 Run:
 
