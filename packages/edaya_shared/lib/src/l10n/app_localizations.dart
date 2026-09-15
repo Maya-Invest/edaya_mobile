@@ -524,6 +524,12 @@ abstract class AppLocalizations {
   /// **'Missing payment details route data.'**
   String get missingPaymentDetailsRouteData;
 
+  /// No description provided for @missingChargeDetailsRouteData.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing charge details route data.'**
+  String get missingChargeDetailsRouteData;
+
   /// No description provided for @missingMessageDetailsRouteData.
   ///
   /// In en, this message translates to:
@@ -1346,6 +1352,12 @@ abstract class AppLocalizations {
   /// **'Due'**
   String get feeStatusDue;
 
+  /// No description provided for @feeStatusWaived.
+  ///
+  /// In en, this message translates to:
+  /// **'Waived'**
+  String get feeStatusWaived;
+
   /// No description provided for @summary.
   ///
   /// In en, this message translates to:
@@ -1369,6 +1381,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Balance'**
   String get balance;
+
+  /// No description provided for @availableAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get availableAmount;
+
+  /// No description provided for @outstandingAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding'**
+  String get outstandingAmount;
+
+  /// No description provided for @overdueAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get overdueAmount;
+
+  /// No description provided for @remainingAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining'**
+  String get remainingAmountLabel;
+
+  /// No description provided for @chargeSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment schedule'**
+  String get chargeSchedule;
+
+  /// No description provided for @noInstallmentsForCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'No installment schedule for this charge.'**
+  String get noInstallmentsForCharge;
+
+  /// No description provided for @installmentDue.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} · due {date}'**
+  String installmentDue(String label, String date);
+
+  /// No description provided for @paymentKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get paymentKind;
+
+  /// No description provided for @paymentKindReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt'**
+  String get paymentKindReceipt;
+
+  /// No description provided for @paymentKindDisbursement.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund'**
+  String get paymentKindDisbursement;
 
   /// No description provided for @overdueFeeLinesCount.
   ///

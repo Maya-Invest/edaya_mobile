@@ -127,6 +127,7 @@
   "missingGradeDetailsRouteData": "Missing grade details route data.",
   "missingReportCardRouteData": "Missing report card route data.",
   "missingPaymentDetailsRouteData": "Missing payment details route data.",
+  "missingChargeDetailsRouteData": "Missing charge details route data.",
   "missingMessageDetailsRouteData": "Missing message details route data.",
   "missingAttendanceFlowRouteData": "Missing attendance flow route data.",
   "missingMarksEntryRouteData": "Missing marks entry route data.",
@@ -403,10 +404,27 @@
   "feeStatusOverdue": "Overdue",
   "feeStatusCancelled": "Cancelled",
   "feeStatusDue": "Due",
+  "feeStatusWaived": "Waived",
   "summary": "Summary",
   "expected": "Expected",
   "paid": "Paid",
   "balance": "Balance",
+  "availableAmount": "Available",
+  "outstandingAmount": "Outstanding",
+  "overdueAmount": "Overdue",
+  "remainingAmountLabel": "Remaining",
+  "chargeSchedule": "Payment schedule",
+  "noInstallmentsForCharge": "No installment schedule for this charge.",
+  "installmentDue": "{label} · due {date}",
+  "@installmentDue": {
+    "placeholders": {
+      "label": {"type": "String"},
+      "date": {"type": "String"}
+    }
+  },
+  "paymentKind": "Type",
+  "paymentKindReceipt": "Receipt",
+  "paymentKindDisbursement": "Refund",
   "overdueFeeLinesCount": "{count, plural, =1{1 overdue fee line} other{{count} overdue fee lines}}",
   "@overdueFeeLinesCount": {
     "placeholders": {

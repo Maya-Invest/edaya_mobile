@@ -20,8 +20,10 @@ import '../features/calendar/calendar_page.dart';
 import '../features/calendar/models/calendar_session.dart';
 import '../features/calendar/session_details_dialog.dart';
 import '../features/context/academic_year_picker_sheet.dart';
+import '../features/fees/charge_details_dialog.dart';
 import '../features/fees/fees_page.dart';
 import '../features/fees/models/payment_record.dart';
+import '../features/fees/models/student_charge_line.dart';
 import '../features/fees/payment_details_dialog.dart';
 import '../features/inbox/inbox_page.dart';
 import '../features/inbox/models/inbox_delivery.dart';
@@ -245,6 +247,26 @@ class AppRouter extends LevitController implements EdayaAppRouter {
               path: '/fees',
               builder: (context, state) => const FeesPage(),
               routes: [
+                GoRoute(
+                  parentNavigatorKey: rootNavigatorKey,
+                  path: 'charge-details',
+                  pageBuilder: (context, state) {
+                    final extra = state.extra;
+                    if (extra is! StudentChargeLine) {
+                      return MaterialPage<void>(
+                        child: RouteErrorPage(
+                          message: context.tr.missingChargeDetailsRouteData,
+                        ),
+                      );
+                    }
+
+                    return ModalBottomSheetPage<void>(
+                      isScrollControlled: true,
+                      useSafeArea: true,
+                      child: ChargeDetailsDialog(charge: extra),
+                    );
+                  },
+                ),
                 GoRoute(
                   parentNavigatorKey: rootNavigatorKey,
                   path: 'payment-details',

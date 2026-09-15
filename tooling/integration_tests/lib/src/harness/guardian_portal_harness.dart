@@ -56,14 +56,14 @@ class GuardianAcademicProbe {
 
 class GuardianFeesProbe {
   const GuardianFeesProbe({
-    required this.studentFees,
+    required this.summary,
+    required this.studentCharges,
     required this.payments,
-    required this.feeNamesById,
   });
 
-  final List<Map<String, dynamic>> studentFees;
+  final Map<String, dynamic> summary;
+  final List<Map<String, dynamic>> studentCharges;
   final List<Map<String, dynamic>> payments;
-  final Map<String, String> feeNamesById;
 }
 
 class GuardianCalendarProbe {
@@ -105,12 +105,11 @@ EntityQuery publishedReportCardsForStudent(String studentId) {
   return {'studentId': studentId, 'status': 'published'};
 }
 
-EntityQuery studentFeesForStudent(String studentId) {
-  return {'studentId': studentId};
-}
-
-EntityQuery paymentsForStudentFees(List<String> studentFeeIds) {
-  return recordsForField('studentFeeId', studentFeeIds);
+EntityQuery studentChargesForStudent({
+  required String studentId,
+  required String academicYearId,
+}) {
+  return {'studentId': studentId, 'academicYearId': academicYearId};
 }
 
 EntityQuery deliveriesForSubject(String subjectId) {
@@ -304,32 +303,40 @@ Future<GuardianFeesProbe> loadGuardianFeesData(
   required String studentId,
   required String academicYearId,
 }) async {
-  final studentFees =
-      (await client.studentFees.list(studentFeesForStudent(studentId)))
-          .where((row) => row['academicYearId'] == academicYearId)
-          .where((row) => row['status'] != 'cancelled')
-          .toList();
-
-  final studentFeeIds = studentFees.map((row) => row['id'] as String).toList();
-  final payments = studentFeeIds.isEmpty
-      ? <Map<String, dynamic>>[]
-      : await client.payments.list(paymentsForStudentFees(studentFeeIds));
-
-  final feeIds = studentFees
-      .map((row) => row['feeId'] as String?)
-      .whereType<String>()
-      .toSet()
+  final financeQuery = {
+    'studentId': studentId,
+    'academicYearId': academicYearId,
+  };
+  final results = await Future.wait([
+    client.getStudentFinanceSummary(financeQuery),
+    client.studentCharges.list(
+      studentChargesForStudent(
+        studentId: studentId,
+        academicYearId: academicYearId,
+      ),
+    ),
+  ]);
+  final summary = results[0] as Map<String, dynamic>;
+  final studentCharges = (results[1] as List<Map<String, dynamic>>)
+      .where((row) => row['status'] != 'cancelled')
       .toList();
-  final feeNamesById = <String, String>{};
-  for (final feeId in feeIds) {
-    final fee = await client.fees.get(feeId);
-    feeNamesById[feeId] = fee['name'] as String? ?? feeId;
+
+  final accountId = summary['accountId'] as String?;
+  var payments = <Map<String, dynamic>>[];
+  if (accountId != null && accountId.isNotEmpty) {
+    final history = await client.getPaymentSettlementHistory({
+      'accountId': accountId,
+    });
+    payments = ((history['payments'] as List?) ?? const [])
+        .whereType<Map>()
+        .map((row) => Map<String, dynamic>.from(row))
+        .toList();
   }
 
   return GuardianFeesProbe(
-    studentFees: studentFees,
+    summary: summary,
+    studentCharges: studentCharges,
     payments: payments,
-    feeNamesById: feeNamesById,
   );
 }
 

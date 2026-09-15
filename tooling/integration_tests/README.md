@@ -18,7 +18,7 @@ Demo accounts: `a.toure@ecole-ci.edaya.dev` (subject), `k.diomande@ecole-ci.eday
 
 - Sign-in and bootstrap (`effectiveGrants`, `guardianLinks`, linked students, enrollment, class group)
 - Academic reads (periods, assessments, curriculum, **published report cards**)
-- Fees reads (`studentFees`, `payments`, `fees.get`)
+- Fees reads (`getStudentFinanceSummary`, `studentCharges`, `getPaymentSettlementHistory`)
 - Calendar/timetable + school events + student attendance list
 - Inbox list + **`markDeliveryRead`** write probe, followed by a separate read to confirm persistence
 - Negative authorization (`createAssessment`, `staffMembers.get`, `teachers.list`)

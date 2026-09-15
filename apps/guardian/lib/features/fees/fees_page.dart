@@ -7,6 +7,7 @@ import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
 import 'fees_controller.dart';
 import 'models/payment_record.dart';
+import 'models/student_charge_line.dart';
 import 'widgets/fee_tiles.dart';
 import 'widgets/fees_summary_card.dart';
 
@@ -51,10 +52,10 @@ class _FeesBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final summary = controller.summary.value;
-    final lines = controller.feeLines.value;
+    final charges = controller.charges.value;
     final payments = controller.payments.value;
 
-    if (summary == null && lines.isEmpty && payments.isEmpty) {
+    if (summary == null && charges.isEmpty && payments.isEmpty) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
@@ -77,14 +78,17 @@ class _FeesBody extends StatelessWidget {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
-        if (lines.isEmpty)
+        if (charges.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: Text(context.tr.noFeeLinesForYear),
           )
         else
-          for (final line in lines) ...[
-            StudentFeeTile(line: line),
+          for (final line in charges) ...[
+            ChargeTile(
+              line: line,
+              onTap: () => _openChargeDetails(context, line),
+            ),
             const SizedBox(height: 8),
           ],
         const SizedBox(height: 8),
@@ -108,6 +112,10 @@ class _FeesBody extends StatelessWidget {
           ],
       ],
     );
+  }
+
+  void _openChargeDetails(BuildContext context, StudentChargeLine charge) {
+    context.push('/fees/charge-details', extra: charge);
   }
 
   void _openPaymentDetails(BuildContext context, PaymentRecord payment) {

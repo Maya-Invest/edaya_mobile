@@ -58,6 +58,10 @@ class PaymentDetailsDialog extends LScopedView<PaymentDetailsController> {
               label: l10n.method,
               value: formatPaymentMethod(l10n, payment.method),
             ),
+            _DetailRow(
+              label: l10n.paymentKind,
+              value: formatPaymentKind(l10n, payment.kind),
+            ),
             if (payment.reference != null && payment.reference!.isNotEmpty)
               _DetailRow(label: l10n.reference, value: payment.reference!),
             if (payment.notes != null && payment.notes!.isNotEmpty) ...[
@@ -86,7 +90,12 @@ class _DetailRow extends StatelessWidget {
       child: Row(
         children: [
           Expanded(child: Text(label)),
-          Text(value, style: Theme.of(context).textTheme.titleSmall),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
         ],
       ),
     );

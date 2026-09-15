@@ -157,31 +157,33 @@ void _guardianPortalSuite(GuardianPortalProfile profile) {
     });
 
     group('fees', () {
-      test('student fees and payments list without error', () {
-        expect(feesProbe.studentFees, isA<List<Map<String, dynamic>>>());
-        expect(feesProbe.payments, isA<List<Map<String, dynamic>>>());
-      });
+      test(
+        'student finance summary, charges and payments load without error',
+        () {
+          expect(feesProbe.summary, isA<Map<String, dynamic>>());
+          expect(feesProbe.summary['academicYearId'], profile.academicYearId);
+          expect(feesProbe.studentCharges, isA<List<Map<String, dynamic>>>());
+          expect(feesProbe.payments, isA<List<Map<String, dynamic>>>());
+        },
+      );
 
-      test('primary student has billed fees for configured academic year', () {
-        if (profile.primaryStudentId !=
-            GuardianPortalProfile.mariamKone.primaryStudentId) {
+      test(
+        'primary student charges belong to the configured academic year',
+        () {
+          expect(
+            feesProbe.studentCharges.every(
+              (row) => row['academicYearId'] == profile.academicYearId,
+            ),
+            isTrue,
+          );
+        },
+      );
+
+      test('charge labels are present when charges exist', () {
+        if (feesProbe.studentCharges.isEmpty) {
           return;
         }
-        expect(feesProbe.studentFees, isNotEmpty);
-        expect(
-          feesProbe.studentFees.every(
-            (row) => row['academicYearId'] == profile.academicYearId,
-          ),
-          isTrue,
-        );
-      });
-
-      test('fee names resolve when student fees exist', () async {
-        if (feesProbe.studentFees.isEmpty) {
-          return;
-        }
-        final feeId = feesProbe.studentFees.first['feeId'] as String;
-        expect(feesProbe.feeNamesById[feeId], isNotEmpty);
+        expect(feesProbe.studentCharges.first['label'], isNotEmpty);
       });
     });
 

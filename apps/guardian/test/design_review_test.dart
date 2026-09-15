@@ -9,7 +9,7 @@ import 'package:edaya_guardian/features/calendar/models/calendar_session.dart';
 import 'package:edaya_guardian/features/fees/fees_controller.dart';
 import 'package:edaya_guardian/features/fees/fees_page.dart';
 import 'package:edaya_guardian/features/fees/models/payment_record.dart';
-import 'package:edaya_guardian/features/fees/models/student_fee_line.dart';
+import 'package:edaya_guardian/features/fees/models/student_charge_line.dart';
 import 'package:edaya_guardian/features/my_students/linked_student.dart';
 import 'package:edaya_guardian/features/app_shell/app_shell_page.dart';
 import 'package:edaya_guardian/features/app_shell/app_shell_controller.dart';
@@ -107,35 +107,50 @@ class _Fees extends FeesController {
     : super(studentContext: student, academicYear: year, schoolClient: _noApi) {
     summary(
       const FeesSummary(
-        totalExpected: 1250000,
-        totalPaid: 450000,
-        totalBalance: 800000,
-        overdueCount: 1,
+        available: 20000,
+        outstanding: 800000,
+        overdue: 400000,
         currency: 'XOF',
       ),
     );
-    feeLines([
-      StudentFeeLine(
+    charges([
+      StudentChargeLine(
         id: 'fixture',
-        feeId: 'fixture',
         label: 'Scolarité annuelle',
         expectedAmount: 1250000,
-        paidAmount: 450000,
+        allocatedAmount: 450000,
+        adjustmentAmount: 0,
+        waiverAmount: 0,
         currency: 'XOF',
-        status: StudentFeeStatus.partial,
+        status: ChargeStatus.partial,
         dueDate: DateTime(2026, 9, 1),
+        installments: [
+          ChargeInstallment(
+            id: 'fixture-inst-1',
+            label: 'Trimestre 1',
+            expectedAmount: 625000,
+            dueDate: DateTime(2026, 9, 1),
+          ),
+          ChargeInstallment(
+            id: 'fixture-inst-2',
+            label: 'Trimestre 2',
+            expectedAmount: 625000,
+            dueDate: DateTime(2027, 1, 15),
+          ),
+        ],
+        settlementCount: 1,
       ),
     ]);
     payments([
       PaymentRecord(
         id: 'fixture',
-        studentFeeId: 'fixture',
         feeLabel: 'Scolarité annuelle',
         amount: 450000,
         currency: 'XOF',
         paymentDate: DateTime(2026, 9, 1),
         method: 'cash',
-        status: 'completed',
+        status: 'recorded',
+        kind: 'receipt',
       ),
     ]);
   }

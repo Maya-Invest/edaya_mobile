@@ -136,10 +136,7 @@ void _mariamKoneSuite() {
         preferDay: session!.sessionDay,
       );
 
-      await tapSessionTile(
-        tester,
-        titleNeedle: session.subjectLabel,
-      );
+      await tapSessionTile(tester, titleNeedle: session.subjectLabel);
       await tester.pump();
       await pumpUntilFound(tester, find.byType(SessionDetailsDialog));
       expect(
@@ -185,7 +182,10 @@ void _mariamKoneSuite() {
         await pumpUntilFound(tester, find.byType(ListTile));
         expect(find.byType(ListTile), findsWidgets);
       } else {
-        expect(find.text('No attendance records for this student.'), findsOneWidget);
+        expect(
+          find.text('No attendance records for this student.'),
+          findsOneWidget,
+        );
       }
     });
   });
@@ -262,26 +262,33 @@ void _mariamKoneSuite() {
   });
 
   group('evaluations', () {
-    testWidgets('EvaluationsPage grades view loads period picker and summaries', (
-      tester,
-    ) async {
-      await pumpGuardianPage(tester, harness, const EvaluationsPage());
-      await pumpUntilFound(tester, find.byType(SegmentedButton<EvaluationsView>));
+    testWidgets(
+      'EvaluationsPage grades view loads period picker and summaries',
+      (tester) async {
+        await pumpGuardianPage(tester, harness, const EvaluationsPage());
+        await pumpUntilFound(
+          tester,
+          find.byType(SegmentedButton<EvaluationsView>),
+        );
 
-      if (probes.academic.academicPeriods.isEmpty) {
-        return;
-      }
+        if (probes.academic.academicPeriods.isEmpty) {
+          return;
+        }
 
-      await pumpUntilFound(tester, find.byType(AcademicPeriodPicker));
+        await pumpUntilFound(tester, find.byType(AcademicPeriodPicker));
 
-      if (probes.academic.assessmentResults.isEmpty) {
-        expect(find.text('No grades recorded for this period.'), findsWidgets);
-        return;
-      }
+        if (probes.academic.assessmentResults.isEmpty) {
+          expect(
+            find.text('No grades recorded for this period.'),
+            findsWidgets,
+          );
+          return;
+        }
 
-      await pumpUntilFound(tester, find.byType(GradeSummaryCards));
-      expect(find.byType(GradeSummaryCards), findsOneWidget);
-    });
+        await pumpUntilFound(tester, find.byType(GradeSummaryCards));
+        expect(find.byType(GradeSummaryCards), findsOneWidget);
+      },
+    );
 
     testWidgets('grade details dialog shows assessed title from live API', (
       tester,
@@ -302,7 +309,10 @@ void _mariamKoneSuite() {
       tester,
     ) async {
       await pumpGuardianPage(tester, harness, const EvaluationsPage());
-      await pumpUntilFound(tester, find.byType(SegmentedButton<EvaluationsView>));
+      await pumpUntilFound(
+        tester,
+        find.byType(SegmentedButton<EvaluationsView>),
+      );
       await tester.tap(find.byIcon(Icons.description_outlined));
       await tester.pump();
 
@@ -326,14 +336,17 @@ void _mariamKoneSuite() {
 
       expect(find.byType(FeesSummaryCard), findsOneWidget);
 
-      final activeFees = probes.fees.studentFees
+      final activeCharges = probes.fees.studentCharges
           .where((row) => row['status'] != 'cancelled')
           .length;
-      expect(find.byType(StudentFeeTile), findsNWidgets(activeFees));
+      expect(find.byType(ChargeTile), findsNWidgets(activeCharges));
 
-      if (probes.fees.feeNamesById.isNotEmpty) {
-        final firstFeeName = probes.fees.feeNamesById.values.first;
-        expect(find.text(firstFeeName), findsWidgets);
+      if (probes.fees.studentCharges.isNotEmpty) {
+        final firstChargeLabel =
+            probes.fees.studentCharges.first['label'] as String?;
+        if (firstChargeLabel != null && firstChargeLabel.isNotEmpty) {
+          expect(find.text(firstChargeLabel), findsWidgets);
+        }
       }
     });
 

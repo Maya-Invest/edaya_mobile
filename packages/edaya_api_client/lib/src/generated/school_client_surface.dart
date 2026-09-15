@@ -36,9 +36,13 @@ extension GeneratedSchoolClientEntities on SchoolClient {
 
   EntityResource get resourceAssignments => entities["resourceAssignments"]!;
 
-  EntityResource get fees => entities["fees"]!;
+  EntityResource get catalogServices => entities["catalogServices"]!;
 
-  EntityResource get studentFees => entities["studentFees"]!;
+  EntityResource get studentServiceEnrollments => entities["studentServiceEnrollments"]!;
+
+  EntityResource get studentCharges => entities["studentCharges"]!;
+
+  EntityResource get studentYearAccounts => entities["studentYearAccounts"]!;
 
   EntityResource get payments => entities["payments"]!;
 
@@ -381,6 +385,48 @@ extension GeneratedSchoolClientCommands on SchoolClient {
   Future<Map<String, dynamic>> cancelStudentFee(Map<String, dynamic> payload) =>
       runCommand("cancel-student-fee", payload);
 
+  Future<Map<String, dynamic>> createCatalogService(Map<String, dynamic> payload) =>
+      runCommand("create-catalog-service", payload);
+
+  Future<Map<String, dynamic>> updateCatalogService(Map<String, dynamic> payload) =>
+      runCommand("update-catalog-service", payload);
+
+  Future<Map<String, dynamic>> activateCatalogService(Map<String, dynamic> payload) =>
+      runCommand("activate-catalog-service", payload);
+
+  Future<Map<String, dynamic>> archiveCatalogService(Map<String, dynamic> payload) =>
+      runCommand("archive-catalog-service", payload);
+
+  Future<Map<String, dynamic>> enrollStudentInService(Map<String, dynamic> payload) =>
+      runCommand("enroll-student-in-service", payload);
+
+  Future<Map<String, dynamic>> enrollStudentsInService(Map<String, dynamic> payload) =>
+      runCommand("enroll-students-in-service", payload);
+
+  Future<Map<String, dynamic>> cancelServiceEnrollment(Map<String, dynamic> payload) =>
+      runCommand("cancel-service-enrollment", payload);
+
+  Future<Map<String, dynamic>> materializeOneTimeCharge(Map<String, dynamic> payload) =>
+      runCommand("materialize-one-time-charge", payload);
+
+  Future<Map<String, dynamic>> adjustStudentCharge(Map<String, dynamic> payload) =>
+      runCommand("adjust-student-charge", payload);
+
+  Future<Map<String, dynamic>> waiveStudentCharge(Map<String, dynamic> payload) =>
+      runCommand("waive-student-charge", payload);
+
+  Future<Map<String, dynamic>> cancelStudentCharge(Map<String, dynamic> payload) =>
+      runCommand("cancel-student-charge", payload);
+
+  Future<Map<String, dynamic>> allocateAccountBalance(Map<String, dynamic> payload) =>
+      runCommand("allocate-account-balance", payload);
+
+  Future<Map<String, dynamic>> reverseAllocation(Map<String, dynamic> payload) =>
+      runCommand("reverse-allocation", payload);
+
+  Future<Map<String, dynamic>> refundAvailableBalance(Map<String, dynamic> payload) =>
+      runCommand("refund-available-balance", payload);
+
   Future<Map<String, dynamic>> createProfilePhotoUpload(Map<String, dynamic> payload) =>
       runCommand("create-profile-photo-upload", payload);
 
@@ -505,6 +551,39 @@ extension GeneratedSchoolClientQueries on SchoolClient {
 
   Future<Map<String, dynamic>> resolveTimetableSpace(Map<String, dynamic> payload) =>
       runQuery("resolve-timetable-space", payload);
+
+  Future<Map<String, dynamic>> getStudentFinanceSummary(Map<String, dynamic> payload) =>
+      runQuery("get-student-finance-summary", payload);
+
+  Future<Map<String, dynamic>> getAccountStatement(Map<String, dynamic> payload) =>
+      runQuery("get-account-statement", payload);
+
+  Future<Map<String, dynamic>> getSchoolFinanceAging(Map<String, dynamic> payload) =>
+      runQuery("get-school-finance-aging", payload);
+
+  Future<Map<String, dynamic>> getFinanceReconciliation(Map<String, dynamic> payload) =>
+      runQuery("get-finance-reconciliation", payload);
+
+  Future<Map<String, dynamic>> previewAccountAllocation(Map<String, dynamic> payload) =>
+      runQuery("preview-account-allocation", payload);
+
+  Future<Map<String, dynamic>> getRelatedFamilyFinanceOverview(Map<String, dynamic> payload) =>
+      runQuery("get-related-family-finance-overview", payload);
+
+  Future<Map<String, dynamic>> getStudentAccountStatement(Map<String, dynamic> payload) =>
+      runQuery("get-student-account-statement", payload);
+
+  Future<Map<String, dynamic>> listOpenDueCharges(Map<String, dynamic> payload) =>
+      runQuery("list-open-due-charges", payload);
+
+  Future<Map<String, dynamic>> getPaymentSettlementHistory(Map<String, dynamic> payload) =>
+      runQuery("get-payment-settlement-history", payload);
+
+  Future<Map<String, dynamic>> reconcileStudentYearAccount(Map<String, dynamic> payload) =>
+      runQuery("reconcile-student-year-account", payload);
+
+  Future<Map<String, dynamic>> reconcileSchoolFinance(Map<String, dynamic> payload) =>
+      runQuery("reconcile-school-finance", payload);
 }
 
 extension GeneratedSchoolClientPublic on SchoolClient {

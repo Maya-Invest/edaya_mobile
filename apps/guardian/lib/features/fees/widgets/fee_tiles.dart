@@ -3,50 +3,54 @@ import 'package:flutter/material.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import '../models/fee_formatting.dart';
 import '../models/payment_record.dart';
-import '../models/student_fee_line.dart';
+import '../models/student_charge_line.dart';
 
-class StudentFeeTile extends StatelessWidget {
-  const StudentFeeTile({super.key, required this.line});
+class ChargeTile extends StatelessWidget {
+  const ChargeTile({super.key, required this.line, required this.onTap});
 
-  final StudentFeeLine line;
+  final StudentChargeLine line;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.tr;
     final colorScheme = Theme.of(context).colorScheme;
     final statusColor = switch (line.status) {
-      StudentFeeStatus.paid => colorScheme.primary,
-      StudentFeeStatus.overdue => colorScheme.error,
-      StudentFeeStatus.partial => colorScheme.tertiary,
-      StudentFeeStatus.cancelled => colorScheme.outline,
-      StudentFeeStatus.pending => colorScheme.onSurfaceVariant,
+      ChargeStatus.paid => colorScheme.primary,
+      ChargeStatus.overdue => colorScheme.error,
+      ChargeStatus.partial => colorScheme.tertiary,
+      ChargeStatus.cancelled => colorScheme.outline,
+      ChargeStatus.waived => colorScheme.outline,
+      ChargeStatus.pending => colorScheme.onSurfaceVariant,
     };
 
     return Card(
+      clipBehavior: Clip.antiAlias,
       child: ListTile(
+        onTap: onTap,
+        isThreeLine: line.dueDate != null || line.settlementCount > 0,
         title: Text(line.label),
         subtitle: Text(
           [
-            formatFeeStatus(l10n, line.status),
+            formatChargeStatus(l10n, line.status),
             if (line.dueDate != null)
               l10n.dueDate(context.formatShortDate(line.dueDate!)),
-            if (line.paymentCount > 0) l10n.paymentCount(line.paymentCount),
+            l10n.paidAmount(formatMoney(line.allocatedAmount, line.currency)),
+            if (line.settlementCount > 0)
+              l10n.paymentCount(line.settlementCount),
           ].join(' · '),
         ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              formatMoney(line.expectedAmount, line.currency),
-              style: Theme.of(context).textTheme.titleSmall,
+              formatMoney(line.remainingObligation, line.currency),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: statusColor,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
-            Text(
-              l10n.paidAmount(formatMoney(line.paidAmount, line.currency)),
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: statusColor),
-            ),
+            const Icon(Icons.chevron_right),
           ],
         ),
       ),
@@ -79,7 +83,9 @@ class PaymentTile extends StatelessWidget {
           children: [
             Text(
               formatMoney(payment.amount, payment.currency),
-              style: Theme.of(context).textTheme.titleSmall,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
             const Icon(Icons.chevron_right),
           ],

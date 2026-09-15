@@ -90,7 +90,7 @@ void main() {
       );
       expect(() => client.payments.delete(id: 'payment'), throwsStateError);
       expect(
-        () => client.studentFees.batchDelete(ids: ['fee']),
+        () => client.studentCharges.batchDelete(ids: ['charge']),
         throwsStateError,
       );
       expect(

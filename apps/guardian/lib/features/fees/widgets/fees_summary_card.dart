@@ -12,6 +12,12 @@ class FeesSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.tr;
+    final overdueStyle = summary.overdue > 0
+        ? Theme.of(context).textTheme.titleMedium?.copyWith(
+            color: Theme.of(context).colorScheme.error,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          )
+        : null;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -23,26 +29,20 @@ class FeesSummaryCard extends StatelessWidget {
             ResponsiveMetrics(
               children: [
                 _Metric(
-                  label: l10n.expected,
-                  value: formatMoney(summary.totalExpected, summary.currency),
+                  label: l10n.availableAmount,
+                  value: formatMoney(summary.available, summary.currency),
                 ),
                 _Metric(
-                  label: l10n.paid,
-                  value: formatMoney(summary.totalPaid, summary.currency),
+                  label: l10n.outstandingAmount,
+                  value: formatMoney(summary.outstanding, summary.currency),
                 ),
                 _Metric(
-                  label: l10n.balance,
-                  value: formatMoney(summary.totalBalance, summary.currency),
+                  label: l10n.overdueAmount,
+                  value: formatMoney(summary.overdue, summary.currency),
+                  valueStyle: overdueStyle,
                 ),
               ],
             ),
-            if (summary.overdueCount > 0) ...[
-              const SizedBox(height: 12),
-              Text(
-                l10n.overdueFeeLinesCount(summary.overdueCount),
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            ],
           ],
         ),
       ),
@@ -51,10 +51,11 @@ class FeesSummaryCard extends StatelessWidget {
 }
 
 class _Metric extends StatelessWidget {
-  const _Metric({required this.label, required this.value});
+  const _Metric({required this.label, required this.value, this.valueStyle});
 
   final String label;
   final String value;
+  final TextStyle? valueStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -65,9 +66,11 @@ class _Metric extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
+          style:
+              valueStyle ??
+              Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
         ),
       ],
     );

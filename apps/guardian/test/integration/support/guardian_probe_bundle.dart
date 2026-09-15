@@ -161,7 +161,8 @@ class GuardianProbeBundle {
       return null;
     }
     final startsAt = DateTime.parse(startsAtRaw).toLocal();
-    final title = lessonSession['title'] as String? ??
+    final title =
+        lessonSession['title'] as String? ??
         lessonSession['displayLabel'] as String? ??
         'Lesson';
 
@@ -208,8 +209,7 @@ class GuardianProbeBundle {
         subject['id'] as String: subject['name'] as String? ?? '',
     };
     final classSubjectById = {
-      for (final row in academic.classSubjects)
-        row['id'] as String: row,
+      for (final row in academic.classSubjects) row['id'] as String: row,
     };
 
     for (final result in academic.assessmentResults) {
@@ -271,16 +271,17 @@ class GuardianProbeBundle {
     }
 
     final payment = fees.payments.first;
-    final studentFeeId = payment['studentFeeId'] as String?;
-    final studentFee = fees.studentFees
-        .where((row) => row['id'] == studentFeeId)
-        .cast<Map<String, dynamic>?>()
-        .firstWhere((row) => row != null, orElse: () => null);
-    final feeId = studentFee?['feeId'] as String?;
-    final feeLabel = feeId == null
-        ? 'Fee'
-        : fees.feeNamesById[feeId] ?? feeId;
+    final currency = fees.summary['currency'] as String? ?? 'XOF';
+    final chargeLabel = fees.studentCharges.isEmpty
+        ? null
+        : fees.studentCharges.first['label'] as String?;
 
-    return PaymentRecord.fromJson(payment, feeLabel: feeLabel);
+    return PaymentRecord.fromJson(
+      payment,
+      feeLabel: chargeLabel == null || chargeLabel.isEmpty
+          ? 'Receipt'
+          : chargeLabel,
+      currency: currency,
+    );
   }
 }

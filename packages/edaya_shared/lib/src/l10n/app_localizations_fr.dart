@@ -259,6 +259,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Données de route des détails de paiement manquantes.';
 
   @override
+  String get missingChargeDetailsRouteData =>
+      'Données de route des détails de la charge manquantes.';
+
+  @override
   String get missingMessageDetailsRouteData =>
       'Données de route des détails du message manquantes.';
 
@@ -757,6 +761,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get feeStatusDue => 'À payer';
 
   @override
+  String get feeStatusWaived => 'Exonéré';
+
+  @override
   String get summary => 'Résumé';
 
   @override
@@ -767,6 +774,38 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get balance => 'Solde';
+
+  @override
+  String get availableAmount => 'Disponible';
+
+  @override
+  String get outstandingAmount => 'Restant dû';
+
+  @override
+  String get overdueAmount => 'En retard';
+
+  @override
+  String get remainingAmountLabel => 'Reste à payer';
+
+  @override
+  String get chargeSchedule => 'Échéancier';
+
+  @override
+  String get noInstallmentsForCharge => 'Aucun échéancier pour cette charge.';
+
+  @override
+  String installmentDue(String label, String date) {
+    return '$label · échéance $date';
+  }
+
+  @override
+  String get paymentKind => 'Type';
+
+  @override
+  String get paymentKindReceipt => 'Encaissement';
+
+  @override
+  String get paymentKindDisbursement => 'Remboursement';
 
   @override
   String overdueFeeLinesCount(int count) {
