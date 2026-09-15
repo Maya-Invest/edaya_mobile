@@ -98,7 +98,9 @@ class GuardianWidgetTestHarness {
   Future<void> bootstrapScope() async {
     final scope = _scope;
     if (scope == null) {
-      throw StateError('Guardian widget harness: pump buildApp() before bootstrapScope()');
+      throw StateError(
+        'Guardian widget harness: pump buildApp() before bootstrapScope()',
+      );
     }
 
     final session = scope.find<AppSessionController>();
@@ -126,20 +128,31 @@ class GuardianWidgetTestHarness {
     studentContext.classGroupId(profile.primaryClassGroupId);
 
     final className =
-        context.primaryClassGroup['name'] as String? ?? profile.primaryClassGroupId;
+        context.primaryClassGroup['name'] as String? ??
+        profile.primaryClassGroupId;
     final level = context.primaryClassGroup['level'] as String?;
     studentContext.classLabel(
       level == null ? className : '$className · $level',
     );
     studentContext.isEnrolled(true);
     studentContext.isLoading(false);
+    studentContext.linkedStudentIds(
+      context.linkedStudents
+          .map((row) => row['id'] as String)
+          .where((id) => id.isNotEmpty)
+          .toList(),
+    );
+    studentContext.linkedStudentsResolved(true);
   }
 
   void registerDependencies(LevitScope scope) {
     EdayaRootScope.bind(scope, appName: 'Guardian integration test');
 
     scope.put<SessionStorage>(() => SessionStorage(), permanent: true);
-    scope.put<CookieJar>(() => portalSession.authClient.cookieJar, permanent: true);
+    scope.put<CookieJar>(
+      () => portalSession.authClient.cookieJar,
+      permanent: true,
+    );
     scope.put<AuthClient>(() => portalSession.authClient, permanent: true);
     scope.put<PushNotificationService>(
       () => const _NoOpPushNotificationService(),
@@ -171,10 +184,10 @@ class GuardianWidgetTestHarness {
         pushNotifications: scope.find<PushNotificationService>(),
         routerRefresh: scope.find<EdayaRouterRefresh>(),
         validateGrants: (_) => null,
-        unauthorizedProfileMessage: () => systemL10n().signedInNoGuardianProfile,
+        unauthorizedProfileMessage: () =>
+            systemL10n().signedInNoGuardianProfile,
         resolveActorKind: () => 'guardian',
-        allowUnlinkedIdentity: () =>
-            scope.find<PendingInvitationStore>().hasToken,
+        allowUnlinkedIdentity: () => true,
         onSignOut: () => scope.find<PendingInvitationStore>().clear(),
       ),
       permanent: true,
@@ -199,6 +212,8 @@ class GuardianWidgetTestHarness {
     scope.put<AppRouter>(
       () => AppRouter(
         session: scope.find<AppSessionController>(),
+        academicYear: scope.find<AcademicYearController>(),
+        studentContext: scope.find<StudentContextController>(),
         routerRefresh: scope.find<EdayaRouterRefresh>(),
         pendingInvitation: scope.find<PendingInvitationStore>(),
       ),

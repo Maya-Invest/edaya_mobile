@@ -28,20 +28,26 @@ import '../features/inbox/message_details_dialog.dart';
 import '../features/invite/invitation_page.dart';
 import '../features/my_students/my_students_sheet.dart';
 
+import '../features/waiting/waiting_for_students_page.dart';
+
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 final shellNavigatorKey = GlobalKey<NavigatorState>();
 
 class AppRouter extends LevitController implements EdayaAppRouter {
   AppRouter({
     required AppSessionController session,
+    required AcademicYearController academicYear,
+    required StudentContextController studentContext,
     required EdayaRouterRefresh routerRefresh,
     required PendingInvitationStore pendingInvitation,
   }) : _session = session,
+       _academicYear = academicYear,
+       _studentContext = studentContext,
        _routerRefresh = routerRefresh,
        _pendingInvitation = pendingInvitation {
     router = GoRouter(
       navigatorKey: rootNavigatorKey,
-      initialLocation: '/login',
+      initialLocation: guardianLoginRoute,
       refreshListenable: _routerRefresh,
       redirect: (context, state) {
         final incoming = parseInvitationDeepLink(state.uri);
@@ -57,11 +63,14 @@ class AppRouter extends LevitController implements EdayaAppRouter {
           isAuthenticated: _session.isAuthenticated,
           matchedLocation: state.matchedLocation,
           pendingInvitationToken: _pendingInvitation.token,
+          hasSchoolSession: _session.hasSchoolSession,
+          linkedStudentsResolved: _studentContext.linkedStudentsResolved.value,
+          hasLinkedStudents: _studentContext.hasLinkedStudents,
         );
       },
       routes: [
         GoRoute(
-          path: '/login',
+          path: guardianLoginRoute,
           builder: (context, state) => LoginPage(
             appTitle: context.tr.appTitleGuardian,
             subtitle: context.tr.loginSubtitleGuardianDev,
@@ -74,10 +83,7 @@ class AppRouter extends LevitController implements EdayaAppRouter {
                 AppRouter.find.router.go(invitationRoutePath(pending));
                 return;
               }
-              await EdayaRootScope.find<AcademicYearController>().loadYears();
-              await EdayaRootScope.find<StudentContextController>()
-                  .initializeFromSession();
-              AppRouter.find.router.go('/calendar');
+              await completePostAuthNavigation();
             },
           ),
         ),
@@ -85,14 +91,19 @@ class AppRouter extends LevitController implements EdayaAppRouter {
           path: '/invite/:token',
           builder: (context, state) => InvitationPage(
             token: state.pathParameters['token'] ?? '',
-            onAccepted: () async {
-              await EdayaRootScope.find<AcademicYearController>().loadYears();
-              await EdayaRootScope.find<StudentContextController>()
-                  .initializeFromSession();
-              AppRouter.find.router.go('/calendar');
-            },
+            onAccepted: completePostAuthNavigation,
             onContinueToLogin: () async {
-              AppRouter.find.router.go('/login');
+              AppRouter.find.router.go(guardianLoginRoute);
+            },
+          ),
+        ),
+        GoRoute(
+          parentNavigatorKey: rootNavigatorKey,
+          path: guardianWaitingRoute,
+          builder: (context, state) => WaitingForStudentsPage(
+            onCheckAgain: () async {
+              await _session.refreshGrants();
+              await completePostAuthNavigation();
             },
           ),
         ),
@@ -285,12 +296,33 @@ class AppRouter extends LevitController implements EdayaAppRouter {
   }
 
   final AppSessionController _session;
+  final AcademicYearController _academicYear;
+  final StudentContextController _studentContext;
   final EdayaRouterRefresh _routerRefresh;
   final PendingInvitationStore _pendingInvitation;
 
   static AppRouter get find => EdayaRootScope.find<AppRouter>();
 
   late final GoRouter router;
+
+  Future<void> hydrateSessionContext() async {
+    if (_session.hasSchoolSession) {
+      await _academicYear.loadYears();
+      await _studentContext.initializeFromSession();
+      return;
+    }
+    _studentContext.markNoLinkedStudents();
+  }
+
+  Future<void> completePostAuthNavigation() async {
+    await hydrateSessionContext();
+    router.go(
+      resolveGuardianPostAuthHome(
+        hasSchoolSession: _session.hasSchoolSession,
+        hasLinkedStudents: _studentContext.hasLinkedStudents,
+      ),
+    );
+  }
 
   @override
   RouterConfig<Object> config() => router;

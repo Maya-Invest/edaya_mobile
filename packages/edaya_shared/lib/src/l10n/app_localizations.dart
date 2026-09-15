@@ -575,20 +575,44 @@ abstract class AppLocalizations {
   /// No description provided for @signedInNoGuardianProfile.
   ///
   /// In en, this message translates to:
-  /// **'Signed in, but no linked guardian/staff profile. Run: bun seed --scope auth:link'**
+  /// **'This account isn\'t linked to a guardian profile yet. Ask the school to add you.'**
   String get signedInNoGuardianProfile;
 
   /// No description provided for @signedInNoStaffProfile.
   ///
   /// In en, this message translates to:
-  /// **'Signed in, but no linked staff profile. Run: bun seed --scope auth:link'**
+  /// **'This account isn\'t linked to a staff profile yet. Ask the school to add you.'**
   String get signedInNoStaffProfile;
 
   /// No description provided for @signedInNoTeacherProfile.
   ///
   /// In en, this message translates to:
-  /// **'Signed in, but no linked teacher profile. Run: bun seed --scope auth:link'**
+  /// **'This account isn\'t linked to a teacher profile yet. Ask the school to add you.'**
   String get signedInNoTeacherProfile;
+
+  /// No description provided for @waitingForStudentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re signed in'**
+  String get waitingForStudentsTitle;
+
+  /// No description provided for @waitingForStudentsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is ready. When the school links you to a child, their timetable, grades, and messages will appear here.'**
+  String get waitingForStudentsBody;
+
+  /// No description provided for @waitingForStudentsCheckAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get waitingForStudentsCheckAgain;
+
+  /// No description provided for @noChildrenLinkedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No children are linked to your account yet.'**
+  String get noChildrenLinkedYet;
 
   /// No description provided for @accountNotLinkedToStaff.
   ///

@@ -39,7 +39,8 @@ class InvitationPreview {
   bool get isPending => status == 'pending';
 }
 
-class InvitationController extends LevitController with LevitReactiveTasksMixin {
+class InvitationController extends LevitController
+    with LevitReactiveTasksMixin {
   InvitationController({
     required this.token,
     required AppSessionController session,
@@ -140,12 +141,9 @@ class InvitationController extends LevitController with LevitReactiveTasksMixin 
 
   Future<void> dismiss() async {
     await _pendingInvitation.clear();
-    if (_session.hasSchoolSession) {
+    if (_session.isAuthenticated) {
       await _onAccepted();
       return;
-    }
-    if (_session.isAuthenticated) {
-      await _session.signOut();
     }
     await _onContinueToLogin();
   }

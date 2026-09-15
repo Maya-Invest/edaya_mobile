@@ -47,14 +47,14 @@ Fonts and license files are registered in the shared package. Poppins is a headi
 
 | Application | Keep | Refine |
 |---|---|---|
-| Guardian | Calendar, Academic, Evaluations, Fees, Inbox; student/year switches; existing details | Student identity wrapping; year selector on its own header row; lesson/event hierarchy; readable fees and score summaries; inbox title/body scanning |
+| Guardian | Login, waiting when no child is linked, Calendar, Academic, Evaluations, Fees, Inbox; student/year switches; existing details | Student identity wrapping; year selector on its own header row; lesson/event hierarchy; readable fees and score summaries; inbox title/body scanning |
 | Teacher | Calendar, Evaluations, Teaching, Report Cards; filters; attendance gestures; marks/logbook/report editors | Class/session context; neutral student names with semantic attendance labels; readable roster actions and fields; distinct locked/disabled state; sheet hierarchy |
 
 Keep bottom navigation on both phone and tablet, with all existing destination labels/icons. Operational headers prioritize active student, class, session and year. Context headers accommodate enlargement; do not introduce a dashboard, Home tab, navigation rail, master/detail route or alternative detail flow from an old proposal. Constrain tablet operational content to 1120 logical pixels and modal sheets to 840 while retaining the same routes and dismissal behavior. Forms stay scrollable above the keyboard.
 
 Shared Material primitives provide 48px filled/outlined actions, visible input boundaries, 16px cards, 24px sheets/dialogs, semantic segmented selection and labeled navigation. Reuse `DataState`, `PersonAvatar`, `AccountSheetBody`, `ModalBottomSheetPage` and the existing feature widgets. Use Inter for numeric summaries and amounts. Keep all attendance states and gestures; use text/icon in addition to color, and do not color a student's entire identity row as an error. Locked marks keep their original disabled condition and explanatory text.
 
-Login retains its current fields, callbacks, developer settings and success route. Use the vertical supplied logo and clear heading hierarchy, with a scrollable form. No new authentication/recovery methods are authorized by this specification.
+Login retains its current fields, callbacks and developer settings. After sign-in, guardians with linked children open Calendar; guardians with a verified account but no linked child open the waiting screen (vertical logo, friendly copy, check-again and sign-out). Use the vertical supplied logo and clear heading hierarchy, with a scrollable form. No new authentication/recovery methods are authorized by this specification.
 
 ## Launcher and launch assets
 

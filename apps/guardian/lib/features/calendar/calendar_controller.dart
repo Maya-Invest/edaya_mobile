@@ -94,6 +94,10 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
   String get emptyMessage {
     final l10n = systemL10n();
     if (_studentContext.activeStudent.value == null) {
+      if (_studentContext.linkedStudentsResolved.value &&
+          !_studentContext.hasLinkedStudents) {
+        return l10n.noChildrenLinkedYet;
+      }
       return l10n.selectStudentToViewCalendar;
     }
     if (!_studentContext.isEnrolled.value) {

@@ -10,7 +10,9 @@ void main() {
     expect(link?.token, 'abc123');
     expect(
       parseInvitationDeepLink(
-        Uri.parse('https://staging.app.school.edayaplus.com/invite/legacy-token'),
+        Uri.parse(
+          'https://staging.app.school.edayaplus.com/invite/legacy-token',
+        ),
       )?.token,
       'legacy-token',
     );
@@ -33,9 +35,7 @@ void main() {
 
   test('parseInvitationDeepLink rejects unknown hosts', () {
     expect(
-      parseInvitationDeepLink(
-        Uri.parse('https://evil.example/invite/abc123'),
-      ),
+      parseInvitationDeepLink(Uri.parse('https://evil.example/invite/abc123')),
       isNull,
     );
   });
@@ -94,15 +94,102 @@ void main() {
       ),
       '/invite/abc',
     );
+  });
+
+  test('resolveGuardianAuthRedirect sends unlinked accounts to waiting', () {
     expect(
       resolveGuardianAuthRedirect(
         isAuthenticated: true,
         matchedLocation: '/login',
         pendingInvitationToken: null,
       ),
-      '/calendar',
+      '/waiting',
+    );
+    expect(
+      resolveGuardianAuthRedirect(
+        isAuthenticated: true,
+        matchedLocation: '/calendar',
+        pendingInvitationToken: null,
+      ),
+      '/waiting',
     );
   });
+
+  test(
+    'resolveGuardianAuthRedirect keeps login until linked students resolve',
+    () {
+      expect(
+        resolveGuardianAuthRedirect(
+          isAuthenticated: true,
+          matchedLocation: '/login',
+          pendingInvitationToken: null,
+          hasSchoolSession: true,
+        ),
+        isNull,
+      );
+    },
+  );
+
+  test(
+    'resolveGuardianAuthRedirect opens calendar when children are linked',
+    () {
+      expect(
+        resolveGuardianAuthRedirect(
+          isAuthenticated: true,
+          matchedLocation: '/login',
+          pendingInvitationToken: null,
+          hasSchoolSession: true,
+          linkedStudentsResolved: true,
+          hasLinkedStudents: true,
+        ),
+        '/calendar',
+      );
+      expect(
+        resolveGuardianAuthRedirect(
+          isAuthenticated: true,
+          matchedLocation: '/waiting',
+          pendingInvitationToken: null,
+          hasSchoolSession: true,
+          linkedStudentsResolved: true,
+          hasLinkedStudents: true,
+        ),
+        '/calendar',
+      );
+    },
+  );
+
+  test(
+    'resolveGuardianAuthRedirect keeps waiting when no children are linked',
+    () {
+      expect(
+        resolveGuardianAuthRedirect(
+          isAuthenticated: true,
+          matchedLocation: '/waiting',
+          pendingInvitationToken: null,
+          hasSchoolSession: true,
+          linkedStudentsResolved: true,
+        ),
+        isNull,
+      );
+      expect(
+        resolveGuardianAuthRedirect(
+          isAuthenticated: true,
+          matchedLocation: '/settings',
+          pendingInvitationToken: null,
+          hasSchoolSession: true,
+          linkedStudentsResolved: true,
+        ),
+        isNull,
+      );
+      expect(
+        resolveGuardianPostAuthHome(
+          hasSchoolSession: true,
+          hasLinkedStudents: false,
+        ),
+        '/waiting',
+      );
+    },
+  );
 
   test('PendingInvitationStore round-trips a token until cleared', () async {
     SharedPreferences.setMockInitialValues({});

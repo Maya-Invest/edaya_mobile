@@ -31,10 +31,14 @@ class StudentContextController extends LevitController
   final isEnrolled = LxVar(false);
   final isLoading = LxVar(false);
   final errorMessage = LxVar('');
+  final linkedStudentIds = LxVar<List<String>>(const []);
+  final linkedStudentsResolved = LxVar(false);
 
   Future<void>? _pendingReload;
 
   String? get activeStudentId => activeStudent.value?.id;
+
+  bool get hasLinkedStudents => linkedStudentIds.value.isNotEmpty;
 
   @override
   void onInit() {
@@ -45,6 +49,8 @@ class StudentContextController extends LevitController
     autoDispose(isEnrolled);
     autoDispose(isLoading);
     autoDispose(errorMessage);
+    autoDispose(linkedStudentIds);
+    autoDispose(linkedStudentsResolved);
 
     autoDispose(
       _academicYear.selectedYearId.stream.listen((_) {
@@ -54,37 +60,49 @@ class StudentContextController extends LevitController
     autoDispose(
       _session.grants.stream.listen((grants) {
         if (grants == null || grants.kind != 'guardian') {
-          _clearContext();
+          markNoLinkedStudents();
         }
       }),
     );
   }
 
-  Future<void> initializeFromSession() async {
+  void markNoLinkedStudents() {
+    linkedStudentIds(const []);
+    linkedStudentsResolved(true);
+    _clearContext();
+  }
+
+  Future<bool> initializeFromSession() async {
     if (!_session.isAuthenticated) {
-      return;
+      markNoLinkedStudents();
+      return false;
     }
 
     final grants = _session.grants.value;
     if (grants == null || grants.kind != 'guardian') {
-      return;
+      markNoLinkedStudents();
+      return false;
     }
 
     final scopedStudentIds = await loadGuardianLinkedStudentIds(
       _schoolClient(),
       grants.actorId,
     );
+    linkedStudentIds(scopedStudentIds);
+    linkedStudentsResolved(true);
     if (scopedStudentIds.isEmpty) {
-      return;
+      _clearContext();
+      return false;
     }
 
     final persistedId = await _sessionStorage.readActiveStudentId();
     if (persistedId != null && scopedStudentIds.contains(persistedId)) {
       await selectStudent(persistedId);
-      return;
+      return true;
     }
 
     await selectStudent(scopedStudentIds.first);
+    return true;
   }
 
   Future<void> selectStudent(String studentId) async {

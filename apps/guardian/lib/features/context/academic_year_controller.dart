@@ -46,7 +46,7 @@ class AcademicYearController extends LevitController
   }
 
   Future<void> loadYears() async {
-    if (!_session.isAuthenticated) {
+    if (!_session.isAuthenticated || !_session.hasSchoolSession) {
       years(const []);
       selectedYearId(null);
       return;

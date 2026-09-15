@@ -282,15 +282,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signedInNoGuardianProfile =>
-      'Signed in, but no linked guardian/staff profile. Run: bun seed --scope auth:link';
+      'This account isn\'t linked to a guardian profile yet. Ask the school to add you.';
 
   @override
   String get signedInNoStaffProfile =>
-      'Signed in, but no linked staff profile. Run: bun seed --scope auth:link';
+      'This account isn\'t linked to a staff profile yet. Ask the school to add you.';
 
   @override
   String get signedInNoTeacherProfile =>
-      'Signed in, but no linked teacher profile. Run: bun seed --scope auth:link';
+      'This account isn\'t linked to a teacher profile yet. Ask the school to add you.';
+
+  @override
+  String get waitingForStudentsTitle => 'You\'re signed in';
+
+  @override
+  String get waitingForStudentsBody =>
+      'Your account is ready. When the school links you to a child, their timetable, grades, and messages will appear here.';
+
+  @override
+  String get waitingForStudentsCheckAgain => 'Check again';
+
+  @override
+  String get noChildrenLinkedYet =>
+      'No children are linked to your account yet.';
 
   @override
   String get accountNotLinkedToStaff =>

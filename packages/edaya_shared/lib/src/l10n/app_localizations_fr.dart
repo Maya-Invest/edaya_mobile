@@ -287,15 +287,29 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get signedInNoGuardianProfile =>
-      'Connecté, mais aucun profil tuteur/personnel lié. Exécutez : bun seed --scope auth:link';
+      'Ce compte n\'est pas encore lié à un profil tuteur. Demandez à l\'école de vous ajouter.';
 
   @override
   String get signedInNoStaffProfile =>
-      'Connecté, mais aucun profil personnel lié. Exécutez : bun seed --scope auth:link';
+      'Ce compte n\'est pas encore lié à un profil personnel. Demandez à l\'école de vous ajouter.';
 
   @override
   String get signedInNoTeacherProfile =>
-      'Connecté, mais aucun profil enseignant lié. Exécutez : bun seed --scope auth:link';
+      'Ce compte n\'est pas encore lié à un profil enseignant. Demandez à l\'école de vous ajouter.';
+
+  @override
+  String get waitingForStudentsTitle => 'Vous êtes connecté';
+
+  @override
+  String get waitingForStudentsBody =>
+      'Votre compte est prêt. Lorsque l\'école vous liera à un enfant, son emploi du temps, ses notes et ses messages apparaîtront ici.';
+
+  @override
+  String get waitingForStudentsCheckAgain => 'Vérifier à nouveau';
+
+  @override
+  String get noChildrenLinkedYet =>
+      'Aucun enfant n\'est encore lié à votre compte.';
 
   @override
   String get accountNotLinkedToStaff =>

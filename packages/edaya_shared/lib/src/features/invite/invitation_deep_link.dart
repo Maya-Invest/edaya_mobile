@@ -33,15 +33,48 @@ InvitationDeepLink? parseInvitationDeepLink(Uri uri) {
 
 String invitationRoutePath(String token) => '/invite/$token';
 
+const guardianLoginRoute = '/login';
+const guardianHomeRoute = '/calendar';
+const guardianWaitingRoute = '/waiting';
+
+bool guardianHasLinkedChildren({
+  required bool hasSchoolSession,
+  required bool hasLinkedStudents,
+}) {
+  return hasSchoolSession && hasLinkedStudents;
+}
+
+String resolveGuardianPostAuthHome({
+  required bool hasSchoolSession,
+  required bool hasLinkedStudents,
+}) {
+  return guardianHasLinkedChildren(
+        hasSchoolSession: hasSchoolSession,
+        hasLinkedStudents: hasLinkedStudents,
+      )
+      ? guardianHomeRoute
+      : guardianWaitingRoute;
+}
+
+bool _isGuardianIdentityOnlyRoute(String matchedLocation) {
+  return matchedLocation == guardianWaitingRoute ||
+      matchedLocation == '/settings' ||
+      matchedLocation == '/account' ||
+      matchedLocation.startsWith('/account/');
+}
+
 /// Synchronous guardian auth redirect. Persist incoming invite tokens before
 /// calling this so a login bounce cannot drop the URI.
 String? resolveGuardianAuthRedirect({
   required bool isAuthenticated,
   required String matchedLocation,
   required String? pendingInvitationToken,
+  bool hasSchoolSession = false,
+  bool linkedStudentsResolved = false,
+  bool hasLinkedStudents = false,
 }) {
   final isInviteRoute = matchedLocation.startsWith('/invite');
-  final isLoginRoute = matchedLocation == '/login';
+  final isLoginRoute = matchedLocation == guardianLoginRoute;
 
   if (!isAuthenticated) {
     if (isInviteRoute || isLoginRoute) {
@@ -50,7 +83,7 @@ String? resolveGuardianAuthRedirect({
     if (pendingInvitationToken != null && pendingInvitationToken.isNotEmpty) {
       return invitationRoutePath(pendingInvitationToken);
     }
-    return '/login';
+    return guardianLoginRoute;
   }
 
   if (pendingInvitationToken != null &&
@@ -59,8 +92,32 @@ String? resolveGuardianAuthRedirect({
     return invitationRoutePath(pendingInvitationToken);
   }
 
+  final readyForHome = guardianHasLinkedChildren(
+    hasSchoolSession: hasSchoolSession,
+    hasLinkedStudents: hasLinkedStudents,
+  );
+  final waitingForChildren =
+      !readyForHome && (linkedStudentsResolved || !hasSchoolSession);
+
   if (isLoginRoute) {
-    return '/calendar';
+    if (!linkedStudentsResolved && hasSchoolSession) {
+      return null;
+    }
+    return resolveGuardianPostAuthHome(
+      hasSchoolSession: hasSchoolSession,
+      hasLinkedStudents: hasLinkedStudents,
+    );
   }
+
+  if (waitingForChildren &&
+      !isInviteRoute &&
+      !_isGuardianIdentityOnlyRoute(matchedLocation)) {
+    return guardianWaitingRoute;
+  }
+
+  if (readyForHome && matchedLocation == guardianWaitingRoute) {
+    return guardianHomeRoute;
+  }
+
   return null;
 }
