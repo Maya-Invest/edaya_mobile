@@ -12,9 +12,4 @@ abstract final class ApiConfig {
     'DEV_TEACHER_EMAIL',
     defaultValue: 'a.toure@ecole-ci.edaya.dev',
   );
-
-  static const devPassword = String.fromEnvironment(
-    'DEV_PASSWORD',
-    defaultValue: 'DevPassword1!',
-  );
 }

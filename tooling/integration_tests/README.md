@@ -37,10 +37,11 @@ Optional env overrides:
 
 ```bash
 EDAYA_GUARDIAN_EMAIL=m.kone@mail.ci \
-EDAYA_GUARDIAN_PASSWORD=DevPassword1! \
 EDAYA_ACADEMIC_YEAR_ID=2025-ci \
 melos run test:integration
 ```
+
+Identity must have `AUTH_DEV_OTP_PEEK=true` so tests can read the emailed code.
 
 ## What these tests do not cover
 

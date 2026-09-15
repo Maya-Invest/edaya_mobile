@@ -19,17 +19,17 @@ class AuthError {
 /// Maps low-level API/runtime failures to user-facing sign-in messages.
 String normalizeAuthErrorMessage(String message) {
   final trimmed = message.trim();
-  final lower = trimmed.toLowerCase();
+  final lower = trimmed.toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ');
 
   if (trimmed.contains('Aborted()') || trimmed.contains('ASSERTIONS')) {
     return 'Sign-in failed. For local dev, run `bun repo seed` in edaya_backend.';
   }
 
-  if (lower.contains('user not found') ||
-      lower.contains('invalid email') ||
-      lower.contains('invalid password') ||
+  if (lower.contains('invalid otp') ||
+      lower.contains('invalid code') ||
+      lower.contains('otp expired') ||
       lower.contains('invalid credentials')) {
-    return 'Invalid email or password.';
+    return 'Invalid or expired verification code.';
   }
 
   return trimmed.isEmpty ? 'Authentication failed' : trimmed;

@@ -11,7 +11,7 @@ Normative for the current Guardian and Teacher apps. Extend these components bef
 | DataState | shared `lib/src/common/widgets/` | Existing ready/loading/empty/error signals and retry callback |
 | AccountSheetBody / AccountProfileHeader | shared common/account widgets | Existing account/profile actions and semantics |
 | ModalBottomSheetPage | shared `lib/src/common/models/` | Existing modal navigation, safe area and dismissal behavior |
-| LoginPage | shared `lib/src/features/auth/` | Same fields/controller/callbacks; logo and form hierarchy only |
+| LoginPage | shared `lib/src/features/auth/` | Email OTP only (email → code); logo and form hierarchy; existing session callbacks |
 | GuardianAppBar / TeacherAppBar | app `features/app_shell/widgets/` | Student/class/year context before decoration; current actions retained |
 | SessionTile / TeacherSessionTile | app calendar widgets | Current title, subject, class, kind and time; same detail navigation |
 | FeesSummaryCard / GradeSummaryCards | Guardian feature widgets | All totals and labels retained; responsive numeric presentation |

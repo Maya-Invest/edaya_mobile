@@ -107,9 +107,8 @@ melos run verify
 
 Better Auth client for mobile sign-in flows:
 
-- email + password sign-in
-- email OTP sign-in
-- sign-up and sign-out
+- email OTP send + native sign-in (`/edaya/native/sign-in/email-otp`)
+- sign-out
 - in-memory cookie jar for identity cookies
 - origin-keyed API access tokens (`getAccessToken(resource:)` / `invalidateAccessToken`)
 
@@ -131,7 +130,8 @@ await ApiBaseUrlConfig.load();
 registerEdayaDependencies(scope, cookieJar: cookieJar);
 
 final authClient = scope.find<AuthClient>();
-await authClient.signInWithEmail(email: 'parent@school.edu', password: 'secret');
+await authClient.sendEmailOtp(email: 'parent@school.edu');
+await authClient.signInWithEmailOtp(email: 'parent@school.edu', otp: code);
 
 final schoolClient = createEdayaSchoolClient(
   authClient,
@@ -175,13 +175,12 @@ The login and account screens expose **Developer settings** in all build modes (
 
 ### Dev credentials
 
-Optional `--dart-define` values pre-fill the login form:
+Optional `--dart-define` values pre-fill the login email. Sign-in uses an emailed OTP (local Identity logs the code, or `GET /auth/edaya/dev/last-otp` when `AUTH_DEV_OTP_PEEK=true`).
 
 | App | Email define | Default |
 |-----|--------------|---------|
 | Guardian | `DEV_GUARDIAN_EMAIL` | `m.kone@mail.ci` |
-| Teacher | `DEV_STAFF_EMAIL` | `a.toure@ecole-ci.edaya.dev` |
-| Both | `DEV_PASSWORD` | `DevPassword1!` |
+| Teacher | `DEV_TEACHER_EMAIL` | `a.toure@ecole-ci.edaya.dev` |
 
 ### Run an app
 
@@ -219,7 +218,7 @@ Shared integration tests live in `tooling/integration_tests`. They use `edaya_au
 
 **PR CI** starts empty Identity (`:9900`) and school (`:9999`) from sibling checkouts, then runs `bun repo seed --skip-profile-photos --skip-attachments` (full demo-ci). Git refs follow the mobile head branch: `staging` → `@staging`, `main`/`master` → `@main`, anything else → `@dev`. The job needs repo secret `IDENTITY_CHECKOUT_TOKEN` (`contents:read` on `edaya_identity` and `edaya_backend`). Identity must have `dev`, `staging`, and `main` branches.
 
-Local `melos run test:integration` is unchanged: start Identity + school yourself and seed before running tests.
+Local `melos run test:integration` is unchanged: start Identity + school yourself and seed before running tests. Local Identity needs `AUTH_DEV_OTP_PEEK=true` so the harness can read the emailed sign-in code.
 
 ```bash
 # With local API on :9999 and demo teacher seeded
@@ -236,7 +235,6 @@ Environment variables:
 | `EDAYA_AUTH_URL` | `AUTH_URL` | `http://localhost:9900` |
 | `EDAYA_API_URL` | `BASE_URL` | `http://localhost:9999` |
 | `EDAYA_TEACHER_EMAIL` | `TEACHER_EMAIL` | `a.toure@ecole-ci.edaya.dev` |
-| `EDAYA_TEACHER_PASSWORD` | `TEACHER_PASSWORD` | `DevPassword1!` |
 | `EDAYA_ACADEMIC_YEAR_ID` | `ACADEMIC_YEAR_ID` | `2025-ci` |
 | `EDAYA_CLASS_GROUP_ID` | `CLASS_GROUP_ID` | `ci-6a` |
 

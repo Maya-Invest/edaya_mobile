@@ -11,7 +11,7 @@ These captures render current production pages/components with deterministic, fi
 | Login | Current shared login fields and callbacks, supplied vertical artwork, local Inter/Poppins, clear heading hierarchy. |
 | Dark mode | Existing light/dark/system preferences remain; navy surfaces, readable sky actions, separate semantic colors. |
 | Large text | 200% text, long names and large values. Scrollable content and wrapped metrics retain information. Standard navigation labels wrap. |
-| Keyboard inset | Login with a simulated 320px keyboard inset; password focus and submit visibility are checked. The OS keyboard itself is not rendered by widget tests. |
+| Keyboard inset | Login with a simulated 320px keyboard inset; email/code field focus and submit visibility are checked. The OS keyboard itself is not rendered by widget tests. |
 
 ## Refreshing evidence
 

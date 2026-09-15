@@ -75,8 +75,6 @@ class AppRouter extends LevitController implements EdayaAppRouter {
             appTitle: context.tr.appTitleGuardian,
             subtitle: context.tr.loginSubtitleGuardianDev,
             defaultEmail: ApiConfig.devGuardianEmail,
-            defaultPassword: ApiConfig.devPassword,
-            enableSignUp: true,
             onSignInSuccess: () async {
               final pending = _pendingInvitation.token;
               if (pending != null) {

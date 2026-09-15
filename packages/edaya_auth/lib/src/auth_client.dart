@@ -179,18 +179,6 @@ class AuthClient {
     }
   }
 
-  Future<AuthResult<AuthUser>> signInWithEmail({
-    required String email,
-    required String password,
-  }) {
-    return _postAuthUser(
-      edayaHttpUsesBrowserCredentials
-          ? '/sign-in/email'
-          : '/edaya/native/sign-in/email',
-      {'email': email, 'password': password},
-    );
-  }
-
   Future<AuthResult<void>> sendEmailOtp({
     required String email,
     String type = 'sign-in',
@@ -214,17 +202,27 @@ class AuthClient {
     );
   }
 
-  Future<AuthResult<AuthUser>> signUpWithEmail({
-    required String email,
-    required String password,
-    required String name,
-  }) {
-    return _postAuthUser(
-      edayaHttpUsesBrowserCredentials
-          ? '/sign-up/email'
-          : '/edaya/native/sign-up/email',
-      {'email': email, 'password': password, 'name': name},
-    );
+  /// Local/test helper. Identity only serves this when `AUTH_DEV_OTP_PEEK=true`.
+  Future<AuthResult<String>> peekDevLastOtp({required String email}) async {
+    try {
+      final encoded = Uri.encodeQueryComponent(email.trim());
+      final response = await _send('GET', '/edaya/dev/last-otp?email=$encoded');
+      final body = _decodeBody(response);
+      if (response.statusCode >= 400) {
+        return AuthResult.failure(_readError(body));
+      }
+      if (body is Map && body['otp'] is String) {
+        final otp = (body['otp'] as String).trim();
+        if (otp.isNotEmpty) {
+          return AuthResult.success(otp);
+        }
+      }
+      return const AuthResult.failure(
+        AuthError(message: 'No OTP recorded for this email'),
+      );
+    } on http.ClientException catch (error) {
+      return AuthResult.failure(_networkError(error));
+    }
   }
 
   Future<AuthResult<void>> signOut() async {
@@ -256,15 +254,11 @@ class AuthClient {
       }
 
       clearCredentials();
-      if (!edayaHttpUsesBrowserCredentials &&
-          (path.contains('/sign-in/') || path.contains('/sign-up/'))) {
+      if (!edayaHttpUsesBrowserCredentials && path.contains('/sign-in/')) {
         final data = Map<String, dynamic>.from(body as Map);
         final credential = data['renewalCredential'];
         if (credential is String && credential.contains('.')) {
           restoreRenewalCredential(credential);
-        } else if (path.contains('/sign-up/') &&
-            data['requiresEmailVerification'] == true) {
-          // Sign-up created the account; verification continues with OTP.
         } else {
           return const AuthResult.failure(
             AuthError(message: 'Login did not return a renewal credential'),

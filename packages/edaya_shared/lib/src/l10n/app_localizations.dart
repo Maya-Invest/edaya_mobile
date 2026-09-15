@@ -212,23 +212,17 @@ abstract class AppLocalizations {
   /// **'Sign in'**
   String get signInTitle;
 
-  /// No description provided for @signInButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign in'**
-  String get signInButton;
-
   /// No description provided for @emailLabel.
   ///
   /// In en, this message translates to:
   /// **'Email'**
   String get emailLabel;
 
-  /// No description provided for @passwordLabel.
+  /// No description provided for @emailRequired.
   ///
   /// In en, this message translates to:
-  /// **'Password'**
-  String get passwordLabel;
+  /// **'Enter your email.'**
+  String get emailRequired;
 
   /// No description provided for @signInFailed.
   ///
@@ -236,29 +230,17 @@ abstract class AppLocalizations {
   /// **'Sign-in failed'**
   String get signInFailed;
 
-  /// No description provided for @createAccountTitle.
+  /// No description provided for @sendCodeButton.
   ///
   /// In en, this message translates to:
-  /// **'Create account'**
-  String get createAccountTitle;
+  /// **'Send code'**
+  String get sendCodeButton;
 
-  /// No description provided for @createAccountButton.
+  /// No description provided for @otpSendFailed.
   ///
   /// In en, this message translates to:
-  /// **'Create account'**
-  String get createAccountButton;
-
-  /// No description provided for @fullNameLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Full name'**
-  String get fullNameLabel;
-
-  /// No description provided for @fullNameRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter your name.'**
-  String get fullNameRequired;
+  /// **'Could not send a verification code.'**
+  String get otpSendFailed;
 
   /// No description provided for @verifyEmailTitle.
   ///
@@ -284,23 +266,11 @@ abstract class AppLocalizations {
   /// **'Resend code'**
   String get resendCodeButton;
 
-  /// No description provided for @haveAccountSignIn.
+  /// No description provided for @useDifferentEmail.
   ///
   /// In en, this message translates to:
-  /// **'Already have an account? Sign in'**
-  String get haveAccountSignIn;
-
-  /// No description provided for @needAccountSignUp.
-  ///
-  /// In en, this message translates to:
-  /// **'Create an account'**
-  String get needAccountSignUp;
-
-  /// No description provided for @signUpFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign-up failed'**
-  String get signUpFailed;
+  /// **'Use a different email'**
+  String get useDifferentEmail;
 
   /// No description provided for @verificationCodeSent.
   ///
@@ -521,13 +491,13 @@ abstract class AppLocalizations {
   /// No description provided for @loginSubtitleGuardianDev.
   ///
   /// In en, this message translates to:
-  /// **'Use dev guardian credentials to test against the local API.'**
+  /// **'We\'ll email you a sign-in code.'**
   String get loginSubtitleGuardianDev;
 
   /// No description provided for @loginSubtitleStaffDev.
   ///
   /// In en, this message translates to:
-  /// **'Use dev staff credentials to test against the local API.'**
+  /// **'We\'ll email you a sign-in code.'**
   String get loginSubtitleStaffDev;
 
   /// No description provided for @missingSessionDetailsRouteData.

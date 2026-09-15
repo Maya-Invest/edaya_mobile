@@ -7,15 +7,15 @@ import 'package:http/testing.dart';
 
 void main() {
   test(
-    'signInWithEmail stores signed renewal credentials and returns user',
+    'signInWithEmailOtp stores signed renewal credentials and returns user',
     () async {
       final client = AuthClient(
         baseUrl: 'http://localhost:9999',
         client: MockClient((request) async {
-          expect(request.url.path, '/auth/edaya/native/sign-in/email');
+          expect(request.url.path, '/auth/edaya/native/sign-in/email-otp');
           expect(jsonDecode(request.body), {
             'email': 'teacher@school.edu',
-            'password': 'secret',
+            'otp': '246810',
           });
 
           return http.Response(
@@ -36,9 +36,9 @@ void main() {
         }),
       );
 
-      final result = await client.signInWithEmail(
+      final result = await client.signInWithEmailOtp(
         email: 'teacher@school.edu',
-        password: 'secret',
+        otp: '246810',
       );
 
       expect(result.isSuccess, isTrue);
@@ -48,76 +48,21 @@ void main() {
     },
   );
 
-  test(
-    'signUpWithEmail stores renewal credentials from the native sign-up endpoint',
-    () async {
-      final client = AuthClient(
-        baseUrl: 'http://localhost:9999',
-        client: MockClient((request) async {
-          expect(request.url.path, '/auth/edaya/native/sign-up/email');
-          expect(jsonDecode(request.body), {
-            'email': 'parent@school.edu',
-            'password': 'secret',
-            'name': 'Parent',
-          });
+  test('peekDevLastOtp reads the local Identity peek endpoint', () async {
+    final client = AuthClient(
+      baseUrl: 'http://localhost:9999',
+      client: MockClient((request) async {
+        expect(request.method, 'GET');
+        expect(request.url.path, '/auth/edaya/dev/last-otp');
+        expect(request.url.queryParameters['email'], 'parent@school.edu');
+        return http.Response(jsonEncode({'otp': '246810'}), 200);
+      }),
+    );
 
-          return http.Response(
-            jsonEncode({
-              'renewalCredential': 'signed.signup-proof',
-              'user': {
-                'id': 'user-2',
-                'email': 'parent@school.edu',
-                'name': 'Parent',
-              },
-            }),
-            200,
-          );
-        }),
-      );
-
-      final result = await client.signUpWithEmail(
-        email: 'parent@school.edu',
-        password: 'secret',
-        name: 'Parent',
-      );
-
-      expect(result.isSuccess, isTrue);
-      expect(result.data?.email, 'parent@school.edu');
-      expect(client.renewalCredential, 'signed.signup-proof');
-    },
-  );
-
-  test(
-    'signUpWithEmail succeeds without a credential when email verification is required',
-    () async {
-      final client = AuthClient(
-        baseUrl: 'http://localhost:9999',
-        client: MockClient((request) async {
-          return http.Response(
-            jsonEncode({
-              'requiresEmailVerification': true,
-              'user': {
-                'id': 'user-3',
-                'email': 'new@school.edu',
-                'name': 'New Parent',
-              },
-            }),
-            200,
-          );
-        }),
-      );
-
-      final result = await client.signUpWithEmail(
-        email: 'new@school.edu',
-        password: 'secret',
-        name: 'New Parent',
-      );
-
-      expect(result.isSuccess, isTrue);
-      expect(result.data?.email, 'new@school.edu');
-      expect(client.renewalCredential, isNull);
-    },
-  );
+    final result = await client.peekDevLastOtp(email: 'parent@school.edu');
+    expect(result.isSuccess, isTrue);
+    expect(result.data, '246810');
+  });
 
   test('getSession returns null when unauthenticated', () async {
     final client = AuthClient(

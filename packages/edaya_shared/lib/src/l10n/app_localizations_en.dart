@@ -74,28 +74,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInTitle => 'Sign in';
 
   @override
-  String get signInButton => 'Sign in';
-
-  @override
   String get emailLabel => 'Email';
 
   @override
-  String get passwordLabel => 'Password';
+  String get emailRequired => 'Enter your email.';
 
   @override
   String get signInFailed => 'Sign-in failed';
 
   @override
-  String get createAccountTitle => 'Create account';
+  String get sendCodeButton => 'Send code';
 
   @override
-  String get createAccountButton => 'Create account';
-
-  @override
-  String get fullNameLabel => 'Full name';
-
-  @override
-  String get fullNameRequired => 'Enter your name.';
+  String get otpSendFailed => 'Could not send a verification code.';
 
   @override
   String get verifyEmailTitle => 'Verify your email';
@@ -110,13 +101,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resendCodeButton => 'Resend code';
 
   @override
-  String get haveAccountSignIn => 'Already have an account? Sign in';
-
-  @override
-  String get needAccountSignUp => 'Create an account';
-
-  @override
-  String get signUpFailed => 'Sign-up failed';
+  String get useDifferentEmail => 'Use a different email';
 
   @override
   String verificationCodeSent(String email) {
@@ -247,12 +232,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get developerSettings => 'Developer settings';
 
   @override
-  String get loginSubtitleGuardianDev =>
-      'Use dev guardian credentials to test against the local API.';
+  String get loginSubtitleGuardianDev => 'We\'ll email you a sign-in code.';
 
   @override
-  String get loginSubtitleStaffDev =>
-      'Use dev staff credentials to test against the local API.';
+  String get loginSubtitleStaffDev => 'We\'ll email you a sign-in code.';
 
   @override
   String get missingSessionDetailsRouteData =>

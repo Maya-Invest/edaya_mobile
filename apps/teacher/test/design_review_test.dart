@@ -121,7 +121,6 @@ void main() {
                     appTitle: 'EDAYA Teacher',
                     subtitle: context.tr.loginSubtitleStaffDev,
                     defaultEmail: '',
-                    defaultPassword: '',
                     onSignInSuccess: () async {},
                   ).buildView(context, context.levit.find<LoginController>());
                 if (screen == 'attendance-marks-components')
@@ -202,7 +201,6 @@ void main() {
                   authClient: _Auth(),
                   session: _Session(),
                   defaultEmail: '',
-                  defaultPassword: '',
                   onSignInSuccess: () async {},
                 ),
               );

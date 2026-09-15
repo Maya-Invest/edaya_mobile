@@ -57,6 +57,7 @@ overlay_identity_env() {
 	upsert_env "$file" WEBAPP_ORIGIN "$WEBAPP_ORIGIN"
 	upsert_env "$file" IDENTITY_DIRECTORY_SECRET "$DIRECTORY_SECRET"
 	upsert_env "$file" REQUIRE_EMAIL_VERIFICATION false
+	upsert_env "$file" AUTH_DEV_OTP_PEEK true
 	upsert_env "$file" PORT "$AUTH_PORT"
 	upsert_env "$file" BETTER_AUTH_URL "$AUTH_ORIGIN"
 	upsert_env "$file" FIRST_PARTY_API_ORIGINS "$API_ORIGIN"

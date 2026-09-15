@@ -23,9 +23,24 @@ class PortalSession {
     String? academicYearId,
   }) async {
     final authClient = AuthClient(baseUrl: config.authUrl);
-    final signIn = await authClient.signInWithEmail(
+    final send = await authClient.sendEmailOtp(email: config.email);
+    if (!send.isSuccess) {
+      throw StateError(
+        'OTP send failed for ${config.email}: ${send.error?.message ?? 'unknown error'}',
+      );
+    }
+
+    final peeked = await authClient.peekDevLastOtp(email: config.email);
+    if (!peeked.isSuccess || peeked.data == null) {
+      throw StateError(
+        'OTP peek failed for ${config.email}: ${peeked.error?.message ?? 'unknown error'}. '
+        'Enable AUTH_DEV_OTP_PEEK=true on local Identity.',
+      );
+    }
+
+    final signIn = await authClient.signInWithEmailOtp(
       email: config.email,
-      password: config.password,
+      otp: peeked.data!,
     );
 
     if (!signIn.isSuccess || signIn.data == null) {

@@ -6,7 +6,6 @@ class IntegrationConfig {
     required this.authUrl,
     required this.baseUrl,
     required this.email,
-    required this.password,
     required this.academicYearId,
     required this.classGroupId,
     required this.calendarReferenceDate,
@@ -33,11 +32,6 @@ class IntegrationConfig {
         fallbackKeys: ['TEACHER_EMAIL'],
         defaultValue: 'a.toure@ecole-ci.edaya.dev',
       ),
-      password: _readEnv(
-        'EDAYA_TEACHER_PASSWORD',
-        fallbackKeys: ['TEACHER_PASSWORD'],
-        defaultValue: 'DevPassword1!',
-      ),
       academicYearId: _readEnv(
         'EDAYA_ACADEMIC_YEAR_ID',
         fallbackKeys: ['ACADEMIC_YEAR_ID'],
@@ -58,7 +52,6 @@ class IntegrationConfig {
   final String authUrl;
   final String baseUrl;
   final String email;
-  final String password;
   final String academicYearId;
   final String classGroupId;
   final String calendarReferenceDate;
@@ -78,7 +71,6 @@ class IntegrationConfig {
       authUrl: authUrl,
       baseUrl: baseUrl,
       email: email,
-      password: password,
       academicYearId: academicYearId,
       classGroupId: classGroupId,
       calendarReferenceDate: calendarReferenceDate,
@@ -100,7 +92,6 @@ class IntegrationConfig {
       authUrl: authUrl,
       baseUrl: baseUrl,
       email: email ?? defaultSchoolOwnerEmail,
-      password: password,
       academicYearId: academicYearId,
       classGroupId: classGroupId,
       calendarReferenceDate: calendarReferenceDate,

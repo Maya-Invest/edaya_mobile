@@ -54,7 +54,7 @@ Keep bottom navigation on both phone and tablet, with all existing destination l
 
 Shared Material primitives provide 48px filled/outlined actions, visible input boundaries, 16px cards, 24px sheets/dialogs, semantic segmented selection and labeled navigation. Reuse `DataState`, `PersonAvatar`, `AccountSheetBody`, `ModalBottomSheetPage` and the existing feature widgets. Use Inter for numeric summaries and amounts. Keep all attendance states and gestures; use text/icon in addition to color, and do not color a student's entire identity row as an error. Locked marks keep their original disabled condition and explanatory text.
 
-Login retains its current fields, callbacks and developer settings. After sign-in, guardians with linked children open Calendar; guardians with a verified account but no linked child open the waiting screen (vertical logo, friendly copy, check-again and sign-out). Use the vertical supplied logo and clear heading hierarchy, with a scrollable form. No new authentication/recovery methods are authorized by this specification.
+Login is email OTP only: email → send code → verification code, with resend and a different-email action on the code step. Keep developer settings. After sign-in, guardians with linked children open Calendar; guardians with a verified account but no linked child open the waiting screen (vertical logo, friendly copy, check-again and sign-out). Use the vertical supplied logo and clear heading hierarchy, with a scrollable form. Do not add password, magic-link, or recovery methods.
 
 ## Launcher and launch assets
 

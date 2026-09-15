@@ -74,28 +74,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get signInTitle => 'Connexion';
 
   @override
-  String get signInButton => 'Se connecter';
-
-  @override
   String get emailLabel => 'E-mail';
 
   @override
-  String get passwordLabel => 'Mot de passe';
+  String get emailRequired => 'Saisissez votre e-mail.';
 
   @override
   String get signInFailed => 'Échec de la connexion';
 
   @override
-  String get createAccountTitle => 'Créer un compte';
+  String get sendCodeButton => 'Envoyer le code';
 
   @override
-  String get createAccountButton => 'Créer un compte';
-
-  @override
-  String get fullNameLabel => 'Nom complet';
-
-  @override
-  String get fullNameRequired => 'Saisissez votre nom.';
+  String get otpSendFailed => 'Impossible d\'envoyer un code de vérification.';
 
   @override
   String get verifyEmailTitle => 'Vérifiez votre e-mail';
@@ -110,13 +101,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get resendCodeButton => 'Renvoyer le code';
 
   @override
-  String get haveAccountSignIn => 'Vous avez déjà un compte ? Connectez-vous';
-
-  @override
-  String get needAccountSignUp => 'Créer un compte';
-
-  @override
-  String get signUpFailed => 'Échec de la création du compte';
+  String get useDifferentEmail => 'Utiliser une autre adresse e-mail';
 
   @override
   String verificationCodeSent(String email) {
@@ -251,11 +236,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get loginSubtitleGuardianDev =>
-      'Utilisez les identifiants de développement tuteur pour tester l\'API locale.';
+      'Nous vous enverrons un code de connexion par e-mail.';
 
   @override
   String get loginSubtitleStaffDev =>
-      'Utilisez les identifiants de développement personnel pour tester l\'API locale.';
+      'Nous vous enverrons un code de connexion par e-mail.';
 
   @override
   String get missingSessionDetailsRouteData =>

@@ -15,9 +15,4 @@ abstract final class ApiConfig {
     'DEV_GUARDIAN_EMAIL',
     defaultValue: 'm.kone@mail.ci',
   );
-
-  static const devPassword = String.fromEnvironment(
-    'DEV_PASSWORD',
-    defaultValue: 'DevPassword1!',
-  );
 }

@@ -175,7 +175,6 @@ void main() {
                     appTitle: 'EDAYA Guardian',
                     subtitle: context.tr.loginSubtitleGuardianDev,
                     defaultEmail: '',
-                    defaultPassword: '',
                     onSignInSuccess: () async {},
                   ).buildView(context, context.levit.find<LoginController>());
                 final body = screen == 'calendar'
@@ -199,7 +198,6 @@ void main() {
                   authClient: _Auth(),
                   session: _Session(),
                   defaultEmail: '',
-                  defaultPassword: '',
                   onSignInSuccess: () async {},
                 ),
               );

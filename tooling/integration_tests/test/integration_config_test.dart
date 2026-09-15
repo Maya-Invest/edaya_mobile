@@ -9,7 +9,6 @@ void main() {
     expect(config.authUrl, 'http://localhost:9900');
     expect(config.baseUrl, 'http://localhost:9999');
     expect(config.email, 'a.toure@ecole-ci.edaya.dev');
-    expect(config.password, 'DevPassword1!');
     expect(config.academicYearId, '2025-ci');
     expect(config.classGroupId, 'ci-6a');
     expect(
