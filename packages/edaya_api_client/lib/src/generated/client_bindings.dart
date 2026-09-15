@@ -455,6 +455,7 @@ abstract final class ClientBindings {
     "previewDocument": "preview-document",
     "createSchoolIssuanceAssetUpload": "create-school-issuance-asset-upload",
     "completeSchoolIssuanceAssetUpload": "complete-school-issuance-asset-upload",
+    "clearSchoolIssuanceAsset": "clear-school-issuance-asset",
     "recordIncident": "record-incident",
     "addStudentInvolvement": "add-student-involvement",
     "configureDisciplinaryAction": "configure-disciplinary-action",

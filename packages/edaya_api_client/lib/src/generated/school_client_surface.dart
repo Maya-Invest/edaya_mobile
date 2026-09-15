@@ -369,6 +369,9 @@ extension GeneratedSchoolClientCommands on SchoolClient {
   Future<Map<String, dynamic>> completeSchoolIssuanceAssetUpload(Map<String, dynamic> payload) =>
       runCommand("complete-school-issuance-asset-upload", payload);
 
+  Future<Map<String, dynamic>> clearSchoolIssuanceAsset(Map<String, dynamic> payload) =>
+      runCommand("clear-school-issuance-asset", payload);
+
   Future<Map<String, dynamic>> recordIncident(Map<String, dynamic> payload) =>
       runCommand("record-incident", payload);
 
