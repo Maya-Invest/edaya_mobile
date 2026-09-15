@@ -136,6 +136,8 @@
   "waitingForStudentsTitle": "You're signed in",
   "waitingForStudentsBody": "Your account is ready. When the school links you to a child, their timetable, grades, and messages will appear here.",
   "waitingForStudentsCheckAgain": "Check again",
+  "waitingPendingInvitationsTitle": "Pending invitations",
+  "waitingNoPendingInvitations": "No pending invitations for this email. If the school sent a link, open it from the email.",
   "noChildrenLinkedYet": "No children are linked to your account yet.",
   "accountNotLinkedToStaff": "This account is not linked to a staff profile.",
   "accountNotLinkedToTeacher": "This account is not linked to a teacher profile.",

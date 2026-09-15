@@ -578,6 +578,18 @@ abstract class AppLocalizations {
   /// **'Check again'**
   String get waitingForStudentsCheckAgain;
 
+  /// No description provided for @waitingPendingInvitationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending invitations'**
+  String get waitingPendingInvitationsTitle;
+
+  /// No description provided for @waitingNoPendingInvitations.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending invitations for this email. If the school sent a link, open it from the email.'**
+  String get waitingNoPendingInvitations;
+
   /// No description provided for @noChildrenLinkedYet.
   ///
   /// In en, this message translates to:

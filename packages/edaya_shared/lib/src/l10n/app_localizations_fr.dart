@@ -293,6 +293,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get waitingForStudentsCheckAgain => 'Vérifier à nouveau';
 
   @override
+  String get waitingPendingInvitationsTitle => 'Invitations en attente';
+
+  @override
+  String get waitingNoPendingInvitations =>
+      'Aucune invitation en attente pour cet e-mail. Si l\'école a envoyé un lien, ouvrez-le depuis le message.';
+
+  @override
   String get noChildrenLinkedYet =>
       'Aucun enfant n\'est encore lié à votre compte.';
 

@@ -488,6 +488,26 @@ extension GeneratedSchoolClientQueries on SchoolClient {
 }
 
 extension GeneratedSchoolClientPublic on SchoolClient {
+  Future<Map<String, dynamic>> listMyInvitations() =>
+      requestRoute(
+        "GET",
+        resolveGeneratedPath(
+          "public/me/invitations",
+          const <String, String>{},
+          basePath: "root",
+        ),
+      );
+
+  Future<Map<String, dynamic>> acceptMyInvitation({required String invitationId}) =>
+      requestRoute(
+        "POST",
+        resolveGeneratedPath(
+          "public/me/invitations/{invitationId}/accept",
+          {"invitationId": invitationId},
+          basePath: "root",
+        ),
+      );
+
   Future<Map<String, dynamic>> previewInvitation({required String token}) =>
       requestRoute(
         "GET",

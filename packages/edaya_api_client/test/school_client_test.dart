@@ -206,12 +206,22 @@ void main() {
         'schoolName': 'École',
         'inviteeName': 'Parent',
       },
-      {'kind': 'guardian', 'entity': {'id': 'guardian-1'}},
+      {
+        'kind': 'guardian',
+        'entity': {'id': 'guardian-1'},
+      },
+      {'invitations': <Map<String, dynamic>>[]},
+      {
+        'kind': 'guardian',
+        'entity': {'id': 'guardian-1'},
+      },
     ]);
     final client = createSchoolClient(transport);
 
     await client.previewInvitation(token: 'invite token/+');
     await client.acceptInvitation(token: 'invite token/+');
+    await client.listMyInvitations();
+    await client.acceptMyInvitation(invitationId: 'inv-1');
 
     expect(transport.requests, [
       {
@@ -222,6 +232,12 @@ void main() {
       {
         'method': 'POST',
         'path': '/public/invitations/invite%20token%2F%2B/accept',
+        'body': null,
+      },
+      {'method': 'GET', 'path': '/public/me/invitations', 'body': null},
+      {
+        'method': 'POST',
+        'path': '/public/me/invitations/inv-1/accept',
         'body': null,
       },
     ]);

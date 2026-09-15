@@ -80,6 +80,8 @@
   "waitingForStudentsTitle": "Vous êtes connecté",
   "waitingForStudentsBody": "Votre compte est prêt. Lorsque l'école vous liera à un enfant, son emploi du temps, ses notes et ses messages apparaîtront ici.",
   "waitingForStudentsCheckAgain": "Vérifier à nouveau",
+  "waitingPendingInvitationsTitle": "Invitations en attente",
+  "waitingNoPendingInvitations": "Aucune invitation en attente pour cet e-mail. Si l'école a envoyé un lien, ouvrez-le depuis le message.",
   "noChildrenLinkedYet": "Aucun enfant n'est encore lié à votre compte.",
   "accountNotLinkedToStaff": "Ce compte n'est pas lié à un profil personnel.",
   "accountNotLinkedToTeacher": "Ce compte n'est pas lié à un profil enseignant.",
