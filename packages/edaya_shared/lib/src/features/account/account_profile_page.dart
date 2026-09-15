@@ -7,6 +7,7 @@ import '../../common/widgets/data_state.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../ui/person_avatar.dart';
 import '../auth/app_session_controller.dart';
+import '../profile_photo/profile_photo_flow.dart';
 import 'account_profile_controller.dart';
 import 'account_profile_models.dart';
 
@@ -66,11 +67,40 @@ class _ProfileForm extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
       children: [
         Center(
-          child: PersonAvatar(
-            name: profile.fullName,
-            initials: profile.initials,
-            photoUrl: profile.photoUrl,
-            radius: 40,
+          child: Tooltip(
+            message: context.tr.profilePhotoCropTitle,
+            child: GestureDetector(
+              onTap: controller.canUploadPhoto && !controller.isSaving.value
+                  ? () async {
+                      final jpeg = await pickAndCropProfilePhoto(context);
+                      if (jpeg == null || !context.mounted) {
+                        return;
+                      }
+                      await controller.publishOwnPortrait(jpeg);
+                    }
+                  : null,
+              child: Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  PersonAvatar(
+                    name: profile.fullName,
+                    initials: profile.initials,
+                    photoUrl: profile.photoUrl,
+                    radius: 40,
+                  ),
+                  if (controller.canUploadPhoto)
+                    CircleAvatar(
+                      radius: 14,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      child: Icon(
+                        Icons.camera_alt_outlined,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 24),

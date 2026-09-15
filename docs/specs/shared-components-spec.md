@@ -8,6 +8,7 @@ Normative for the current Guardian and Teacher apps. Extend these components bef
 | EdayaBrandLogo | shared `lib/src/ui/` | Supplied color/white horizontal, vertical, symbol artwork; minimum size and clear space |
 | ResponsiveMetrics | shared `lib/src/ui/` | Wrap existing metric values by width/text scale; never compute domain totals |
 | PersonAvatar | shared `lib/src/ui/` | Preserve names/initials/photo fallback and operational identity |
+| Profile photo crop/upload | shared `lib/src/features/profile_photo/` | Camera/gallery fallback, rotate/export JPEG ≤ 1 MiB, named portrait commands |
 | DataState | shared `lib/src/common/widgets/` | Existing ready/loading/empty/error signals and retry callback |
 | AccountSheetBody / AccountProfileHeader | shared common/account widgets | Existing account/profile actions and semantics |
 | ModalBottomSheetPage | shared `lib/src/common/models/` | Existing modal navigation, safe area and dismissal behavior |

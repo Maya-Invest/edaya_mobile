@@ -650,6 +650,19 @@
       },
       "allowDirectSave": true
     },
+    "studentPhotoSubmissions": {
+      "publicName": "student-photo-submissions",
+      "schemaName": "StudentPhotoSubmission",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
+      "allowDirectSave": false
+    },
     "studentHealthProfiles": {
       "publicName": "student-health-profiles",
       "schemaName": "StudentHealthProfile",
@@ -1151,6 +1164,36 @@
       "publicName": "cancel-student-fee",
       "requestSchemaName": "CancelStudentFeeCommand",
       "responseSchemaName": "StudentFee"
+    },
+    "createProfilePhotoUpload": {
+      "publicName": "create-profile-photo-upload",
+      "requestSchemaName": "CreateProfilePhotoUploadCommand",
+      "responseSchemaName": "CreateProfilePhotoUploadResponse"
+    },
+    "completeProfilePhotoUpload": {
+      "publicName": "complete-profile-photo-upload",
+      "requestSchemaName": "CompleteProfilePhotoUploadCommand",
+      "responseSchemaName": "Attachment"
+    },
+    "submitStudentPhoto": {
+      "publicName": "submit-student-photo",
+      "requestSchemaName": "SubmitStudentPhotoCommand",
+      "responseSchemaName": "StudentPhotoSubmission"
+    },
+    "withdrawStudentPhotoSubmission": {
+      "publicName": "withdraw-student-photo-submission",
+      "requestSchemaName": "WithdrawStudentPhotoSubmissionCommand",
+      "responseSchemaName": "StudentPhotoSubmission"
+    },
+    "reviewStudentPhoto": {
+      "publicName": "review-student-photo",
+      "requestSchemaName": "ReviewStudentPhotoCommand",
+      "responseSchemaName": "StudentPhotoSubmission"
+    },
+    "publishStudentPhoto": {
+      "publicName": "publish-student-photo",
+      "requestSchemaName": "PublishStudentPhotoCommand",
+      "responseSchemaName": "Student"
     },
     "createSchedule": {
       "publicName": "create-schedule",

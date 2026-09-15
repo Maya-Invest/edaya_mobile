@@ -30,4 +30,23 @@ class AccountContactProfile {
     }
     return '${first.substring(0, 1)}${last.substring(0, 1)}'.toUpperCase();
   }
+
+  AccountContactProfile copyWith({
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? phone,
+    String? photoUrl,
+    bool? hasAccess,
+  }) {
+    return AccountContactProfile(
+      id: id,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      photoUrl: photoUrl ?? this.photoUrl,
+      hasAccess: hasAccess ?? this.hasAccess,
+    );
+  }
 }

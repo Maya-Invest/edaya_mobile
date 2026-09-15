@@ -14,6 +14,7 @@ import '../features/academic/models/report_card_summary.dart';
 import '../features/academic/report_card_details_dialog.dart';
 import '../features/account/account_sheet.dart';
 import '../features/app_shell/app_shell_page.dart';
+import '../features/child_profile/child_profile_page.dart';
 import '../features/calendar/attendance_list_page.dart';
 import '../features/calendar/calendar_page.dart';
 import '../features/calendar/models/calendar_session.dart';
@@ -117,6 +118,11 @@ class AppRouter extends LevitController implements EdayaAppRouter {
             session: context.levit.find<AppSessionController>(),
             schoolClient: context.levit.find<SchoolClientFactory>(),
           ),
+        ),
+        GoRoute(
+          parentNavigatorKey: rootNavigatorKey,
+          path: '/child-profile',
+          builder: (context, state) => const ChildProfilePage(),
         ),
         GoRoute(
           parentNavigatorKey: rootNavigatorKey,

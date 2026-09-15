@@ -2293,6 +2293,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your change was saved, but the screen could not refresh. Reopen this screen to see the saved result.'**
   String get mutationSavedRefreshFailed;
+
+  /// No description provided for @profilePhotoCropTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust portrait'**
+  String get profilePhotoCropTitle;
+
+  /// No description provided for @profilePhotoCropHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotate and confirm a square JPEG under 1 MiB.'**
+  String get profilePhotoCropHint;
+
+  /// No description provided for @profilePhotoRotate.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotate'**
+  String get profilePhotoRotate;
+
+  /// No description provided for @profilePhotoConfirmCrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this photo'**
+  String get profilePhotoConfirmCrop;
+
+  /// No description provided for @profilePhotoTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo is still larger than 1 MiB after compression.'**
+  String get profilePhotoTooLarge;
+
+  /// No description provided for @profilePhotoUpdateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile photo updated.'**
+  String get profilePhotoUpdateSuccess;
+
+  /// No description provided for @profilePhotoUpdateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update the profile photo. {error}'**
+  String profilePhotoUpdateError(String error);
+
+  /// No description provided for @childProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Child portrait'**
+  String get childProfileTitle;
+
+  /// No description provided for @childProfileUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a child to propose a portrait.'**
+  String get childProfileUnavailable;
+
+  /// No description provided for @childProfileLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the child portrait. {error}'**
+  String childProfileLoadError(String error);
+
+  /// No description provided for @childProfilePublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Published portrait'**
+  String get childProfilePublished;
+
+  /// No description provided for @childProfileProposed.
+  ///
+  /// In en, this message translates to:
+  /// **'Proposed portrait'**
+  String get childProfileProposed;
+
+  /// No description provided for @childProfileNoPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'No published portrait yet.'**
+  String get childProfileNoPublished;
+
+  /// No description provided for @childProfilePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for school review.'**
+  String get childProfilePending;
+
+  /// No description provided for @childProfilePendingIndicator.
+  ///
+  /// In en, this message translates to:
+  /// **'A portrait is waiting for review.'**
+  String get childProfilePendingIndicator;
+
+  /// No description provided for @childProfileSubmitHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Take or choose a photo. The school must approve it before it appears on documents.'**
+  String get childProfileSubmitHint;
+
+  /// No description provided for @childProfileSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit portrait'**
+  String get childProfileSubmit;
+
+  /// No description provided for @childProfileResubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit a new portrait'**
+  String get childProfileResubmit;
+
+  /// No description provided for @childProfileWithdraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw proposal'**
+  String get childProfileWithdraw;
+
+  /// No description provided for @childProfileSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Portrait submitted for review.'**
+  String get childProfileSubmitted;
+
+  /// No description provided for @childProfileWithdrawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Proposal withdrawn.'**
+  String get childProfileWithdrawn;
+
+  /// No description provided for @childProfileSubmitError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not submit the portrait. {error}'**
+  String childProfileSubmitError(String error);
+
+  /// No description provided for @childProfileWithdrawError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not withdraw the proposal. {error}'**
+  String childProfileWithdrawError(String error);
+
+  /// No description provided for @childProfileRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'The school rejected this portrait: {reason}'**
+  String childProfileRejected(String reason);
+
+  /// No description provided for @childProfileRejectedNoReason.
+  ///
+  /// In en, this message translates to:
+  /// **'No reason was provided.'**
+  String get childProfileRejectedNoReason;
 }
 
 class _AppLocalizationsDelegate

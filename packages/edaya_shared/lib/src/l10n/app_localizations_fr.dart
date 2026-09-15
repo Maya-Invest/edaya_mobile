@@ -1343,4 +1343,95 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get mutationSavedRefreshFailed =>
       'Votre modification est enregistrée, mais l’affichage n’a pas pu être actualisé. Rouvrez cet écran pour voir le résultat.';
+
+  @override
+  String get profilePhotoCropTitle => 'Ajuster le portrait';
+
+  @override
+  String get profilePhotoCropHint =>
+      'Faites pivoter et confirmez un JPEG carré de 1 Mo maximum.';
+
+  @override
+  String get profilePhotoRotate => 'Pivoter';
+
+  @override
+  String get profilePhotoConfirmCrop => 'Utiliser cette photo';
+
+  @override
+  String get profilePhotoTooLarge =>
+      'La photo dépasse encore 1 Mo après compression.';
+
+  @override
+  String get profilePhotoUpdateSuccess => 'Photo de profil mise à jour.';
+
+  @override
+  String profilePhotoUpdateError(String error) {
+    return 'Impossible de mettre à jour la photo de profil. $error';
+  }
+
+  @override
+  String get childProfileTitle => 'Portrait de l’enfant';
+
+  @override
+  String get childProfileUnavailable =>
+      'Sélectionnez un enfant pour proposer un portrait.';
+
+  @override
+  String childProfileLoadError(String error) {
+    return 'Impossible de charger le portrait de l’enfant. $error';
+  }
+
+  @override
+  String get childProfilePublished => 'Portrait publié';
+
+  @override
+  String get childProfileProposed => 'Portrait proposé';
+
+  @override
+  String get childProfileNoPublished => 'Aucun portrait publié pour le moment.';
+
+  @override
+  String get childProfilePending =>
+      'En attente de validation par l’établissement.';
+
+  @override
+  String get childProfilePendingIndicator =>
+      'Un portrait est en attente de validation.';
+
+  @override
+  String get childProfileSubmitHint =>
+      'Prenez ou choisissez une photo. L’établissement doit l’approuver avant qu’elle n’apparaisse sur les documents.';
+
+  @override
+  String get childProfileSubmit => 'Envoyer le portrait';
+
+  @override
+  String get childProfileResubmit => 'Envoyer un nouveau portrait';
+
+  @override
+  String get childProfileWithdraw => 'Retirer la proposition';
+
+  @override
+  String get childProfileSubmitted => 'Portrait envoyé pour validation.';
+
+  @override
+  String get childProfileWithdrawn => 'Proposition retirée.';
+
+  @override
+  String childProfileSubmitError(String error) {
+    return 'Impossible d’envoyer le portrait. $error';
+  }
+
+  @override
+  String childProfileWithdrawError(String error) {
+    return 'Impossible de retirer la proposition. $error';
+  }
+
+  @override
+  String childProfileRejected(String reason) {
+    return 'L’établissement a refusé ce portrait : $reason';
+  }
+
+  @override
+  String get childProfileRejectedNoReason => 'Aucun motif n’a été indiqué.';
 }

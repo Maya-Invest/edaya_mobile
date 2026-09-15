@@ -21,6 +21,15 @@ class AccountSheet extends StatelessWidget {
           context.push('/account/profile');
         },
       ),
+      childProfileTile: ListTile(
+        leading: const Icon(Icons.face_outlined),
+        title: Text(context.tr.childProfileTitle),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () {
+          context.pop();
+          context.push('/child-profile');
+        },
+      ),
     );
   }
 }

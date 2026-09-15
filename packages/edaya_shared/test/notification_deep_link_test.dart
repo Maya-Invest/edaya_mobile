@@ -2,12 +2,12 @@ import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('parseNotificationDeepLink resolves explicit route', () {
+  test('parseNotificationDeepLink resolves student photo review', () {
     final link = parseNotificationDeepLink(
-      const RemoteMessage(data: {'route': '/calendar'}),
+      const RemoteMessage(data: {'type': 'student_photo.approved'}),
     );
 
-    expect(link?.path, '/calendar');
+    expect(link?.path, '/child-profile');
   });
 
   test('parseNotificationDeepLink resolves inbox delivery id', () {

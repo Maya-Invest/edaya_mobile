@@ -133,6 +133,8 @@ NotificationDeepLink? parseNotificationDeepLink(RemoteMessage message) {
     'evaluations' => NotificationDeepLink(path: '/evaluations', data: data),
     'fees' => NotificationDeepLink(path: '/fees', data: data),
     'academic' => NotificationDeepLink(path: '/academic', data: data),
+    final type when type != null && type.startsWith('student_photo') =>
+      NotificationDeepLink(path: '/child-profile', data: data),
     _ => null,
   };
 }

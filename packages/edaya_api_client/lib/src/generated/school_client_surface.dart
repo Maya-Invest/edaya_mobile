@@ -106,6 +106,8 @@ extension GeneratedSchoolClientEntities on SchoolClient {
 
   EntityResource get studentNotes => entities["studentNotes"]!;
 
+  EntityResource get studentPhotoSubmissions => entities["studentPhotoSubmissions"]!;
+
   EntityResource get studentHealthProfiles => entities["studentHealthProfiles"]!;
 
   EntityResource get studentDisciplinaryActions => entities["studentDisciplinaryActions"]!;
@@ -378,6 +380,24 @@ extension GeneratedSchoolClientCommands on SchoolClient {
 
   Future<Map<String, dynamic>> cancelStudentFee(Map<String, dynamic> payload) =>
       runCommand("cancel-student-fee", payload);
+
+  Future<Map<String, dynamic>> createProfilePhotoUpload(Map<String, dynamic> payload) =>
+      runCommand("create-profile-photo-upload", payload);
+
+  Future<Map<String, dynamic>> completeProfilePhotoUpload(Map<String, dynamic> payload) =>
+      runCommand("complete-profile-photo-upload", payload);
+
+  Future<Map<String, dynamic>> submitStudentPhoto(Map<String, dynamic> payload) =>
+      runCommand("submit-student-photo", payload);
+
+  Future<Map<String, dynamic>> withdrawStudentPhotoSubmission(Map<String, dynamic> payload) =>
+      runCommand("withdraw-student-photo-submission", payload);
+
+  Future<Map<String, dynamic>> reviewStudentPhoto(Map<String, dynamic> payload) =>
+      runCommand("review-student-photo", payload);
+
+  Future<Map<String, dynamic>> publishStudentPhoto(Map<String, dynamic> payload) =>
+      runCommand("publish-student-photo", payload);
 
   Future<Map<String, dynamic>> createSchedule(Map<String, dynamic> payload) =>
       runCommand("create-schedule", payload);

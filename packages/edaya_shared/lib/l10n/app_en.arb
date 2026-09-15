@@ -746,5 +746,55 @@
   "settingsTimeFormat24h": "24-hour",
   "settingsTimeFormat12h": "12-hour",
   "mutationConflict": "This change conflicts with the current record. Reload it and review before trying again.",
-  "mutationSavedRefreshFailed": "Your change was saved, but the screen could not refresh. Reopen this screen to see the saved result."
+  "mutationSavedRefreshFailed": "Your change was saved, but the screen could not refresh. Reopen this screen to see the saved result.",
+  "profilePhotoCropTitle": "Adjust portrait",
+  "profilePhotoCropHint": "Rotate and confirm a square JPEG under 1 MiB.",
+  "profilePhotoRotate": "Rotate",
+  "profilePhotoConfirmCrop": "Use this photo",
+  "profilePhotoTooLarge": "The photo is still larger than 1 MiB after compression.",
+  "profilePhotoUpdateSuccess": "Profile photo updated.",
+  "profilePhotoUpdateError": "Could not update the profile photo. {error}",
+  "@profilePhotoUpdateError": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "childProfileTitle": "Child portrait",
+  "childProfileUnavailable": "Select a child to propose a portrait.",
+  "childProfileLoadError": "Could not load the child portrait. {error}",
+  "@childProfileLoadError": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "childProfilePublished": "Published portrait",
+  "childProfileProposed": "Proposed portrait",
+  "childProfileNoPublished": "No published portrait yet.",
+  "childProfilePending": "Waiting for school review.",
+  "childProfilePendingIndicator": "A portrait is waiting for review.",
+  "childProfileSubmitHint": "Take or choose a photo. The school must approve it before it appears on documents.",
+  "childProfileSubmit": "Submit portrait",
+  "childProfileResubmit": "Submit a new portrait",
+  "childProfileWithdraw": "Withdraw proposal",
+  "childProfileSubmitted": "Portrait submitted for review.",
+  "childProfileWithdrawn": "Proposal withdrawn.",
+  "childProfileSubmitError": "Could not submit the portrait. {error}",
+  "@childProfileSubmitError": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "childProfileWithdrawError": "Could not withdraw the proposal. {error}",
+  "@childProfileWithdrawError": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "childProfileRejected": "The school rejected this portrait: {reason}",
+  "@childProfileRejected": {
+    "placeholders": {
+      "reason": {"type": "String"}
+    }
+  },
+  "childProfileRejectedNoReason": "No reason was provided."
 }

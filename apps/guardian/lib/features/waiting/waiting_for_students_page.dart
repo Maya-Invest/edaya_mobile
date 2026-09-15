@@ -147,7 +147,7 @@ class _PendingInvitationCard extends StatelessWidget {
           border: Border.all(
             color: Theme.of(context).colorScheme.outlineVariant,
           ),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(EdayaTokens.radiusControl),
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),

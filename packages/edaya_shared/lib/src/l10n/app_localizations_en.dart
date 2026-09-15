@@ -1326,4 +1326,93 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get mutationSavedRefreshFailed =>
       'Your change was saved, but the screen could not refresh. Reopen this screen to see the saved result.';
+
+  @override
+  String get profilePhotoCropTitle => 'Adjust portrait';
+
+  @override
+  String get profilePhotoCropHint =>
+      'Rotate and confirm a square JPEG under 1 MiB.';
+
+  @override
+  String get profilePhotoRotate => 'Rotate';
+
+  @override
+  String get profilePhotoConfirmCrop => 'Use this photo';
+
+  @override
+  String get profilePhotoTooLarge =>
+      'The photo is still larger than 1 MiB after compression.';
+
+  @override
+  String get profilePhotoUpdateSuccess => 'Profile photo updated.';
+
+  @override
+  String profilePhotoUpdateError(String error) {
+    return 'Could not update the profile photo. $error';
+  }
+
+  @override
+  String get childProfileTitle => 'Child portrait';
+
+  @override
+  String get childProfileUnavailable => 'Select a child to propose a portrait.';
+
+  @override
+  String childProfileLoadError(String error) {
+    return 'Could not load the child portrait. $error';
+  }
+
+  @override
+  String get childProfilePublished => 'Published portrait';
+
+  @override
+  String get childProfileProposed => 'Proposed portrait';
+
+  @override
+  String get childProfileNoPublished => 'No published portrait yet.';
+
+  @override
+  String get childProfilePending => 'Waiting for school review.';
+
+  @override
+  String get childProfilePendingIndicator =>
+      'A portrait is waiting for review.';
+
+  @override
+  String get childProfileSubmitHint =>
+      'Take or choose a photo. The school must approve it before it appears on documents.';
+
+  @override
+  String get childProfileSubmit => 'Submit portrait';
+
+  @override
+  String get childProfileResubmit => 'Submit a new portrait';
+
+  @override
+  String get childProfileWithdraw => 'Withdraw proposal';
+
+  @override
+  String get childProfileSubmitted => 'Portrait submitted for review.';
+
+  @override
+  String get childProfileWithdrawn => 'Proposal withdrawn.';
+
+  @override
+  String childProfileSubmitError(String error) {
+    return 'Could not submit the portrait. $error';
+  }
+
+  @override
+  String childProfileWithdrawError(String error) {
+    return 'Could not withdraw the proposal. $error';
+  }
+
+  @override
+  String childProfileRejected(String reason) {
+    return 'The school rejected this portrait: $reason';
+  }
+
+  @override
+  String get childProfileRejectedNoReason => 'No reason was provided.';
 }

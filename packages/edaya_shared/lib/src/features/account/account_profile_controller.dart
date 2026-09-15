@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import '../../api/mutation_feedback.dart';
 import '../../common/widgets/data_state.dart';
 import '../../l10n/l10n_lookup.dart';
 import '../auth/app_session_controller.dart';
+import '../profile_photo/profile_photo_upload.dart';
 import 'account_profile_data.dart';
 import 'account_profile_models.dart';
 
@@ -64,6 +66,9 @@ class AccountProfileController extends LevitController
 
   String? get loginEmail => _session.user.value?.email;
 
+  bool get canUploadPhoto =>
+      profileKind == 'guardian' || profileKind == 'staff';
+
   bool get canSave {
     formRevision.value;
     return firstNameController.text.trim().isNotEmpty &&
@@ -112,6 +117,57 @@ class AccountProfileController extends LevitController
         errorMessage(systemL10n().accountProfileLoadError('$error'));
       }
     });
+  }
+
+  Future<bool> publishOwnPortrait(Uint8List jpegBytes) async {
+    final kind = profileKind;
+    final current = profile.value;
+    final schoolId = _session.grants.value?.schoolId;
+    if (kind == null ||
+        current == null ||
+        schoolId == null ||
+        !canUploadPhoto) {
+      return false;
+    }
+
+    saveMessage('');
+    isSaving(true);
+    try {
+      final uploaded = await uploadProfilePhoto(
+        client: _schoolClient(),
+        schoolId: schoolId,
+        ownerKind: kind,
+        ownerId: current.id,
+        jpegBytes: jpegBytes,
+      );
+      final updated = current.copyWith(photoUrl: uploaded.photoUrl);
+      await saveAccountContactProfile(
+        _schoolClient(),
+        kind: kind,
+        profile: updated,
+      );
+      profile(updated);
+      saveMessage(systemL10n().profilePhotoUpdateSuccess);
+      return true;
+    } on api.ApiError catch (error) {
+      saveMessage(
+        mutationFailureMessage(
+          error,
+          systemL10n().profilePhotoUpdateError('$error'),
+        ),
+      );
+      return false;
+    } on Object catch (error) {
+      saveMessage(
+        mutationFailureMessage(
+          error,
+          systemL10n().profilePhotoUpdateError('$error'),
+        ),
+      );
+      return false;
+    } finally {
+      isSaving(false);
+    }
   }
 
   Future<bool> saveProfile() async {

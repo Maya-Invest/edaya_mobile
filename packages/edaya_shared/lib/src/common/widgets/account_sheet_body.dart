@@ -12,10 +12,12 @@ class AccountSheetBody extends StatelessWidget {
     super.key,
     required this.session,
     this.profileHeader,
+    this.childProfileTile,
   });
 
   final AppSessionController session;
   final Widget? profileHeader;
+  final Widget? childProfileTile;
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +56,7 @@ class AccountSheetBody extends StatelessWidget {
                 context.push('/account/profile');
               },
             ),
+            if (childProfileTile != null) childProfileTile!,
             ListTile(
               leading: const Icon(Icons.settings_outlined),
               title: Text(context.tr.settingsTitle),

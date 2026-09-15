@@ -90,14 +90,18 @@ Future<void> saveAccountContactProfile(
           phone: phone,
         ),
         'hasAccess': profile.hasAccess,
+        if (profile.photoUrl != null) 'photoUrl': profile.photoUrl,
       });
+      return;
     case 'staff':
       await client.updateStaffMemberProfile({
         'staffId': profile.id,
         'firstName': firstName,
         'lastName': lastName,
         'email': email.isEmpty ? null : email,
+        if (profile.photoUrl != null) 'photoUrl': profile.photoUrl,
       });
+      return;
     case 'teacher':
       await client.teachers.save({
         'id': profile.id,
@@ -106,6 +110,7 @@ Future<void> saveAccountContactProfile(
         if (email.isNotEmpty) 'email': email,
         if (phone.isNotEmpty) 'phone': phone,
       });
+      return;
     default:
       throw UnsupportedError('Unsupported profile kind: $kind');
   }
