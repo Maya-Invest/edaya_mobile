@@ -74,7 +74,9 @@ class SessionDetailsSheet extends LScopedView<SessionDetailController> {
                     IconButton(
                       onPressed: () => context.pop(),
                       icon: const Icon(Icons.close),
-                      tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                      tooltip: MaterialLocalizations.of(
+                        context,
+                      ).closeButtonTooltip,
                     ),
                   ],
                 ),
@@ -153,16 +155,27 @@ class _SegmentBody extends StatelessWidget {
           children: [
             Align(
               alignment: Alignment.centerRight,
-              child: FilledButton.icon(
-                onPressed: () => context.push(
-                  '/calendar/attendance-flow',
-                  extra: AttendanceFlowArgs(
-                    session: session,
-                    controller: controller,
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.end,
+                children: [
+                  DocumentActionButton(
+                    label: context.tr.exportAttendancePdf,
+                    run: controller.generateAttendanceSheet,
                   ),
-                ),
-                icon: const Icon(Icons.swipe),
-                label: Text(context.tr.takeAttendance),
+                  FilledButton.icon(
+                    onPressed: () => context.push(
+                      '/calendar/attendance-flow',
+                      extra: AttendanceFlowArgs(
+                        session: session,
+                        controller: controller,
+                      ),
+                    ),
+                    icon: const Icon(Icons.swipe),
+                    label: Text(context.tr.takeAttendance),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 8),
@@ -370,6 +383,14 @@ class _LogbookPanelState extends State<_LogbookPanel> {
 
       return ListView(
         children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: DocumentActionButton(
+              label: context.tr.exportLogbookPdf,
+              run: widget.controller.generateLogbookPdf,
+            ),
+          ),
+          const SizedBox(height: 12),
           if (saveMessage.isNotEmpty) ...[
             Text(
               saveMessage,

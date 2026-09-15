@@ -124,6 +124,11 @@ class _GuardianAppBarContent extends StatelessWidget
       ),
       actions: [
         IconButton(
+          tooltip: context.tr.tooltipDocuments,
+          icon: const Icon(Icons.description_outlined),
+          onPressed: () => context.push('/documents'),
+        ),
+        IconButton(
           tooltip: context.tr.tooltipMyStudents,
           icon: const Icon(Icons.people_outline),
           onPressed: () => context.push('/my-students'),

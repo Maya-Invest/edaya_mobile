@@ -52,3 +52,4 @@ export 'src/app/edaya_tokens.g.dart';
 export 'src/ui/edaya_brand_logo.dart';
 export 'src/ui/responsive_metrics.dart';
 export 'src/api/mutation_feedback.dart';
+export 'src/api/document_issuance.dart';

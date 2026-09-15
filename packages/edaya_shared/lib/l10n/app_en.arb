@@ -814,5 +814,33 @@
       "reason": {"type": "String"}
     }
   },
-  "childProfileRejectedNoReason": "No reason was provided."
+  "childProfileRejectedNoReason": "No reason was provided.",
+  "documentsTitle": "Official documents",
+  "tooltipDocuments": "Official documents",
+  "documentsEntry": "Official documents",
+  "documentsEmpty": "No official documents for this school year yet.",
+  "documentsDownloadRecall": "Already downloaded files cannot be remotely recalled.",
+  "documentsDownload": "Download",
+  "documentsGeneratePdf": "Generate PDF",
+  "documentsOpened": "Opening the PDF.",
+  "documentsRendering": "The PDF is still rendering. Open Official documents when it is ready.",
+  "documentsFailed": "This document failed ({code}).",
+  "@documentsFailed": {
+    "placeholders": {
+      "code": {"type": "String"}
+    }
+  },
+  "documentsNotIssued": "No downloadable PDF is ready yet.",
+  "documentsOpenFailed": "Could not open the PDF.",
+  "documentStatusRequested": "Pending",
+  "documentStatusRendering": "Pending",
+  "documentStatusReady": "Issued",
+  "documentStatusFailed": "Error",
+  "documentStatusSuperseded": "Replaced",
+  "documentStatusVoided": "Replaced",
+  "documentStatusPreview": "Issued",
+  "exportLogbookPdf": "Logbook PDF",
+  "exportTimetablePdf": "Timetable PDF",
+  "exportRosterPdf": "Class roster PDF",
+  "exportAttendancePdf": "Attendance sheet PDF"
 }

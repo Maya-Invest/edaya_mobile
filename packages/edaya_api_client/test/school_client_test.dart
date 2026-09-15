@@ -160,6 +160,43 @@ void main() {
     );
   });
 
+  test('uses generated document command and download query paths', () async {
+    final transport = RecordingTransport([
+      {'id': 'iss-1', 'status': 'requested'},
+      {
+        'downloadUrl': 'https://example.test/doc.pdf',
+        'fileName': 'bulletin.pdf',
+        'issuanceId': 'iss-1',
+        'expiresAt': '2026-01-01T00:00:00.000Z',
+      },
+    ]);
+    final client = createSchoolClient(transport);
+
+    await client.requestDocumentIssuance({
+      'requestId': 'req-1',
+      'templateKey': 'schooling-certificate.v1',
+      'sourceId': 'enr-1',
+    });
+    await client.grantDocumentDownload({'id': 'iss-1'});
+
+    expect(transport.requests, [
+      {
+        'method': 'POST',
+        'path': '/core/commands/request-document-issuance',
+        'body': {
+          'requestId': 'req-1',
+          'templateKey': 'schooling-certificate.v1',
+          'sourceId': 'enr-1',
+        },
+      },
+      {
+        'method': 'POST',
+        'path': '/core/queries/grant-document-download',
+        'body': {'id': 'iss-1'},
+      },
+    ]);
+  });
+
   test(
     'parses the same typed action grant representation for portal actors',
     () async {

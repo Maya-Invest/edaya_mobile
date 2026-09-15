@@ -191,4 +191,19 @@ class TeachingController extends LevitController with LevitReactiveTasksMixin {
     final options = classSubjectOptions.value;
     selectedClassSubjectId(options.isEmpty ? null : options.first.id);
   }
+
+  Future<DocumentJobResult> generateLogbookPdf() {
+    final option = selectedOption;
+    if (option == null) {
+      return Future.value(const DocumentJobResult.missing());
+    }
+    return requestAndOpenDocument(
+      _schoolClient(),
+      templateKey: 'logbook.v1',
+      sourceId: option.classGroupId,
+      academicYearId: _academicYear.selectedYearId.value,
+      classGroupId: option.classGroupId,
+      classSubjectId: option.id,
+    );
+  }
 }

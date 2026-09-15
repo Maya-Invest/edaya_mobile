@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
+import '../context/academic_year_controller.dart';
+import '../context/student_context_controller.dart';
 import 'fees_controller.dart';
 import 'models/fee_formatting.dart';
 import 'models/student_charge_line.dart';
@@ -14,7 +16,18 @@ class ChargeDetailsDialog extends LScopedView<ChargeDetailsController> {
 
   @override
   ChargeDetailsController onConfigScope(LevitScope scope) {
-    return scope.put(() => ChargeDetailsController(charge: charge));
+    return scope.put(
+      () => ChargeDetailsController(
+        charge: charge,
+        schoolClient: scope.find<SchoolClientFactory>(),
+        studentId: scope.find<StudentContextController>().activeStudentId,
+        academicYearId: scope
+            .find<AcademicYearController>()
+            .selectedYearId
+            .value,
+        schoolId: scope.find<AppSessionController>().schoolIdHeader,
+      ),
+    );
   }
 
   @override
@@ -107,6 +120,11 @@ class ChargeDetailsDialog extends LScopedView<ChargeDetailsController> {
                       ],
                     ),
                   ),
+              const SizedBox(height: 16),
+              DocumentActionButton(
+                label: l10n.documentsDownload,
+                run: controller.downloadInvoice,
+              ),
             ],
           ),
         ),

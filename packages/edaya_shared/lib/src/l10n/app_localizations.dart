@@ -2515,6 +2515,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No reason was provided.'**
   String get childProfileRejectedNoReason;
+
+  /// No description provided for @documentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Official documents'**
+  String get documentsTitle;
+
+  /// No description provided for @tooltipDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Official documents'**
+  String get tooltipDocuments;
+
+  /// No description provided for @documentsEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Official documents'**
+  String get documentsEntry;
+
+  /// No description provided for @documentsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No official documents for this school year yet.'**
+  String get documentsEmpty;
+
+  /// No description provided for @documentsDownloadRecall.
+  ///
+  /// In en, this message translates to:
+  /// **'Already downloaded files cannot be remotely recalled.'**
+  String get documentsDownloadRecall;
+
+  /// No description provided for @documentsDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get documentsDownload;
+
+  /// No description provided for @documentsGeneratePdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate PDF'**
+  String get documentsGeneratePdf;
+
+  /// No description provided for @documentsOpened.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening the PDF.'**
+  String get documentsOpened;
+
+  /// No description provided for @documentsRendering.
+  ///
+  /// In en, this message translates to:
+  /// **'The PDF is still rendering. Open Official documents when it is ready.'**
+  String get documentsRendering;
+
+  /// No description provided for @documentsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'This document failed ({code}).'**
+  String documentsFailed(String code);
+
+  /// No description provided for @documentsNotIssued.
+  ///
+  /// In en, this message translates to:
+  /// **'No downloadable PDF is ready yet.'**
+  String get documentsNotIssued;
+
+  /// No description provided for @documentsOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the PDF.'**
+  String get documentsOpenFailed;
+
+  /// No description provided for @documentStatusRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get documentStatusRequested;
+
+  /// No description provided for @documentStatusRendering.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get documentStatusRendering;
+
+  /// No description provided for @documentStatusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued'**
+  String get documentStatusReady;
+
+  /// No description provided for @documentStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get documentStatusFailed;
+
+  /// No description provided for @documentStatusSuperseded.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaced'**
+  String get documentStatusSuperseded;
+
+  /// No description provided for @documentStatusVoided.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaced'**
+  String get documentStatusVoided;
+
+  /// No description provided for @documentStatusPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued'**
+  String get documentStatusPreview;
+
+  /// No description provided for @exportLogbookPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Logbook PDF'**
+  String get exportLogbookPdf;
+
+  /// No description provided for @exportTimetablePdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Timetable PDF'**
+  String get exportTimetablePdf;
+
+  /// No description provided for @exportRosterPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Class roster PDF'**
+  String get exportRosterPdf;
+
+  /// No description provided for @exportAttendancePdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance sheet PDF'**
+  String get exportAttendancePdf;
 }
 
 class _AppLocalizationsDelegate

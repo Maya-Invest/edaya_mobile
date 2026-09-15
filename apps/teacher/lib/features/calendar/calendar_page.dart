@@ -32,6 +32,23 @@ class CalendarPage extends LView<CalendarController> {
                 onPickDate: controller.goToDate,
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  DocumentActionButton(
+                    label: context.tr.exportTimetablePdf,
+                    run: controller.generateTimetablePdf,
+                  ),
+                  DocumentActionButton(
+                    label: context.tr.exportRosterPdf,
+                    run: controller.generateRosterPdf,
+                  ),
+                ],
+              ),
+            ),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: controller.loadCalendarData,

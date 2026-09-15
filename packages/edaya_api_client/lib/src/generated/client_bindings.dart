@@ -365,6 +365,12 @@ abstract final class ClientBindings {
       allowDirectSave: true,
       publicOperations: {"create": true, "update": true, "delete": true, "batchCreate": true, "batchUpdate": true, "batchDelete": true},
     ),
+    "documentIssuances": EntityBinding(
+      publicName: "document-issuances",
+      schemaName: "DocumentIssuance",
+      allowDirectSave: false,
+      publicOperations: {"create": false, "update": false, "delete": false, "batchCreate": false, "batchUpdate": false, "batchDelete": false},
+    ),
   };
 
   static const commands = <String, String>{
@@ -441,6 +447,14 @@ abstract final class ClientBindings {
     "writeHomeroomReportComment": "write-homeroom-report-comment",
     "publishReportCardResult": "publish-report-card-result",
     "renderClassLogbook": "render-class-logbook",
+    "requestDocumentIssuance": "request-document-issuance",
+    "requestDocumentIssuanceBatch": "request-document-issuance-batch",
+    "retryDocumentIssuance": "retry-document-issuance",
+    "correctDocumentIssuance": "correct-document-issuance",
+    "voidDocumentIssuance": "void-document-issuance",
+    "previewDocument": "preview-document",
+    "createSchoolIssuanceAssetUpload": "create-school-issuance-asset-upload",
+    "completeSchoolIssuanceAssetUpload": "complete-school-issuance-asset-upload",
     "recordIncident": "record-incident",
     "addStudentInvolvement": "add-student-involvement",
     "configureDisciplinaryAction": "configure-disciplinary-action",
@@ -524,5 +538,10 @@ abstract final class ClientBindings {
     "getPaymentSettlementHistory": "get-payment-settlement-history",
     "reconcileStudentYearAccount": "reconcile-student-year-account",
     "reconcileSchoolFinance": "reconcile-school-finance",
+    "listDocumentTemplates": "list-document-templates",
+    "listDocumentIssuances": "list-document-issuances",
+    "getDocumentIssuance": "get-document-issuance",
+    "grantDocumentDownload": "grant-document-download",
+    "grantDocumentBundleDownload": "grant-document-bundle-download",
   };
 }

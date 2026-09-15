@@ -26,7 +26,7 @@ class AppShellController extends LevitController {
     if (location.startsWith('/calendar')) {
       return 0;
     }
-    if (location.startsWith('/academic')) {
+    if (location.startsWith('/academic') || location.startsWith('/documents')) {
       return 1;
     }
     if (location.startsWith('/evaluations')) {

@@ -308,6 +308,31 @@ class SessionDetailController extends LevitController
     return '${parts.first.substring(0, 1)}${parts.last.substring(0, 1)}'
         .toUpperCase();
   }
+
+  Future<DocumentJobResult> generateAttendanceSheet() {
+    return requestAndOpenDocument(
+      _schoolClient(),
+      templateKey: 'attendance-sheet.v1',
+      sourceId: attendanceSheetSourceId(session.classGroupId, session.startsAt),
+      academicYearId: _getAcademicYearId(),
+      classGroupId: session.classGroupId,
+    );
+  }
+
+  Future<DocumentJobResult> generateLogbookPdf() {
+    final classSubjectId = session.classSubjectId;
+    if (classSubjectId == null) {
+      return Future.value(const DocumentJobResult.missing());
+    }
+    return requestAndOpenDocument(
+      _schoolClient(),
+      templateKey: 'logbook.v1',
+      sourceId: session.classGroupId,
+      academicYearId: _getAcademicYearId(),
+      classGroupId: session.classGroupId,
+      classSubjectId: classSubjectId,
+    );
+  }
 }
 
 enum SessionDetailSegment { attendance, logbook }

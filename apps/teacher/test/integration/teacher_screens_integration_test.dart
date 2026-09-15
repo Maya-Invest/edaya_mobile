@@ -109,6 +109,9 @@ void _subjectTeacherSuite() {
       await pumpTeacherShellUntil<CalendarPage>(tester, harness);
       await pumpUntilFound(tester, find.byType(WeekDaySelector));
 
+      expect(find.text('Timetable PDF'), findsOneWidget);
+      expect(find.text('Class roster PDF'), findsOneWidget);
+
       expect(probes.timetableEvents, isNotEmpty);
       expect(probes.sessionProbe, isNotNull);
 
@@ -127,10 +130,7 @@ void _subjectTeacherSuite() {
       expect(session!.studentCount, greaterThan(0));
 
       await pumpTeacherShellUntil<CalendarPage>(tester, harness);
-      await pumpUntilCalendarHasSessions(
-        tester,
-        preferDay: session.sessionDay,
-      );
+      await pumpUntilCalendarHasSessions(tester, preferDay: session.sessionDay);
 
       await tapTeacherSessionTile(tester, titleNeedle: session.sessionTitle);
 
@@ -195,13 +195,14 @@ void _subjectTeacherSuite() {
       );
       await tester.pump(const Duration(milliseconds: 500));
 
-      final loadedEvaluations =
-          harness.scope.find<EvaluationsController>().evaluations.value;
+      final loadedEvaluations = harness.scope
+          .find<EvaluationsController>()
+          .evaluations
+          .value;
       expect(
         loadedEvaluations.any(
           (row) =>
-              row.title == title ||
-              row.title.contains(title.split(' ').first),
+              row.title == title || row.title.contains(title.split(' ').first),
         ),
         isTrue,
       );
@@ -228,8 +229,7 @@ void _subjectTeacherSuite() {
       final controller = harness.scope.find<EvaluationsController>();
       final evaluation = controller.evaluations.value.firstWhere(
         (row) =>
-            row.title == title ||
-            row.title.contains(title.split(' ').first),
+            row.title == title || row.title.contains(title.split(' ').first),
       );
 
       await pumpTeacherPage(
@@ -259,7 +259,10 @@ void _subjectTeacherSuite() {
         tester,
         find.byType(SegmentedButton<TeachingDetailTab>),
       );
-      await pumpUntilFound(tester, find.byType(DropdownButtonFormField<String>));
+      await pumpUntilFound(
+        tester,
+        find.byType(DropdownButtonFormField<String>),
+      );
 
       if (teaching.matterNames.isEmpty) {
         expect(
@@ -358,42 +361,36 @@ void _homeroomTeacherSuite() {
     expect(find.byType(WeekDaySelector), findsOneWidget);
   });
 
-  testWidgets('homeroom session details load enrolled students when lessons exist', (
-    tester,
-  ) async {
-    final session = probes.sessionProbe;
-    if (session == null) {
-      expect(probes.timetableEvents, isA<List<dynamic>>());
-      return;
-    }
+  testWidgets(
+    'homeroom session details load enrolled students when lessons exist',
+    (tester) async {
+      final session = probes.sessionProbe;
+      if (session == null) {
+        expect(probes.timetableEvents, isA<List<dynamic>>());
+        return;
+      }
 
-    await pumpTeacherShellUntil<CalendarPage>(tester, harness);
-    await pumpUntilCalendarHasSessions(
-      tester,
-      preferDay: session.sessionDay,
-    );
+      await pumpTeacherShellUntil<CalendarPage>(tester, harness);
+      await pumpUntilCalendarHasSessions(tester, preferDay: session.sessionDay);
 
-    await tapTeacherSessionTile(tester, titleNeedle: session.sessionTitle);
+      await tapTeacherSessionTile(tester, titleNeedle: session.sessionTitle);
 
-    await tester.pump();
-    await pumpUntilFound(tester, find.byType(SessionDetailsSheet));
+      await tester.pump();
+      await pumpUntilFound(tester, find.byType(SessionDetailsSheet));
 
-    if (session.studentCount > 0) {
-      await pumpUntilFound(tester, find.byType(AttendanceRowTile));
-      expect(find.byType(AttendanceRowTile), findsAtLeastNWidgets(1));
-    }
-  });
+      if (session.studentCount > 0) {
+        await pumpUntilFound(tester, find.byType(AttendanceRowTile));
+        expect(find.byType(AttendanceRowTile), findsAtLeastNWidgets(1));
+      }
+    },
+  );
 
   testWidgets('homeroom teaching page renders for homeroom and EPS grants', (
     tester,
   ) async {
     expect(probes.classSubjectIds, contains('ci-cs-6b-eps'));
 
-    await openTeachingTab(
-      tester,
-      harness,
-      classSubjectId: 'ci-cs-6b-eps',
-    );
+    await openTeachingTab(tester, harness, classSubjectId: 'ci-cs-6b-eps');
     expect(find.byType(TeachingPage), findsOneWidget);
     tester.takeException();
   });
@@ -403,7 +400,10 @@ void _homeroomTeacherSuite() {
     await pumpUntilFound(tester, find.byType(ReportCardsPage));
 
     if (probes.reportCardClasses.isEmpty) {
-      expect(find.text('No classes assigned for this school year.'), findsWidgets);
+      expect(
+        find.text('No classes assigned for this school year.'),
+        findsWidgets,
+      );
       return;
     }
 

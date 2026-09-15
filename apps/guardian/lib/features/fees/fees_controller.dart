@@ -231,13 +231,62 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
 }
 
 class PaymentDetailsController extends LevitController {
-  PaymentDetailsController({required this.payment});
+  PaymentDetailsController({
+    required this.payment,
+    required SchoolClientFactory schoolClient,
+    required this.studentId,
+    required this.academicYearId,
+  }) : _schoolClient = schoolClient;
 
   final PaymentRecord payment;
+  final SchoolClientFactory _schoolClient;
+  final String? studentId;
+  final String? academicYearId;
+
+  Future<DocumentJobResult> downloadReceipt() {
+    return downloadReadyIssuance(
+      _schoolClient(),
+      sourceId: payment.id,
+      templateKey: 'receipt.v1',
+      studentId: studentId,
+      academicYearId: academicYearId,
+    );
+  }
 }
 
 class ChargeDetailsController extends LevitController {
-  ChargeDetailsController({required this.charge});
+  ChargeDetailsController({
+    required this.charge,
+    required SchoolClientFactory schoolClient,
+    required this.studentId,
+    required this.academicYearId,
+    required this.schoolId,
+  }) : _schoolClient = schoolClient;
 
   final StudentChargeLine charge;
+  final SchoolClientFactory _schoolClient;
+  final String? studentId;
+  final String? academicYearId;
+  final String? schoolId;
+
+  Future<DocumentJobResult> downloadInvoice() {
+    final schoolId = this.schoolId;
+    final studentId = this.studentId;
+    final yearId = academicYearId;
+    if (schoolId == null || studentId == null || yearId == null) {
+      return Future.value(const DocumentJobResult.missing());
+    }
+    return downloadReadyIssuance(
+      _schoolClient(),
+      sourceId: studentYearAccountSourceId(
+        schoolId: schoolId,
+        studentId: studentId,
+        academicYearId: yearId,
+        currency: charge.currency,
+      ),
+      templateKey: 'invoice.v1',
+      studentId: studentId,
+      academicYearId: yearId,
+    );
+  }
 }

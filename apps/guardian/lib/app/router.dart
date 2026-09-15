@@ -20,6 +20,7 @@ import '../features/calendar/calendar_page.dart';
 import '../features/calendar/models/calendar_session.dart';
 import '../features/calendar/session_details_dialog.dart';
 import '../features/context/academic_year_picker_sheet.dart';
+import '../features/documents/documents_page.dart';
 import '../features/fees/charge_details_dialog.dart';
 import '../features/fees/fees_page.dart';
 import '../features/fees/models/payment_record.dart';
@@ -196,6 +197,10 @@ class AppRouter extends LevitController implements EdayaAppRouter {
             GoRoute(
               path: '/academic',
               builder: (context, state) => const AcademicPage(),
+            ),
+            GoRoute(
+              path: '/documents',
+              builder: (context, state) => const DocumentsPage(),
             ),
             GoRoute(
               path: '/evaluations',

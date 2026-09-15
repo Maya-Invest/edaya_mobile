@@ -15,6 +15,7 @@ import 'package:edaya_guardian/features/calendar/widgets/school_event_tile.dart'
 import 'package:edaya_guardian/features/calendar/widgets/session_tile.dart';
 import 'package:edaya_guardian/features/calendar/widgets/week_day_selector.dart';
 import 'package:edaya_guardian/features/context/student_context_controller.dart';
+import 'package:edaya_guardian/features/documents/documents_page.dart';
 import 'package:edaya_guardian/features/evaluations/evaluations_controller.dart';
 import 'package:edaya_guardian/features/evaluations/evaluations_page.dart';
 import 'package:edaya_guardian/features/evaluations/widgets/academic_period_picker.dart';
@@ -103,9 +104,14 @@ void _mariamKoneSuite() {
       expect(find.byType(FeesSummaryCard), findsOneWidget);
     });
 
-    testWidgets('AppShell navigates to inbox tab', (tester) async {
-      await openInboxTab(tester, harness);
-      expect(find.byType(InboxPage), findsOneWidget);
+    testWidgets('AppShell navigates to official documents', (tester) async {
+      await pumpGuardianShellUntil<DocumentsPage>(
+        tester,
+        harness,
+        initialRoute: '/documents',
+      );
+      expect(find.byType(DocumentsPage), findsOneWidget);
+      expect(find.byTooltip('Official documents'), findsOneWidget);
     });
   });
 

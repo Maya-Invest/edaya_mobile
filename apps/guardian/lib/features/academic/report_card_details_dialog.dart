@@ -63,7 +63,9 @@ class ReportCardDetailsDialog extends LScopedView<ReportCardDetailsController> {
                     IconButton(
                       onPressed: () => context.pop(),
                       icon: const Icon(Icons.close),
-                      tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                      tooltip: MaterialLocalizations.of(
+                        context,
+                      ).closeButtonTooltip,
                     ),
                   ],
                 ),
@@ -101,6 +103,14 @@ class ReportCardDetailsDialog extends LScopedView<ReportCardDetailsController> {
                   const SizedBox(height: 4),
                   Text(detail.principalComment!),
                 ],
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: DocumentActionButton(
+                    label: context.tr.documentsDownload,
+                    run: controller.downloadPdf,
+                  ),
+                ),
                 const SizedBox(height: 16),
                 for (final section in detail.sections) ...[
                   Text(

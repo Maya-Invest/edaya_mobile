@@ -53,6 +53,16 @@ class _AcademicBody extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.description_outlined),
+              title: Text(context.tr.documentsEntry),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/documents'),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: _SubjectSelector(controller: controller),
           ),
           const SizedBox(height: 8),

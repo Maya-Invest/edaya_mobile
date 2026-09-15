@@ -178,4 +178,47 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
       }
     });
   }
+
+  String? get _targetClassGroupId {
+    return _teacherContext.classFilterId.value ??
+        _teacherContext.assignedClasses.value.firstOrNull?.id;
+  }
+
+  Future<DocumentJobResult> generateTimetablePdf() {
+    final classId = _targetClassGroupId;
+    final teacherId = _teacherContext.teacherId.value;
+    if (classId != null) {
+      return requestAndOpenDocument(
+        _schoolClient(),
+        templateKey: 'class-timetable.v1',
+        sourceId: classId,
+        academicYearId: _academicYear.selectedYearId.value,
+        classGroupId: classId,
+      );
+    }
+    if (teacherId != null) {
+      return requestAndOpenDocument(
+        _schoolClient(),
+        templateKey: 'teacher-timetable.v1',
+        sourceId: teacherId,
+        academicYearId: _academicYear.selectedYearId.value,
+        teacherId: teacherId,
+      );
+    }
+    return Future.value(const DocumentJobResult.missing());
+  }
+
+  Future<DocumentJobResult> generateRosterPdf() {
+    final classId = _targetClassGroupId;
+    if (classId == null) {
+      return Future.value(const DocumentJobResult.missing());
+    }
+    return requestAndOpenDocument(
+      _schoolClient(),
+      templateKey: 'class-roster.v1',
+      sourceId: classId,
+      academicYearId: _academicYear.selectedYearId.value,
+      classGroupId: classId,
+    );
+  }
 }

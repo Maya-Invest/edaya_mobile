@@ -121,6 +121,8 @@ extension GeneratedSchoolClientEntities on SchoolClient {
   EntityResource get studentIncidentInvolvements => entities["studentIncidentInvolvements"]!;
 
   EntityResource get incidents => entities["incidents"]!;
+
+  EntityResource get documentIssuances => entities["documentIssuances"]!;
 }
 
 extension GeneratedSchoolClientCommands on SchoolClient {
@@ -342,6 +344,30 @@ extension GeneratedSchoolClientCommands on SchoolClient {
 
   Future<Map<String, dynamic>> renderClassLogbook(Map<String, dynamic> payload) =>
       runCommand("render-class-logbook", payload);
+
+  Future<Map<String, dynamic>> requestDocumentIssuance(Map<String, dynamic> payload) =>
+      runCommand("request-document-issuance", payload);
+
+  Future<Map<String, dynamic>> requestDocumentIssuanceBatch(Map<String, dynamic> payload) =>
+      runCommand("request-document-issuance-batch", payload);
+
+  Future<Map<String, dynamic>> retryDocumentIssuance(Map<String, dynamic> payload) =>
+      runCommand("retry-document-issuance", payload);
+
+  Future<Map<String, dynamic>> correctDocumentIssuance(Map<String, dynamic> payload) =>
+      runCommand("correct-document-issuance", payload);
+
+  Future<Map<String, dynamic>> voidDocumentIssuance(Map<String, dynamic> payload) =>
+      runCommand("void-document-issuance", payload);
+
+  Future<Map<String, dynamic>> previewDocument(Map<String, dynamic> payload) =>
+      runCommand("preview-document", payload);
+
+  Future<Map<String, dynamic>> createSchoolIssuanceAssetUpload(Map<String, dynamic> payload) =>
+      runCommand("create-school-issuance-asset-upload", payload);
+
+  Future<Map<String, dynamic>> completeSchoolIssuanceAssetUpload(Map<String, dynamic> payload) =>
+      runCommand("complete-school-issuance-asset-upload", payload);
 
   Future<Map<String, dynamic>> recordIncident(Map<String, dynamic> payload) =>
       runCommand("record-incident", payload);
@@ -584,6 +610,21 @@ extension GeneratedSchoolClientQueries on SchoolClient {
 
   Future<Map<String, dynamic>> reconcileSchoolFinance(Map<String, dynamic> payload) =>
       runQuery("reconcile-school-finance", payload);
+
+  Future<Map<String, dynamic>> listDocumentTemplates(Map<String, dynamic> payload) =>
+      runQuery("list-document-templates", payload);
+
+  Future<Map<String, dynamic>> listDocumentIssuances(Map<String, dynamic> payload) =>
+      runQuery("list-document-issuances", payload);
+
+  Future<Map<String, dynamic>> getDocumentIssuance(Map<String, dynamic> payload) =>
+      runQuery("get-document-issuance", payload);
+
+  Future<Map<String, dynamic>> grantDocumentDownload(Map<String, dynamic> payload) =>
+      runQuery("grant-document-download", payload);
+
+  Future<Map<String, dynamic>> grantDocumentBundleDownload(Map<String, dynamic> payload) =>
+      runQuery("grant-document-bundle-download", payload);
 }
 
 extension GeneratedSchoolClientPublic on SchoolClient {

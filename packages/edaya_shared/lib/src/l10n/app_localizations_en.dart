@@ -1455,4 +1455,78 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get childProfileRejectedNoReason => 'No reason was provided.';
+
+  @override
+  String get documentsTitle => 'Official documents';
+
+  @override
+  String get tooltipDocuments => 'Official documents';
+
+  @override
+  String get documentsEntry => 'Official documents';
+
+  @override
+  String get documentsEmpty =>
+      'No official documents for this school year yet.';
+
+  @override
+  String get documentsDownloadRecall =>
+      'Already downloaded files cannot be remotely recalled.';
+
+  @override
+  String get documentsDownload => 'Download';
+
+  @override
+  String get documentsGeneratePdf => 'Generate PDF';
+
+  @override
+  String get documentsOpened => 'Opening the PDF.';
+
+  @override
+  String get documentsRendering =>
+      'The PDF is still rendering. Open Official documents when it is ready.';
+
+  @override
+  String documentsFailed(String code) {
+    return 'This document failed ($code).';
+  }
+
+  @override
+  String get documentsNotIssued => 'No downloadable PDF is ready yet.';
+
+  @override
+  String get documentsOpenFailed => 'Could not open the PDF.';
+
+  @override
+  String get documentStatusRequested => 'Pending';
+
+  @override
+  String get documentStatusRendering => 'Pending';
+
+  @override
+  String get documentStatusReady => 'Issued';
+
+  @override
+  String get documentStatusFailed => 'Error';
+
+  @override
+  String get documentStatusSuperseded => 'Replaced';
+
+  @override
+  String get documentStatusVoided => 'Replaced';
+
+  @override
+  String get documentStatusPreview => 'Issued';
+
+  @override
+  String get exportLogbookPdf => 'Logbook PDF';
+
+  @override
+  String get exportTimetablePdf => 'Timetable PDF';
+
+  @override
+  String get exportRosterPdf => 'Class roster PDF';
+
+  @override
+  String get exportAttendancePdf => 'Attendance sheet PDF';
 }

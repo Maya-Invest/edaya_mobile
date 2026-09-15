@@ -1473,4 +1473,79 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get childProfileRejectedNoReason => 'Aucun motif n’a été indiqué.';
+
+  @override
+  String get documentsTitle => 'Documents officiels';
+
+  @override
+  String get tooltipDocuments => 'Documents officiels';
+
+  @override
+  String get documentsEntry => 'Documents officiels';
+
+  @override
+  String get documentsEmpty =>
+      'Aucun document officiel pour cette année scolaire.';
+
+  @override
+  String get documentsDownloadRecall =>
+      'Les fichiers déjà téléchargés ne peuvent pas être rappelés à distance.';
+
+  @override
+  String get documentsDownload => 'Télécharger';
+
+  @override
+  String get documentsGeneratePdf => 'Générer le PDF';
+
+  @override
+  String get documentsOpened => 'Ouverture du PDF.';
+
+  @override
+  String get documentsRendering =>
+      'Le PDF est encore en cours de génération. Ouvrez Documents officiels lorsqu’il sera prêt.';
+
+  @override
+  String documentsFailed(String code) {
+    return 'Ce document a échoué ($code).';
+  }
+
+  @override
+  String get documentsNotIssued =>
+      'Aucun PDF téléchargeable n’est encore prêt.';
+
+  @override
+  String get documentsOpenFailed => 'Impossible d’ouvrir le PDF.';
+
+  @override
+  String get documentStatusRequested => 'En attente';
+
+  @override
+  String get documentStatusRendering => 'En attente';
+
+  @override
+  String get documentStatusReady => 'Émis';
+
+  @override
+  String get documentStatusFailed => 'Erreur';
+
+  @override
+  String get documentStatusSuperseded => 'Remplacé';
+
+  @override
+  String get documentStatusVoided => 'Remplacé';
+
+  @override
+  String get documentStatusPreview => 'Émis';
+
+  @override
+  String get exportLogbookPdf => 'PDF du cahier de textes';
+
+  @override
+  String get exportTimetablePdf => 'PDF de l’emploi du temps';
+
+  @override
+  String get exportRosterPdf => 'PDF de la liste de classe';
+
+  @override
+  String get exportAttendancePdf => 'PDF de la feuille d’appel';
 }

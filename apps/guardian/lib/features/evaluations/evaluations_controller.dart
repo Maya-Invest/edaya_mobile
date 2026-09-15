@@ -421,6 +421,14 @@ class ReportCardDetailsController extends LevitController
     unawaited(loadDetail());
   }
 
+  Future<DocumentJobResult> downloadPdf() {
+    return downloadReadyIssuance(
+      _schoolClient(),
+      sourceId: reportCardId,
+      templateKey: 'report-card.v1',
+    );
+  }
+
   Future<void> loadDetail() async {
     await runTask(() async {
       try {

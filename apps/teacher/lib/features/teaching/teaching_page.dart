@@ -232,6 +232,16 @@ class _TeachingLogbookTab extends StatelessWidget {
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: DocumentActionButton(
+                  label: context.tr.exportLogbookPdf,
+                  run: controller.generateLogbookPdf,
+                ),
+              ),
+            ),
+            Padding(
               padding: const EdgeInsets.all(24),
               child: Center(child: Text(context.tr.noTeachingLogEntries)),
             ),
@@ -242,10 +252,19 @@ class _TeachingLogbookTab extends StatelessWidget {
       return ListView.separated(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
-        itemCount: entries.length,
+        itemCount: entries.length + 1,
         separatorBuilder: (_, _) => const SizedBox(height: 8),
         itemBuilder: (context, index) {
-          final entry = entries[index];
+          if (index == 0) {
+            return Align(
+              alignment: Alignment.centerLeft,
+              child: DocumentActionButton(
+                label: context.tr.exportLogbookPdf,
+                run: controller.generateLogbookPdf,
+              ),
+            );
+          }
+          final entry = entries[index - 1];
           return _TeachingLogbookCard(
             entry: entry,
             onTap: () => _openSession(context, entry),
