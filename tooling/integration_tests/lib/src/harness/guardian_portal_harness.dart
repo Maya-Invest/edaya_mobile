@@ -332,6 +332,16 @@ Future<GuardianFeesProbe> loadGuardianFeesData(
         .map((row) => Map<String, dynamic>.from(row))
         .toList();
   }
+  if (payments.isEmpty) {
+    try {
+      payments = await client.payments.list({
+        'studentId': studentId,
+        'academicYearId': academicYearId,
+      });
+    } on Object {
+      payments = <Map<String, dynamic>>[];
+    }
+  }
 
   return GuardianFeesProbe(
     summary: summary,

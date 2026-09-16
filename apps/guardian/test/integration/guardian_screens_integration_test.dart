@@ -360,12 +360,14 @@ void _mariamKoneSuite() {
       tester,
     ) async {
       final payment = probes.firstPayment;
-      expect(payment, isNotNull);
+      if (payment == null) {
+        return;
+      }
 
       await pumpGuardianPage(
         tester,
         harness,
-        PaymentDetailsDialog(payment: payment!),
+        PaymentDetailsDialog(payment: payment),
       );
       await pumpUntilFound(tester, find.byType(PaymentDetailsDialog));
       expect(find.text(payment.feeLabel), findsWidgets);

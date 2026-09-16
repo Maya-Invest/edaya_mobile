@@ -127,6 +127,20 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
         final allocationRows =
             (history['allocations'] as List?)?.whereType<Map>().toList() ??
             const [];
+        var paymentRows = ((history['payments'] as List?) ?? const [])
+            .whereType<Map>()
+            .map((row) => Map<String, dynamic>.from(row))
+            .toList();
+        if (paymentRows.isEmpty) {
+          try {
+            paymentRows = await client.payments.list({
+              'studentId': studentId,
+              'academicYearId': yearId,
+            });
+          } on Object {
+            paymentRows = const [];
+          }
+        }
         final parsedCharges = chargeRows.map((row) {
           final id = row['id'] as String;
           return StudentChargeLine.fromJson(
@@ -143,17 +157,13 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
             (parsedCharges.isNotEmpty
                 ? parsedCharges.first.currency
                 : history['currency'] as String? ?? 'XOF');
-        final parsedPayments =
-            ((history['payments'] as List?) ?? const []).whereType<Map>().map((
-              row,
-            ) {
-              final json = Map<String, dynamic>.from(row);
-              return PaymentRecord.fromJson(
-                json,
-                feeLabel: _paymentLabel(json, chargeLabelById, allocationRows),
-                currency: currency,
-              );
-            }).toList()..sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
+        final parsedPayments = paymentRows.map((json) {
+          return PaymentRecord.fromJson(
+            json,
+            feeLabel: _paymentLabel(json, chargeLabelById, allocationRows),
+            currency: currency,
+          );
+        }).toList()..sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
 
         charges(parsedCharges);
         payments(parsedPayments);
