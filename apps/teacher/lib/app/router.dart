@@ -19,6 +19,7 @@ import '../features/report_cards/models/report_card_roster_models.dart';
 import '../features/report_cards/report_card_roster_sheet.dart';
 import '../features/report_cards/report_cards_page.dart';
 import '../features/teaching/teaching_page.dart';
+import '../features/family_feedback/family_feedback_page.dart';
 import '../features/session/attendance_flow_page.dart';
 import '../features/session/session_details_sheet.dart';
 import '../features/session/session_route_args.dart';
@@ -188,6 +189,34 @@ class AppRouter extends LevitController implements EdayaAppRouter {
             GoRoute(
               path: '/teaching',
               builder: (context, state) => const TeachingPage(),
+              routes: [
+                GoRoute(
+                  path: 'family-feedback',
+                  builder: (context, state) => const TeacherFamilyFeedbackPage(),
+                  routes: [
+                    GoRoute(
+                      path: ':campaignId',
+                      builder: (context, state) {
+                        final extra = state.extra;
+                        final campaignId = extra is TeacherFamilyFeedbackResult
+                            ? extra.campaignId
+                            : state.pathParameters['campaignId'] ?? '';
+                        if (campaignId.isEmpty) {
+                          return RouteErrorPage(
+                            message: context.tr.familyFeedbackEmpty,
+                          );
+                        }
+                        return TeacherFamilyFeedbackResultRoutePage(
+                          routeArgs: TeacherFamilyFeedbackResultRouteArgs(
+                            campaignId: campaignId,
+                            result: extra is TeacherFamilyFeedbackResult ? extra : null,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ],
             ),
             GoRoute(
               path: '/report-cards',

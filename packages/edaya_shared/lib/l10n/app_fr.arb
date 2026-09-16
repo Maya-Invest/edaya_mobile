@@ -425,5 +425,19 @@
   "exportLogbookPdf": "PDF du cahier de textes",
   "exportTimetablePdf": "PDF de l’emploi du temps",
   "exportRosterPdf": "PDF de la liste de classe",
-  "exportAttendancePdf": "PDF de la feuille d’appel"
+  "exportAttendancePdf": "PDF de la feuille d’appel",
+  "familyFeedbackEntry": "Retour des familles",
+  "familyFeedbackTitle": "Retour des familles",
+  "familyFeedbackEmpty": "Aucune campagne de retour des familles pour le moment.",
+  "familyFeedbackConfidential": "Confidentiel et agrégé. Ce n’est pas une évaluation scolaire.",
+  "familyFeedbackSubmit": "Envoyer",
+  "familyFeedbackSubmitted": "Votre réponse a été enregistrée.",
+  "familyFeedbackAlreadyCompleted": "Une réponse est déjà enregistrée pour cet élève.",
+  "familyFeedbackClosed": "Cette campagne est close.",
+  "familyFeedbackComment": "Commentaire facultatif",
+  "familyFeedbackCannotAssess": "Ne peut pas évaluer",
+  "familyFeedbackInsufficient": "Réponses insuffisantes",
+  "familyFeedbackThemes": "Thèmes",
+  "familyFeedbackSlotOpen": "Ouverte",
+  "familyFeedbackSlotCompleted": "Terminée"
 }

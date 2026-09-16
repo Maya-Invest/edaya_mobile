@@ -7,7 +7,6 @@ import '../features/context/academic_year_controller.dart';
 import '../features/context/student_context_controller.dart';
 import '../config/api_config.dart';
 import '../features/academic/academic_page.dart';
-import '../features/evaluations/evaluations_page.dart';
 import '../features/academic/grade_details_dialog.dart';
 import '../features/academic/models/grade_entry.dart';
 import '../features/academic/models/report_card_summary.dart';
@@ -21,6 +20,8 @@ import '../features/calendar/models/calendar_session.dart';
 import '../features/calendar/session_details_dialog.dart';
 import '../features/context/academic_year_picker_sheet.dart';
 import '../features/documents/documents_page.dart';
+import '../features/family_feedback/family_feedback_page.dart';
+import '../features/evaluations/evaluations_page.dart';
 import '../features/fees/charge_details_dialog.dart';
 import '../features/fees/fees_page.dart';
 import '../features/fees/models/payment_record.dart';
@@ -197,6 +198,37 @@ class AppRouter extends LevitController implements EdayaAppRouter {
             GoRoute(
               path: '/academic',
               builder: (context, state) => const AcademicPage(),
+              routes: [
+                GoRoute(
+                  path: 'family-feedback',
+                  builder: (context, state) => const GuardianFamilyFeedbackPage(),
+                  routes: [
+                    GoRoute(
+                      path: ':campaignId',
+                      builder: (context, state) {
+                        final extra = state.extra;
+                        final campaignId = state.pathParameters['campaignId'] ?? '';
+                        final studentId = extra is GuardianFamilyFeedbackCampaign
+                            ? extra.studentId
+                            : state.uri.queryParameters['studentId'];
+                        if (studentId != null && studentId.isNotEmpty && campaignId.isNotEmpty) {
+                          return GuardianFamilyFeedbackQuestionnairePage(
+                            questionnaireArgs: GuardianFamilyFeedbackQuestionnaireArgs(
+                              campaignId: extra is GuardianFamilyFeedbackCampaign
+                                  ? extra.campaignId
+                                  : campaignId,
+                              studentId: studentId,
+                            ),
+                          );
+                        }
+                        return RouteErrorPage(
+                          message: context.tr.familyFeedbackEmpty,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ],
             ),
             GoRoute(
               path: '/documents',

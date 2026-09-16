@@ -1349,6 +1349,61 @@
       "requestSchemaName": "PublishStudentPhotoCommand",
       "responseSchemaName": "Student"
     },
+    "createFamilyFeedbackCampaign": {
+      "publicName": "create-family-feedback-campaign",
+      "requestSchemaName": "CreateFamilyFeedbackCampaignCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
+    },
+    "updateFamilyFeedbackCampaign": {
+      "publicName": "update-family-feedback-campaign",
+      "requestSchemaName": "UpdateFamilyFeedbackCampaignCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
+    },
+    "assignFamilyFeedbackModerator": {
+      "publicName": "assign-family-feedback-moderator",
+      "requestSchemaName": "AssignFamilyFeedbackModeratorCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
+    },
+    "scheduleFamilyFeedbackCampaign": {
+      "publicName": "schedule-family-feedback-campaign",
+      "requestSchemaName": "FamilyFeedbackCampaignIdCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
+    },
+    "openFamilyFeedbackCampaign": {
+      "publicName": "open-family-feedback-campaign",
+      "requestSchemaName": "FamilyFeedbackCampaignIdCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
+    },
+    "closeFamilyFeedbackCampaign": {
+      "publicName": "close-family-feedback-campaign",
+      "requestSchemaName": "FamilyFeedbackCampaignIdCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
+    },
+    "cancelFamilyFeedbackCampaign": {
+      "publicName": "cancel-family-feedback-campaign",
+      "requestSchemaName": "FamilyFeedbackCampaignIdCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
+    },
+    "submitFamilyFeedbackResponse": {
+      "publicName": "submit-family-feedback-response",
+      "requestSchemaName": "SubmitFamilyFeedbackResponseCommand",
+      "responseSchemaName": "FamilyFeedbackSubmitReceipt"
+    },
+    "saveFamilyFeedbackThemeDraft": {
+      "publicName": "save-family-feedback-theme-draft",
+      "requestSchemaName": "SaveFamilyFeedbackThemeDraftCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
+    },
+    "publishFamilyFeedbackCampaign": {
+      "publicName": "publish-family-feedback-campaign",
+      "requestSchemaName": "FamilyFeedbackCampaignIdCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
+    },
+    "archiveFamilyFeedbackCampaign": {
+      "publicName": "archive-family-feedback-campaign",
+      "requestSchemaName": "FamilyFeedbackCampaignIdCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
+    },
     "createSchedule": {
       "publicName": "create-schedule",
       "requestSchemaName": "CreateScheduleCommand",
@@ -1605,6 +1660,56 @@
       "publicName": "grant-document-bundle-download",
       "requestSchemaName": "GrantDocumentBundleDownloadQuery",
       "responseSchemaName": "DocumentDownloadBundleResponse"
+    },
+    "listFamilyFeedbackCampaigns": {
+      "publicName": "list-family-feedback-campaigns",
+      "requestSchemaName": "ListFamilyFeedbackCampaignsQuery",
+      "responseSchemaName": "FamilyFeedbackCampaignProjectionList"
+    },
+    "getFamilyFeedbackCampaign": {
+      "publicName": "get-family-feedback-campaign",
+      "requestSchemaName": "GetFamilyFeedbackCampaignQuery",
+      "responseSchemaName": "FamilyFeedbackCampaignProjection"
+    },
+    "previewFamilyFeedbackAudience": {
+      "publicName": "preview-family-feedback-audience",
+      "requestSchemaName": "PreviewFamilyFeedbackAudienceQuery",
+      "responseSchemaName": "FamilyFeedbackAudiencePreview"
+    },
+    "getFamilyFeedbackInstrument": {
+      "publicName": "get-family-feedback-instrument",
+      "requestSchemaName": "GetFamilyFeedbackInstrumentQuery",
+      "responseSchemaName": "FamilyFeedbackInstrument"
+    },
+    "listGuardianFamilyFeedbackCampaigns": {
+      "publicName": "list-guardian-family-feedback-campaigns",
+      "requestSchemaName": "ListGuardianFamilyFeedbackCampaignsQuery",
+      "responseSchemaName": "GuardianFamilyFeedbackCampaignList"
+    },
+    "getGuardianFamilyFeedbackQuestionnaire": {
+      "publicName": "get-guardian-family-feedback-questionnaire",
+      "requestSchemaName": "GetGuardianFamilyFeedbackQuestionnaireQuery",
+      "responseSchemaName": "GuardianFamilyFeedbackQuestionnaire"
+    },
+    "listFamilyFeedbackComments": {
+      "publicName": "list-family-feedback-comments",
+      "requestSchemaName": "ListFamilyFeedbackCommentsQuery",
+      "responseSchemaName": "FamilyFeedbackComments"
+    },
+    "getFamilyFeedbackAggregateReview": {
+      "publicName": "get-family-feedback-aggregate-review",
+      "requestSchemaName": "GetFamilyFeedbackAggregateReviewQuery",
+      "responseSchemaName": "FamilyFeedbackAggregate"
+    },
+    "listTeacherFamilyFeedbackResults": {
+      "publicName": "list-teacher-family-feedback-results",
+      "requestSchemaName": "ListTeacherFamilyFeedbackResultsQuery",
+      "responseSchemaName": "TeacherFamilyFeedbackResultList"
+    },
+    "getTeacherFamilyFeedbackResult": {
+      "publicName": "get-teacher-family-feedback-result",
+      "requestSchemaName": "GetTeacherFamilyFeedbackResultQuery",
+      "responseSchemaName": "TeacherFamilyFeedbackResult"
     }
   },
   "authorization": {

@@ -1529,4 +1529,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exportAttendancePdf => 'Attendance sheet PDF';
+
+  @override
+  String get familyFeedbackEntry => 'Family feedback';
+
+  @override
+  String get familyFeedbackTitle => 'Family feedback';
+
+  @override
+  String get familyFeedbackEmpty => 'No family feedback campaigns yet.';
+
+  @override
+  String get familyFeedbackConfidential =>
+      'Confidential and aggregated. This is not an academic assessment.';
+
+  @override
+  String get familyFeedbackSubmit => 'Submit';
+
+  @override
+  String get familyFeedbackSubmitted => 'Your response was recorded.';
+
+  @override
+  String get familyFeedbackAlreadyCompleted =>
+      'A response is already recorded for this student.';
+
+  @override
+  String get familyFeedbackClosed => 'This campaign is closed.';
+
+  @override
+  String get familyFeedbackComment => 'Optional comment';
+
+  @override
+  String get familyFeedbackCannotAssess => 'Cannot assess';
+
+  @override
+  String get familyFeedbackInsufficient => 'Insufficient responses';
+
+  @override
+  String get familyFeedbackThemes => 'Themes';
+
+  @override
+  String get familyFeedbackSlotOpen => 'Open';
+
+  @override
+  String get familyFeedbackSlotCompleted => 'Completed';
 }

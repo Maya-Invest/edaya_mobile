@@ -63,6 +63,16 @@ class _AcademicBody extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.favorite_outline),
+              title: Text(context.tr.familyFeedbackEntry),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/academic/family-feedback'),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: _SubjectSelector(controller: controller),
           ),
           const SizedBox(height: 8),

@@ -842,5 +842,19 @@
   "exportLogbookPdf": "Logbook PDF",
   "exportTimetablePdf": "Timetable PDF",
   "exportRosterPdf": "Class roster PDF",
-  "exportAttendancePdf": "Attendance sheet PDF"
+  "exportAttendancePdf": "Attendance sheet PDF",
+  "familyFeedbackEntry": "Family feedback",
+  "familyFeedbackTitle": "Family feedback",
+  "familyFeedbackEmpty": "No family feedback campaigns yet.",
+  "familyFeedbackConfidential": "Confidential and aggregated. This is not an academic assessment.",
+  "familyFeedbackSubmit": "Submit",
+  "familyFeedbackSubmitted": "Your response was recorded.",
+  "familyFeedbackAlreadyCompleted": "A response is already recorded for this student.",
+  "familyFeedbackClosed": "This campaign is closed.",
+  "familyFeedbackComment": "Optional comment",
+  "familyFeedbackCannotAssess": "Cannot assess",
+  "familyFeedbackInsufficient": "Insufficient responses",
+  "familyFeedbackThemes": "Themes",
+  "familyFeedbackSlotOpen": "Open",
+  "familyFeedbackSlotCompleted": "Completed"
 }

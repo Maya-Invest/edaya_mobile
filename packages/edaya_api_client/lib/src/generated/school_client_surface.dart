@@ -474,6 +474,39 @@ extension GeneratedSchoolClientCommands on SchoolClient {
   Future<Map<String, dynamic>> publishStudentPhoto(Map<String, dynamic> payload) =>
       runCommand("publish-student-photo", payload);
 
+  Future<Map<String, dynamic>> createFamilyFeedbackCampaign(Map<String, dynamic> payload) =>
+      runCommand("create-family-feedback-campaign", payload);
+
+  Future<Map<String, dynamic>> updateFamilyFeedbackCampaign(Map<String, dynamic> payload) =>
+      runCommand("update-family-feedback-campaign", payload);
+
+  Future<Map<String, dynamic>> assignFamilyFeedbackModerator(Map<String, dynamic> payload) =>
+      runCommand("assign-family-feedback-moderator", payload);
+
+  Future<Map<String, dynamic>> scheduleFamilyFeedbackCampaign(Map<String, dynamic> payload) =>
+      runCommand("schedule-family-feedback-campaign", payload);
+
+  Future<Map<String, dynamic>> openFamilyFeedbackCampaign(Map<String, dynamic> payload) =>
+      runCommand("open-family-feedback-campaign", payload);
+
+  Future<Map<String, dynamic>> closeFamilyFeedbackCampaign(Map<String, dynamic> payload) =>
+      runCommand("close-family-feedback-campaign", payload);
+
+  Future<Map<String, dynamic>> cancelFamilyFeedbackCampaign(Map<String, dynamic> payload) =>
+      runCommand("cancel-family-feedback-campaign", payload);
+
+  Future<Map<String, dynamic>> submitFamilyFeedbackResponse(Map<String, dynamic> payload) =>
+      runCommand("submit-family-feedback-response", payload);
+
+  Future<Map<String, dynamic>> saveFamilyFeedbackThemeDraft(Map<String, dynamic> payload) =>
+      runCommand("save-family-feedback-theme-draft", payload);
+
+  Future<Map<String, dynamic>> publishFamilyFeedbackCampaign(Map<String, dynamic> payload) =>
+      runCommand("publish-family-feedback-campaign", payload);
+
+  Future<Map<String, dynamic>> archiveFamilyFeedbackCampaign(Map<String, dynamic> payload) =>
+      runCommand("archive-family-feedback-campaign", payload);
+
   Future<Map<String, dynamic>> createSchedule(Map<String, dynamic> payload) =>
       runCommand("create-schedule", payload);
 
@@ -628,6 +661,36 @@ extension GeneratedSchoolClientQueries on SchoolClient {
 
   Future<Map<String, dynamic>> grantDocumentBundleDownload(Map<String, dynamic> payload) =>
       runQuery("grant-document-bundle-download", payload);
+
+  Future<Map<String, dynamic>> listFamilyFeedbackCampaigns(Map<String, dynamic> payload) =>
+      runQuery("list-family-feedback-campaigns", payload);
+
+  Future<Map<String, dynamic>> getFamilyFeedbackCampaign(Map<String, dynamic> payload) =>
+      runQuery("get-family-feedback-campaign", payload);
+
+  Future<Map<String, dynamic>> previewFamilyFeedbackAudience(Map<String, dynamic> payload) =>
+      runQuery("preview-family-feedback-audience", payload);
+
+  Future<Map<String, dynamic>> getFamilyFeedbackInstrument(Map<String, dynamic> payload) =>
+      runQuery("get-family-feedback-instrument", payload);
+
+  Future<Map<String, dynamic>> listGuardianFamilyFeedbackCampaigns(Map<String, dynamic> payload) =>
+      runQuery("list-guardian-family-feedback-campaigns", payload);
+
+  Future<Map<String, dynamic>> getGuardianFamilyFeedbackQuestionnaire(Map<String, dynamic> payload) =>
+      runQuery("get-guardian-family-feedback-questionnaire", payload);
+
+  Future<Map<String, dynamic>> listFamilyFeedbackComments(Map<String, dynamic> payload) =>
+      runQuery("list-family-feedback-comments", payload);
+
+  Future<Map<String, dynamic>> getFamilyFeedbackAggregateReview(Map<String, dynamic> payload) =>
+      runQuery("get-family-feedback-aggregate-review", payload);
+
+  Future<Map<String, dynamic>> listTeacherFamilyFeedbackResults(Map<String, dynamic> payload) =>
+      runQuery("list-teacher-family-feedback-results", payload);
+
+  Future<Map<String, dynamic>> getTeacherFamilyFeedbackResult(Map<String, dynamic> payload) =>
+      runQuery("get-teacher-family-feedback-result", payload);
 }
 
 extension GeneratedSchoolClientPublic on SchoolClient {

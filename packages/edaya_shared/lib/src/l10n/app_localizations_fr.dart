@@ -1548,4 +1548,49 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get exportAttendancePdf => 'PDF de la feuille d’appel';
+
+  @override
+  String get familyFeedbackEntry => 'Retour des familles';
+
+  @override
+  String get familyFeedbackTitle => 'Retour des familles';
+
+  @override
+  String get familyFeedbackEmpty =>
+      'Aucune campagne de retour des familles pour le moment.';
+
+  @override
+  String get familyFeedbackConfidential =>
+      'Confidentiel et agrégé. Ce n’est pas une évaluation scolaire.';
+
+  @override
+  String get familyFeedbackSubmit => 'Envoyer';
+
+  @override
+  String get familyFeedbackSubmitted => 'Votre réponse a été enregistrée.';
+
+  @override
+  String get familyFeedbackAlreadyCompleted =>
+      'Une réponse est déjà enregistrée pour cet élève.';
+
+  @override
+  String get familyFeedbackClosed => 'Cette campagne est close.';
+
+  @override
+  String get familyFeedbackComment => 'Commentaire facultatif';
+
+  @override
+  String get familyFeedbackCannotAssess => 'Ne peut pas évaluer';
+
+  @override
+  String get familyFeedbackInsufficient => 'Réponses insuffisantes';
+
+  @override
+  String get familyFeedbackThemes => 'Thèmes';
+
+  @override
+  String get familyFeedbackSlotOpen => 'Ouverte';
+
+  @override
+  String get familyFeedbackSlotCompleted => 'Terminée';
 }

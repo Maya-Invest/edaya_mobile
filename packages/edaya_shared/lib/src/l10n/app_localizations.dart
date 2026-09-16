@@ -2653,6 +2653,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Attendance sheet PDF'**
   String get exportAttendancePdf;
+
+  /// No description provided for @familyFeedbackEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Family feedback'**
+  String get familyFeedbackEntry;
+
+  /// No description provided for @familyFeedbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Family feedback'**
+  String get familyFeedbackTitle;
+
+  /// No description provided for @familyFeedbackEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No family feedback campaigns yet.'**
+  String get familyFeedbackEmpty;
+
+  /// No description provided for @familyFeedbackConfidential.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidential and aggregated. This is not an academic assessment.'**
+  String get familyFeedbackConfidential;
+
+  /// No description provided for @familyFeedbackSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get familyFeedbackSubmit;
+
+  /// No description provided for @familyFeedbackSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Your response was recorded.'**
+  String get familyFeedbackSubmitted;
+
+  /// No description provided for @familyFeedbackAlreadyCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'A response is already recorded for this student.'**
+  String get familyFeedbackAlreadyCompleted;
+
+  /// No description provided for @familyFeedbackClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'This campaign is closed.'**
+  String get familyFeedbackClosed;
+
+  /// No description provided for @familyFeedbackComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional comment'**
+  String get familyFeedbackComment;
+
+  /// No description provided for @familyFeedbackCannotAssess.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot assess'**
+  String get familyFeedbackCannotAssess;
+
+  /// No description provided for @familyFeedbackInsufficient.
+  ///
+  /// In en, this message translates to:
+  /// **'Insufficient responses'**
+  String get familyFeedbackInsufficient;
+
+  /// No description provided for @familyFeedbackThemes.
+  ///
+  /// In en, this message translates to:
+  /// **'Themes'**
+  String get familyFeedbackThemes;
+
+  /// No description provided for @familyFeedbackSlotOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get familyFeedbackSlotOpen;
+
+  /// No description provided for @familyFeedbackSlotCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get familyFeedbackSlotCompleted;
 }
 
 class _AppLocalizationsDelegate

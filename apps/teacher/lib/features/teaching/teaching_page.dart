@@ -42,6 +42,16 @@ class _TeachingBody extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             child: _TeachingScopeSelectors(controller: controller),
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.favorite_outline),
+              title: Text(context.tr.familyFeedbackEntry),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/teaching/family-feedback'),
+            ),
+          ),
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
