@@ -40,8 +40,10 @@ abstract final class PrototypeTheme {
         foregroundColor: scheme.onSurface,
         elevation: 0,
         scrolledUnderElevation: 0,
-        titleTextStyle: PrototypeTypography.textTheme(base.textTheme, scheme)
-            .titleMedium,
+        titleTextStyle: PrototypeTypography.textTheme(
+          base.textTheme,
+          scheme,
+        ).titleMedium,
       ),
       cardTheme: CardThemeData(
         color: PrototypeColors.surface,

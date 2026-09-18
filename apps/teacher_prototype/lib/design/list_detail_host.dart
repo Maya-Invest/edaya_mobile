@@ -36,8 +36,9 @@ class ListDetailHost extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final useDrawer =
-            PrototypeBreakpoints.useDetailDrawer(constraints.maxWidth);
+        final useDrawer = PrototypeBreakpoints.useDetailDrawer(
+          constraints.maxWidth,
+        );
 
         if (!useDrawer) {
           // Always keep brand app bar (medium+) + student context above content.

@@ -1,26 +1,25 @@
-# Edaya Teacher — UI Prototype
+# Edaya Teacher — Accueil prototype
 
-Standalone Flutter prototype demonstrating the teacher Accueil-first information architecture with the **guardian design language** and **mock data only**. No API or auth dependencies. Production [`apps/teacher`](../teacher) stays frozen.
+Standalone Flutter app for the teacher Accueil-first information architecture. This is the **product surface** for the Accueil cutover. Store-listed [`apps/teacher`](../teacher) stays frozen (four tabs) until a later promotion.
 
-**Scope (v1):** daily teacher jobs — Home action centre, Agenda, Classes, Évaluations (marks + bulletin comments), and inbox. Writes update the in-memory `MockStore`.
+**Live (`melos run run:teacher:prototype`):** Identity email OTP, teacher context from assignments, Accueil tasks, family-feedback avis, and session attendance / logbook / marks against local Identity (`10.0.2.2:9900`) and school API (`10.0.2.2:9999`).
+
+**Tests / design-review:** `MockStore` harness (`live: false`) so screenshots and smoke tests do not need the API.
 
 ## Run locally
-
-```bash
-cd apps/teacher_prototype
-flutter pub get
-flutter run
-```
-
-From monorepo root:
 
 ```bash
 melos run run:teacher:prototype
 ```
 
-## Demo login
+Requires local Identity and school API. Default demo email: `a.toure@ecole-ci.edaya.dev` (override with `--dart-define=DEV_TEACHER_EMAIL=...`).
 
-Tap **Se connecter** — any credentials work. Mock teacher: **Aminata Traoré**, classes **6ème A**, **5ème B** (titulaire), **3ème A** at Collège Moderne Plateau.
+Widget tests:
+
+```bash
+cd apps/teacher_prototype
+flutter test --exclude-tags integration
+```
 
 ## Information architecture
 
@@ -28,13 +27,15 @@ Five shell tabs (post-login → `/home`):
 
 | Tab | Route | Role |
 |-----|-------|------|
-| Accueil | `/home` | Action centre — incomplete attendance/logbook/marks/comments, current/next session |
+| Accueil | `/home` | Action centre — one primary task + remaining count, current/next session |
 | Agenda | `/calendar` | Day list of teacher sessions; week chips + date picker |
 | Classes | `/classes` | Assigned classes → roster → student quick profile |
-| Évaluations | `/evaluations` | Assessments + report-card drill-down |
-| Messages | `/inbox` | Inbox list |
+| Évaluations | `/evaluations` | Assessments + **Avis des familles** |
+| Messages | `/inbox` | Inbox (empty until messaging is wired live) |
 
-Shell chrome: branded `PrototypeAppBar` + `TeacherContextCard` (class/subject · school/year).
+Family feedback from Accueil opens `/home/avis/:id` (Accueil tab stays selected). The archive is `/evaluations/avis`.
+
+Shell chrome: branded `PrototypeAppBar` + live `TeacherContextCard` (class/subject · school/year).
 
 ### Adaptive layout
 
@@ -56,4 +57,4 @@ Shell chrome: branded `PrototypeAppBar` + `TeacherContextCard` (class/subject ·
 melos run screenshots:teacher-prototype:review
 ```
 
-Output: `apps/teacher_prototype/design-review/index.html` (mock data, no API).
+Output: `apps/teacher_prototype/design-review/index.html` (mock harness, no API).

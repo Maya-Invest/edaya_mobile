@@ -1,5 +1,5 @@
 name: teacher_prototype
-description: Teacher UI prototype — Accueil-first IA with guardian design language (mock data only).
+description: Teacher Accueil-first product surface — live OTP, context, avis, and daily tasks.
 publish_to: none
 resolution: workspace
 
@@ -13,9 +13,16 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  edaya_api_client:
+    path: ../../packages/edaya_api_client
+  edaya_auth:
+    path: ../../packages/edaya_auth
+  edaya_shared:
+    path: ../../packages/edaya_shared
   go_router: ^17.3.0
   intl: any
   levit_flutter: ^0.0.9
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:

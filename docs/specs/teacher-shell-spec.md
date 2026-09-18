@@ -14,7 +14,9 @@ This spec defines information architecture, shell chrome, teacher/class context,
 |------|-------------|
 | Audience | Teachers (subject and homeroom), French-first |
 | Tone | Staff classroom companion — polished like guardian, job-oriented |
-| v1 interactions | UI-complete mock flows for attendance, logbook, marks, report-card comments, inbox; writes update local mock store only |
+| Auth | Pre-shell email OTP against Identity (`sendEmailOtp` / `signInWithEmailOtp`). Success lands on `/home`. Widget tests may keep a mock OTP harness; the runnable product (`melos run run:teacher:prototype`) is live. |
+| Live after OTP | Shell teacher context (class / subject / year), Accueil tasks, and family-feedback avis must read the school API. Do not ship real Identity in front of fake classrooms. |
+| Other hubs | Agenda sessions, class rosters, marks, attendance, and logbook resolve live IDs when those controllers are wired. Inbox and bulletin comments may stay empty/mock until a later cutover. |
 | Context awareness | Active class/subject and school year must remain visible in the shell whenever chrome is shown |
 
 ---
@@ -37,7 +39,7 @@ Labels must stay short enough for a 390 px width at 200% text scale.
 
 | Location family | Selected tab |
 |-----------------|--------------|
-| `/home…` | Accueil |
+| `/home…` (including `/home/avis…`) | Accueil |
 | `/calendar…`, `/session…` | Agenda |
 | `/classes…`, `/student…` | Classes |
 | `/evaluations…`, `/report-card…` | Évaluations |
@@ -52,22 +54,25 @@ Labels must stay short enough for a 390 px width at 200% text scale.
 
 | Path | Screen |
 |------|--------|
-| `/login` | Connexion (outside shell) |
+| `/login` | Connexion OTP (outside shell) |
 | `/home` | Accueil |
 | `/calendar` | Agenda |
 | `/classes` | Classes hub |
 | `/evaluations` | Évaluations hub |
+| `/evaluations/avis` | Avis des familles (list) |
 | `/inbox` | Messages |
 
 ### Detail / drill-down (under shell)
 
 | Path | Screen | List host (expanded drawer) |
 |------|--------|-----------------------------|
+| `/home/avis/:id` | Avis (from Accueil; Accueil tab stays selected) | Home (focused page, no drawer host) |
 | `/session/:id` | Séance | Agenda |
 | `/session/:id/attendance` | Présences | Agenda |
 | `/session/:id/logbook` | Cahier de texte | Agenda |
 | `/classes/:classId` | Roster | Classes |
 | `/classes/:classId/student/:studentId` | Profil élève | Classes |
+| `/evaluations/avis/:id` | Avis (from Évaluations hub) | Évaluations |
 | `/evaluations/:evaluationId/marks` | Saisie notes | Évaluations |
 | `/evaluations/report-cards/:classId/:periodId` | Roster bulletin | Évaluations |
 | `/evaluations/report-cards/:classId/:periodId/:rosterId` | Commentaire | Évaluations |
@@ -83,6 +88,19 @@ Legacy redirects:
 | `/message/:id` | `/inbox/message/:id` |
 
 Unauthenticated users must land on `/login`. Authenticated users on `/login` must redirect to `/home`.
+
+### Accueil tasks
+
+Accueil shows **one** primary “À traiter” card plus a remaining-count line. Order:
+
+1. Open family-feedback results (`/home/avis/:id`)
+2. Incomplete attendance
+3. Logbook for lessons that have already ended today
+4. Marks to enter
+5. Bulletin comments (when present)
+6. Unread messages (when present)
+
+The full family-feedback archive stays under Évaluations (`/evaluations/avis`), not a Teaching tab.
 
 ---
 
@@ -193,3 +211,5 @@ All other chrome and list widgets reuse the guardian design-language catalog.
 6. Teacher context card visible whenever shell chrome is shown.
 7. Post-login landing is `/home`.
 8. Design-review (or equivalent) must cover compact, medium, and expanded widths.
+9. Login is Identity OTP (not “any code works”) on the runnable prototype.
+10. Accueil family-feedback tasks and `/evaluations/avis` read live teacher results.

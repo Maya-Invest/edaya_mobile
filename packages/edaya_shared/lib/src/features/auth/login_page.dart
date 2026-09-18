@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../l10n/l10n_extension.dart';
+import '../../ui/edaya_brand_logo.dart';
 
 import '../../config/developer_settings_config.dart';
 import '../../config/dev_api_url_settings.dart';
@@ -49,11 +50,11 @@ class LoginPage extends LScopedView<LoginController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      'edaya',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.w700),
+                    const Center(
+                      child: EdayaBrandLogo(
+                        variant: EdayaLogoVariant.vertical,
+                        width: 112,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     LWatch(() {

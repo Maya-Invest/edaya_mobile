@@ -18,7 +18,11 @@ abstract final class PrototypeTypography {
       bodyMedium: _nunito(14, scheme.onSurface),
       bodySmall: _nunito(12, scheme.onSurfaceVariant),
       labelLarge: _nunito(14, scheme.onSurface, weight: FontWeight.w600),
-      labelMedium: _nunito(12, scheme.onSurfaceVariant, weight: FontWeight.w600),
+      labelMedium: _nunito(
+        12,
+        scheme.onSurfaceVariant,
+        weight: FontWeight.w600,
+      ),
       labelSmall: _nunito(11, scheme.onSurfaceVariant, weight: FontWeight.w500),
     );
   }

@@ -29,7 +29,7 @@ edaya_mobile/
 | Guardian | `guardian` | Parents / guardians | Accueil-first IA + live API; [design-language-spec](docs/specs/design-language-spec.md) |
 | Guardian legacy | `guardian_legacy` | Archived IA | Frozen pre-cutover Guardian |
 | Teacher | `edaya_teacher` | Teachers and staff | `com.softilab.edaya.staff` — calendar, evaluations, attendance; class filter. Sprint plan: [docs/sprints/teacher-app-implementation-plan.md](docs/sprints/teacher-app-implementation-plan.md) |
-| Teacher prototype | `teacher_prototype` | Design / next Teacher | Accueil-first jobs IA; [teacher-shell-spec](docs/specs/teacher-shell-spec.md); `melos run run:teacher:prototype` |
+| Teacher prototype | `teacher_prototype` | Accueil product surface | Accueil-first IA + live OTP; [teacher-shell-spec](docs/specs/teacher-shell-spec.md); `melos run run:teacher:prototype` |
 
 Both apps share auth, bootstrap, theme, and most UI primitives via `edaya_shared`. Each app keeps a thin layer for routes, domain features, and app-specific preferences.
 
@@ -168,7 +168,7 @@ Or use Melos shortcuts:
 ```bash
 melos run run:guardian:local   # explicit Android emulator URL
 melos run run:teacher:local    # explicit localhost
-melos run run:teacher:prototype # mock Accueil-first teacher UI
+melos run run:teacher:prototype # Accueil-first teacher vs local Identity + API
 ```
 
 The login and account screens expose **Developer settings** in all build modes (including production) to change the API URL at runtime (persisted in `SharedPreferences`). Presets include local, staging, and production. Restart the app after saving.

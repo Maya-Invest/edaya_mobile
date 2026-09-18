@@ -27,11 +27,7 @@ abstract final class PrototypeRadii {
 
 abstract final class PrototypeElevation {
   static const cardShadow = [
-    BoxShadow(
-      color: Color(0x141E293B),
-      blurRadius: 12,
-      offset: Offset(0, 4),
-    ),
+    BoxShadow(color: Color(0x141E293B), blurRadius: 12, offset: Offset(0, 4)),
   ];
 
   /// Borderless card surface — white fill + soft shadow, no stroke.

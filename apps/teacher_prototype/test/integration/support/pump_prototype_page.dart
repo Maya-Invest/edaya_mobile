@@ -11,9 +11,7 @@ Future<void> pumpPrototypeApp(
   await configureDesignReviewViewport(tester, formFactor);
   harness.viewportSize = designReviewLogicalSize(formFactor);
 
-  await tester.pumpWidget(
-    harness.designReviewRoot(child: harness.buildApp()),
-  );
+  await tester.pumpWidget(harness.designReviewRoot(child: harness.buildApp()));
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 400));
 }

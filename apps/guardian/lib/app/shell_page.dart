@@ -114,8 +114,7 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
           if (!useRail) {
             shell = Scaffold(
               backgroundColor: PrototypeColors.background,
-              appBar: const PrototypeAppBar(),
-              body: hubBody,
+              body: SafeArea(bottom: false, child: hubBody),
               bottomNavigationBar: NavigationBar(
                 selectedIndex: tabIndex,
                 onDestinationSelected: (i) =>
@@ -150,24 +149,7 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
                       alpha: 0.5,
                     ),
                   ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Material(
-                          color: PrototypeColors.background,
-                          child: SafeArea(
-                            bottom: false,
-                            child: SizedBox(
-                              height: kToolbarHeight,
-                              child: PrototypeAppBar(),
-                            ),
-                          ),
-                        ),
-                        Expanded(child: hubBody),
-                      ],
-                    ),
-                  ),
+                  Expanded(child: SafeArea(bottom: false, child: hubBody)),
                 ],
               ),
             );
@@ -224,7 +206,7 @@ class _ShellHeaderCards extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         PrototypeSpacing.md,
-        0,
+        PrototypeSpacing.sm,
         PrototypeSpacing.md,
         PrototypeSpacing.sm,
       ),

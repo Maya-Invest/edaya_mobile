@@ -1,11 +1,7 @@
 part of 'mock_store.dart';
 
 class MockSchool {
-  const MockSchool({
-    required this.id,
-    required this.name,
-    required this.years,
-  });
+  const MockSchool({required this.id, required this.name, required this.years});
 
   final String id;
   final String name;
@@ -100,18 +96,15 @@ enum AttendanceStatus { present, absent, late, excused }
 
 extension AttendanceStatusLabel on AttendanceStatus {
   String get labelFr => switch (this) {
-        AttendanceStatus.present => 'Présent',
-        AttendanceStatus.absent => 'Absent',
-        AttendanceStatus.late => 'Retard',
-        AttendanceStatus.excused => 'Excusé',
-      };
+    AttendanceStatus.present => 'Présent',
+    AttendanceStatus.absent => 'Absent',
+    AttendanceStatus.late => 'Retard',
+    AttendanceStatus.excused => 'Excusé',
+  };
 }
 
 class MockAttendanceRecord {
-  MockAttendanceRecord({
-    required this.studentId,
-    required this.status,
-  });
+  MockAttendanceRecord({required this.studentId, required this.status});
 
   final String studentId;
   AttendanceStatus status;
@@ -164,11 +157,7 @@ class MockEvaluation {
 }
 
 class MockMark {
-  MockMark({
-    required this.evaluationId,
-    required this.studentId,
-    this.score,
-  });
+  MockMark({required this.evaluationId, required this.studentId, this.score});
 
   final String evaluationId;
   final String studentId;

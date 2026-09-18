@@ -42,11 +42,7 @@ class SurfaceCard extends StatelessWidget {
 
     return Material(
       color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: radius,
-        child: card,
-      ),
+      child: InkWell(onTap: onTap, borderRadius: radius, child: card),
     );
   }
 }

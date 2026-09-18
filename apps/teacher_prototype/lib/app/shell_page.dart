@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart' hide PersonAvatar;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -6,6 +7,9 @@ import '../design/colors.dart';
 import '../design/components/components.dart';
 import '../design/spacing.dart';
 import '../di/prototype_module.dart';
+import '../features/context/academic_year_controller.dart';
+import '../features/context/teacher_context_controller.dart';
+import '../live/runtime.dart';
 import '../mock/mock_store.dart';
 import 'shell_controller.dart';
 
@@ -91,9 +95,9 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
   }
 
   void _openHelp(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Centre d\'aide')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Centre d\'aide')));
   }
 
   @override
@@ -103,29 +107,80 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
 
   @override
   Widget buildView(BuildContext context, PrototypeShellController controller) {
-    final location = GoRouterState.of(context).uri.toString();
-    final showNav = _showChrome(location);
-    final index = _indexForLocation(location);
+    if (prototypeIsLive(context)) {
+      return LWatch(() {
+        final teacherContext = context.levit.find<TeacherContextController>();
+        final academicYear = context.levit.find<AcademicYearController>();
+        teacherContext.teacherName.value;
+        teacherContext.teacherPhotoUrl.value;
+        teacherContext.assignments.value;
+        teacherContext.activeAssignmentId.value;
+        teacherContext.schoolName.value;
+        academicYear.selectedYearId.value;
+        academicYear.years.value;
+        return _shell(
+          context,
+          contextCard: _liveContextCard(context, teacherContext, academicYear),
+        );
+      });
+    }
 
     final mockStore = context.levit.find<MockStore>();
     final bridge = context.levit.find<MockTeacherContextBridge>();
     bridge.storeTick.value;
     final assignment = mockStore.activeAssignment;
-    final contextCard = TeacherContextCard(
-      teacherName: mockStore.teacherFullName,
-      teacherInitials: mockStore.teacherInitials,
-      classLabel: assignment.classLabel,
-      subjectLabel: assignment.subjectLabel,
-      schoolName: mockStore.activeSchool.name,
-      schoolYear: mockStore.selectedYear,
-      photoUrl: mockStore.teacher.photoUrl,
-      onSelectContext: () => _showContextSheet(context, mockStore),
+    return _shell(
+      context,
+      contextCard: TeacherContextCard(
+        teacherName: mockStore.teacherFullName,
+        teacherInitials: mockStore.teacherInitials,
+        classLabel: assignment.classLabel,
+        subjectLabel: assignment.subjectLabel,
+        schoolName: mockStore.activeSchool.name,
+        schoolYear: mockStore.selectedYear,
+        photoUrl: mockStore.teacher.photoUrl,
+        onSelectContext: () => _showContextSheet(context, mockStore),
+      ),
     );
+  }
+
+  TeacherContextCard _liveContextCard(
+    BuildContext context,
+    TeacherContextController teacherContext,
+    AcademicYearController academicYear,
+  ) {
+    final assignment = teacherContext.activeAssignment;
+    return TeacherContextCard(
+      teacherName:
+          teacherContext.teacherName.value ?? systemL10n().teacherFallbackName,
+      teacherInitials: teacherContext.teacherInitials,
+      classLabel: assignment?.classLabel ?? 'Classe',
+      subjectLabel: assignment == null
+          ? 'Aucune affectation'
+          : assignment.isHomeroom
+          ? '${assignment.subjectLabel} · Titulaire'
+          : assignment.subjectLabel,
+      schoolName: teacherContext.schoolName.value ?? '',
+      schoolYear: academicYear.selectedYearLabel ?? '',
+      photoUrl: teacherContext.teacherPhotoUrl.value,
+      onSelectContext: () =>
+          _showLiveContextSheet(context, teacherContext, academicYear),
+    );
+  }
+
+  Widget _shell(
+    BuildContext context, {
+    required TeacherContextCard contextCard,
+  }) {
+    final location = GoRouterState.of(context).uri.toString();
+    final showNav = _showChrome(location);
+    final index = _indexForLocation(location);
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final useRail =
-            showNav && PrototypeBreakpoints.useNavigationRail(constraints.maxWidth);
+            showNav &&
+            PrototypeBreakpoints.useNavigationRail(constraints.maxWidth);
 
         final mainColumn = ShellChrome(
           showHeader: showNav,
@@ -158,8 +213,8 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
                             ),
                             labelTextStyle: WidgetStateProperty.all(
                               Theme.of(context).textTheme.labelMedium?.copyWith(
-                                    color: PrototypeColors.onSurfaceVariant,
-                                  ),
+                                color: PrototypeColors.onSurfaceVariant,
+                              ),
                             ),
                           )
                         : const NavigationBarThemeData(),
@@ -231,6 +286,96 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
     );
   }
 
+  void _showLiveContextSheet(
+    BuildContext context,
+    TeacherContextController teacherContext,
+    AcademicYearController academicYear,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return LWatch(() {
+          teacherContext.assignments.value;
+          teacherContext.activeAssignmentId.value;
+          academicYear.years.value;
+          academicYear.selectedYearId.value;
+          final years = academicYear.yearLabels;
+          final selected = academicYear.selectedYearLabel ?? '';
+          return Padding(
+            padding: EdgeInsets.only(
+              left: PrototypeSpacing.md,
+              right: PrototypeSpacing.md,
+              top: PrototypeSpacing.md,
+              bottom:
+                  MediaQuery.viewInsetsOf(context).bottom + PrototypeSpacing.md,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        teacherContext.schoolName.value ?? '',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                    ),
+                    if (years.isNotEmpty)
+                      AcademicYearPicker(
+                        selectedYear: selected,
+                        years: years,
+                        onSelected: (label) {
+                          final id = academicYear.idForYearLabel(label);
+                          if (id != null) {
+                            academicYear.selectYear(id);
+                          }
+                        },
+                      ),
+                  ],
+                ),
+                const SizedBox(height: PrototypeSpacing.md),
+                Text(
+                  'Mes classes',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: PrototypeSpacing.sm),
+                if (teacherContext.assignments.value.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: PrototypeSpacing.md,
+                    ),
+                    child: Text('Aucune affectation pour cette année.'),
+                  ),
+                for (final a in teacherContext.assignments.value)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(a.classLabel),
+                    subtitle: Text(
+                      a.isHomeroom
+                          ? '${a.subjectLabel} · Titulaire'
+                          : a.subjectLabel,
+                    ),
+                    trailing: teacherContext.activeAssignmentId.value == a.id
+                        ? Icon(
+                            Icons.check_circle,
+                            color: PrototypeColors.primary,
+                          )
+                        : null,
+                    onTap: () {
+                      teacherContext.selectAssignment(a.id);
+                      Navigator.pop(context);
+                    },
+                  ),
+              ],
+            ),
+          );
+        });
+      },
+    );
+  }
+
   void _showContextSheet(BuildContext context, MockStore store) {
     showModalBottomSheet<void>(
       context: context,
@@ -245,7 +390,8 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
                 right: PrototypeSpacing.md,
                 top: PrototypeSpacing.md,
                 bottom:
-                    MediaQuery.viewInsetsOf(context).bottom + PrototypeSpacing.md,
+                    MediaQuery.viewInsetsOf(context).bottom +
+                    PrototypeSpacing.md,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -278,7 +424,10 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
                       title: Text(a.classLabel),
                       subtitle: Text(a.subjectLabel),
                       trailing: store.activeAssignmentId == a.id
-                          ? Icon(Icons.check_circle, color: PrototypeColors.primary)
+                          ? Icon(
+                              Icons.check_circle,
+                              color: PrototypeColors.primary,
+                            )
                           : null,
                       onTap: () {
                         store.selectAssignment(a.id);

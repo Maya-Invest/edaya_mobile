@@ -45,6 +45,7 @@ Labels must stay short enough for a 390 px width at 200% text scale.
 
 - Bottom nav stays **Messages**. Inside `/inbox`, a two-segment control: **Messages | Avis**.
 - URL-backed: `/inbox` (deliveries) vs `/inbox/avis` (family-feedback campaigns).
+- The selector is full width, inherits `AppTheme.segmentedButtonTheme`, and must not show a selected check icon.
 - Questionnaire is a **detail** of Messages (`/inbox/avis/:campaignId`), not a third inbox segment and not a Home archive.
 - Accueil may ping an open campaign, then open `/inbox/avis` (or the questionnaire when there is exactly one open item).
 
@@ -122,16 +123,13 @@ Unauthenticated users must land on `/login`. Authenticated users on `/login` mus
 
 ## 4. Shell chrome
 
-### Brand app bar
+Hubs have **no brand app bar** and **no** EDAYA logo. Canvas background (`#F0F7FF`). Safe-area inset keeps the header cards below the status bar. **No** profile or help control on a toolbar or the navigation rail.
 
-- Centered wordmark **`edaya`** (Nunito brand style).
-- Canvas background matching the app scaffold (`#F0F7FF`); no elevation tint.
-- No automatic back leading on primary shell destinations.
-- **No** profile control and **no** help control on the app bar or the navigation rail.
+The EDAYA logo (`EdayaBrandLogo`) is for pre-auth chrome: native splash, Flutter bootstrap, login, invite, and waiting. It must not appear on the five hubs.
 
 ### Header cards
 
-On the **five hubs**, a single header row sits below the wordmark:
+On the **five hubs**, the first chrome is a single header row:
 
 - **Child card** (flex, remaining width) — `StudentContextCard`
 - **Parent card** (square, photo only) — to the right of the child card; height matches the child card
@@ -143,16 +141,16 @@ Tapping the child avatar or name **pushes** `/child`. The expand control still o
 | Element | Requirement |
 |---------|-------------|
 | Primary nav | Bottom `NavigationBar` with the five destinations |
-| App bar | Brand wordmark only |
-| Header | Child card + square parent photo card below the app bar |
+| App bar | None — no brand logo on hubs |
+| Header | Child card + square parent photo card at the top of the hub (below the status bar) |
 
 ### Medium and wider (≥ 600)
 
 | Element | Requirement |
 |---------|-------------|
 | Primary nav | Full-height `NavigationRail` (labels always visible) |
-| App bar | Brand wordmark only (in the content column so the rail border runs full height) |
-| Header | Same child + parent cards in the content column |
+| App bar | None — no brand logo in the content column |
+| Header | Same child + parent cards at the top of the content column |
 | Rail trailing | Empty — no profile / help icons |
 
 ### Student context card
@@ -198,7 +196,7 @@ Year control must scale as historical years accumulate (scrollable menu; current
 | Tier | Width (logical px) | Chrome | Content |
 |------|--------------------|--------|---------|
 | Compact | &lt; 600 | Bottom navigation | Single column; details **push a full-screen page** (covers chrome) |
-| Medium | ≥ 600 and &lt; 1000 | Navigation rail + brand app bar in content column | Max content width **840**; details push a full-screen page (no right drawer) |
+| Medium | ≥ 600 and &lt; 1000 | Navigation rail; no brand app bar | Max content width **840**; details push a full-screen page (no right drawer) |
 | Expanded | ≥ 1000 | Rail + right overlay drawer | Detail over hub in the content column |
 
 Constants (checkable):
@@ -217,8 +215,8 @@ Prefer a single Agenda-style content column. Must **not** use a permanent side-b
 
 The five tab hubs stay **mounted** (`IndexedStack`). Every non-hub route leaves the tab stack in place and opens as:
 
-- **Compact / medium (&lt; 1000):** a **pushed full-screen page** covering the brand bar, header cards, and bottom nav / rail. Back returns to the hub.
-- **Expanded (≥ 1000):** a **right drawer** over the hub; brand bar, header cards, and rail stay visible.
+- **Compact / medium (&lt; 1000):** a **pushed full-screen page** covering the header cards and bottom nav / rail. Back returns to the hub.
+- **Expanded (≥ 1000):** a **right drawer** over the hub; header cards and rail stay visible.
 
 Applies to: Agenda, Scolarité, Frais, Messages (including Avis details), child profile, account, profile, and settings.
 
@@ -240,7 +238,7 @@ Home pings that switch **tabs** (`go('/fees')`) stay tab switches. Pings to `/ch
 ### Expanded (≥ 1000)
 
 - Hub remains full width in the content column under the drawer.
-- Detail opens as a **right overlay drawer** over the hub (not over the wordmark or header cards):
+- Detail opens as a **right overlay drawer** over the hub (not over the header cards):
   - Default width fraction **0.4** of the host
   - Clamped roughly **360–520** dp and at most **50%** of host width
   - Scrim over the hub (~18% black); tap scrim dismisses (pop when possible, else `go(listPath)`)
@@ -271,8 +269,8 @@ Home pings that switch **tabs** (`go('/fees')`) stay tab switches. Pings to `/ch
 
 1. Exactly five primary FR labels: Accueil, Agenda, Scolarité, Frais, Messages.
 2. Scolarité hub path is `/scolarite/notes`; no top Programme/Cahier/Notes/Bulletins tab bar.
-3. Compact (&lt; 600): bottom nav; wordmark-only app bar; child card + square parent photo card.
-4. ≥ 600: rail; wordmark-only app bar; no profile / help on the rail.
+3. Compact (&lt; 600): bottom nav; no brand app bar; child card + square parent photo card at the top of the hub.
+4. ≥ 600: rail; no brand app bar; no profile / help on the rail.
 5. ≥ 1000: right overlay detail drawer (~40%, scrim, close) over the hub; no permanent split.
 6. Compact / medium: non-hub routes push a full-screen page (covers chrome and nav). Hubs stay mounted; one of the five tabs stays selected underneath.
 7. Max unconstrained content width 840.

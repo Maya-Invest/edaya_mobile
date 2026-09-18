@@ -54,6 +54,8 @@ class InboxPage extends LScopedView<InboxController> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: SegmentedButton<bool>(
+              showSelectedIcon: false,
+              expandedInsets: EdgeInsets.zero,
               segments: const [
                 ButtonSegment(value: false, label: Text('Messages')),
                 ButtonSegment(value: true, label: Text('Avis')),

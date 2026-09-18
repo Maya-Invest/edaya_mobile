@@ -90,23 +90,23 @@ class _AttentionToneColors {
   static _AttentionToneColors resolve(AttentionTone tone) {
     return switch (tone) {
       AttentionTone.important => _AttentionToneColors(
-          surface: PrototypeColors.errorContainer.withValues(alpha: 0.55),
-          iconWell: PrototypeColors.surface,
-          icon: PrototypeColors.error,
-          title: PrototypeColors.error,
-        ),
+        surface: PrototypeColors.errorContainer.withValues(alpha: 0.55),
+        iconWell: PrototypeColors.surface,
+        icon: PrototypeColors.error,
+        title: PrototypeColors.error,
+      ),
       AttentionTone.normal => const _AttentionToneColors(
-          surface: PrototypeColors.primaryContainer,
-          iconWell: PrototypeColors.surface,
-          icon: PrototypeColors.primary,
-          title: null,
-        ),
+        surface: PrototypeColors.primaryContainer,
+        iconWell: PrototypeColors.surface,
+        icon: PrototypeColors.primary,
+        title: null,
+      ),
       AttentionTone.message => const _AttentionToneColors(
-          surface: PrototypeColors.surface,
-          iconWell: PrototypeColors.primaryContainer,
-          icon: PrototypeColors.primary,
-          title: null,
-        ),
+        surface: PrototypeColors.surface,
+        iconWell: PrototypeColors.primaryContainer,
+        icon: PrototypeColors.primary,
+        title: null,
+      ),
     };
   }
 }

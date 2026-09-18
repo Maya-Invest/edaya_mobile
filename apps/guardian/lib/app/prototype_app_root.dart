@@ -10,11 +10,7 @@ import '../mock/mock_store.dart';
 
 /// Root widget: app-lifetime [LScope] + MaterialApp.router (prototype theme).
 class PrototypeAppRoot extends StatelessWidget {
-  const PrototypeAppRoot({
-    super.key,
-    this.store,
-    this.authenticated = false,
-  });
+  const PrototypeAppRoot({super.key, this.store, this.authenticated = false});
 
   /// When non-null, registers mock harness DI (widget / design-review tests).
   final MockStore? store;
@@ -49,6 +45,7 @@ class _ApiBootstrapApp extends LView<AppBootstrapController> {
       return MaterialApp.router(
         title: 'Edaya Guardian',
         theme: PrototypeTheme.light,
+        darkTheme: PrototypeTheme.dark,
         locale: const Locale('fr', 'FR'),
         supportedLocales: const [Locale('fr', 'FR')],
         localizationsDelegates: const [
@@ -61,9 +58,7 @@ class _ApiBootstrapApp extends LView<AppBootstrapController> {
         debugShowCheckedModeBanner: false,
         builder: (context, child) {
           if (!controller.isReady.value) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
+            return const EdayaStartupScreen();
           }
           return child ?? const SizedBox.shrink();
         },
@@ -80,6 +75,7 @@ class _PrototypeMaterialApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'Edaya Guardian Prototype',
       theme: PrototypeTheme.light,
+      darkTheme: PrototypeTheme.dark,
       locale: const Locale('fr', 'FR'),
       supportedLocales: const [Locale('fr', 'FR')],
       localizationsDelegates: const [

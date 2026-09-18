@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart' hide LoginPage;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -12,5 +13,6 @@ void main() {
     await tester.pumpWidget(PrototypeAppRoot(store: MockStore()));
     await tester.pumpAndSettle();
     expect(find.byType(LoginPage), findsOneWidget);
+    expect(find.byType(EdayaBrandLogo), findsOneWidget);
   });
 }

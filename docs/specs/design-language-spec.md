@@ -6,6 +6,8 @@
 
 This spec defines the visual design language shared by the Guardian family companion and the Teacher Accueil-first prototype: brand, color, type, spacing, elevation, cards, and accessibility. Navigation and shell chrome are defined in [guardian-shell-spec.md](guardian-shell-spec.md) and [teacher-shell-spec.md](teacher-shell-spec.md).
 
+Visual tokens follow **EDAYA 1.0.0** (`packages/edaya_shared/design-system/tokens.json`, `AppTheme`, `EdayaColors`, `EdayaTypography`, `EdayaBrandLogo`). Accueil shell IA (five tabs, overlays, borderless cards) stays in the shell specs.
+
 ---
 
 ## 1. Brand character
@@ -14,11 +16,13 @@ Guardian is a **family companion** for school life — not a staff data terminal
 
 | Trait | Expression |
 |-------|------------|
-| Warm and approachable | Rounded geometry, soft shadows, Nunito brand/UI voice |
+| Warm and approachable | Rounded geometry, soft shadows, Poppins headings / Inter UI |
 | Action-oriented | Home surfaces what needs attention; CTAs are obvious |
 | Trustworthy | Clear official vs provisional labels; calm empty states |
 | Child-aware | Student context always visible when content is child-specific |
 | Bilingual-ready | French-first copy; short nav labels for 390 px phones |
+
+The supplied outlined EDAYA logos are the wordmark. Never reconstruct `edaya` in UI type.
 
 ---
 
@@ -34,14 +38,15 @@ Guardian is a **family companion** for school life — not a staff data terminal
 | `background` | `#F0F7FF` | Scaffold / canvas |
 | `onBackground` | `#1E293B` | Primary text |
 | `primaryContainer` | `#DBEAFE` | Soft primary fill (chips, selected/unread tint base, progress track) |
-| `successContainer` | `#DCFCE7` | Green fill for session/category accents where green is intentional |
+| `successContainer` | `#F0FDF4` | Green fill for session/category accents where green is intentional |
 | `accentContainer` | `#FEF3C7` | Warning / pending fill |
-| `errorContainer` | `#FEE2E2` | Error / overdue fill |
-| `onErrorContainer` | `#7F1D1D` | Text on error fill |
-| `onSurfaceVariant` | `#64748B` | Secondary / muted text |
-| `outlineVariant` | `#CBD5E1` | Dividers and input borders only — never card chrome |
+| `errorContainer` | `#FEF2F2` | Error / overdue fill |
+| `onErrorContainer` | `#B91C1C` | Text on error fill |
+| `onSurfaceVariant` | `#5B6B82` | Secondary / muted text |
+| `outlineVariant` | `#E2E8F0` | Dividers and input borders only — never card chrome |
 | `surface` | `#FFFFFF` | Card fill |
-| `error` | `#DC2626` | Error icon / emphatic error title |
+| `error` | `#B91C1C` | Error icon / emphatic error title |
+| `segmentUnselected` | `#EFF6FF` | Unselected segmented-control fill (`surfaceContainerHighest`) |
 
 ### Semantic chip tones
 
@@ -49,11 +54,11 @@ Status chips and badges must use this mapping (background / foreground):
 
 | Tone | Background | Foreground |
 |------|------------|------------|
-| `neutral` | `#F1F5F9` | `#64748B` |
+| `neutral` | `#F1F5F9` | `#5B6B82` |
 | `info` | `#DBEAFE` | `#2563EB` |
 | `success` | `#DBEAFE` | `#1E293B` |
 | `warning` | `#FEF3C7` | `#92400E` |
-| `error` | `#FEE2E2` | `#7F1D1D` |
+| `error` | `#FEF2F2` | `#B91C1C` |
 
 `success` chip fill is primary-container blue (not `successContainer` green). Green `successContainer` is reserved for non-chip accents (for example session category backgrounds) and must not redefine the `success` chip tone without a spec change.
 
@@ -63,29 +68,29 @@ Unread emphasis on list rows uses `primaryContainer` at **35%** opacity. Selecte
 
 ## 3. Typography
 
-Single family for the current shipping surface: **Nunito** for brand wordmark, display, and UI. A dedicated display/brand face (previously Galak Round) is deferred until a store-safe license is available.
+Bundled, offline fonts. Logos are artwork, never UI text.
 
 | Role | Family | Usage |
 |------|--------|-------|
-| Brand wordmark | Nunito (700) | Login logo, app bar title `edaya` |
-| Display / headline | Nunito (600) | Screen heroes, large numbers |
-| Title / body / label | Nunito | UI copy, nav, buttons, lists |
+| Brand | EDAYA outlined logo PNG (`EdayaBrandLogo`) | Splash, bootstrap, login, invite, waiting |
+| Display / headline | Poppins (600) | Screen heroes, large numbers, section titles |
+| Title / body / label | Inter | UI copy, nav, buttons, lists, numeric data |
 
 | Style | Family | Size (sp) | Weight |
 |-------|--------|-----------|--------|
-| `displaySmall` | Nunito | 32 | 600 |
-| `headlineMedium` | Nunito | 24 | 600 |
-| `headlineSmall` | Nunito | 20 | 600 |
-| `titleLarge` | Nunito | 18 | 600 |
-| `titleMedium` | Nunito | 16 | 600 |
-| `titleSmall` | Nunito | 14 | 600 |
-| `bodyLarge` | Nunito | 16 | 400 |
-| `bodyMedium` | Nunito | 14 | 400 |
-| `bodySmall` | Nunito | 12 | 400 |
-| `labelLarge` | Nunito | 14 | 600 |
-| `labelSmall` | Nunito | 11 | 500 |
+| `displaySmall` | Poppins | 28 | 600 |
+| `headlineMedium` | Poppins | 24 | 600 |
+| `headlineSmall` | Poppins | 24 | 600 |
+| `titleLarge` | Poppins | 20 | 600 |
+| `titleMedium` | Inter | 16 | 600 |
+| `titleSmall` | Inter | 14 | 600 |
+| `bodyLarge` | Inter | 16 | 400 |
+| `bodyMedium` | Inter | 14 | 400 |
+| `bodySmall` | Inter | 12 | 400 |
+| `labelLarge` | Inter | 14 | 600 |
+| `labelSmall` | Inter | 12 | 500 |
 
-Brand wordmark default: Nunito **700**, **28–40** sp for app bar / login, height ~1.05, letter spacing −0.5.
+Minimum logo widths: vertical 88, horizontal 128, symbol 32. Vertical artwork on splash, bootstrap, login, invite, and waiting. Do not place the logo on authenticated hub chrome.
 
 ---
 
@@ -149,6 +154,8 @@ Guardian surfaces are **borderless** by default. Separation comes from the `#F0F
 **Must use borderless cards for:** list rows, fee summary blocks, session tiles, inbox items, student context card, settings groups, login form container, attention rows.
 
 **May keep borders for:** text fields, segmented controls, and dividers **inside** a card — not around the card.
+
+Segmented controls inherit `AppTheme.segmentedButtonTheme`: selected fill `primary` with `onPrimary` label; unselected fill `#EFF6FF` with navy label. The Messages/Avis control is full width and must not show a selected check icon.
 
 **Must not use:** outlined Material `Card` with a stroke as the default content container.
 
@@ -216,8 +223,9 @@ When the app has no custom animations, compliance is vacuous but the rule still 
 
 | Font | Constraint |
 |------|------------|
-| Nunito | Production-safe (SIL OFL); **current** brand + UI face |
-| Galak Round (or successor display face) | Deferred — not shipped until a store-safe commercial license is available |
+| Inter | Production-safe (SIL OFL); bundled in `edaya_shared` |
+| Poppins Semibold | Production-safe (SIL OFL); headings only, never a typed wordmark |
+| EDAYA outlined logos | Supplied artwork; PNG derivatives in `edaya_shared/assets/brand/` |
 
 ---
 
@@ -229,6 +237,7 @@ The following must **not** be treated as design-language requirements:
 - Phase / migration narratives that treat a prototype as the source of truth
 - Untokenized icon wells (ad-hoc padding 8 + radius 10) and raw Material `Colors.*` or one-off hex fills outside the palette tables above
 - Shipping Galak Round Demo (or any personal-use-only display font) in the app binary
+- Reconstructing the EDAYA wordmark as UI text (`Text('edaya')`)
 - Redefining chip `success` as green `successContainer` without changing §2
 - Card radius `lg` (20) as the default for attention or list cards (default remains `md` 16)
 - Progress track colored with `primaryLight` instead of `primaryContainer`

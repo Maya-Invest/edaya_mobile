@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart' hide PersonAvatar;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -6,11 +7,27 @@ import '../../app/formatters.dart';
 import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
+import '../../live/runtime.dart';
 import '../../mock/mock_store.dart';
+import '../context/academic_year_controller.dart';
 import '../context/store_bound_controller.dart';
+import 'live_evaluations_controller.dart';
+import 'live_marks_controller.dart';
 
-class EvaluationsPage extends LScopedView<StoreBoundController> {
+class EvaluationsPage extends StatelessWidget {
   const EvaluationsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (prototypeIsLive(context)) {
+      return const _LiveEvaluationsPage();
+    }
+    return const _MockEvaluationsPage();
+  }
+}
+
+class _MockEvaluationsPage extends LScopedView<StoreBoundController> {
+  const _MockEvaluationsPage();
 
   @override
   StoreBoundController onConfigScope(LevitScope scope) {
@@ -34,7 +51,9 @@ class EvaluationsPage extends LScopedView<StoreBoundController> {
               subtitle:
                   '${e.classLabel} · ${e.period} · ${e.gradedCount}/${e.totalCount} notés',
               badge: e.needsMarks ? 'À saisir' : 'Complet',
-              badgeTone: e.needsMarks ? SemanticTone.warning : SemanticTone.info,
+              badgeTone: e.needsMarks
+                  ? SemanticTone.warning
+                  : SemanticTone.info,
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.go('/evaluations/${e.id}/marks'),
             ),
@@ -77,8 +96,22 @@ class EvaluationsPage extends LScopedView<StoreBoundController> {
   }
 }
 
-class MarksEntryPage extends LScopedView<StoreBoundController> {
+class MarksEntryPage extends StatelessWidget {
   const MarksEntryPage({super.key, required this.evaluationId});
+
+  final String evaluationId;
+
+  @override
+  Widget build(BuildContext context) {
+    if (prototypeIsLive(context)) {
+      return _LiveMarksEntryPage(evaluationId: evaluationId);
+    }
+    return _MockMarksEntryPage(evaluationId: evaluationId);
+  }
+}
+
+class _MockMarksEntryPage extends LScopedView<StoreBoundController> {
+  const _MockMarksEntryPage({required this.evaluationId});
 
   final String evaluationId;
 
@@ -175,7 +208,8 @@ class ReportCardRosterPage extends LScopedView<StoreBoundController> {
     controller.storeTick.value;
     final store = controller.store;
     final roster = store.rosterFor(classId, periodId);
-    final label = store.reportCardClasses
+    final label =
+        store.reportCardClasses
             .where((c) => c.classId == classId && c.periodId == periodId)
             .firstOrNull
             ?.classLabel ??
@@ -246,9 +280,9 @@ class ReportCardCommentPage extends LScopedView<StoreBoundController> {
           homeroomComment: homeroom,
           subjectComment: subject,
         );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Commentaire enregistré')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Commentaire enregistré')));
       },
     );
   }
@@ -327,5 +361,145 @@ class _CommentFormState extends State<_CommentForm> {
         ],
       ),
     );
+  }
+}
+
+class _LiveEvaluationsPage extends LView<LiveEvaluationsController> {
+  const _LiveEvaluationsPage();
+
+  @override
+  Widget buildView(BuildContext context, LiveEvaluationsController controller) {
+    return LWatch(() {
+      controller.evaluations.value;
+      controller.errorMessage.value;
+      final evaluations = controller.evaluations.value;
+      return AdaptiveContent(
+        child: ListView(
+          padding: const EdgeInsets.all(PrototypeSpacing.md),
+          children: [
+            const SectionHeader(title: 'Évaluations'),
+            const SizedBox(height: PrototypeSpacing.sm),
+            if (evaluations.isEmpty)
+              EmptyState(
+                title: 'Aucune évaluation',
+                message: controller.errorMessage.value,
+              )
+            else
+              for (final e in evaluations) ...[
+                ListRow(
+                  title: e.title,
+                  subtitle:
+                      '${e.classLabel} · ${e.subjectLabel} · ${e.gradedCount}/${e.totalStudents} notés',
+                  badge: e.needsMarks ? 'À saisir' : 'Complet',
+                  badgeTone: e.needsMarks
+                      ? SemanticTone.warning
+                      : SemanticTone.info,
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.go('/evaluations/${e.id}/marks'),
+                ),
+                const SizedBox(height: PrototypeSpacing.xs),
+              ],
+            const SizedBox(height: PrototypeSpacing.xl),
+            const SectionHeader(title: 'Avis des familles'),
+            const SizedBox(height: PrototypeSpacing.sm),
+            ListRow(
+              title: 'Campagnes et archives',
+              subtitle: 'Nouveaux retours depuis Accueil, historique ici',
+              leading: Icon(
+                Icons.campaign_outlined,
+                color: PrototypeColors.primary,
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.go('/evaluations/avis'),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+}
+
+class _LiveMarksEntryPage extends LScopedView<LiveMarksController> {
+  const _LiveMarksEntryPage({required this.evaluationId});
+
+  final String evaluationId;
+
+  @override
+  LiveMarksController onConfigScope(LevitScope scope) {
+    return scope.put(
+      () => LiveMarksController(
+        evaluationId: evaluationId,
+        evaluations: scope.find<LiveEvaluationsController>(),
+        academicYear: scope.find<AcademicYearController>(),
+        schoolClient: scope.find<SchoolClientFactory>(),
+      ),
+    );
+  }
+
+  @override
+  Widget buildView(BuildContext context, LiveMarksController controller) {
+    return LWatch(() {
+      controller.evaluation.value;
+      controller.students.value;
+      controller.errorMessage.value;
+      final evaluation = controller.evaluation.value;
+      if (evaluation == null) {
+        return PrototypeDetailScaffold(
+          title: 'Notes',
+          body: EmptyState(
+            title: 'Évaluation introuvable',
+            message: controller.errorMessage.value,
+          ),
+        );
+      }
+      return PrototypeDetailScaffold(
+        title: evaluation.title,
+        fallbackRoute: '/evaluations',
+        body: ListView(
+          padding: const EdgeInsets.all(PrototypeSpacing.md),
+          children: [
+            Text(
+              '${evaluation.classLabel} · ${evaluation.subjectLabel}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: PrototypeSpacing.md),
+            for (final mark in controller.students.value) ...[
+              Padding(
+                padding: const EdgeInsets.only(bottom: PrototypeSpacing.xs),
+                child: SurfaceCard(
+                  child: Row(
+                    children: [
+                      PersonAvatar(
+                        initials: mark.initials,
+                        photoUrl: mark.photoUrl,
+                        radius: 18,
+                      ),
+                      const SizedBox(width: PrototypeSpacing.sm),
+                      Expanded(child: Text(mark.fullName)),
+                      SizedBox(
+                        width: 72,
+                        child: TextFormField(
+                          initialValue: mark.score?.toStringAsFixed(0) ?? '',
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            border: OutlineInputBorder(),
+                            hintText: '—',
+                          ),
+                          onChanged: (value) {
+                            final parsed = double.tryParse(value);
+                            controller.saveScore(mark.studentId, parsed);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    });
   }
 }

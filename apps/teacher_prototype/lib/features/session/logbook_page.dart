@@ -1,13 +1,32 @@
+import 'package:edaya_shared/edaya_shared.dart' hide PersonAvatar;
 import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
+import '../../live/runtime.dart';
 import '../../mock/mock_store.dart';
+import '../calendar/live_calendar_controller.dart';
+import '../context/academic_year_controller.dart';
 import '../context/store_bound_controller.dart';
+import 'live_session_controller.dart';
 
-class LogbookPage extends LScopedView<StoreBoundController> {
+class LogbookPage extends StatelessWidget {
   const LogbookPage({super.key, required this.sessionId});
+
+  final String sessionId;
+
+  @override
+  Widget build(BuildContext context) {
+    if (prototypeIsLive(context)) {
+      return _LiveLogbookPage(sessionId: sessionId);
+    }
+    return _MockLogbookPage(sessionId: sessionId);
+  }
+}
+
+class _MockLogbookPage extends LScopedView<StoreBoundController> {
+  const _MockLogbookPage({required this.sessionId});
 
   final String sessionId;
 
@@ -29,14 +48,14 @@ class LogbookPage extends LScopedView<StoreBoundController> {
     }
 
     final existing = store.getLogbook(sessionId);
-    return _LogbookForm(
+    return LogbookForm(
       sessionId: sessionId,
       classLabel: session.classLabel,
       initialContent: existing?.content ?? '',
       initialObjectives: existing?.objectives ?? '',
       initialHomework: existing?.homework ?? '',
       initialProgress: existing?.progressPercent ?? 50,
-      onSave: (content, objectives, homework, progress) {
+      onSave: (content, objectives, homework, progress) async {
         store.saveLogbook(
           sessionId: sessionId,
           content: content,
@@ -44,16 +63,83 @@ class LogbookPage extends LScopedView<StoreBoundController> {
           homework: homework,
           progressPercent: progress,
         );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cahier enregistré')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Cahier enregistré')));
       },
     );
   }
 }
 
-class _LogbookForm extends StatefulWidget {
-  const _LogbookForm({
+class _LiveLogbookPage extends LScopedView<LiveSessionController> {
+  const _LiveLogbookPage({required this.sessionId});
+
+  final String sessionId;
+
+  @override
+  LiveSessionController onConfigScope(LevitScope scope) {
+    return scope.put(
+      () => LiveSessionController(
+        sessionId: sessionId,
+        calendar: scope.find<LiveCalendarController>(),
+        academicYear: scope.find<AcademicYearController>(),
+        schoolClient: scope.find<SchoolClientFactory>(),
+      ),
+    );
+  }
+
+  @override
+  Widget buildView(BuildContext context, LiveSessionController controller) {
+    return LWatch(() {
+      final session = controller.session.value;
+      controller.content.value;
+      controller.objectives.value;
+      controller.homework.value;
+      controller.progressPercent.value;
+      if (session == null) {
+        return const PrototypeDetailScaffold(
+          title: 'Cahier de texte',
+          body: EmptyState(title: 'Séance introuvable'),
+        );
+      }
+      return LogbookForm(
+        key: ValueKey(
+          '${session.id}-${controller.content.value}-${controller.objectives.value}',
+        ),
+        sessionId: sessionId,
+        classLabel: session.classLabel,
+        initialContent: controller.content.value,
+        initialObjectives: controller.objectives.value,
+        initialHomework: controller.homework.value,
+        initialProgress: controller.progressPercent.value,
+        onSave: (content, objectives, homework, progress) async {
+          final saved = await controller.saveLogbook(
+            contentText: content,
+            objectivesText: objectives,
+            homeworkText: homework,
+            progress: progress,
+          );
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                saved
+                    ? 'Cahier enregistré'
+                    : (controller.saveMessage.value.isEmpty
+                          ? 'Cahier non enregistré'
+                          : controller.saveMessage.value),
+              ),
+            ),
+          );
+        },
+      );
+    });
+  }
+}
+
+class LogbookForm extends StatefulWidget {
+  const LogbookForm({
+    super.key,
     required this.sessionId,
     required this.classLabel,
     required this.initialContent,
@@ -69,13 +155,13 @@ class _LogbookForm extends StatefulWidget {
   final String initialObjectives;
   final String initialHomework;
   final int initialProgress;
-  final void Function(String, String, String, int) onSave;
+  final Future<void> Function(String, String, String, int) onSave;
 
   @override
-  State<_LogbookForm> createState() => _LogbookFormState();
+  State<LogbookForm> createState() => _LogbookFormState();
 }
 
-class _LogbookFormState extends State<_LogbookForm> {
+class _LogbookFormState extends State<LogbookForm> {
   late final TextEditingController _content;
   late final TextEditingController _objectives;
   late final TextEditingController _homework;

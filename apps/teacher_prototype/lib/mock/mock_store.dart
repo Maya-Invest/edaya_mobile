@@ -271,8 +271,9 @@ class MockStore extends ChangeNotifier {
     mark.score = score;
     final eval = evaluationById(evaluationId);
     if (eval != null) {
-      eval.gradedCount =
-          marksFor(evaluationId).where((m) => m.score != null).length;
+      eval.gradedCount = marksFor(
+        evaluationId,
+      ).where((m) => m.score != null).length;
     }
     notifyListeners();
   }
@@ -342,6 +343,17 @@ class MockStore extends ChangeNotifier {
 
   List<MockTask> get todayTasks {
     final tasks = <MockTask>[];
+    for (final item in _familyFeedback.where((item) => item.open)) {
+      tasks.add(
+        MockTask(
+          id: 'ff-${item.id}',
+          kind: 'feedback',
+          title: item.title,
+          subtitle: item.subtitle,
+          route: '/home/avis/${item.id}',
+        ),
+      );
+    }
     for (final s in incompleteAttendanceToday) {
       tasks.add(
         MockTask(
@@ -370,8 +382,7 @@ class MockStore extends ChangeNotifier {
           id: 'marks-${e.id}',
           kind: 'marks',
           title: 'Notes à saisir',
-          subtitle:
-              '${e.title} · ${e.gradedCount}/${e.totalCount}',
+          subtitle: '${e.title} · ${e.gradedCount}/${e.totalCount}',
           route: '/evaluations/${e.id}/marks',
         ),
       );
@@ -395,17 +406,6 @@ class MockStore extends ChangeNotifier {
           title: 'Messages non lus',
           subtitle: '$unreadCount message(s)',
           route: '/inbox',
-        ),
-      );
-    }
-    for (final item in _familyFeedback.where((item) => item.open)) {
-      tasks.add(
-        MockTask(
-          id: 'ff-${item.id}',
-          kind: 'feedback',
-          title: item.title,
-          subtitle: item.subtitle,
-          route: '/evaluations/avis/${item.id}',
         ),
       );
     }

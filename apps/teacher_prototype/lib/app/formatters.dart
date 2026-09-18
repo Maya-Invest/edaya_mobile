@@ -14,7 +14,10 @@ String formatDayOfMonth(DateTime date) {
 }
 
 String formatMonthAbbrev(DateTime date) {
-  final raw = DateFormat('MMM', 'fr_FR').format(date).replaceAll('.', '').trim();
+  final raw = DateFormat(
+    'MMM',
+    'fr_FR',
+  ).format(date).replaceAll('.', '').trim();
   if (raw.length <= 3) return raw;
   return raw.substring(0, 3);
 }
@@ -35,4 +38,8 @@ String formatFullDate(DateTime date) {
 
 String formatTimeRange(int startHour, int endHour) {
   return '${startHour.toString().padLeft(2, '0')}:00 – ${endHour.toString().padLeft(2, '0')}:00';
+}
+
+String formatClockRange(DateTime start, DateTime end) {
+  return '${DateFormat.Hm('fr_FR').format(start)} – ${DateFormat.Hm('fr_FR').format(end)}';
 }

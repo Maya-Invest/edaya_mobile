@@ -14,34 +14,45 @@ import '../features/login/login_page.dart';
 import '../features/session/attendance_page.dart';
 import '../features/session/logbook_page.dart';
 import '../features/session/session_detail_page.dart';
-import '../mock/mock_store.dart';
 import 'shell_page.dart';
 
 GoRouter createRouter({
   required Listenable routerRefresh,
-  required MockStore mockStore,
+  required bool Function() isAuthenticated,
+  bool Function()? isBootstrapping,
 }) {
   return GoRouter(
     initialLocation: '/login',
     refreshListenable: routerRefresh,
     redirect: (context, state) {
-      final loggedIn = mockStore.isAuthenticated;
+      if (isBootstrapping?.call() ?? false) {
+        return null;
+      }
+      final loggedIn = isAuthenticated();
       final onLogin = state.matchedLocation == '/login';
       if (!loggedIn && !onLogin) return '/login';
       if (loggedIn && onLogin) return '/home';
       return null;
     },
     routes: [
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginPage(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
       ShellRoute(
         builder: (context, state, child) => PrototypeShell(child: child),
         routes: [
           GoRoute(
             path: '/home',
             builder: (_, _) => const ShellChromeBody(child: HomePage()),
+            routes: [
+              GoRoute(
+                path: 'avis/:feedbackId',
+                builder: (context, state) => ShellChromeBody(
+                  child: FamilyFeedbackDetailPage(
+                    feedbackId: state.pathParameters['feedbackId']!,
+                    fromHome: true,
+                  ),
+                ),
+              ),
+            ],
           ),
           ShellRoute(
             builder: (context, state, child) => ListDetailHost(
@@ -57,21 +68,18 @@ GoRouter createRouter({
               ),
               GoRoute(
                 path: '/session/:id',
-                builder: (context, state) => SessionDetailPage(
-                  sessionId: state.pathParameters['id']!,
-                ),
+                builder: (context, state) =>
+                    SessionDetailPage(sessionId: state.pathParameters['id']!),
                 routes: [
                   GoRoute(
                     path: 'attendance',
-                    builder: (context, state) => AttendancePage(
-                      sessionId: state.pathParameters['id']!,
-                    ),
+                    builder: (context, state) =>
+                        AttendancePage(sessionId: state.pathParameters['id']!),
                   ),
                   GoRoute(
                     path: 'logbook',
-                    builder: (context, state) => LogbookPage(
-                      sessionId: state.pathParameters['id']!,
-                    ),
+                    builder: (context, state) =>
+                        LogbookPage(sessionId: state.pathParameters['id']!),
                   ),
                 ],
               ),
@@ -91,9 +99,8 @@ GoRouter createRouter({
               ),
               GoRoute(
                 path: '/classes/:classId',
-                builder: (context, state) => ClassRosterPage(
-                  classId: state.pathParameters['classId']!,
-                ),
+                builder: (context, state) =>
+                    ClassRosterPage(classId: state.pathParameters['classId']!),
                 routes: [
                   GoRoute(
                     path: 'student/:studentId',

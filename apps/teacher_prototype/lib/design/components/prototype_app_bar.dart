@@ -4,11 +4,7 @@ import '../colors.dart';
 import '../typography.dart';
 
 class PrototypeAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const PrototypeAppBar({
-    super.key,
-    this.onProfileTap,
-    this.onHelpTap,
-  });
+  const PrototypeAppBar({super.key, this.onProfileTap, this.onHelpTap});
 
   /// When null, the profile control is omitted (e.g. tablet rail owns it).
   final VoidCallback? onProfileTap;

@@ -32,14 +32,17 @@ class DetailDrawerScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final useDrawer =
-            PrototypeBreakpoints.useDetailDrawer(constraints.maxWidth);
+        final useDrawer = PrototypeBreakpoints.useDetailDrawer(
+          constraints.maxWidth,
+        );
         if (!useDrawer || !hasSelection) return master;
 
-        final drawerWidth = math.min(
-          math.max(constraints.maxWidth * widthFraction, 360.0),
-          math.min(constraints.maxWidth * 0.5, 520.0),
-        ).toDouble();
+        final drawerWidth = math
+            .min(
+              math.max(constraints.maxWidth * widthFraction, 360.0),
+              math.min(constraints.maxWidth * 0.5, 520.0),
+            )
+            .toDouble();
 
         return Stack(
           fit: StackFit.expand,
@@ -49,9 +52,7 @@ class DetailDrawerScaffold extends StatelessWidget {
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () => context.go(listPath),
-                child: ColoredBox(
-                  color: Colors.black.withValues(alpha: 0.18),
-                ),
+                child: ColoredBox(color: Colors.black.withValues(alpha: 0.18)),
               ),
             ),
             Positioned(

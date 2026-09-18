@@ -94,7 +94,9 @@ void main() {
     );
   });
 
-  testWidgets('header is wordmark plus child and parent cards', (tester) async {
+  testWidgets('header is child and parent cards without brand logo', (
+    tester,
+  ) async {
     final auth = PrototypeWidgetTestHarness()..bootstrap(authenticated: true);
     await pumpPrototypeApp(
       tester,
@@ -104,7 +106,7 @@ void main() {
     auth.router.go('/home');
     await tester.pumpAndSettle();
 
-    expect(find.text('edaya'), findsOneWidget);
+    expect(find.byType(EdayaBrandLogo), findsNothing);
     expect(find.byTooltip('Aide'), findsNothing);
     expect(find.byIcon(Icons.help_outline), findsNothing);
     expect(find.byType(StudentContextCard), findsOneWidget);
@@ -112,7 +114,9 @@ void main() {
     expect(find.byTooltip('Mon compte'), findsOneWidget);
   });
 
-  testWidgets('medium width paints brand app bar on list hubs', (tester) async {
+  testWidgets('medium width shows navigation rail without brand logo', (
+    tester,
+  ) async {
     final auth = PrototypeWidgetTestHarness()..bootstrap(authenticated: true);
     await pumpPrototypeApp(
       tester,
@@ -130,7 +134,7 @@ void main() {
     auth.router.go('/fees');
     await tester.pumpAndSettle();
 
-    expect(find.text('edaya'), findsOneWidget);
+    expect(find.byType(EdayaBrandLogo), findsNothing);
     expect(find.byType(NavigationRail), findsOneWidget);
     expect(find.byType(NavigationBar), findsNothing);
     expect(find.byTooltip('Aide'), findsNothing);

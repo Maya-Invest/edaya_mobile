@@ -7,7 +7,6 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
-import '../../design/typography.dart';
 import '../../mock/mock_store.dart';
 
 /// Prototype-branded guardian login. Real auth via shared [LoginController];
@@ -50,9 +49,9 @@ class LoginPage extends LScopedView<LoginController> {
               constraints: const BoxConstraints(maxWidth: 400),
               child: Column(
                 children: [
-                  Text(
-                    'edaya',
-                    style: PrototypeTypography.brandWordmark(size: 40),
+                  const EdayaBrandLogo(
+                    variant: EdayaLogoVariant.vertical,
+                    width: 160,
                   ),
                   const SizedBox(height: PrototypeSpacing.xs),
                   Text(
@@ -160,9 +159,7 @@ class _OtpLogin extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            mode == LoginMode.verifyOtp
-                ? 'Vérifiez votre e-mail'
-                : 'Connexion',
+            mode == LoginMode.verifyOtp ? 'Vérifiez votre e-mail' : 'Connexion',
             style: Theme.of(context).textTheme.headlineSmall,
             textAlign: TextAlign.center,
           ),

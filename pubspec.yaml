@@ -53,8 +53,8 @@ melos:
       run: cd apps/teacher && flutter run --dart-define=API_URL=http://localhost:9999
       description: Run teacher app against local API (localhost).
     run:teacher:prototype:
-      run: cd apps/teacher_prototype && flutter run
-      description: Run teacher UI prototype (mock data, Accueil-first IA).
+      run: cd apps/teacher_prototype && flutter run --dart-define=AUTH_URL=http://10.0.2.2:9900 --dart-define=API_URL=http://10.0.2.2:9999
+      description: Run Accueil-first teacher prototype against local Identity and school API.
     run:guardian:staging:
       run: cd apps/guardian && flutter run
       description: Run guardian app (default staging API).

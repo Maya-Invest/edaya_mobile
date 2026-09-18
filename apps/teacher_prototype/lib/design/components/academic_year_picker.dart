@@ -47,4 +47,3 @@ class AcademicYearPicker extends StatelessWidget {
     );
   }
 }
-

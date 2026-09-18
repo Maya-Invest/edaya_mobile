@@ -21,12 +21,11 @@ class SummaryMetric extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            color: valueColor,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(color: valueColor),
         ),
       ],
     );
   }
 }
-

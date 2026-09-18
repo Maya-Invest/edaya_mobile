@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 import '../spacing.dart';
 
 class SectionHeader extends StatelessWidget {
-  const SectionHeader({super.key, required this.title, this.action, this.onAction});
+  const SectionHeader({
+    super.key,
+    required this.title,
+    this.action,
+    this.onAction,
+  });
 
   final String title;
   final String? action;
@@ -25,4 +30,3 @@ class SectionHeader extends StatelessWidget {
     );
   }
 }
-

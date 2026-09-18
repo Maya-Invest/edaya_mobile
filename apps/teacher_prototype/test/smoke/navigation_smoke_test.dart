@@ -5,6 +5,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 import 'package:teacher_prototype/features/calendar/calendar_page.dart';
 import 'package:teacher_prototype/features/classes/classes_page.dart';
 import 'package:teacher_prototype/features/evaluations/evaluations_page.dart';
+import 'package:teacher_prototype/features/evaluations/family_feedback_page.dart';
 import 'package:teacher_prototype/features/home/home_page.dart';
 import 'package:teacher_prototype/features/inbox/inbox_page.dart';
 import 'package:teacher_prototype/features/login/login_page.dart';
@@ -20,7 +21,9 @@ void main() {
     await initializeDateFormatting('fr_FR');
   });
 
-  testWidgets('login home calendar classes evaluations navigate', (tester) async {
+  testWidgets('login home calendar classes evaluations navigate', (
+    tester,
+  ) async {
     final guest = PrototypeWidgetTestHarness()..bootstrap(authenticated: false);
     await pumpPrototypeApp(
       tester,
@@ -43,12 +46,17 @@ void main() {
       ('/calendar', CalendarPage),
       ('/classes', ClassesPage),
       ('/evaluations', EvaluationsPage),
+      ('/evaluations/avis', FamilyFeedbackListPage),
       ('/inbox', InboxPage),
     ]) {
       auth.router.go(entry.$1);
       await tester.pump();
       await pumpUntilFound(tester, find.byType(entry.$2));
     }
+
+    auth.router.go('/home/avis/${auth.store.familyFeedback.first.id}');
+    await tester.pump();
+    await pumpUntilFound(tester, find.byType(FamilyFeedbackDetailPage));
 
     final sessionId = auth.store.sessions.first.id;
     auth.router.go('/session/$sessionId');
@@ -62,6 +70,20 @@ void main() {
       tester,
       auth,
       formFactor: DesignReviewFormFactor.tablet,
+    );
+    auth.router.go('/home');
+    await tester.pump();
+    await pumpUntilFound(tester, find.byType(HomePage));
+    expect(find.byType(NavigationRail), findsOneWidget);
+    expect(find.byType(NavigationBar), findsNothing);
+  });
+
+  testWidgets('medium viewport shows NavigationRail', (tester) async {
+    final auth = PrototypeWidgetTestHarness()..bootstrap(authenticated: true);
+    await pumpPrototypeApp(
+      tester,
+      auth,
+      formFactor: DesignReviewFormFactor.medium,
     );
     auth.router.go('/home');
     await tester.pump();

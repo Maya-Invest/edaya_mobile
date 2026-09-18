@@ -1,0 +1,203 @@
+import 'dart:async';
+
+import 'package:edaya_api_client/edaya_api_client.dart' as api;
+import 'package:edaya_shared/edaya_shared.dart';
+import 'package:levit_flutter/levit_flutter.dart';
+
+import '../../live/entity_queries.dart';
+import '../context/academic_year_controller.dart';
+import '../context/teacher_context_controller.dart';
+import 'teacher_session.dart';
+
+class LiveCalendarController extends LevitController
+    with LevitReactiveTasksMixin {
+  LiveCalendarController({
+    required TeacherContextController teacherContext,
+    required AcademicYearController academicYear,
+    required SchoolClientFactory schoolClient,
+  }) : _teacherContext = teacherContext,
+       _academicYear = academicYear,
+       _schoolClient = schoolClient;
+
+  final TeacherContextController _teacherContext;
+  final AcademicYearController _academicYear;
+  final SchoolClientFactory _schoolClient;
+
+  final weekStart = LxVar(startOfWeek(defaultCalendarDay()));
+  final selectedDay = LxVar(defaultCalendarDay());
+  final sessions = LxVar<List<TeacherSession>>(const []);
+  final attendanceCompletionBySessionId =
+      LxVar<Map<String, SessionAttendanceCompletion>>({});
+  final errorMessage = LxVar('');
+
+  @override
+  void onInit() {
+    super.onInit();
+    autoDispose(weekStart);
+    autoDispose(selectedDay);
+    autoDispose(sessions);
+    autoDispose(attendanceCompletionBySessionId);
+    autoDispose(errorMessage);
+
+    for (final subscription in [
+      _teacherContext.teacherId.stream,
+      _teacherContext.assignedClasses.stream,
+      _teacherContext.activeAssignmentId.stream,
+      _teacherContext.taughtClassSubjectIds.stream,
+      _teacherContext.isLoading.stream,
+      _academicYear.selectedYearId.stream,
+      weekStart.stream,
+    ]) {
+      autoDispose(subscription.listen((_) => unawaited(loadCalendarData())));
+    }
+
+    unawaited(loadCalendarData());
+  }
+
+  CalendarSessionFocus get todayFocus => resolveCalendarSessionFocus(
+    sessions: sessions.value,
+    now: DateTime.now(),
+  );
+
+  List<TeacherSession> get sessionsForSelectedDay {
+    final day = selectedDay.value;
+    return sessions.value.where((session) => session.occursOn(day)).toList()
+      ..sort((a, b) => a.startsAt.compareTo(b.startsAt));
+  }
+
+  List<TeacherSession> get incompleteAttendanceSessions {
+    final lessonSessions = todayFocus.todaySessions
+        .where((session) => session.kind == 'lesson')
+        .toList();
+    return sessionsWithIncompleteAttendance(
+      todayLessonSessions: lessonSessions,
+      completionBySessionId: attendanceCompletionBySessionId.value,
+    );
+  }
+
+  TeacherSession? sessionById(String id) {
+    for (final session in sessions.value) {
+      if (session.id == id) {
+        return session;
+      }
+    }
+    return null;
+  }
+
+  void selectDay(DateTime day) {
+    selectedDay(DateTime(day.year, day.month, day.day));
+  }
+
+  void goToDate(DateTime day) {
+    final calendarDay = DateTime(day.year, day.month, day.day);
+    weekStart(startOfWeek(calendarDay));
+    selectedDay(calendarDay);
+  }
+
+  Future<void> loadCalendarData() async {
+    if (_teacherContext.isLoading.value ||
+        _teacherContext.teacherId.value == null) {
+      return;
+    }
+
+    final classGroupIds = _teacherContext.visibleClassGroupIds;
+    if (classGroupIds.isEmpty) {
+      sessions(const []);
+      errorMessage('');
+      return;
+    }
+
+    errorMessage('');
+    await runTask(() async {
+      try {
+        final client = _schoolClient();
+        final classLabelById = {
+          for (final assigned in _teacherContext.assignedClasses.value)
+            assigned.id: assigned.label,
+        };
+        final range = planningDateRangeForWeek(weekStart.value);
+        final parsedSessions = <TeacherSession>[];
+
+        for (final classGroupId in classGroupIds) {
+          final occurrences = await fetchClassTimetableOccurrences(
+            client,
+            classGroupId,
+            range: range,
+            unassignedTeacherLabel: systemL10n().teacherFallbackName,
+            enrichStaffWorkspace: false,
+          );
+          for (final occurrence in occurrences) {
+            if (!_teacherContext.canTeachSession(
+              sessionId: occurrence.id,
+              classGroupId: classGroupId,
+              classSubjectId: occurrence.classSubjectId,
+            )) {
+              continue;
+            }
+            parsedSessions.add(
+              TeacherSession.fromOccurrence(
+                occurrence,
+                classLabel: classLabelById[classGroupId] ?? classGroupId,
+              ),
+            );
+          }
+        }
+
+        parsedSessions.sort((a, b) => a.startsAt.compareTo(b.startsAt));
+        sessions(parsedSessions);
+        await _loadTodayAttendanceCompletion(parsedSessions);
+      } on api.ApiError catch (error) {
+        errorMessage(systemL10n().couldNotLoadCalendar('$error'));
+        sessions(const []);
+      } on Object catch (error) {
+        errorMessage(systemL10n().couldNotLoadCalendar('$error'));
+        sessions(const []);
+      }
+    });
+  }
+
+  Future<void> _loadTodayAttendanceCompletion(
+    List<TeacherSession> loadedSessions,
+  ) async {
+    final focus = resolveCalendarSessionFocus(
+      sessions: loadedSessions,
+      now: DateTime.now(),
+    );
+    final lessonSessions = focus.todaySessions
+        .where((session) => session.kind == 'lesson')
+        .toList();
+    if (lessonSessions.isEmpty) {
+      attendanceCompletionBySessionId(const {});
+      return;
+    }
+
+    final client = _schoolClient();
+    final academicYearId = _academicYear.selectedYearId.value;
+    final completionBySessionId = <String, SessionAttendanceCompletion>{};
+
+    for (final session in lessonSessions) {
+      try {
+        final enrollmentRows = await client.enrollments.list(
+          activeEnrollmentsForClass(
+            session.classGroupId,
+            academicYearId: academicYearId,
+          ),
+        );
+        final attendanceRows = await listAttendanceForOccurrence(
+          client.attendance,
+          kind: session.kind,
+          occurrenceId: session.id,
+        );
+        completionBySessionId[session.id] = SessionAttendanceCompletion(
+          sessionId: session.id,
+          recordedCount: attendanceRows.length,
+          totalCount: enrollmentRows.length,
+        );
+      } on Object {
+        continue;
+      }
+    }
+
+    attendanceCompletionBySessionId(completionBySessionId);
+  }
+}

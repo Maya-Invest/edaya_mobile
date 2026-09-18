@@ -8,7 +8,6 @@ export 'empty_state.dart';
 export 'list_row.dart';
 export 'parent_account_card.dart';
 export 'person_avatar.dart';
-export 'prototype_app_bar.dart';
 export 'prototype_detail_scaffold.dart';
 export 'prototype_progress_bar.dart';
 export 'school_event_cards.dart';

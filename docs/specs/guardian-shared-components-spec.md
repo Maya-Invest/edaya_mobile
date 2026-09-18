@@ -36,10 +36,10 @@ When the parent width is ≤ `maxWidth`, child fills the parent. When wider, chi
 
 | Type | Role |
 |------|------|
-| `ShellChrome` | Provides `showHeader`, `header` (student context), optional `appBar` for medium+ content column |
-| `ShellChromeBody` | Paints optional app bar + header above page body (e.g. Accueil) |
+| `ShellChrome` | Provides `showHeader` and `header` (student context). No brand app bar on hubs. |
+| `ShellChromeBody` | Paints header above page body (e.g. Accueil) |
 | `ShellChromeDrawerMaster` | Paints header above list master when not using the expanded drawer stack |
-| `DetailDrawerMasterColumn` | Paints optional app bar + header + master so the overlay can cover title → bottom |
+| `DetailDrawerMasterColumn` | Paints header + master so the overlay can cover title → bottom |
 
 UX outcomes for chrome placement are defined by the shell contract; implementations must preserve those outcomes.
 
@@ -55,7 +55,7 @@ UX outcomes for chrome placement are defined by the shell contract; implementati
 Behavior:
 
 - Width &lt; 1000: if list path → master under chrome header; else → detail fills body.
-- Width ≥ 1000: `DetailDrawerScaffold` with master column (app bar + header + master) and overlay detail when not on list path.
+- Width ≥ 1000: `DetailDrawerScaffold` with master column (header + master) and overlay detail when not on list path.
 
 ### `DetailDrawerScaffold`
 
@@ -168,7 +168,7 @@ Centered icon + title + optional body + optional action. No card wrapper require
 | `radius` | no (default 20) | Circle radius |
 | `photoUrl` | no | Network photo; fall back to initials on failure |
 
-Initials avatar: primary fill, white Nunito semibold text.
+Initials avatar: primary fill, white Inter semibold text.
 
 ### `StudentContextCard`
 
@@ -203,10 +203,6 @@ Square light-blue (`primaryContainer`) photo card; no name or email. Tooltip `Mo
 | `onSelected` | yes | Selection callback |
 
 Must use an overlay menu (`MenuAnchor`), not an inline list of all years. Selected year may show a check in the menu. Menu max size roughly 280 × 320.
-
-### `PrototypeAppBar`
-
-Centered `edaya` wordmark only. No profile or help actions (those live on the parent card / account overlay). Preferred size = standard toolbar height. Canvas background, no surface tint.
 
 ### `PrototypeDetailScaffold`
 

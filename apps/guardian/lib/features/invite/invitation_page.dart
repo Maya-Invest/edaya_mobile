@@ -51,11 +51,11 @@ class InvitationPage extends LScopedView<InvitationController> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        'edaya',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(fontWeight: FontWeight.w700),
+                      const Center(
+                        child: EdayaBrandLogo(
+                          variant: EdayaLogoVariant.vertical,
+                          width: 112,
+                        ),
                       ),
                       const SizedBox(height: 24),
                       Text(

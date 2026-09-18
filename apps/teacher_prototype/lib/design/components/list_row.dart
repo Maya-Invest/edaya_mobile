@@ -33,12 +33,13 @@ class ListRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveTint = tint ??
+    final effectiveTint =
+        tint ??
         (selected
             ? PrototypeColors.primaryContainer.withValues(alpha: 0.55)
             : unread
-                ? PrototypeColors.primaryContainer.withValues(alpha: 0.35)
-                : null);
+            ? PrototypeColors.primaryContainer.withValues(alpha: 0.35)
+            : null);
 
     return SurfaceCard(
       onTap: onTap,
@@ -46,7 +47,10 @@ class ListRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (leading != null) ...[leading!, const SizedBox(width: PrototypeSpacing.sm)],
+          if (leading != null) ...[
+            leading!,
+            const SizedBox(width: PrototypeSpacing.sm),
+          ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,10 +71,13 @@ class ListRow extends StatelessWidget {
                 if (badge != null)
                   StatusChip(
                     label: badge!,
-                    tone: badgeTone ?? (unread ? SemanticTone.info : SemanticTone.neutral),
+                    tone:
+                        badgeTone ??
+                        (unread ? SemanticTone.info : SemanticTone.neutral),
                   ),
                 if (trailing != null) ...[
-                  if (badge != null) const SizedBox(height: PrototypeSpacing.xs),
+                  if (badge != null)
+                    const SizedBox(height: PrototypeSpacing.xs),
                   trailing!,
                 ],
               ],

@@ -6,11 +6,25 @@ import '../../app/formatters.dart';
 import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
+import '../../live/runtime.dart';
 import '../../mock/mock_store.dart';
 import '../context/store_bound_controller.dart';
+import 'live_calendar_controller.dart';
 
-class CalendarPage extends LScopedView<StoreBoundController> {
+class CalendarPage extends StatelessWidget {
   const CalendarPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (prototypeIsLive(context)) {
+      return const _LiveCalendarPage();
+    }
+    return const _MockCalendarPage();
+  }
+}
+
+class _MockCalendarPage extends LScopedView<StoreBoundController> {
+  const _MockCalendarPage();
 
   @override
   StoreBoundController onConfigScope(LevitScope scope) {
@@ -50,7 +64,11 @@ class CalendarPage extends LScopedView<StoreBoundController> {
               ),
             ),
           ),
-          _WeekSelector(store: store),
+          _WeekSelector(
+            weekStart: store.dateForWeekDay(0),
+            selectedDay: store.selectedCalendarDate,
+            onSelectDay: (day) => store.selectCalendarDate(day),
+          ),
           Expanded(
             child: store.selectedDaySessions.isEmpty
                 ? const EmptyState(title: 'Aucune séance ce jour')
@@ -88,9 +106,104 @@ class CalendarPage extends LScopedView<StoreBoundController> {
   }
 }
 
+class _LiveCalendarPage extends LView<LiveCalendarController> {
+  const _LiveCalendarPage();
+
+  @override
+  Widget buildView(BuildContext context, LiveCalendarController controller) {
+    return LWatch(() {
+      controller.sessions.value;
+      controller.selectedDay.value;
+      controller.weekStart.value;
+      controller.attendanceCompletionBySessionId.value;
+      controller.errorMessage.value;
+      final selectedId = GoRouterState.of(context).pathParameters['id'];
+      final sessions = controller.sessionsForSelectedDay;
+      final completion = controller.attendanceCompletionBySessionId.value;
+      return AdaptiveContent(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                PrototypeSpacing.md,
+                PrototypeSpacing.sm,
+                PrototypeSpacing.md,
+                0,
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: controller.selectedDay.value,
+                      firstDate: DateTime(2018),
+                      lastDate: DateTime(2030),
+                    );
+                    if (picked != null) controller.goToDate(picked);
+                  },
+                  icon: const Icon(Icons.calendar_today_outlined, size: 18),
+                  label: Text(formatDate(controller.selectedDay.value)),
+                ),
+              ),
+            ),
+            _WeekSelector(
+              weekStart: controller.weekStart.value,
+              selectedDay: controller.selectedDay.value,
+              onSelectDay: controller.goToDate,
+            ),
+            Expanded(
+              child: sessions.isEmpty
+                  ? EmptyState(
+                      title: 'Aucune séance ce jour',
+                      message: controller.errorMessage.value,
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(PrototypeSpacing.md),
+                      itemCount: sessions.length,
+                      separatorBuilder: (_, _) =>
+                          const SizedBox(height: PrototypeSpacing.xs),
+                      itemBuilder: (context, i) {
+                        final s = sessions[i];
+                        final selected = selectedId == s.id;
+                        final attendanceDone =
+                            completion[s.id]?.isComplete ?? false;
+                        return ListRow(
+                          title: '${s.classLabel} · ${s.subjectLabel}',
+                          subtitle: formatClockRange(s.startsAt, s.endsAt),
+                          selected: selected,
+                          badge: [
+                            if (s.kind == 'lesson' && !attendanceDone)
+                              'Présences',
+                          ].join(' · '),
+                          onTap: () => context.go('/session/${s.id}'),
+                          trailing: Icon(
+                            Icons.chevron_right,
+                            color: selected
+                                ? PrototypeColors.primary
+                                : PrototypeColors.onSurfaceVariant,
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+}
+
 class _WeekSelector extends StatelessWidget {
-  const _WeekSelector({required this.store});
-  final MockStore store;
+  const _WeekSelector({
+    required this.weekStart,
+    required this.selectedDay,
+    required this.onSelectDay,
+  });
+
+  final DateTime weekStart;
+  final DateTime selectedDay;
+  final ValueChanged<DateTime> onSelectDay;
 
   static const _dayLabels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
@@ -109,11 +222,11 @@ class _WeekSelector extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 2),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(12),
-                  onTap: () => store.selectDay(i),
+                  onTap: () => onSelectDay(weekStart.add(Duration(days: i))),
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
-                      color: store.selectedDayIndex == i
+                      color: _isSelected(i)
                           ? PrototypeColors.primaryContainer
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
@@ -125,9 +238,10 @@ class _WeekSelector extends StatelessWidget {
                           style: Theme.of(context).textTheme.labelSmall,
                         ),
                         Text(
-                          '${store.dateForWeekDay(i).day}',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                color: store.selectedDayIndex == i
+                          '${weekStart.add(Duration(days: i)).day}',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                color: _isSelected(i)
                                     ? PrototypeColors.primary
                                     : null,
                               ),
@@ -141,5 +255,12 @@ class _WeekSelector extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  bool _isSelected(int i) {
+    final day = weekStart.add(Duration(days: i));
+    return day.year == selectedDay.year &&
+        day.month == selectedDay.month &&
+        day.day == selectedDay.day;
   }
 }

@@ -6,11 +6,29 @@ import '../../app/formatters.dart';
 import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
+import '../../live/runtime.dart';
 import '../../mock/mock_store.dart';
 import '../context/store_bound_controller.dart';
 
-class InboxPage extends LScopedView<StoreBoundController> {
+class InboxPage extends StatelessWidget {
   const InboxPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (prototypeIsLive(context)) {
+      return const AdaptiveContent(
+        child: EmptyState(
+          title: 'Aucun message',
+          message: 'La messagerie live n\'est pas encore branchée.',
+        ),
+      );
+    }
+    return const _MockInboxPage();
+  }
+}
+
+class _MockInboxPage extends LScopedView<StoreBoundController> {
+  const _MockInboxPage();
 
   @override
   StoreBoundController onConfigScope(LevitScope scope) {
@@ -84,8 +102,26 @@ class InboxPage extends LScopedView<StoreBoundController> {
   }
 }
 
-class MessageDetailPage extends LScopedView<StoreBoundController> {
+class MessageDetailPage extends StatelessWidget {
   const MessageDetailPage({super.key, required this.messageId});
+
+  final String messageId;
+
+  @override
+  Widget build(BuildContext context) {
+    if (prototypeIsLive(context)) {
+      return const PrototypeDetailScaffold(
+        title: 'Message',
+        fallbackRoute: '/inbox',
+        body: EmptyState(title: 'Message introuvable'),
+      );
+    }
+    return _MockMessageDetailPage(messageId: messageId);
+  }
+}
+
+class _MockMessageDetailPage extends LScopedView<StoreBoundController> {
+  const _MockMessageDetailPage({required this.messageId});
 
   final String messageId;
 
@@ -124,7 +160,10 @@ class MessageDetailPage extends LScopedView<StoreBoundController> {
           ),
           const SizedBox(height: PrototypeSpacing.md),
           SurfaceCard(
-            child: Text(message.body, style: Theme.of(context).textTheme.bodyLarge),
+            child: Text(
+              message.body,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
           ),
         ],
       ),

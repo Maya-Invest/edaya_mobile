@@ -149,7 +149,9 @@ List<MockSession> _buildSessions(DateTime weekMonday) {
         // Keep first incomplete flags from seed; ensure at least one incomplete today.
       }
     }
-    final todaySessions = sessions.where((s) => s.date.weekday == todayWd).toList();
+    final todaySessions = sessions
+        .where((s) => s.date.weekday == todayWd)
+        .toList();
     if (todaySessions.isNotEmpty) {
       todaySessions.first.attendanceComplete = false;
       todaySessions.first.logbookComplete = false;
@@ -254,7 +256,10 @@ List<MockEvaluation> _buildEvaluations() {
   ];
 }
 
-List<MockMark> _buildMarks(List<MockEvaluation> evals, List<MockStudent> students) {
+List<MockMark> _buildMarks(
+  List<MockEvaluation> evals,
+  List<MockStudent> students,
+) {
   final marks = <MockMark>[];
   for (final e in evals) {
     final roster = students.where((s) => s.classId == e.classId).toList();
@@ -273,25 +278,25 @@ List<MockMark> _buildMarks(List<MockEvaluation> evals, List<MockStudent> student
 }
 
 List<MockReportCardClass> _buildReportCardClasses() => const [
-      MockReportCardClass(
-        id: 'rc-5b-t1',
-        classId: 'cls-5b',
-        classLabel: '5ème B',
-        period: '1er trimestre',
-        periodId: 't1',
-        pendingComments: 4,
-        totalStudents: 10,
-      ),
-      MockReportCardClass(
-        id: 'rc-6a-t1',
-        classId: 'cls-6a',
-        classLabel: '6ème A',
-        period: '1er trimestre',
-        periodId: 't1',
-        pendingComments: 7,
-        totalStudents: 10,
-      ),
-    ];
+  MockReportCardClass(
+    id: 'rc-5b-t1',
+    classId: 'cls-5b',
+    classLabel: '5ème B',
+    period: '1er trimestre',
+    periodId: 't1',
+    pendingComments: 4,
+    totalStudents: 10,
+  ),
+  MockReportCardClass(
+    id: 'rc-6a-t1',
+    classId: 'cls-6a',
+    classLabel: '6ème A',
+    period: '1er trimestre',
+    periodId: 't1',
+    pendingComments: 7,
+    totalStudents: 10,
+  ),
+];
 
 List<MockReportCardStudent> _buildReportCardRoster(List<MockStudent> students) {
   final roster = <MockReportCardStudent>[];
@@ -346,7 +351,8 @@ List<MockMessage> _buildMessages() {
     MockMessage(
       id: 'msg-3',
       title: 'Réunion pédagogique',
-      body: 'Réunion département mathématiques vendredi 12h en salle des professeurs.',
+      body:
+          'Réunion département mathématiques vendredi 12h en salle des professeurs.',
       sentAt: now.subtract(const Duration(days: 1)),
       read: true,
       type: 'announcement',
@@ -362,7 +368,8 @@ List<MockMessage> _buildMessages() {
     MockMessage(
       id: 'msg-5',
       title: 'Calendrier des devoirs',
-      body: 'Merci de saisir les dates de devoirs dans le cahier de texte avant vendredi.',
+      body:
+          'Merci de saisir les dates de devoirs dans le cahier de texte avant vendredi.',
       sentAt: now.subtract(const Duration(days: 3)),
       read: false,
       type: 'announcement',

@@ -19,6 +19,8 @@ void main() {
 
   testWidgets('teacher app bootstrap gate shows loading', (tester) async {
     await tester.pumpWidget(TeacherAppRoot());
+    expect(find.byType(EdayaStartupScreen), findsOneWidget);
+    expect(find.byType(EdayaBrandLogo), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 }
