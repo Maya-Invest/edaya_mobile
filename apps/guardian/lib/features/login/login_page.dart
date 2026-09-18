@@ -16,13 +16,11 @@ class LoginPage extends LScopedView<LoginController> {
   const LoginPage({
     super.key,
     required this.defaultEmail,
-    required this.defaultPassword,
     required this.onSignInSuccess,
     this.mockStore,
   });
 
   final String defaultEmail;
-  final String defaultPassword;
   final Future<void> Function() onSignInSuccess;
   final MockStore? mockStore;
 
@@ -33,7 +31,6 @@ class LoginPage extends LScopedView<LoginController> {
         authClient: scope.find<AuthClient>(),
         session: scope.find<AppSessionController>(),
         defaultEmail: defaultEmail,
-        defaultPassword: defaultPassword,
         onSignInSuccess: onSignInSuccess,
       ),
     );
@@ -64,106 +61,12 @@ class LoginPage extends LScopedView<LoginController> {
                   ),
                   const SizedBox(height: PrototypeSpacing.xxl),
                   SurfaceCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          'Connexion',
-                          style: Theme.of(context).textTheme.headlineSmall,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: PrototypeSpacing.xs),
-                        Text(
-                          'Accédez aux informations scolaires de vos enfants.',
-                          style: Theme.of(context).textTheme.bodySmall,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: PrototypeSpacing.xl),
-                        if (isMock) ...[
-                          TextFormField(
-                            initialValue: defaultEmail,
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(
-                              labelText: 'E-mail',
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-                          const SizedBox(height: PrototypeSpacing.md),
-                          TextFormField(
-                            initialValue: defaultPassword,
-                            obscureText: true,
-                            decoration: const InputDecoration(
-                              labelText: 'Mot de passe',
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-                          const SizedBox(height: PrototypeSpacing.xl),
-                          FilledButton(
-                            onPressed: () {
-                              mockStore!.signIn();
-                              context.go('/home');
-                            },
-                            child: const Text('Se connecter'),
-                          ),
-                        ] else ...[
-                          TextFormField(
-                            initialValue: controller.email.value,
-                            keyboardType: TextInputType.emailAddress,
-                            autofillHints: const [AutofillHints.email],
-                            decoration: const InputDecoration(
-                              labelText: 'E-mail',
-                              border: OutlineInputBorder(),
-                            ),
-                            onChanged: (value) => controller.email(value),
-                          ),
-                          const SizedBox(height: PrototypeSpacing.md),
-                          TextFormField(
-                            initialValue: controller.password.value,
-                            obscureText: true,
-                            autofillHints: const [AutofillHints.password],
-                            decoration: const InputDecoration(
-                              labelText: 'Mot de passe',
-                              border: OutlineInputBorder(),
-                            ),
-                            onChanged: (value) => controller.password(value),
-                          ),
-                          const SizedBox(height: PrototypeSpacing.md),
-                          LWatch(() {
-                            final message = controller.errorMessage.value;
-                            if (message.isEmpty) {
-                              return const SizedBox.shrink();
-                            }
-                            return Padding(
-                              padding: const EdgeInsets.only(
-                                bottom: PrototypeSpacing.md,
-                              ),
-                              child: Text(
-                                message,
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.error,
-                                ),
-                              ),
-                            );
-                          }),
-                          LWatch(
-                            () => FilledButton(
-                              onPressed: controller.isBusy.value
-                                  ? null
-                                  : controller.signInWithPassword,
-                              child: controller.isBusy.value
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Text('Se connecter'),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
+                    child: isMock
+                        ? _MockLogin(
+                            defaultEmail: defaultEmail,
+                            mockStore: mockStore!,
+                          )
+                        : _OtpLogin(controller: controller),
                   ),
                 ],
               ),
@@ -172,5 +75,173 @@ class LoginPage extends LScopedView<LoginController> {
         ),
       ),
     );
+  }
+}
+
+class _MockLogin extends StatefulWidget {
+  const _MockLogin({required this.defaultEmail, required this.mockStore});
+
+  final String defaultEmail;
+  final MockStore mockStore;
+
+  @override
+  State<_MockLogin> createState() => _MockLoginState();
+}
+
+class _MockLoginState extends State<_MockLogin> {
+  var _codeSent = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          _codeSent ? 'Vérifiez votre e-mail' : 'Connexion',
+          style: Theme.of(context).textTheme.headlineSmall,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: PrototypeSpacing.xs),
+        Text(
+          _codeSent
+              ? 'Saisissez le code envoyé à ${widget.defaultEmail}.'
+              : 'Accédez aux informations scolaires de vos enfants.',
+          style: Theme.of(context).textTheme.bodySmall,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: PrototypeSpacing.xl),
+        if (!_codeSent) ...[
+          TextFormField(
+            initialValue: widget.defaultEmail,
+            keyboardType: TextInputType.emailAddress,
+            decoration: const InputDecoration(
+              labelText: 'E-mail',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: PrototypeSpacing.xl),
+          FilledButton(
+            onPressed: () => setState(() => _codeSent = true),
+            child: const Text('Envoyer le code'),
+          ),
+        ] else ...[
+          const TextField(
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: 'Code',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: PrototypeSpacing.xl),
+          FilledButton(
+            onPressed: () {
+              widget.mockStore.signIn();
+              context.go('/home');
+            },
+            child: const Text('Vérifier le code'),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _OtpLogin extends StatelessWidget {
+  const _OtpLogin({required this.controller});
+
+  final LoginController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return LWatch(() {
+      final mode = controller.mode.value;
+      return Column(
+        key: ValueKey(mode),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            mode == LoginMode.verifyOtp
+                ? 'Vérifiez votre e-mail'
+                : 'Connexion',
+            style: Theme.of(context).textTheme.headlineSmall,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: PrototypeSpacing.xs),
+          Text(
+            mode == LoginMode.verifyOtp
+                ? 'Saisissez le code envoyé à ${controller.email.value.trim()}.'
+                : 'Accédez aux informations scolaires de vos enfants.',
+            style: Theme.of(context).textTheme.bodySmall,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: PrototypeSpacing.xl),
+          if (mode == LoginMode.enterEmail)
+            TextFormField(
+              initialValue: controller.email.value,
+              keyboardType: TextInputType.emailAddress,
+              autofillHints: const [AutofillHints.email],
+              decoration: const InputDecoration(
+                labelText: 'E-mail',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) => controller.email(value),
+            )
+          else
+            TextFormField(
+              initialValue: controller.otp.value,
+              keyboardType: TextInputType.number,
+              autofillHints: const [AutofillHints.oneTimeCode],
+              decoration: const InputDecoration(
+                labelText: 'Code',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) => controller.otp(value),
+            ),
+          const SizedBox(height: PrototypeSpacing.md),
+          LWatch(() {
+            final message = controller.errorMessage.value;
+            if (message.isEmpty) {
+              return const SizedBox.shrink();
+            }
+            return Padding(
+              padding: const EdgeInsets.only(bottom: PrototypeSpacing.md),
+              child: Text(
+                message,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            );
+          }),
+          LWatch(
+            () => FilledButton(
+              onPressed: controller.isBusy.value ? null : controller.submit,
+              child: controller.isBusy.value
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(
+                      mode == LoginMode.verifyOtp
+                          ? 'Vérifier le code'
+                          : 'Envoyer le code',
+                    ),
+            ),
+          ),
+          if (mode == LoginMode.verifyOtp) ...[
+            const SizedBox(height: PrototypeSpacing.sm),
+            TextButton(
+              onPressed: controller.isBusy.value ? null : controller.resendOtp,
+              child: const Text('Renvoyer le code'),
+            ),
+            TextButton(
+              onPressed: controller.isBusy.value
+                  ? null
+                  : controller.showEmailEntry,
+              child: const Text('Utiliser un autre e-mail'),
+            ),
+          ],
+        ],
+      );
+    });
   }
 }

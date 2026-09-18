@@ -87,6 +87,23 @@ class ReportCardController extends LevitController
 
     try {
       final client = _schoolClient();
+      final issuance = await downloadReadyIssuance(
+        client,
+        sourceId: reportCardId,
+        templateKey: 'report-card.v1',
+      );
+      if (issuance.outcome == DocumentJobOutcome.opened) {
+        downloadStatus(ReportCardPdfStatus.idle);
+        return;
+      }
+      if (issuance.outcome == DocumentJobOutcome.rendering) {
+        downloadStatus(ReportCardPdfStatus.pending);
+        downloadMessage(
+          'Le PDF est en cours de génération. Réessayez dans un instant.',
+        );
+        return;
+      }
+
       final lookup = await _lookupReadyPdf(client);
       switch (lookup.status) {
         case _PdfLookupStatus.ready:

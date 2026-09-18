@@ -22,6 +22,10 @@ void registerPrototypeDependencies(LevitScope scope, {MockStore? store}) {
   }
 
   scope.put<SessionStorage>(() => SessionStorage(), permanent: true);
+  scope.put<PendingInvitationStore>(
+    () => PendingInvitationStore(),
+    permanent: true,
+  );
   scope.put<EdayaRouterRefresh>(() => EdayaRouterRefresh(), permanent: true);
   registerEdayaDependencies(scope, cookieJar: cookieJar);
   registerSchoolClientFactory(
@@ -49,6 +53,7 @@ void registerPrototypeDependencies(LevitScope scope, {MockStore? store}) {
       validateGrants: (_) => null,
       unauthorizedProfileMessage: () => systemL10n().signedInNoGuardianProfile,
       resolveActorKind: () => 'guardian',
+      allowUnlinkedIdentity: () => true,
     ),
     permanent: true,
   );
@@ -72,6 +77,9 @@ void registerPrototypeDependencies(LevitScope scope, {MockStore? store}) {
   scope.put<GoRouter>(
     () => createRouter(
       session: scope.find<AppSessionController>(),
+      studentContext: scope.find<StudentContextController>(),
+      academicYear: scope.find<AcademicYearController>(),
+      pendingInvitation: scope.find<PendingInvitationStore>(),
       routerRefresh: scope.find<EdayaRouterRefresh>(),
       mockStore: store,
     ),
@@ -83,10 +91,12 @@ void registerPrototypeDependencies(LevitScope scope, {MockStore? store}) {
   );
   scope.put<AppBootstrapController>(
     () => AppBootstrapController(
-      cookieJar: scope.find<CookieJar>(),
+      authClient: scope.find<AuthClient>(),
       sessionStorage: scope.find<SessionStorage>(),
       session: scope.find<AppSessionController>(),
       pushNotifications: scope.find<PushNotificationService>(),
+      hydratePendingInvitation: () =>
+          scope.find<PendingInvitationStore>().hydrate(),
       initializeAuthenticatedContext: () async {
         await scope.find<AcademicYearController>().loadYears();
         await scope.find<StudentContextController>().initializeFromSession();

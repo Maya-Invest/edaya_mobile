@@ -245,9 +245,16 @@ class GuardianWidgetTestHarness {
       ),
       permanent: true,
     );
+    scope.put<PendingInvitationStore>(
+      () => PendingInvitationStore(),
+      permanent: true,
+    );
     scope.put<GoRouter>(
       () => createRouter(
         session: scope.find<AppSessionController>(),
+        studentContext: scope.find<StudentContextController>(),
+        academicYear: scope.find<AcademicYearController>(),
+        pendingInvitation: scope.find<PendingInvitationStore>(),
         routerRefresh: scope.find<EdayaRouterRefresh>(),
       ),
       permanent: true,

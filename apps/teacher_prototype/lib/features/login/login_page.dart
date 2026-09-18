@@ -8,8 +8,15 @@ import '../../design/spacing.dart';
 import '../../design/typography.dart';
 import '../../mock/mock_store.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  var _codeSent = false;
 
   @override
   Widget build(BuildContext context) {
@@ -43,38 +50,47 @@ class LoginPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'Connexion',
+                          _codeSent ? 'Vérifiez votre e-mail' : 'Connexion',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: PrototypeSpacing.sm),
                         Text(
-                          'Prototype mock — n\'importe quels identifiants fonctionnent.',
+                          _codeSent
+                              ? 'Saisissez le code envoyé (prototype mock).'
+                              : 'Prototype mock — n\'importe quels identifiants fonctionnent.',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                         const SizedBox(height: PrototypeSpacing.md),
-                        const TextField(
-                          decoration: InputDecoration(
-                            labelText: 'E-mail',
-                            border: OutlineInputBorder(),
+                        if (!_codeSent) ...[
+                          const TextField(
+                            decoration: InputDecoration(
+                              labelText: 'E-mail',
+                              border: OutlineInputBorder(),
+                            ),
+                            keyboardType: TextInputType.emailAddress,
                           ),
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-                        const SizedBox(height: PrototypeSpacing.md),
-                        const TextField(
-                          decoration: InputDecoration(
-                            labelText: 'Mot de passe',
-                            border: OutlineInputBorder(),
+                          const SizedBox(height: PrototypeSpacing.lg),
+                          FilledButton(
+                            onPressed: () => setState(() => _codeSent = true),
+                            child: const Text('Envoyer le code'),
                           ),
-                          obscureText: true,
-                        ),
-                        const SizedBox(height: PrototypeSpacing.lg),
-                        FilledButton(
-                          onPressed: () {
-                            store.signIn();
-                            context.go('/home');
-                          },
-                          child: const Text('Se connecter'),
-                        ),
+                        ] else ...[
+                          const TextField(
+                            decoration: InputDecoration(
+                              labelText: 'Code',
+                              border: OutlineInputBorder(),
+                            ),
+                            keyboardType: TextInputType.number,
+                          ),
+                          const SizedBox(height: PrototypeSpacing.lg),
+                          FilledButton(
+                            onPressed: () {
+                              store.signIn();
+                              context.go('/home');
+                            },
+                            child: const Text('Vérifier le code'),
+                          ),
+                        ],
                       ],
                     ),
                   ),

@@ -11,10 +11,10 @@ void main() {
     );
   });
 
-  test('normalizeAuthErrorMessage maps credential failures', () {
+  test('normalizeAuthErrorMessage maps OTP failures', () {
     expect(
-      normalizeAuthErrorMessage('User not found'),
-      'Invalid email or password.',
+      normalizeAuthErrorMessage('INVALID_OTP'),
+      'Invalid or expired verification code.',
     );
   });
 }

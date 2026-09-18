@@ -15,14 +15,12 @@ class LoginPage extends LScopedView<LoginController> {
     required this.appTitle,
     required this.subtitle,
     required this.defaultEmail,
-    required this.defaultPassword,
     required this.onSignInSuccess,
   });
 
   final String appTitle;
   final String subtitle;
   final String defaultEmail;
-  final String defaultPassword;
   final Future<void> Function() onSignInSuccess;
 
   @override
@@ -32,7 +30,6 @@ class LoginPage extends LScopedView<LoginController> {
         authClient: scope.find<AuthClient>(),
         session: scope.find<AppSessionController>(),
         defaultEmail: defaultEmail,
-        defaultPassword: defaultPassword,
         onSignInSuccess: onSignInSuccess,
       ),
     );
@@ -53,39 +50,72 @@ class LoginPage extends LScopedView<LoginController> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      context.tr.signInTitle,
-                      style: Theme.of(context).textTheme.headlineSmall,
+                      'edaya',
                       textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      subtitle,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 24),
-                    TextFormField(
-                      initialValue: controller.email.value,
-                      keyboardType: TextInputType.emailAddress,
-                      autofillHints: const [AutofillHints.email],
-                      decoration: InputDecoration(
-                        labelText: context.tr.emailLabel,
-                        border: const OutlineInputBorder(),
-                      ),
-                      onChanged: (value) => controller.email(value),
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      initialValue: controller.password.value,
-                      obscureText: true,
-                      autofillHints: const [AutofillHints.password],
-                      decoration: InputDecoration(
-                        labelText: context.tr.passwordLabel,
-                        border: const OutlineInputBorder(),
-                      ),
-                      onChanged: (value) => controller.password(value),
-                    ),
-                    const SizedBox(height: 16),
+                    LWatch(() {
+                      final mode = controller.mode.value;
+                      final title = mode == LoginMode.verifyOtp
+                          ? context.tr.verifyEmailTitle
+                          : context.tr.signInTitle;
+                      final description = mode == LoginMode.verifyOtp
+                          ? context.tr.verificationCodeSent(
+                              controller.email.value.trim(),
+                            )
+                          : subtitle;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            title,
+                            style: Theme.of(context).textTheme.headlineSmall,
+                            textAlign: TextAlign.start,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            description,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                            textAlign: TextAlign.start,
+                          ),
+                        ],
+                      );
+                    }),
+                    const SizedBox(height: 24),
+                    LWatch(() {
+                      final mode = controller.mode.value;
+                      return Column(
+                        key: ValueKey(mode),
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (mode == LoginMode.enterEmail) ...[
+                            TextFormField(
+                              initialValue: controller.email.value,
+                              keyboardType: TextInputType.emailAddress,
+                              autofillHints: const [AutofillHints.email],
+                              decoration: InputDecoration(
+                                labelText: context.tr.emailLabel,
+                              ),
+                              onChanged: (value) => controller.email(value),
+                            ),
+                            const SizedBox(height: 16),
+                          ] else ...[
+                            TextFormField(
+                              initialValue: controller.otp.value,
+                              keyboardType: TextInputType.number,
+                              autofillHints: const [AutofillHints.oneTimeCode],
+                              decoration: InputDecoration(
+                                labelText: context.tr.otpLabel,
+                              ),
+                              onChanged: (value) => controller.otp(value),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                        ],
+                      );
+                    }),
                     LWatch(() {
                       final message = controller.errorMessage.value;
                       if (message.isEmpty) {
@@ -105,7 +135,7 @@ class LoginPage extends LScopedView<LoginController> {
                       () => FilledButton(
                         onPressed: controller.isBusy.value
                             ? null
-                            : controller.signInWithPassword,
+                            : controller.submit,
                         child: controller.isBusy.value
                             ? const SizedBox(
                                 width: 20,
@@ -114,9 +144,35 @@ class LoginPage extends LScopedView<LoginController> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : Text(context.tr.signInButton),
+                            : Text(
+                                controller.mode.value == LoginMode.verifyOtp
+                                    ? context.tr.verifyCodeButton
+                                    : context.tr.sendCodeButton,
+                              ),
                       ),
                     ),
+                    LWatch(() {
+                      if (controller.mode.value != LoginMode.verifyOtp) {
+                        return const SizedBox.shrink();
+                      }
+                      return Column(
+                        children: [
+                          const SizedBox(height: 12),
+                          TextButton(
+                            onPressed: controller.isBusy.value
+                                ? null
+                                : controller.resendOtp,
+                            child: Text(context.tr.resendCodeButton),
+                          ),
+                          TextButton(
+                            onPressed: controller.isBusy.value
+                                ? null
+                                : controller.showEmailEntry,
+                            child: Text(context.tr.useDifferentEmail),
+                          ),
+                        ],
+                      );
+                    }),
                     if (DeveloperSettingsConfig.enabled) ...[
                       const SizedBox(height: 24),
                       const DevApiUrlSettings(compact: true),

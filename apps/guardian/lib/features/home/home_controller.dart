@@ -9,7 +9,7 @@ import '../calendar/models/calendar_session.dart';
 import '../calendar/models/school_event.dart';
 import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
-import '../fees/models/student_fee_line.dart';
+import '../fees/models/student_charge_line.dart';
 import '../scolarite/models/grade_entry.dart';
 import '../scolarite/models/report_card_summary.dart';
 
@@ -25,7 +25,7 @@ class HomeFinanceAlert {
 
   final String id;
   final String label;
-  final double amount;
+  final int amount;
   final String currency;
   final DateTime dueDate;
   final bool isOverdue;
@@ -47,10 +47,8 @@ class HomeDayPlan {
   bool get hasContent =>
       noSchoolDay != null || events.isNotEmpty || sessions.isNotEmpty;
 
-  int get lessonCount =>
-      sessions.where((s) => s.kind == 'lesson').length;
-  int get activityCount =>
-      sessions.where((s) => s.kind == 'activity').length;
+  int get lessonCount => sessions.where((s) => s.kind == 'lesson').length;
+  int get activityCount => sessions.where((s) => s.kind == 'activity').length;
   int get assessmentCount =>
       sessions.where((s) => s.kind == 'assessment').length;
 }
@@ -72,10 +70,13 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
   final SchoolClientFactory _schoolClient;
 
   final overdueFeeCount = LxVar(0);
-  final feeBalance = LxVar(0.0);
-  final feeCurrency = LxVar('EUR');
-  final financeAlerts = LxVar<List<HomeFinanceAlert>>(const []);
+  final feeBalance = LxVar(0);
+  final feeCurrency = LxVar('XOF');
   final unreadCount = LxVar(0);
+  final openCampaigns = LxVar<List<GuardianFamilyFeedbackCampaign>>(const []);
+  final photoNeedsAttention = LxVar(false);
+  final leftoverPapers = LxVar<List<DocumentIssuanceRecord>>(const []);
+  final financeAlerts = LxVar<List<HomeFinanceAlert>>(const []);
   final latestBulletin = LxVar<ReportCardSummary?>(null);
   final latestGrades = LxVar<List<GradeEntry>>(const []);
   final todayPlan = LxVar<HomeDayPlan?>(null);
@@ -89,8 +90,11 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
     autoDispose(overdueFeeCount);
     autoDispose(feeBalance);
     autoDispose(feeCurrency);
-    autoDispose(financeAlerts);
     autoDispose(unreadCount);
+    autoDispose(openCampaigns);
+    autoDispose(photoNeedsAttention);
+    autoDispose(leftoverPapers);
+    autoDispose(financeAlerts);
     autoDispose(latestBulletin);
     autoDispose(latestGrades);
     autoDispose(todayPlan);
@@ -119,6 +123,8 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
       await Future.wait([
         _loadFees(),
         _loadInbox(),
+        _loadCampaigns(),
+        _loadChildAttention(),
         _loadAcademicHighlights(),
         _loadDayPlans(),
       ]);
@@ -131,73 +137,44 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
     if (studentId == null || yearId == null) {
       overdueFeeCount(0);
       feeBalance(0);
-      financeAlerts(const []);
       return;
     }
 
     try {
-      final client = _schoolClient();
-      final rows = await client.studentFees.list(
-        studentFeesForStudent(studentId),
+      final rows = await _schoolClient().studentCharges.list(
+        studentChargesForStudent(studentId: studentId, academicYearId: yearId),
       );
-      final yearFees = rows
-          .where((row) => row['academicYearId'] == yearId)
+      final lines = rows
           .where((row) => row['status'] != 'cancelled')
+          .map(StudentChargeLine.fromJson)
           .toList();
-
-      final feeIds = yearFees
-          .map((row) => row['feeId'] as String?)
-          .whereType<String>()
-          .toSet()
-          .toList();
-      final feeNameById = <String, String>{};
-      for (final feeId in feeIds) {
-        try {
-          final fee = await client.fees.get(feeId);
-          feeNameById[feeId] = fee['name'] as String? ?? feeId;
-        } on Object {
-          feeNameById[feeId] = systemL10n().schoolFee;
-        }
-      }
-
-      final lines = yearFees
-          .map(
-            (row) => StudentFeeLine.fromJson(
-              row,
-              label: feeNameById[row['feeId'] as String] ??
-                  systemL10n().schoolFee,
-            ),
-          )
-          .toList();
-
       overdueFeeCount(
-        lines.where((l) => l.status == StudentFeeStatus.overdue).length,
+        lines.where((line) => line.status == ChargeStatus.overdue).length,
       );
       feeBalance(
-        lines.fold<double>(0, (sum, l) => sum + l.balance),
+        lines.fold<int>(0, (sum, line) => sum + line.remainingObligation),
       );
       if (lines.isNotEmpty) {
         feeCurrency(lines.first.currency);
       }
-
       financeAlerts(
         lines
             .where(
-              (l) =>
-                  l.dueDate != null &&
-                  l.balance > 0 &&
-                  (l.status == StudentFeeStatus.overdue ||
-                      l.status == StudentFeeStatus.pending ||
-                      l.status == StudentFeeStatus.partial),
+              (line) =>
+                  line.dueDate != null &&
+                  line.remainingObligation > 0 &&
+                  (line.status == ChargeStatus.overdue ||
+                      line.status == ChargeStatus.pending ||
+                      line.status == ChargeStatus.partial),
             )
             .map(
-              (l) => HomeFinanceAlert(
-                id: l.id,
-                label: l.label,
-                amount: l.balance,
-                currency: l.currency,
-                dueDate: l.dueDate!,
-                isOverdue: l.status == StudentFeeStatus.overdue,
+              (line) => HomeFinanceAlert(
+                id: line.id,
+                label: line.label,
+                amount: line.remainingObligation,
+                currency: line.currency,
+                dueDate: line.dueDate!,
+                isOverdue: line.status == ChargeStatus.overdue,
               ),
             )
             .toList()
@@ -220,11 +197,69 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
       final rows = await _schoolClient().messageDeliveries.list(
         deliveriesForSubject(subjectId),
       );
-      unreadCount(
-        rows.where((row) => row['status'] != 'read').length,
-      );
+      unreadCount(rows.where((row) => row['status'] != 'read').length);
     } on Object {
       unreadCount(0);
+    }
+  }
+
+  Future<void> _loadCampaigns() async {
+    try {
+      final items = await listGuardianFamilyFeedbackCampaigns(_schoolClient());
+      final studentId = _studentContext.activeStudentId;
+      final scoped = studentId == null
+          ? items
+          : items.where((item) => item.studentId == studentId).toList();
+      openCampaigns(scoped.where((item) => item.slotState == 'open').toList());
+    } on Object {
+      openCampaigns(const []);
+    }
+  }
+
+  Future<void> _loadChildAttention() async {
+    final studentId = _studentContext.activeStudentId;
+    final yearId = _academicYear.selectedYearId.value;
+    if (studentId == null) {
+      photoNeedsAttention(false);
+      leftoverPapers(const []);
+      return;
+    }
+
+    try {
+      final rows = await optionalEntityList(
+        _schoolClient().studentPhotoSubmissions.list({
+          'studentId': studentId,
+          r'$limit': 20,
+        }),
+      );
+      photoNeedsAttention(
+        rows.any(
+          (row) => row['status'] == 'pending' || row['status'] == 'rejected',
+        ),
+      );
+    } on Object {
+      photoNeedsAttention(false);
+    }
+
+    if (yearId == null) {
+      leftoverPapers(const []);
+      return;
+    }
+
+    try {
+      final items = await listDocumentIssuances(
+        _schoolClient(),
+        studentId: studentId,
+        academicYearId: yearId,
+      );
+      leftoverPapers(
+        items
+            .where((item) => isLeftoverFamilyPaper(item.templateKey))
+            .where((item) => item.isDownloadable || item.isPending)
+            .toList(),
+      );
+    } on Object {
+      leftoverPapers(const []);
     }
   }
 
@@ -254,8 +289,10 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
             )
             .toList()
           ..sort((a, b) {
-            final aDate = a.publishedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-            final bDate = b.publishedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+            final aDate =
+                a.publishedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+            final bDate =
+                b.publishedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
             return bDate.compareTo(aDate);
           });
         latestBulletin(cards.first);
@@ -264,7 +301,6 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
       latestBulletin(null);
     }
 
-    // Latest grades are optional enrichment; skip heavy assessment fan-out if no class.
     final classGroupId = _studentContext.classGroupId.value;
     if (classGroupId == null) {
       latestGrades(const []);
@@ -297,8 +333,7 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
             assessment: assessment,
             subjectName: systemL10n().subjectFallback,
             periodName:
-                assessment['periodId'] as String? ??
-                systemL10n().periodFallback,
+                assessment['periodId'] as String? ?? systemL10n().periodFallback,
           ),
         );
       }
@@ -361,8 +396,11 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
     List<CalendarSession> sessions,
     List<SchoolEvent> events,
   ) {
-    final day = DateTime(today.year, today.month, today.day)
-        .add(Duration(days: offset));
+    final day = DateTime(
+      today.year,
+      today.month,
+      today.day,
+    ).add(Duration(days: offset));
     final daySessions = sessions.where((s) => s.occursOn(day)).toList()
       ..sort((a, b) => a.startsAt.compareTo(b.startsAt));
     final dayEvents = events.where((e) => e.occursOn(day)).toList();

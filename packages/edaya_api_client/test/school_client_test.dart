@@ -44,7 +44,7 @@ void main() {
       completion({'id': 'subject-1', 'name': 'Mathematics'}),
     );
     await expectLater(
-      client.students.delete(id: 'student-1'),
+      client.subjects.delete(id: 'subject-1'),
       completion({'message': 'deleted'}),
     );
 
@@ -61,11 +61,45 @@ void main() {
       },
       {
         'method': 'POST',
-        'path': '/core/entities/students/delete',
-        'body': {'id': 'student-1'},
+        'path': '/core/entities/subjects/delete',
+        'body': {'id': 'subject-1'},
       },
     ]);
   });
+
+  test(
+    'command-owned resources reject generic mutations without sending a request',
+    () async {
+      final transport = RecordingTransport([]);
+      final client = createSchoolClient(transport);
+      await expectLater(
+        client.attachments.save({'id': 'attachment', 'status': 'ready'}),
+        throwsStateError,
+      );
+      expect(
+        () => client.attachments.delete(id: 'attachment'),
+        throwsStateError,
+      );
+      expect(
+        () => client.attachments.batchSave(entities: []),
+        throwsStateError,
+      );
+      await expectLater(
+        client.payments.save({'id': 'payment'}),
+        throwsStateError,
+      );
+      expect(() => client.payments.delete(id: 'payment'), throwsStateError);
+      expect(
+        () => client.studentCharges.batchDelete(ids: ['charge']),
+        throwsStateError,
+      );
+      expect(
+        () => client.enrollments.batchSave(entities: []),
+        throwsStateError,
+      );
+      expect(transport.requests, isEmpty);
+    },
+  );
 
   test('uses generated command, query, and authorization paths', () async {
     final transport = RecordingTransport([
@@ -76,12 +110,15 @@ void main() {
         'actorId': 'actor-1',
         'schoolId': 'school-1',
         'assuranceLevel': 'standard',
-        'effectiveGrants': {
-          'permissions': ['STUDENT_READ'],
-          'scopeGrants': [],
-          'scopeIdsByPermission': {'QUERY_STUDENT_DETAIL_READ': 'student-1'},
-          'isElevated': false,
-        },
+        'grants': [
+          {
+            'permission': 'QUERY_STUDENT_DETAIL_READ',
+            'source': 'manual',
+            'scopes': [
+              {'kind': 'student', 'studentId': 'student-1'},
+            ],
+          },
+        ],
       },
     ]);
     final client = createSchoolClient(transport);
@@ -118,42 +155,128 @@ void main() {
     expect(grants.kind, 'staff');
     expect(grants.actorId, 'actor-1');
     expect(
-      grants.effectiveGrants.scopeIdsByPermission['QUERY_STUDENT_DETAIL_READ'],
+      (grants.grants.single.scopes.single as StudentGrantScope).studentId,
       'student-1',
     );
   });
 
-  test('parses portal actor capabilities and scope', () async {
+  test('uses generated document command and download query paths', () async {
     final transport = RecordingTransport([
+      {'id': 'iss-1', 'status': 'requested'},
       {
-        'kind': 'teacher',
-        'actorId': 'teacher-1',
-        'schoolId': 'school-1',
-        'assuranceLevel': 'standard',
-        'effectiveGrants': {
-          'permissions': [],
-          'scopeGrants': [],
-          'scopeIdsByPermission': {},
-          'isElevated': false,
-        },
-        'capabilities': ['RecordSessionAttendance'],
-        'scope': {
-          'teaching': {
-            'classSubjectIds': ['cs-1'],
-          },
-          'homeroom': {
-            'classGroupIds': ['cg-1'],
-          },
-        },
+        'downloadUrl': 'https://example.test/doc.pdf',
+        'fileName': 'bulletin.pdf',
+        'issuanceId': 'iss-1',
+        'expiresAt': '2026-01-01T00:00:00.000Z',
       },
     ]);
     final client = createSchoolClient(transport);
 
-    final grants = await client.effectiveGrants();
+    await client.requestDocumentIssuance({
+      'requestId': 'req-1',
+      'templateKey': 'schooling-certificate.v1',
+      'sourceId': 'enr-1',
+    });
+    await client.grantDocumentDownload({'id': 'iss-1'});
 
-    expect(grants.kind, 'teacher');
-    expect(grants.capabilities, ['RecordSessionAttendance']);
-    expect(grants.teacherScope?.classSubjectIds, ['cs-1']);
-    expect(grants.teacherScope?.homeroomClassGroupIds, ['cg-1']);
+    expect(transport.requests, [
+      {
+        'method': 'POST',
+        'path': '/core/commands/request-document-issuance',
+        'body': {
+          'requestId': 'req-1',
+          'templateKey': 'schooling-certificate.v1',
+          'sourceId': 'enr-1',
+        },
+      },
+      {
+        'method': 'POST',
+        'path': '/core/queries/grant-document-download',
+        'body': {'id': 'iss-1'},
+      },
+    ]);
+  });
+
+  test(
+    'parses the same typed action grant representation for portal actors',
+    () async {
+      final transport = RecordingTransport([
+        {
+          'kind': 'teacher',
+          'actorId': 'teacher-1',
+          'schoolId': 'school-1',
+          'assuranceLevel': 'standard',
+          'grants': [
+            {
+              'permission': 'ATTENDANCE_RECORD',
+              'source': 'relationship',
+              'academicYearId': 'year',
+              'scopes': [
+                {
+                  'kind': 'class_subject',
+                  'classGroupId': 'cg-1',
+                  'classSubjectId': 'cs-1',
+                },
+              ],
+            },
+          ],
+        },
+      ]);
+      final grants = await createSchoolClient(transport).effectiveGrants();
+      expect(grants.kind, 'teacher');
+      expect(grants.grants.single.permission, 'ATTENDANCE_RECORD');
+      expect(grants.grants.single.source, GrantSource.relationship);
+      final scope =
+          grants.grants.single.scopes.single as ClassSubjectGrantScope;
+      expect(scope.classGroupId, 'cg-1');
+      expect(scope.classSubjectId, 'cs-1');
+      expect(grants.toJson().containsKey('scope'), isFalse);
+    },
+  );
+
+  test('uses generated public invitation paths at the API root', () async {
+    final transport = RecordingTransport([
+      {
+        'status': 'pending',
+        'kind': 'guardian',
+        'targetId': 'guardian-1',
+        'schoolName': 'École',
+        'inviteeName': 'Parent',
+      },
+      {
+        'kind': 'guardian',
+        'entity': {'id': 'guardian-1'},
+      },
+      {'invitations': <Map<String, dynamic>>[]},
+      {
+        'kind': 'guardian',
+        'entity': {'id': 'guardian-1'},
+      },
+    ]);
+    final client = createSchoolClient(transport);
+
+    await client.previewInvitation(token: 'invite token/+');
+    await client.acceptInvitation(token: 'invite token/+');
+    await client.listMyInvitations();
+    await client.acceptMyInvitation(invitationId: 'inv-1');
+
+    expect(transport.requests, [
+      {
+        'method': 'GET',
+        'path': '/public/invitations/invite%20token%2F%2B',
+        'body': null,
+      },
+      {
+        'method': 'POST',
+        'path': '/public/invitations/invite%20token%2F%2B/accept',
+        'body': null,
+      },
+      {'method': 'GET', 'path': '/public/me/invitations', 'body': null},
+      {
+        'method': 'POST',
+        'path': '/public/me/invitations/inv-1/accept',
+        'body': null,
+      },
+    ]);
   });
 }

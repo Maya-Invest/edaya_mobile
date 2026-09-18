@@ -2419,6 +2419,648 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'12-hour'**
   String get settingsTimeFormat12h;
+
+  /// No description provided for @emailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email.'**
+  String get emailRequired;
+
+  /// No description provided for @sendCodeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Send code'**
+  String get sendCodeButton;
+
+  /// No description provided for @otpSendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not send a verification code.'**
+  String get otpSendFailed;
+
+  /// No description provided for @verifyEmailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email'**
+  String get verifyEmailTitle;
+
+  /// No description provided for @otpLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification code'**
+  String get otpLabel;
+
+  /// No description provided for @verifyCodeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify and continue'**
+  String get verifyCodeButton;
+
+  /// No description provided for @resendCodeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code'**
+  String get resendCodeButton;
+
+  /// No description provided for @useDifferentEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a different email'**
+  String get useDifferentEmail;
+
+  /// No description provided for @verificationCodeSent.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a code to {email}.'**
+  String verificationCodeSent(String email);
+
+  /// No description provided for @invitationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Join your school'**
+  String get invitationTitle;
+
+  /// No description provided for @invitationContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get invitationContinue;
+
+  /// No description provided for @invitationAcceptCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept invitation'**
+  String get invitationAcceptCta;
+
+  /// No description provided for @invitationAccepting.
+  ///
+  /// In en, this message translates to:
+  /// **'Linking your account…'**
+  String get invitationAccepting;
+
+  /// No description provided for @invitationSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is linked. Opening your family view.'**
+  String get invitationSuccess;
+
+  /// No description provided for @invitationWrongKind.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation is for another Edaya app.'**
+  String get invitationWrongKind;
+
+  /// No description provided for @invitationWrongAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation is for a different account. Sign out, then continue with the invited email.'**
+  String get invitationWrongAccount;
+
+  /// No description provided for @invitationSignOutSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out and continue'**
+  String get invitationSignOutSwitch;
+
+  /// No description provided for @invitationNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation link was not found.'**
+  String get invitationNotFound;
+
+  /// No description provided for @invitationExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation has expired. Ask the school office for a new link.'**
+  String get invitationExpired;
+
+  /// No description provided for @invitationRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation was replaced. Open the latest email or ask the school office to resend.'**
+  String get invitationRevoked;
+
+  /// No description provided for @invitationInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation is not valid.'**
+  String get invitationInvalid;
+
+  /// No description provided for @invitationAlreadyAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation was already used.'**
+  String get invitationAlreadyAccepted;
+
+  /// No description provided for @invitationLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this invitation. {error}'**
+  String invitationLoadError(String error);
+
+  /// No description provided for @invitationSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is invited as a guardian at {school}.'**
+  String invitationSummary(String name, String school);
+
+  /// No description provided for @invitationExpires.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires {date}'**
+  String invitationExpires(String date);
+
+  /// No description provided for @missingChargeDetailsRouteData.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing charge details route data.'**
+  String get missingChargeDetailsRouteData;
+
+  /// No description provided for @waitingForStudentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re signed in'**
+  String get waitingForStudentsTitle;
+
+  /// No description provided for @waitingForStudentsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is ready. When the school links you to a child, their timetable, grades, and messages will appear here.'**
+  String get waitingForStudentsBody;
+
+  /// No description provided for @waitingForStudentsCheckAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get waitingForStudentsCheckAgain;
+
+  /// No description provided for @waitingPendingInvitationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending invitations'**
+  String get waitingPendingInvitationsTitle;
+
+  /// No description provided for @waitingNoPendingInvitations.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending invitations for this email. If the school sent a link, open it from the email.'**
+  String get waitingNoPendingInvitations;
+
+  /// No description provided for @noChildrenLinkedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No children are linked to your account yet.'**
+  String get noChildrenLinkedYet;
+
+  /// No description provided for @feeStatusWaived.
+  ///
+  /// In en, this message translates to:
+  /// **'Waived'**
+  String get feeStatusWaived;
+
+  /// No description provided for @availableAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get availableAmount;
+
+  /// No description provided for @outstandingAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding'**
+  String get outstandingAmount;
+
+  /// No description provided for @overdueAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get overdueAmount;
+
+  /// No description provided for @remainingAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining'**
+  String get remainingAmountLabel;
+
+  /// No description provided for @chargeSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment schedule'**
+  String get chargeSchedule;
+
+  /// No description provided for @noInstallmentsForCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'No installment schedule for this charge.'**
+  String get noInstallmentsForCharge;
+
+  /// No description provided for @installmentDue.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} · due {date}'**
+  String installmentDue(String label, String date);
+
+  /// No description provided for @paymentKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get paymentKind;
+
+  /// No description provided for @paymentKindReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt'**
+  String get paymentKindReceipt;
+
+  /// No description provided for @paymentKindDisbursement.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund'**
+  String get paymentKindDisbursement;
+
+  /// No description provided for @mutationConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'This change conflicts with the current record. Reload it and review before trying again.'**
+  String get mutationConflict;
+
+  /// No description provided for @mutationSavedRefreshFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your change was saved, but the screen could not refresh. Reopen this screen to see the saved result.'**
+  String get mutationSavedRefreshFailed;
+
+  /// No description provided for @profilePhotoCropTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust portrait'**
+  String get profilePhotoCropTitle;
+
+  /// No description provided for @profilePhotoCropHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotate and confirm a square JPEG under 1 MiB.'**
+  String get profilePhotoCropHint;
+
+  /// No description provided for @profilePhotoRotate.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotate'**
+  String get profilePhotoRotate;
+
+  /// No description provided for @profilePhotoConfirmCrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this photo'**
+  String get profilePhotoConfirmCrop;
+
+  /// No description provided for @profilePhotoTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo is still larger than 1 MiB after compression.'**
+  String get profilePhotoTooLarge;
+
+  /// No description provided for @profilePhotoUpdateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile photo updated.'**
+  String get profilePhotoUpdateSuccess;
+
+  /// No description provided for @profilePhotoUpdateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update the profile photo. {error}'**
+  String profilePhotoUpdateError(String error);
+
+  /// No description provided for @childProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Child portrait'**
+  String get childProfileTitle;
+
+  /// No description provided for @childProfileUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a child to propose a portrait.'**
+  String get childProfileUnavailable;
+
+  /// No description provided for @childProfileLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the child portrait. {error}'**
+  String childProfileLoadError(String error);
+
+  /// No description provided for @childProfilePublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Published portrait'**
+  String get childProfilePublished;
+
+  /// No description provided for @childProfileProposed.
+  ///
+  /// In en, this message translates to:
+  /// **'Proposed portrait'**
+  String get childProfileProposed;
+
+  /// No description provided for @childProfileNoPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'No published portrait yet.'**
+  String get childProfileNoPublished;
+
+  /// No description provided for @childProfilePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for school review.'**
+  String get childProfilePending;
+
+  /// No description provided for @childProfilePendingIndicator.
+  ///
+  /// In en, this message translates to:
+  /// **'A portrait is waiting for review.'**
+  String get childProfilePendingIndicator;
+
+  /// No description provided for @childProfileSubmitHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Take or choose a photo. The school must approve it before it appears on documents.'**
+  String get childProfileSubmitHint;
+
+  /// No description provided for @childProfileSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit portrait'**
+  String get childProfileSubmit;
+
+  /// No description provided for @childProfileResubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit a new portrait'**
+  String get childProfileResubmit;
+
+  /// No description provided for @childProfileWithdraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw proposal'**
+  String get childProfileWithdraw;
+
+  /// No description provided for @childProfileSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Portrait submitted for review.'**
+  String get childProfileSubmitted;
+
+  /// No description provided for @childProfileWithdrawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Proposal withdrawn.'**
+  String get childProfileWithdrawn;
+
+  /// No description provided for @childProfileSubmitError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not submit the portrait. {error}'**
+  String childProfileSubmitError(String error);
+
+  /// No description provided for @childProfileWithdrawError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not withdraw the proposal. {error}'**
+  String childProfileWithdrawError(String error);
+
+  /// No description provided for @childProfileRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'The school rejected this portrait: {reason}'**
+  String childProfileRejected(String reason);
+
+  /// No description provided for @childProfileRejectedNoReason.
+  ///
+  /// In en, this message translates to:
+  /// **'No reason was provided.'**
+  String get childProfileRejectedNoReason;
+
+  /// No description provided for @documentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Official documents'**
+  String get documentsTitle;
+
+  /// No description provided for @tooltipDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Official documents'**
+  String get tooltipDocuments;
+
+  /// No description provided for @documentsEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Official documents'**
+  String get documentsEntry;
+
+  /// No description provided for @documentsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No official documents for this school year yet.'**
+  String get documentsEmpty;
+
+  /// No description provided for @documentsDownloadRecall.
+  ///
+  /// In en, this message translates to:
+  /// **'Already downloaded files cannot be remotely recalled.'**
+  String get documentsDownloadRecall;
+
+  /// No description provided for @documentsDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get documentsDownload;
+
+  /// No description provided for @documentsGeneratePdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate PDF'**
+  String get documentsGeneratePdf;
+
+  /// No description provided for @documentsOpened.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening the PDF.'**
+  String get documentsOpened;
+
+  /// No description provided for @documentsRendering.
+  ///
+  /// In en, this message translates to:
+  /// **'The PDF is still rendering. Open Official documents when it is ready.'**
+  String get documentsRendering;
+
+  /// No description provided for @documentsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'This document failed ({code}).'**
+  String documentsFailed(String code);
+
+  /// No description provided for @documentsNotIssued.
+  ///
+  /// In en, this message translates to:
+  /// **'No downloadable PDF is ready yet.'**
+  String get documentsNotIssued;
+
+  /// No description provided for @documentsOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the PDF.'**
+  String get documentsOpenFailed;
+
+  /// No description provided for @documentStatusRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get documentStatusRequested;
+
+  /// No description provided for @documentStatusRendering.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get documentStatusRendering;
+
+  /// No description provided for @documentStatusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued'**
+  String get documentStatusReady;
+
+  /// No description provided for @documentStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get documentStatusFailed;
+
+  /// No description provided for @documentStatusSuperseded.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaced'**
+  String get documentStatusSuperseded;
+
+  /// No description provided for @documentStatusVoided.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaced'**
+  String get documentStatusVoided;
+
+  /// No description provided for @documentStatusPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued'**
+  String get documentStatusPreview;
+
+  /// No description provided for @exportLogbookPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Logbook PDF'**
+  String get exportLogbookPdf;
+
+  /// No description provided for @exportTimetablePdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Timetable PDF'**
+  String get exportTimetablePdf;
+
+  /// No description provided for @exportRosterPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Class roster PDF'**
+  String get exportRosterPdf;
+
+  /// No description provided for @exportAttendancePdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance sheet PDF'**
+  String get exportAttendancePdf;
+
+  /// No description provided for @familyFeedbackEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Family feedback'**
+  String get familyFeedbackEntry;
+
+  /// No description provided for @familyFeedbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Family feedback'**
+  String get familyFeedbackTitle;
+
+  /// No description provided for @familyFeedbackEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No family feedback campaigns yet.'**
+  String get familyFeedbackEmpty;
+
+  /// No description provided for @familyFeedbackConfidential.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidential and aggregated. This is not an academic assessment.'**
+  String get familyFeedbackConfidential;
+
+  /// No description provided for @familyFeedbackSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get familyFeedbackSubmit;
+
+  /// No description provided for @familyFeedbackSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Your response was recorded.'**
+  String get familyFeedbackSubmitted;
+
+  /// No description provided for @familyFeedbackAlreadyCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'A response is already recorded for this student.'**
+  String get familyFeedbackAlreadyCompleted;
+
+  /// No description provided for @familyFeedbackClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'This campaign is closed.'**
+  String get familyFeedbackClosed;
+
+  /// No description provided for @familyFeedbackComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional comment'**
+  String get familyFeedbackComment;
+
+  /// No description provided for @familyFeedbackCannotAssess.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot assess'**
+  String get familyFeedbackCannotAssess;
+
+  /// No description provided for @familyFeedbackInsufficient.
+  ///
+  /// In en, this message translates to:
+  /// **'Insufficient responses'**
+  String get familyFeedbackInsufficient;
+
+  /// No description provided for @familyFeedbackThemes.
+  ///
+  /// In en, this message translates to:
+  /// **'Themes'**
+  String get familyFeedbackThemes;
+
+  /// No description provided for @familyFeedbackSlotOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get familyFeedbackSlotOpen;
+
+  /// No description provided for @familyFeedbackSlotCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get familyFeedbackSlotCompleted;
 }
 
 class _AppLocalizationsDelegate

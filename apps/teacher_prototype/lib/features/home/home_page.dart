@@ -51,6 +51,7 @@ class HomePage extends LScopedView<StoreBoundController> {
                   'logbook' => Icons.menu_book_outlined,
                   'marks' => Icons.grade_outlined,
                   'comments' => Icons.comment_outlined,
+                  'feedback' => Icons.campaign_outlined,
                   _ => Icons.mail_outline,
                 },
                 onTap: () => context.go(task.route),

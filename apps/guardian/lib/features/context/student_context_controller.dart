@@ -25,6 +25,8 @@ class StudentContextController extends LevitController
   final AcademicYearController _academicYear;
   final SchoolClientFactory _schoolClient;
 
+  final linkedStudentIds = LxVar<List<String>>(const []);
+  final linkedStudentsResolved = LxVar(false);
   final activeStudent = LxVar<LinkedStudent?>(null);
   final classGroupId = LxVar<String?>(null);
   final classLabel = LxVar<String?>(null);
@@ -36,9 +38,13 @@ class StudentContextController extends LevitController
 
   String? get activeStudentId => activeStudent.value?.id;
 
+  bool get hasLinkedStudents => linkedStudentIds.value.isNotEmpty;
+
   @override
   void onInit() {
     super.onInit();
+    autoDispose(linkedStudentIds);
+    autoDispose(linkedStudentsResolved);
     autoDispose(activeStudent);
     autoDispose(classGroupId);
     autoDispose(classLabel);
@@ -54,6 +60,8 @@ class StudentContextController extends LevitController
     autoDispose(
       _session.grants.stream.listen((grants) {
         if (grants == null || grants.kind != 'guardian') {
+          linkedStudentIds(const []);
+          linkedStudentsResolved(true);
           _clearContext();
         }
       }),
@@ -62,11 +70,15 @@ class StudentContextController extends LevitController
 
   Future<void> initializeFromSession() async {
     if (!_session.isAuthenticated) {
+      linkedStudentIds(const []);
+      linkedStudentsResolved(true);
       return;
     }
 
     final grants = _session.grants.value;
     if (grants == null || grants.kind != 'guardian') {
+      linkedStudentIds(const []);
+      linkedStudentsResolved(true);
       return;
     }
 
@@ -74,17 +86,23 @@ class StudentContextController extends LevitController
       _schoolClient(),
       grants.actorId,
     );
+    linkedStudentIds(scopedStudentIds);
     if (scopedStudentIds.isEmpty) {
+      await _sessionStorage.writeActiveStudentId(null);
+      _clearContext();
+      linkedStudentsResolved(true);
       return;
     }
 
     final persistedId = await _sessionStorage.readActiveStudentId();
     if (persistedId != null && scopedStudentIds.contains(persistedId)) {
       await selectStudent(persistedId);
+      linkedStudentsResolved(true);
       return;
     }
 
     await selectStudent(scopedStudentIds.first);
+    linkedStudentsResolved(true);
   }
 
   Future<void> selectStudent(String studentId) async {

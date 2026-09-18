@@ -6,6 +6,10 @@ import 'api_error.dart';
 import 'entity_envelope.dart';
 import 'transport.dart';
 
+typedef AccessTokenProvider = Future<String?> Function({required Uri resource});
+typedef AccessTokenInvalidator =
+    void Function({required Uri resource, required String token});
+
 class HttpTransport implements Transport {
   HttpTransport({
     required this.baseUrl,
@@ -14,7 +18,8 @@ class HttpTransport implements Transport {
     this.getActorKind,
     this.getActorId,
     this.getSchoolId,
-    this.cookieHeader,
+    this.getAccessToken,
+    this.invalidateAccessToken,
   });
 
   final String baseUrl;
@@ -23,7 +28,8 @@ class HttpTransport implements Transport {
   final String? Function()? getActorKind;
   final String? Function()? getActorId;
   final String? Function()? getSchoolId;
-  final String? Function()? cookieHeader;
+  final AccessTokenProvider? getAccessToken;
+  final AccessTokenInvalidator? invalidateAccessToken;
 
   http.Client get _client => client ?? http.Client();
 
@@ -63,17 +69,30 @@ class HttpTransport implements Transport {
       headers['X-School-Id'] = schoolId;
     }
 
-    final cookies = cookieHeader?.call();
-    if (cookies != null && cookies.isNotEmpty) {
-      headers['Cookie'] = cookies;
+    final resource = Uri.parse(uri.origin);
+    final token = await getAccessToken?.call(resource: resource);
+    headers.remove('Cookie');
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
     }
 
-    final response = await _client.send(
+    var response = await _client.send(
       http.Request(method, uri)
         ..headers.addAll(headers)
         ..body = options?.body == null ? '' : jsonEncode(options!.body),
     );
 
+    if (response.statusCode == 401 && token != null) {
+      invalidateAccessToken?.call(resource: resource, token: token);
+      if (method == 'GET' || method == 'HEAD') {
+        await response.stream.drain<void>();
+        headers['Authorization'] =
+            'Bearer ${await getAccessToken!(resource: resource)}';
+        response = await _client.send(
+          http.Request(method, uri)..headers.addAll(headers),
+        );
+      }
+    }
     return _parseResponse<T>(path, response);
   }
 

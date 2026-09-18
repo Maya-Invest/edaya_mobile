@@ -11,6 +11,7 @@ import '../../design/spacing.dart';
 import '../../mock/mock_store.dart' show TimetableDaySummary;
 import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
+import '../fees/models/fee_formatting.dart' as fees;
 import 'home_controller.dart';
 
 class HomePage extends LScopedView<HomeController> {
@@ -38,9 +39,45 @@ class HomePage extends LScopedView<HomeController> {
           tone: AttentionTone.important,
           title: 'Frais en retard',
           subtitle:
-              '${controller.overdueFeeCount.value} ligne(s) · Solde ${formatMoney(controller.feeBalance.value, controller.feeCurrency.value)}',
+              '${controller.overdueFeeCount.value} ligne(s) · Solde ${fees.formatMoney(controller.feeBalance.value, controller.feeCurrency.value)}',
           icon: Icons.payments_outlined,
           onTap: () => context.go('/fees'),
+        ),
+      if (controller.openCampaigns.value.isNotEmpty)
+        AttentionCard(
+          tone: AttentionTone.message,
+          title: 'Avis de l\'école',
+          subtitle: controller.openCampaigns.value.length == 1
+              ? (controller.openCampaigns.value.first.context?.summary ??
+                    'Questionnaire à remplir')
+              : '${controller.openCampaigns.value.length} campagnes ouvertes',
+          icon: Icons.campaign_outlined,
+          onTap: () {
+            final open = controller.openCampaigns.value;
+            if (open.length == 1) {
+              context.go('/inbox/avis/${open.first.campaignId}', extra: open.first);
+            } else {
+              context.go('/inbox/avis');
+            }
+          },
+        ),
+      if (controller.photoNeedsAttention.value)
+        AttentionCard(
+          tone: AttentionTone.important,
+          title: 'Photo de l\'élève',
+          subtitle: 'Une action est demandée sur la photo',
+          icon: Icons.photo_camera_outlined,
+          onTap: () => context.go('/child'),
+        ),
+      if (controller.leftoverPapers.value.isNotEmpty)
+        AttentionCard(
+          tone: AttentionTone.normal,
+          title: 'Document disponible',
+          subtitle: leftoverFamilyPaperLabel(
+            controller.leftoverPapers.value.first.templateKey,
+          ),
+          icon: Icons.description_outlined,
+          onTap: () => context.go('/child'),
         ),
       if (reportCard != null)
         AttentionCard(
@@ -48,8 +85,8 @@ class HomePage extends LScopedView<HomeController> {
           title: 'Bulletin disponible',
           subtitle:
               '${reportCard.periodName} · Moyenne ${reportCard.overallAverage == null ? '—' : reportCard.overallAverage!.toStringAsFixed(1).replaceAll('.', ',')}',
-          icon: Icons.description_outlined,
-          onTap: () => context.go('/scolarite/notes'),
+          icon: Icons.menu_book_outlined,
+          onTap: () => context.go('/report-card/${reportCard.id}'),
         ),
       if (controller.unreadCount.value > 0)
         AttentionCard(
@@ -266,7 +303,7 @@ class _FinanceAlertRow extends StatelessWidget {
       badgeTone: badgeTone,
       onTap: onTap,
       trailing: Text(
-        formatMoney(alert.amount, alert.currency),
+        fees.formatMoney(alert.amount, alert.currency),
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
           color: alert.isOverdue ? PrototypeColors.error : null,
         ),

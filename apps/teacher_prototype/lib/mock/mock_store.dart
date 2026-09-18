@@ -21,6 +21,20 @@ class MockStore extends ChangeNotifier {
     _reportCardClasses.addAll(_buildReportCardClasses());
     _reportCardStudents.addAll(_buildReportCardRoster(_students));
     _messages.addAll(_buildMessages());
+    _familyFeedback.addAll(const [
+      MockFamilyFeedback(
+        id: 'ff-open',
+        title: 'Avis familles · Français',
+        subtitle: '6e A · à consulter',
+        open: true,
+      ),
+      MockFamilyFeedback(
+        id: 'ff-done',
+        title: 'Avis familles · Mathématiques',
+        subtitle: '5e B · archive',
+        open: false,
+      ),
+    ]);
   }
 
   bool isAuthenticated = false;
@@ -38,6 +52,7 @@ class MockStore extends ChangeNotifier {
   final List<MockReportCardClass> _reportCardClasses = [];
   final List<MockReportCardStudent> _reportCardStudents = [];
   final List<MockMessage> _messages = [];
+  final List<MockFamilyFeedback> _familyFeedback = [];
 
   late DateTime _calendarWeekStart;
   int selectedDayIndex = 0;
@@ -383,6 +398,28 @@ class MockStore extends ChangeNotifier {
         ),
       );
     }
+    for (final item in _familyFeedback.where((item) => item.open)) {
+      tasks.add(
+        MockTask(
+          id: 'ff-${item.id}',
+          kind: 'feedback',
+          title: item.title,
+          subtitle: item.subtitle,
+          route: '/evaluations/avis/${item.id}',
+        ),
+      );
+    }
     return tasks;
+  }
+
+  List<MockFamilyFeedback> get familyFeedback =>
+      List.unmodifiable(_familyFeedback);
+
+  MockFamilyFeedback? familyFeedbackById(String id) {
+    try {
+      return _familyFeedback.firstWhere((item) => item.id == id);
+    } on Object {
+      return null;
+    }
   }
 }

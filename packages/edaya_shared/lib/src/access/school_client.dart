@@ -15,11 +15,15 @@ api.SchoolClient createEdayaSchoolClient(
 }) {
   return api.createSchoolClient(
     api.HttpTransport(
-      baseUrl: ApiBaseUrlConfig.baseUrl,
-      client: authClient.httpClient,
-      cookieHeader: edayaHttpUsesBrowserCredentials
-          ? null
-          : () => authClient.cookieHeader,
+      baseUrl: ApiBaseUrlConfig.apiBaseUrl,
+      client: authClient.businessHttpClient,
+      getAccessToken: ({required Uri resource}) async {
+        if (authClient.renewalCredential == null) {
+          return null;
+        }
+        return authClient.getAccessToken(resource: resource);
+      },
+      invalidateAccessToken: authClient.invalidateAccessToken,
       getAcademicYearId: getAcademicYearId,
       getActorKind: getActorKind,
       getActorId: getActorId,

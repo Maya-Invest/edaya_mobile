@@ -11,10 +11,14 @@ class PaymentDetailController extends LevitController
   PaymentDetailController({
     required this.paymentId,
     required SchoolClientFactory schoolClient,
+    required this.studentId,
+    required this.academicYearId,
   }) : _schoolClient = schoolClient;
 
   final String paymentId;
   final SchoolClientFactory _schoolClient;
+  final String? studentId;
+  final String? academicYearId;
 
   final payment = LxVar<PaymentRecord?>(null);
   final errorMessage = LxVar('');
@@ -30,23 +34,13 @@ class PaymentDetailController extends LevitController
   Future<void> load() async {
     await runTask(() async {
       try {
-        final client = _schoolClient();
-        final row = await client.payments.get(paymentId);
-        var feeLabel = systemL10n().schoolFee;
-        final studentFeeId = row['studentFeeId'] as String?;
-        if (studentFeeId != null) {
-          try {
-            final studentFee = await client.studentFees.get(studentFeeId);
-            final feeId = studentFee['feeId'] as String?;
-            if (feeId != null) {
-              final fee = await client.fees.get(feeId);
-              feeLabel = fee['name'] as String? ?? feeLabel;
-            }
-          } on Object {
-            // keep fallback
-          }
-        }
-        payment(PaymentRecord.fromJson(row, feeLabel: feeLabel));
+        final row = await _schoolClient().payments.get(paymentId);
+        payment(
+          PaymentRecord.fromJson(
+            row,
+            feeLabel: systemL10n().schoolFee,
+          ),
+        );
       } on api.ApiError catch (error) {
         errorMessage(systemL10n().couldNotLoadFees(error.toString()));
         payment(null);
@@ -55,5 +49,19 @@ class PaymentDetailController extends LevitController
         payment(null);
       }
     }, id: 'load-payment-detail');
+  }
+
+  Future<DocumentJobResult> downloadReceipt() {
+    final current = payment.value;
+    if (current == null) {
+      return Future.value(const DocumentJobResult.missing());
+    }
+    return downloadReadyIssuance(
+      _schoolClient(),
+      sourceId: current.id,
+      templateKey: 'receipt.v1',
+      studentId: studentId,
+      academicYearId: academicYearId,
+    );
   }
 }

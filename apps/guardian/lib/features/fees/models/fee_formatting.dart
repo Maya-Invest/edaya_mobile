@@ -1,11 +1,16 @@
+import 'dart:math' as math;
+
 import 'package:edaya_shared/edaya_shared.dart';
 
-import 'student_fee_line.dart';
+import 'money_amount.dart';
+import 'student_charge_line.dart';
 
-String formatMoney(double amount, String currency) {
-  final formatted = amount == amount.roundToDouble()
-      ? amount.toStringAsFixed(0)
-      : amount.toStringAsFixed(2);
+String formatMoney(int minorUnits, String currency) {
+  final digits = currencyFractionDigits(currency);
+  final major = minorUnits / math.pow(10, digits);
+  final formatted = digits == 0
+      ? major.round().toString()
+      : major.toStringAsFixed(digits);
   return '$formatted $currency';
 }
 
@@ -24,17 +29,28 @@ String formatPaymentMethod(AppLocalizations l10n, String method) {
   }
 }
 
-String formatFeeStatus(AppLocalizations l10n, StudentFeeStatus status) {
+String formatPaymentKind(AppLocalizations l10n, String kind) {
+  switch (kind) {
+    case 'disbursement':
+      return l10n.paymentKindDisbursement;
+    default:
+      return l10n.paymentKindReceipt;
+  }
+}
+
+String formatChargeStatus(AppLocalizations l10n, ChargeStatus status) {
   switch (status) {
-    case StudentFeeStatus.paid:
+    case ChargeStatus.paid:
       return l10n.feeStatusPaid;
-    case StudentFeeStatus.partial:
+    case ChargeStatus.partial:
       return l10n.feeStatusPartiallyPaid;
-    case StudentFeeStatus.overdue:
+    case ChargeStatus.overdue:
       return l10n.feeStatusOverdue;
-    case StudentFeeStatus.cancelled:
+    case ChargeStatus.cancelled:
       return l10n.feeStatusCancelled;
-    case StudentFeeStatus.pending:
+    case ChargeStatus.waived:
+      return l10n.feeStatusWaived;
+    case ChargeStatus.pending:
       return l10n.feeStatusDue;
   }
 }

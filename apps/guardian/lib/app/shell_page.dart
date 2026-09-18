@@ -47,7 +47,9 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
   ];
 
   int? _indexForLocation(String location) {
-    if (location.startsWith('/account') || location.startsWith('/settings')) {
+    if (location.startsWith('/account') ||
+        location.startsWith('/settings') ||
+        location.startsWith('/child')) {
       return null;
     }
     if (location.startsWith('/session') ||
@@ -84,7 +86,8 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
         location.startsWith('/grade') ||
         location.startsWith('/report-card') ||
         location.startsWith('/account') ||
-        location.startsWith('/settings');
+        location.startsWith('/settings') ||
+        location.startsWith('/child');
   }
 
   void _openHelp(BuildContext context) {
@@ -121,6 +124,9 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
                 schoolName: schoolId ?? 'École',
                 schoolYear: yearLabel,
                 photoUrl: student?.photoUrl,
+                onOpenProfile: student == null
+                    ? null
+                    : () => context.go('/child'),
                 onSelectStudent: () => _showApiContextSheet(context),
               );
             });

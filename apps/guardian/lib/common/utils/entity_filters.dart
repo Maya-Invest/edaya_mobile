@@ -4,14 +4,26 @@ EntityQuery publishedReportCardsForStudent(String studentId) {
   return {'studentId': studentId, 'status': 'published'};
 }
 
-EntityQuery studentFeesForStudent(String studentId) {
-  return studentScope(studentId);
-}
-
-EntityQuery paymentsForStudentFees(List<String> studentFeeIds) {
-  return recordsForField('studentFeeId', studentFeeIds);
+EntityQuery studentChargesForStudent({
+  required String studentId,
+  required String academicYearId,
+}) {
+  return {'studentId': studentId, 'academicYearId': academicYearId};
 }
 
 EntityQuery deliveriesForSubject(String subjectId) {
   return {'subjectId': subjectId};
+}
+
+EntityQuery deliveriesForGuardian({
+  required String subjectId,
+  required String guardianId,
+  required String schoolId,
+}) {
+  return {
+    'subjectId': subjectId,
+    'recipientKind': 'guardian',
+    'recipientId': guardianId,
+    'schoolId': schoolId,
+  };
 }

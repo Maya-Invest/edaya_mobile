@@ -1420,4 +1420,372 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsTimeFormat12h => '12 heures';
+
+  @override
+  String get emailRequired => 'Saisissez votre e-mail.';
+
+  @override
+  String get sendCodeButton => 'Envoyer le code';
+
+  @override
+  String get otpSendFailed => 'Impossible d\'envoyer un code de vérification.';
+
+  @override
+  String get verifyEmailTitle => 'Vérifiez votre e-mail';
+
+  @override
+  String get otpLabel => 'Code de vérification';
+
+  @override
+  String get verifyCodeButton => 'Vérifier et continuer';
+
+  @override
+  String get resendCodeButton => 'Renvoyer le code';
+
+  @override
+  String get useDifferentEmail => 'Utiliser une autre adresse e-mail';
+
+  @override
+  String verificationCodeSent(String email) {
+    return 'Nous avons envoyé un code à $email.';
+  }
+
+  @override
+  String get invitationTitle => 'Rejoindre l\'établissement';
+
+  @override
+  String get invitationContinue => 'Continuer';
+
+  @override
+  String get invitationAcceptCta => 'Accepter l\'invitation';
+
+  @override
+  String get invitationAccepting => 'Liaison du compte…';
+
+  @override
+  String get invitationSuccess =>
+      'Votre compte est relié. Ouverture de la vue famille.';
+
+  @override
+  String get invitationWrongKind =>
+      'Cette invitation concerne une autre application Edaya.';
+
+  @override
+  String get invitationWrongAccount =>
+      'Cette invitation concerne un autre compte. Déconnectez-vous, puis continuez avec l\'e-mail invité.';
+
+  @override
+  String get invitationSignOutSwitch => 'Se déconnecter et continuer';
+
+  @override
+  String get invitationNotFound => 'Ce lien d\'invitation est introuvable.';
+
+  @override
+  String get invitationExpired =>
+      'Cette invitation a expiré. Demandez un nouveau lien au secrétariat.';
+
+  @override
+  String get invitationRevoked =>
+      'Cette invitation a été remplacée. Ouvrez le dernier e-mail ou demandez un renvoi au secrétariat.';
+
+  @override
+  String get invitationInvalid => 'Cette invitation n\'est pas valide.';
+
+  @override
+  String get invitationAlreadyAccepted =>
+      'Cette invitation a déjà été utilisée.';
+
+  @override
+  String invitationLoadError(String error) {
+    return 'Impossible de charger cette invitation. $error';
+  }
+
+  @override
+  String invitationSummary(String name, String school) {
+    return '$name est invité(e) en tant que tuteur à $school.';
+  }
+
+  @override
+  String invitationExpires(String date) {
+    return 'Expire le $date';
+  }
+
+  @override
+  String get missingChargeDetailsRouteData =>
+      'Données de route des détails de la charge manquantes.';
+
+  @override
+  String get waitingForStudentsTitle => 'Vous êtes connecté';
+
+  @override
+  String get waitingForStudentsBody =>
+      'Votre compte est prêt. Lorsque l\'école vous liera à un enfant, son emploi du temps, ses notes et ses messages apparaîtront ici.';
+
+  @override
+  String get waitingForStudentsCheckAgain => 'Vérifier à nouveau';
+
+  @override
+  String get waitingPendingInvitationsTitle => 'Invitations en attente';
+
+  @override
+  String get waitingNoPendingInvitations =>
+      'Aucune invitation en attente pour cet e-mail. Si l\'école a envoyé un lien, ouvrez-le depuis le message.';
+
+  @override
+  String get noChildrenLinkedYet =>
+      'Aucun enfant n\'est encore lié à votre compte.';
+
+  @override
+  String get feeStatusWaived => 'Exonéré';
+
+  @override
+  String get availableAmount => 'Disponible';
+
+  @override
+  String get outstandingAmount => 'Restant dû';
+
+  @override
+  String get overdueAmount => 'En retard';
+
+  @override
+  String get remainingAmountLabel => 'Reste à payer';
+
+  @override
+  String get chargeSchedule => 'Échéancier';
+
+  @override
+  String get noInstallmentsForCharge => 'Aucun échéancier pour cette charge.';
+
+  @override
+  String installmentDue(String label, String date) {
+    return '$label · échéance $date';
+  }
+
+  @override
+  String get paymentKind => 'Type';
+
+  @override
+  String get paymentKindReceipt => 'Encaissement';
+
+  @override
+  String get paymentKindDisbursement => 'Remboursement';
+
+  @override
+  String get mutationConflict =>
+      'Cette modification est en conflit avec les données actuelles. Rechargez-les et vérifiez-les avant de réessayer.';
+
+  @override
+  String get mutationSavedRefreshFailed =>
+      'Votre modification est enregistrée, mais l’affichage n’a pas pu être actualisé. Rouvrez cet écran pour voir le résultat.';
+
+  @override
+  String get profilePhotoCropTitle => 'Ajuster le portrait';
+
+  @override
+  String get profilePhotoCropHint =>
+      'Faites pivoter et confirmez un JPEG carré de 1 Mo maximum.';
+
+  @override
+  String get profilePhotoRotate => 'Pivoter';
+
+  @override
+  String get profilePhotoConfirmCrop => 'Utiliser cette photo';
+
+  @override
+  String get profilePhotoTooLarge =>
+      'La photo dépasse encore 1 Mo après compression.';
+
+  @override
+  String get profilePhotoUpdateSuccess => 'Photo de profil mise à jour.';
+
+  @override
+  String profilePhotoUpdateError(String error) {
+    return 'Impossible de mettre à jour la photo de profil. $error';
+  }
+
+  @override
+  String get childProfileTitle => 'Portrait de l’enfant';
+
+  @override
+  String get childProfileUnavailable =>
+      'Sélectionnez un enfant pour proposer un portrait.';
+
+  @override
+  String childProfileLoadError(String error) {
+    return 'Impossible de charger le portrait de l’enfant. $error';
+  }
+
+  @override
+  String get childProfilePublished => 'Portrait publié';
+
+  @override
+  String get childProfileProposed => 'Portrait proposé';
+
+  @override
+  String get childProfileNoPublished => 'Aucun portrait publié pour le moment.';
+
+  @override
+  String get childProfilePending =>
+      'En attente de validation par l’établissement.';
+
+  @override
+  String get childProfilePendingIndicator =>
+      'Un portrait est en attente de validation.';
+
+  @override
+  String get childProfileSubmitHint =>
+      'Prenez ou choisissez une photo. L’établissement doit l’approuver avant qu’elle n’apparaisse sur les documents.';
+
+  @override
+  String get childProfileSubmit => 'Envoyer le portrait';
+
+  @override
+  String get childProfileResubmit => 'Envoyer un nouveau portrait';
+
+  @override
+  String get childProfileWithdraw => 'Retirer la proposition';
+
+  @override
+  String get childProfileSubmitted => 'Portrait envoyé pour validation.';
+
+  @override
+  String get childProfileWithdrawn => 'Proposition retirée.';
+
+  @override
+  String childProfileSubmitError(String error) {
+    return 'Impossible d’envoyer le portrait. $error';
+  }
+
+  @override
+  String childProfileWithdrawError(String error) {
+    return 'Impossible de retirer la proposition. $error';
+  }
+
+  @override
+  String childProfileRejected(String reason) {
+    return 'L’établissement a refusé ce portrait : $reason';
+  }
+
+  @override
+  String get childProfileRejectedNoReason => 'Aucun motif n’a été indiqué.';
+
+  @override
+  String get documentsTitle => 'Documents officiels';
+
+  @override
+  String get tooltipDocuments => 'Documents officiels';
+
+  @override
+  String get documentsEntry => 'Documents officiels';
+
+  @override
+  String get documentsEmpty =>
+      'Aucun document officiel pour cette année scolaire.';
+
+  @override
+  String get documentsDownloadRecall =>
+      'Les fichiers déjà téléchargés ne peuvent pas être rappelés à distance.';
+
+  @override
+  String get documentsDownload => 'Télécharger';
+
+  @override
+  String get documentsGeneratePdf => 'Générer le PDF';
+
+  @override
+  String get documentsOpened => 'Ouverture du PDF.';
+
+  @override
+  String get documentsRendering =>
+      'Le PDF est encore en cours de génération. Ouvrez Documents officiels lorsqu’il sera prêt.';
+
+  @override
+  String documentsFailed(String code) {
+    return 'Ce document a échoué ($code).';
+  }
+
+  @override
+  String get documentsNotIssued =>
+      'Aucun PDF téléchargeable n’est encore prêt.';
+
+  @override
+  String get documentsOpenFailed => 'Impossible d’ouvrir le PDF.';
+
+  @override
+  String get documentStatusRequested => 'En attente';
+
+  @override
+  String get documentStatusRendering => 'En attente';
+
+  @override
+  String get documentStatusReady => 'Émis';
+
+  @override
+  String get documentStatusFailed => 'Erreur';
+
+  @override
+  String get documentStatusSuperseded => 'Remplacé';
+
+  @override
+  String get documentStatusVoided => 'Remplacé';
+
+  @override
+  String get documentStatusPreview => 'Émis';
+
+  @override
+  String get exportLogbookPdf => 'PDF du cahier de textes';
+
+  @override
+  String get exportTimetablePdf => 'PDF de l’emploi du temps';
+
+  @override
+  String get exportRosterPdf => 'PDF de la liste de classe';
+
+  @override
+  String get exportAttendancePdf => 'PDF de la feuille d’appel';
+
+  @override
+  String get familyFeedbackEntry => 'Retour des familles';
+
+  @override
+  String get familyFeedbackTitle => 'Retour des familles';
+
+  @override
+  String get familyFeedbackEmpty =>
+      'Aucune campagne de retour des familles pour le moment.';
+
+  @override
+  String get familyFeedbackConfidential =>
+      'Confidentiel et agrégé. Ce n’est pas une évaluation scolaire.';
+
+  @override
+  String get familyFeedbackSubmit => 'Envoyer';
+
+  @override
+  String get familyFeedbackSubmitted => 'Votre réponse a été enregistrée.';
+
+  @override
+  String get familyFeedbackAlreadyCompleted =>
+      'Une réponse est déjà enregistrée pour cet élève.';
+
+  @override
+  String get familyFeedbackClosed => 'Cette campagne est close.';
+
+  @override
+  String get familyFeedbackComment => 'Commentaire facultatif';
+
+  @override
+  String get familyFeedbackCannotAssess => 'Ne peut pas évaluer';
+
+  @override
+  String get familyFeedbackInsufficient => 'Réponses insuffisantes';
+
+  @override
+  String get familyFeedbackThemes => 'Thèmes';
+
+  @override
+  String get familyFeedbackSlotOpen => 'Ouverte';
+
+  @override
+  String get familyFeedbackSlotCompleted => 'Terminée';
 }

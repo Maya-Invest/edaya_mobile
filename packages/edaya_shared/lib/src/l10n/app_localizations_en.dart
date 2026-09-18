@@ -1404,4 +1404,367 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTimeFormat12h => '12-hour';
+
+  @override
+  String get emailRequired => 'Enter your email.';
+
+  @override
+  String get sendCodeButton => 'Send code';
+
+  @override
+  String get otpSendFailed => 'Could not send a verification code.';
+
+  @override
+  String get verifyEmailTitle => 'Verify your email';
+
+  @override
+  String get otpLabel => 'Verification code';
+
+  @override
+  String get verifyCodeButton => 'Verify and continue';
+
+  @override
+  String get resendCodeButton => 'Resend code';
+
+  @override
+  String get useDifferentEmail => 'Use a different email';
+
+  @override
+  String verificationCodeSent(String email) {
+    return 'We sent a code to $email.';
+  }
+
+  @override
+  String get invitationTitle => 'Join your school';
+
+  @override
+  String get invitationContinue => 'Continue';
+
+  @override
+  String get invitationAcceptCta => 'Accept invitation';
+
+  @override
+  String get invitationAccepting => 'Linking your account…';
+
+  @override
+  String get invitationSuccess =>
+      'Your account is linked. Opening your family view.';
+
+  @override
+  String get invitationWrongKind => 'This invitation is for another Edaya app.';
+
+  @override
+  String get invitationWrongAccount =>
+      'This invitation is for a different account. Sign out, then continue with the invited email.';
+
+  @override
+  String get invitationSignOutSwitch => 'Sign out and continue';
+
+  @override
+  String get invitationNotFound => 'This invitation link was not found.';
+
+  @override
+  String get invitationExpired =>
+      'This invitation has expired. Ask the school office for a new link.';
+
+  @override
+  String get invitationRevoked =>
+      'This invitation was replaced. Open the latest email or ask the school office to resend.';
+
+  @override
+  String get invitationInvalid => 'This invitation is not valid.';
+
+  @override
+  String get invitationAlreadyAccepted => 'This invitation was already used.';
+
+  @override
+  String invitationLoadError(String error) {
+    return 'Could not load this invitation. $error';
+  }
+
+  @override
+  String invitationSummary(String name, String school) {
+    return '$name is invited as a guardian at $school.';
+  }
+
+  @override
+  String invitationExpires(String date) {
+    return 'Expires $date';
+  }
+
+  @override
+  String get missingChargeDetailsRouteData =>
+      'Missing charge details route data.';
+
+  @override
+  String get waitingForStudentsTitle => 'You\'re signed in';
+
+  @override
+  String get waitingForStudentsBody =>
+      'Your account is ready. When the school links you to a child, their timetable, grades, and messages will appear here.';
+
+  @override
+  String get waitingForStudentsCheckAgain => 'Check again';
+
+  @override
+  String get waitingPendingInvitationsTitle => 'Pending invitations';
+
+  @override
+  String get waitingNoPendingInvitations =>
+      'No pending invitations for this email. If the school sent a link, open it from the email.';
+
+  @override
+  String get noChildrenLinkedYet =>
+      'No children are linked to your account yet.';
+
+  @override
+  String get feeStatusWaived => 'Waived';
+
+  @override
+  String get availableAmount => 'Available';
+
+  @override
+  String get outstandingAmount => 'Outstanding';
+
+  @override
+  String get overdueAmount => 'Overdue';
+
+  @override
+  String get remainingAmountLabel => 'Remaining';
+
+  @override
+  String get chargeSchedule => 'Payment schedule';
+
+  @override
+  String get noInstallmentsForCharge =>
+      'No installment schedule for this charge.';
+
+  @override
+  String installmentDue(String label, String date) {
+    return '$label · due $date';
+  }
+
+  @override
+  String get paymentKind => 'Type';
+
+  @override
+  String get paymentKindReceipt => 'Receipt';
+
+  @override
+  String get paymentKindDisbursement => 'Refund';
+
+  @override
+  String get mutationConflict =>
+      'This change conflicts with the current record. Reload it and review before trying again.';
+
+  @override
+  String get mutationSavedRefreshFailed =>
+      'Your change was saved, but the screen could not refresh. Reopen this screen to see the saved result.';
+
+  @override
+  String get profilePhotoCropTitle => 'Adjust portrait';
+
+  @override
+  String get profilePhotoCropHint =>
+      'Rotate and confirm a square JPEG under 1 MiB.';
+
+  @override
+  String get profilePhotoRotate => 'Rotate';
+
+  @override
+  String get profilePhotoConfirmCrop => 'Use this photo';
+
+  @override
+  String get profilePhotoTooLarge =>
+      'The photo is still larger than 1 MiB after compression.';
+
+  @override
+  String get profilePhotoUpdateSuccess => 'Profile photo updated.';
+
+  @override
+  String profilePhotoUpdateError(String error) {
+    return 'Could not update the profile photo. $error';
+  }
+
+  @override
+  String get childProfileTitle => 'Child portrait';
+
+  @override
+  String get childProfileUnavailable => 'Select a child to propose a portrait.';
+
+  @override
+  String childProfileLoadError(String error) {
+    return 'Could not load the child portrait. $error';
+  }
+
+  @override
+  String get childProfilePublished => 'Published portrait';
+
+  @override
+  String get childProfileProposed => 'Proposed portrait';
+
+  @override
+  String get childProfileNoPublished => 'No published portrait yet.';
+
+  @override
+  String get childProfilePending => 'Waiting for school review.';
+
+  @override
+  String get childProfilePendingIndicator =>
+      'A portrait is waiting for review.';
+
+  @override
+  String get childProfileSubmitHint =>
+      'Take or choose a photo. The school must approve it before it appears on documents.';
+
+  @override
+  String get childProfileSubmit => 'Submit portrait';
+
+  @override
+  String get childProfileResubmit => 'Submit a new portrait';
+
+  @override
+  String get childProfileWithdraw => 'Withdraw proposal';
+
+  @override
+  String get childProfileSubmitted => 'Portrait submitted for review.';
+
+  @override
+  String get childProfileWithdrawn => 'Proposal withdrawn.';
+
+  @override
+  String childProfileSubmitError(String error) {
+    return 'Could not submit the portrait. $error';
+  }
+
+  @override
+  String childProfileWithdrawError(String error) {
+    return 'Could not withdraw the proposal. $error';
+  }
+
+  @override
+  String childProfileRejected(String reason) {
+    return 'The school rejected this portrait: $reason';
+  }
+
+  @override
+  String get childProfileRejectedNoReason => 'No reason was provided.';
+
+  @override
+  String get documentsTitle => 'Official documents';
+
+  @override
+  String get tooltipDocuments => 'Official documents';
+
+  @override
+  String get documentsEntry => 'Official documents';
+
+  @override
+  String get documentsEmpty =>
+      'No official documents for this school year yet.';
+
+  @override
+  String get documentsDownloadRecall =>
+      'Already downloaded files cannot be remotely recalled.';
+
+  @override
+  String get documentsDownload => 'Download';
+
+  @override
+  String get documentsGeneratePdf => 'Generate PDF';
+
+  @override
+  String get documentsOpened => 'Opening the PDF.';
+
+  @override
+  String get documentsRendering =>
+      'The PDF is still rendering. Open Official documents when it is ready.';
+
+  @override
+  String documentsFailed(String code) {
+    return 'This document failed ($code).';
+  }
+
+  @override
+  String get documentsNotIssued => 'No downloadable PDF is ready yet.';
+
+  @override
+  String get documentsOpenFailed => 'Could not open the PDF.';
+
+  @override
+  String get documentStatusRequested => 'Pending';
+
+  @override
+  String get documentStatusRendering => 'Pending';
+
+  @override
+  String get documentStatusReady => 'Issued';
+
+  @override
+  String get documentStatusFailed => 'Error';
+
+  @override
+  String get documentStatusSuperseded => 'Replaced';
+
+  @override
+  String get documentStatusVoided => 'Replaced';
+
+  @override
+  String get documentStatusPreview => 'Issued';
+
+  @override
+  String get exportLogbookPdf => 'Logbook PDF';
+
+  @override
+  String get exportTimetablePdf => 'Timetable PDF';
+
+  @override
+  String get exportRosterPdf => 'Class roster PDF';
+
+  @override
+  String get exportAttendancePdf => 'Attendance sheet PDF';
+
+  @override
+  String get familyFeedbackEntry => 'Family feedback';
+
+  @override
+  String get familyFeedbackTitle => 'Family feedback';
+
+  @override
+  String get familyFeedbackEmpty => 'No family feedback campaigns yet.';
+
+  @override
+  String get familyFeedbackConfidential =>
+      'Confidential and aggregated. This is not an academic assessment.';
+
+  @override
+  String get familyFeedbackSubmit => 'Submit';
+
+  @override
+  String get familyFeedbackSubmitted => 'Your response was recorded.';
+
+  @override
+  String get familyFeedbackAlreadyCompleted =>
+      'A response is already recorded for this student.';
+
+  @override
+  String get familyFeedbackClosed => 'This campaign is closed.';
+
+  @override
+  String get familyFeedbackComment => 'Optional comment';
+
+  @override
+  String get familyFeedbackCannotAssess => 'Cannot assess';
+
+  @override
+  String get familyFeedbackInsufficient => 'Insufficient responses';
+
+  @override
+  String get familyFeedbackThemes => 'Themes';
+
+  @override
+  String get familyFeedbackSlotOpen => 'Open';
+
+  @override
+  String get familyFeedbackSlotCompleted => 'Completed';
 }

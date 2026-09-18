@@ -256,3 +256,17 @@ class MockTask {
   final String subtitle;
   final String route;
 }
+
+class MockFamilyFeedback {
+  const MockFamilyFeedback({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.open,
+  });
+
+  final String id;
+  final String title;
+  final String subtitle;
+  final bool open;
+}

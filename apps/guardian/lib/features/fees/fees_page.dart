@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../app/formatters.dart';
 import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
@@ -12,7 +11,8 @@ import '../context/student_context_controller.dart';
 import 'fee_detail_controller.dart';
 import 'fee_widgets.dart';
 import 'fees_controller.dart';
-import 'models/student_fee_line.dart';
+import 'models/fee_formatting.dart';
+import 'models/student_charge_line.dart';
 
 class FeesPage extends LScopedView<FeesController> {
   const FeesPage({super.key});
@@ -55,10 +55,14 @@ class FeesPage extends LScopedView<FeesController> {
     }
 
     final summary = controller.summary.value;
-    final progress = summary == null || summary.totalExpected == 0
+    final progress = controller.totalExpected == 0
         ? 0.0
-        : (summary.totalPaid / summary.totalExpected).clamp(0.0, 1.0);
-    final currency = summary?.currency ?? 'EUR';
+        : (controller.totalPaid / controller.totalExpected).clamp(0.0, 1.0);
+    final currency = summary?.currency ??
+        (controller.charges.value.isNotEmpty
+            ? controller.charges.value.first.currency
+            : 'XOF');
+    final schoolId = context.levit.find<AppSessionController>().schoolIdHeader;
 
     return AdaptiveContent(
       child: ListView(
@@ -74,25 +78,19 @@ class FeesPage extends LScopedView<FeesController> {
                     Expanded(
                       child: SummaryMetric(
                         label: 'Attendu',
-                        value: formatMoney(
-                          summary?.totalExpected ?? 0,
-                          currency,
-                        ),
+                        value: formatMoney(controller.totalExpected, currency),
                       ),
                     ),
                     Expanded(
                       child: SummaryMetric(
                         label: 'Payé',
-                        value: formatMoney(summary?.totalPaid ?? 0, currency),
+                        value: formatMoney(controller.totalPaid, currency),
                       ),
                     ),
                     Expanded(
                       child: SummaryMetric(
                         label: 'Solde',
-                        value: formatMoney(
-                          summary?.totalBalance ?? 0,
-                          currency,
-                        ),
+                        value: formatMoney(controller.totalBalance, currency),
                       ),
                     ),
                   ],
@@ -106,7 +104,7 @@ class FeesPage extends LScopedView<FeesController> {
                     color: PrototypeColors.onSurfaceVariant,
                   ),
                 ),
-                if ((summary?.overdueCount ?? 0) > 0) ...[
+                if (controller.overdueCount > 0) ...[
                   const SizedBox(height: PrototypeSpacing.sm),
                   Row(
                     children: [
@@ -118,7 +116,7 @@ class FeesPage extends LScopedView<FeesController> {
                       const SizedBox(width: PrototypeSpacing.xxs),
                       Expanded(
                         child: Text(
-                          '${summary!.overdueCount} ligne de frais en retard',
+                          '${controller.overdueCount} ligne de frais en retard',
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: PrototypeColors.error),
                         ),
@@ -126,17 +124,22 @@ class FeesPage extends LScopedView<FeesController> {
                     ],
                   ),
                 ],
+                const SizedBox(height: PrototypeSpacing.md),
+                DocumentActionButton(
+                  label: 'Relevé de compte',
+                  run: () => controller.downloadStatement(schoolId: schoolId),
+                ),
               ],
             ),
           ),
           const SizedBox(height: PrototypeSpacing.xl),
           const SectionHeader(title: 'Lignes de frais'),
-          for (final fee in controller.feeLines.value) ...[
+          for (final fee in controller.charges.value) ...[
             ListRow(
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: fee.status == StudentFeeStatus.overdue
+                  color: fee.status == ChargeStatus.overdue
                       ? PrototypeColors.errorContainer
                       : PrototypeColors.primaryContainer,
                   borderRadius: BorderRadius.circular(10),
@@ -144,20 +147,20 @@ class FeesPage extends LScopedView<FeesController> {
                 child: Icon(
                   Icons.receipt_long_outlined,
                   size: 20,
-                  color: fee.status == StudentFeeStatus.overdue
+                  color: fee.status == ChargeStatus.overdue
                       ? PrototypeColors.error
                       : PrototypeColors.primary,
                 ),
               ),
               title: fee.label,
               subtitle:
-                  'Échéance ${fee.dueDate != null ? formatDate(fee.dueDate!) : '—'} · '
-                  '${fee.paymentCount} paiement${fee.paymentCount > 1 ? 's' : ''}',
+                  'Échéance ${fee.dueDate != null ? context.formatShortDate(fee.dueDate!) : '—'} · '
+                  '${fee.settlementCount} paiement${fee.settlementCount > 1 ? 's' : ''}',
               selected: selectedFeeId == fee.id,
               trailing: FeeAmountTrailing(
-                amount: formatMoney(fee.balance, fee.currency),
-                label: frenchFeeStatus(fee.status),
-                labelColor: fee.status == StudentFeeStatus.overdue
+                amount: formatMoney(fee.remainingObligation, fee.currency),
+                label: frenchChargeStatus(fee.status),
+                labelColor: fee.status == ChargeStatus.overdue
                     ? PrototypeColors.error
                     : null,
                 showChevron: true,
@@ -172,7 +175,7 @@ class FeesPage extends LScopedView<FeesController> {
             ListRow(
               title: frenchPaymentMethod(payment.method),
               subtitle:
-                  '${payment.feeLabel} · ${formatDate(payment.paymentDate)}',
+                  '${payment.feeLabel} · ${context.formatShortDate(payment.paymentDate)}',
               selected: selectedPaymentId == payment.id,
               trailing: FeeAmountTrailing(
                 amount: formatMoney(payment.amount, payment.currency),

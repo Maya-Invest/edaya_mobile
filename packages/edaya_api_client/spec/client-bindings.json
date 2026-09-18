@@ -3,272 +3,769 @@
     "schools": {
       "publicName": "schools",
       "schemaName": "School",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "academicYears": {
       "publicName": "academic-years",
       "schemaName": "AcademicYear",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "academicPeriods": {
       "publicName": "academic-periods",
       "schemaName": "AcademicPeriod",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "periodDefinitions": {
       "publicName": "period-definitions",
       "schemaName": "PeriodDefinition",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "gradeLevels": {
       "publicName": "grade-levels",
       "schemaName": "GradeLevel",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "staffMembers": {
       "publicName": "staff-members",
       "schemaName": "StaffMember",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "staffAssignments": {
       "publicName": "staff-assignments",
       "schemaName": "StaffAssignment",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "teachers": {
       "publicName": "teachers",
       "schemaName": "Teacher",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "teacherAssignments": {
       "publicName": "teacher-assignments",
       "schemaName": "TeacherAssignment",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
+      "allowDirectSave": true
+    },
+    "teacherUnavailabilities": {
+      "publicName": "teacher-unavailabilities",
+      "schemaName": "TeacherUnavailability",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "accountInvitations": {
       "publicName": "account-invitations",
       "schemaName": "AccountInvitation",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
       "allowDirectSave": false
     },
     "staffPermissionAssignments": {
       "publicName": "staff-permission-assignments",
       "schemaName": "StaffPermissionAssignment",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "attachments": {
       "publicName": "attachments",
       "schemaName": "Attachment",
-      "allowDirectSave": true
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
+      "allowDirectSave": false
     },
     "resources": {
       "publicName": "resources",
       "schemaName": "Resource",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "resourceAssignments": {
       "publicName": "resource-assignments",
       "schemaName": "ResourceAssignment",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
-    "fees": {
-      "publicName": "fees",
-      "schemaName": "Fee",
-      "allowDirectSave": true
+    "catalogServices": {
+      "publicName": "catalog-services",
+      "schemaName": "CatalogService",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
+      "allowDirectSave": false
     },
-    "studentFees": {
-      "publicName": "student-fees",
-      "schemaName": "StudentFee",
+    "studentServiceEnrollments": {
+      "publicName": "student-service-enrollments",
+      "schemaName": "StudentServiceEnrollment",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
+      "allowDirectSave": false
+    },
+    "studentCharges": {
+      "publicName": "student-charges",
+      "schemaName": "StudentCharge",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
+      "allowDirectSave": false
+    },
+    "studentYearAccounts": {
+      "publicName": "student-year-accounts",
+      "schemaName": "StudentYearAccount",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
       "allowDirectSave": false
     },
     "payments": {
       "publicName": "payments",
       "schemaName": "Payment",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
       "allowDirectSave": false
     },
     "schedules": {
       "publicName": "schedules",
       "schemaName": "Schedule",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "lessonSessions": {
       "publicName": "lesson-sessions",
       "schemaName": "LessonSession",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "activitySessions": {
       "publicName": "activity-sessions",
       "schemaName": "ActivitySession",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "attendances": {
       "publicName": "attendances",
       "schemaName": "AttendanceOccurrence",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "calendarEvents": {
       "publicName": "calendar-events",
       "schemaName": "CalendarEvent",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "attendance": {
       "publicName": "attendance",
       "schemaName": "Attendance",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "announcements": {
       "publicName": "announcements",
       "schemaName": "Announcement",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "announcementTargets": {
       "publicName": "announcement-targets",
       "schemaName": "AnnouncementTarget",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "messageDeliveries": {
       "publicName": "message-deliveries",
       "schemaName": "MessageDelivery",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "schoolNotificationTemplates": {
       "publicName": "school-notification-templates",
       "schemaName": "SchoolNotificationTemplates",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
       "allowDirectSave": false
     },
     "subjects": {
       "publicName": "subjects",
       "schemaName": "Subject",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "subjectMatters": {
       "publicName": "subject-matters",
       "schemaName": "SubjectMatter",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "gradeLevelSubjects": {
       "publicName": "grade-level-subjects",
       "schemaName": "GradeLevelSubject",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
       "allowDirectSave": false
     },
     "gradeLevelSubjectMatters": {
       "publicName": "grade-level-subject-matters",
       "schemaName": "GradeLevelSubjectMatter",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
       "allowDirectSave": false
     },
     "classGroups": {
       "publicName": "class-groups",
       "schemaName": "ClassGroup",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "classSubjects": {
       "publicName": "class-subjects",
       "schemaName": "ClassSubject",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": true,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": true
+      },
       "allowDirectSave": false
     },
     "classSubjectMatters": {
       "publicName": "class-subject-matters",
       "schemaName": "ClassSubjectMatter",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "classSubjectProgress": {
       "publicName": "class-subject-progress",
       "schemaName": "ClassSubjectProgress",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "activities": {
       "publicName": "activities",
       "schemaName": "Activity",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "activityEnrollments": {
       "publicName": "activity-enrollments",
       "schemaName": "ActivityEnrollment",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "classActivityEnrollments": {
       "publicName": "class-activity-enrollments",
       "schemaName": "ClassActivityEnrollment",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "assessments": {
       "publicName": "assessments",
       "schemaName": "Assessment",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "assessmentResults": {
       "publicName": "assessment-results",
       "schemaName": "AssessmentResult",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
       "allowDirectSave": false
     },
     "gradeScales": {
       "publicName": "grade-scales",
       "schemaName": "GradeScale",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "definitions": {
       "publicName": "definitions",
       "schemaName": "ReportCardDefinition",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "sections": {
       "publicName": "sections",
       "schemaName": "ReportCardDefinitionSection",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "results": {
       "publicName": "results",
       "schemaName": "ReportCardResult",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
       "allowDirectSave": false
     },
     "students": {
       "publicName": "students",
       "schemaName": "Student",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
       "allowDirectSave": false
     },
     "enrollments": {
       "publicName": "enrollments",
       "schemaName": "StudentClassEnrollment",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
       "allowDirectSave": false
     },
     "guardians": {
       "publicName": "guardians",
       "schemaName": "Guardian",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "guardianLinks": {
       "publicName": "guardian-links",
       "schemaName": "GuardianStudentLink",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "studentNotes": {
       "publicName": "student-notes",
       "schemaName": "StudentNote",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
+    },
+    "studentPhotoSubmissions": {
+      "publicName": "student-photo-submissions",
+      "schemaName": "StudentPhotoSubmission",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
+      "allowDirectSave": false
     },
     "studentHealthProfiles": {
       "publicName": "student-health-profiles",
       "schemaName": "StudentHealthProfile",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "studentDisciplinaryActions": {
       "publicName": "student-disciplinary-actions",
       "schemaName": "StudentDisciplinaryAction",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "disciplinaryActions": {
       "publicName": "disciplinary-actions",
       "schemaName": "DisciplinaryAction",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "studentIncidentInvolvements": {
       "publicName": "student-incident-involvements",
       "schemaName": "StudentIncidentInvolvement",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
     },
     "incidents": {
       "publicName": "incidents",
       "schemaName": "Incident",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
       "allowDirectSave": true
+    },
+    "documentIssuances": {
+      "publicName": "document-issuances",
+      "schemaName": "DocumentIssuance",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
+      "allowDirectSave": false
     }
   },
   "commands": {
@@ -287,9 +784,14 @@
       "requestSchemaName": "CreateAcademicYearCommand",
       "responseSchemaName": "AcademicYear"
     },
-    "activateAcademicYear": {
-      "publicName": "activate-academic-year",
-      "requestSchemaName": "ActivateAcademicYearCommand",
+    "publishAcademicYear": {
+      "publicName": "publish-academic-year",
+      "requestSchemaName": "PublishAcademicYearCommand",
+      "responseSchemaName": "AcademicYear"
+    },
+    "archiveAcademicYear": {
+      "publicName": "archive-academic-year",
+      "requestSchemaName": "ArchiveAcademicYearCommand",
       "responseSchemaName": "AcademicYear"
     },
     "createAcademicPeriod": {
@@ -361,6 +863,11 @@
       "publicName": "relink-actor-subject",
       "requestSchemaName": "RelinkActorSubjectCommand",
       "responseSchemaName": "RelinkActorSubjectResponse"
+    },
+    "unlinkActorSubject": {
+      "publicName": "unlink-actor-subject",
+      "requestSchemaName": "UnlinkActorSubjectCommand",
+      "responseSchemaName": "UnlinkActorSubjectResponse"
     },
     "sendAccountInvitation": {
       "publicName": "send-account-invitation",
@@ -557,6 +1064,11 @@
       "requestSchemaName": "SetClassSubjectOfferedCommand",
       "responseSchemaName": "ClassSubject"
     },
+    "configureClassSubjectTimetable": {
+      "publicName": "configure-class-subject-timetable",
+      "requestSchemaName": "ConfigureClassSubjectTimetableCommand",
+      "responseSchemaName": "ClassSubject"
+    },
     "recordLessonSessionProgress": {
       "publicName": "record-lesson-session-progress",
       "requestSchemaName": "RecordLessonSessionProgressCommand",
@@ -607,10 +1119,65 @@
       "requestSchemaName": "GenerateReportCardResultCommand",
       "responseSchemaName": "ReportCardResult"
     },
+    "writeHomeroomReportComment": {
+      "publicName": "write-homeroom-report-comment",
+      "requestSchemaName": "WriteHomeroomReportCommentCommand",
+      "responseSchemaName": "ReportCardResult"
+    },
     "publishReportCardResult": {
       "publicName": "publish-report-card-result",
       "requestSchemaName": "PublishReportCardResultCommand",
       "responseSchemaName": "ReportCardResult"
+    },
+    "renderClassLogbook": {
+      "publicName": "render-class-logbook",
+      "requestSchemaName": "RenderClassLogbookCommand",
+      "responseSchemaName": "DocumentIssuanceProjectionResponse"
+    },
+    "requestDocumentIssuance": {
+      "publicName": "request-document-issuance",
+      "requestSchemaName": "RequestDocumentIssuanceCommand",
+      "responseSchemaName": "DocumentIssuanceProjectionResponse"
+    },
+    "requestDocumentIssuanceBatch": {
+      "publicName": "request-document-issuance-batch",
+      "requestSchemaName": "RequestDocumentIssuanceBatchCommand",
+      "responseSchemaName": "DocumentIssuanceBatchResponse"
+    },
+    "retryDocumentIssuance": {
+      "publicName": "retry-document-issuance",
+      "requestSchemaName": "RetryDocumentIssuanceCommand",
+      "responseSchemaName": "DocumentIssuanceProjectionResponse"
+    },
+    "correctDocumentIssuance": {
+      "publicName": "correct-document-issuance",
+      "requestSchemaName": "CorrectDocumentIssuanceCommand",
+      "responseSchemaName": "DocumentIssuanceProjectionResponse"
+    },
+    "voidDocumentIssuance": {
+      "publicName": "void-document-issuance",
+      "requestSchemaName": "VoidDocumentIssuanceCommand",
+      "responseSchemaName": "DocumentIssuanceProjectionResponse"
+    },
+    "previewDocument": {
+      "publicName": "preview-document",
+      "requestSchemaName": "PreviewDocumentCommand",
+      "responseSchemaName": "DocumentIssuanceProjectionResponse"
+    },
+    "createSchoolIssuanceAssetUpload": {
+      "publicName": "create-school-issuance-asset-upload",
+      "requestSchemaName": "CreateSchoolIssuanceAssetUploadCommand",
+      "responseSchemaName": "CreateSchoolIssuanceAssetUploadResponse"
+    },
+    "completeSchoolIssuanceAssetUpload": {
+      "publicName": "complete-school-issuance-asset-upload",
+      "requestSchemaName": "CompleteSchoolIssuanceAssetUploadCommand",
+      "responseSchemaName": "Attachment"
+    },
+    "clearSchoolIssuanceAsset": {
+      "publicName": "clear-school-issuance-asset",
+      "requestSchemaName": "ClearSchoolIssuanceAssetCommand",
+      "responseSchemaName": "School"
     },
     "recordIncident": {
       "publicName": "record-incident",
@@ -650,12 +1217,12 @@
     "createFee": {
       "publicName": "create-fee",
       "requestSchemaName": "CreateFeeCommand",
-      "responseSchemaName": "Fee"
+      "responseSchemaName": "RetiredFinanceCommandResponse"
     },
     "assignFeeToStudent": {
       "publicName": "assign-fee-to-student",
       "requestSchemaName": "AssignFeeToStudentCommand",
-      "responseSchemaName": "StudentFee"
+      "responseSchemaName": "RetiredFinanceCommandResponse"
     },
     "recordPayment": {
       "publicName": "record-payment",
@@ -670,17 +1237,172 @@
     "cancelPayment": {
       "publicName": "cancel-payment",
       "requestSchemaName": "CancelPaymentCommand",
-      "responseSchemaName": "Payment"
+      "responseSchemaName": "RetiredFinanceCommandResponse"
     },
     "adjustStudentFee": {
       "publicName": "adjust-student-fee",
       "requestSchemaName": "AdjustStudentFeeCommand",
-      "responseSchemaName": "StudentFee"
+      "responseSchemaName": "RetiredFinanceCommandResponse"
     },
     "cancelStudentFee": {
       "publicName": "cancel-student-fee",
       "requestSchemaName": "CancelStudentFeeCommand",
-      "responseSchemaName": "StudentFee"
+      "responseSchemaName": "RetiredFinanceCommandResponse"
+    },
+    "createCatalogService": {
+      "publicName": "create-catalog-service",
+      "requestSchemaName": "CreateCatalogServiceCommand",
+      "responseSchemaName": "CatalogService"
+    },
+    "updateCatalogService": {
+      "publicName": "update-catalog-service",
+      "requestSchemaName": "UpdateCatalogServiceCommand",
+      "responseSchemaName": "CatalogService"
+    },
+    "activateCatalogService": {
+      "publicName": "activate-catalog-service",
+      "requestSchemaName": "CatalogServiceIdCommand",
+      "responseSchemaName": "CatalogService"
+    },
+    "archiveCatalogService": {
+      "publicName": "archive-catalog-service",
+      "requestSchemaName": "CatalogServiceIdCommand",
+      "responseSchemaName": "CatalogService"
+    },
+    "enrollStudentInService": {
+      "publicName": "enroll-student-in-service",
+      "requestSchemaName": "EnrollStudentInServiceCommand",
+      "responseSchemaName": "StudentServiceEnrollment"
+    },
+    "enrollStudentsInService": {
+      "publicName": "enroll-students-in-service",
+      "requestSchemaName": "EnrollStudentsInServiceCommand",
+      "responseSchemaName": "StudentServiceEnrollmentCommandListResponse"
+    },
+    "cancelServiceEnrollment": {
+      "publicName": "cancel-service-enrollment",
+      "requestSchemaName": "CancelServiceEnrollmentCommand",
+      "responseSchemaName": "StudentServiceEnrollment"
+    },
+    "materializeOneTimeCharge": {
+      "publicName": "materialize-one-time-charge",
+      "requestSchemaName": "MaterializeOneTimeChargeCommand",
+      "responseSchemaName": "StudentCharge"
+    },
+    "adjustStudentCharge": {
+      "publicName": "adjust-student-charge",
+      "requestSchemaName": "AdjustStudentChargeCommand",
+      "responseSchemaName": "StudentCharge"
+    },
+    "waiveStudentCharge": {
+      "publicName": "waive-student-charge",
+      "requestSchemaName": "WaiveStudentChargeCommand",
+      "responseSchemaName": "StudentCharge"
+    },
+    "cancelStudentCharge": {
+      "publicName": "cancel-student-charge",
+      "requestSchemaName": "CancelStudentChargeCommand",
+      "responseSchemaName": "StudentCharge"
+    },
+    "allocateAccountBalance": {
+      "publicName": "allocate-account-balance",
+      "requestSchemaName": "AllocateAccountBalanceCommand",
+      "responseSchemaName": "AllocationPreviewResponse"
+    },
+    "reverseAllocation": {
+      "publicName": "reverse-allocation",
+      "requestSchemaName": "ReverseAllocationCommand",
+      "responseSchemaName": "AllocationResponse"
+    },
+    "refundAvailableBalance": {
+      "publicName": "refund-available-balance",
+      "requestSchemaName": "RefundAvailableBalanceCommand",
+      "responseSchemaName": "Payment"
+    },
+    "createProfilePhotoUpload": {
+      "publicName": "create-profile-photo-upload",
+      "requestSchemaName": "CreateProfilePhotoUploadCommand",
+      "responseSchemaName": "CreateProfilePhotoUploadResponse"
+    },
+    "completeProfilePhotoUpload": {
+      "publicName": "complete-profile-photo-upload",
+      "requestSchemaName": "CompleteProfilePhotoUploadCommand",
+      "responseSchemaName": "Attachment"
+    },
+    "submitStudentPhoto": {
+      "publicName": "submit-student-photo",
+      "requestSchemaName": "SubmitStudentPhotoCommand",
+      "responseSchemaName": "StudentPhotoSubmission"
+    },
+    "withdrawStudentPhotoSubmission": {
+      "publicName": "withdraw-student-photo-submission",
+      "requestSchemaName": "WithdrawStudentPhotoSubmissionCommand",
+      "responseSchemaName": "StudentPhotoSubmission"
+    },
+    "reviewStudentPhoto": {
+      "publicName": "review-student-photo",
+      "requestSchemaName": "ReviewStudentPhotoCommand",
+      "responseSchemaName": "StudentPhotoSubmission"
+    },
+    "publishStudentPhoto": {
+      "publicName": "publish-student-photo",
+      "requestSchemaName": "PublishStudentPhotoCommand",
+      "responseSchemaName": "Student"
+    },
+    "createFamilyFeedbackCampaign": {
+      "publicName": "create-family-feedback-campaign",
+      "requestSchemaName": "CreateFamilyFeedbackCampaignCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
+    },
+    "updateFamilyFeedbackCampaign": {
+      "publicName": "update-family-feedback-campaign",
+      "requestSchemaName": "UpdateFamilyFeedbackCampaignCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
+    },
+    "assignFamilyFeedbackModerator": {
+      "publicName": "assign-family-feedback-moderator",
+      "requestSchemaName": "AssignFamilyFeedbackModeratorCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
+    },
+    "scheduleFamilyFeedbackCampaign": {
+      "publicName": "schedule-family-feedback-campaign",
+      "requestSchemaName": "FamilyFeedbackCampaignIdCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
+    },
+    "openFamilyFeedbackCampaign": {
+      "publicName": "open-family-feedback-campaign",
+      "requestSchemaName": "FamilyFeedbackCampaignIdCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
+    },
+    "closeFamilyFeedbackCampaign": {
+      "publicName": "close-family-feedback-campaign",
+      "requestSchemaName": "FamilyFeedbackCampaignIdCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
+    },
+    "cancelFamilyFeedbackCampaign": {
+      "publicName": "cancel-family-feedback-campaign",
+      "requestSchemaName": "FamilyFeedbackCampaignIdCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
+    },
+    "submitFamilyFeedbackResponse": {
+      "publicName": "submit-family-feedback-response",
+      "requestSchemaName": "SubmitFamilyFeedbackResponseCommand",
+      "responseSchemaName": "FamilyFeedbackSubmitReceipt"
+    },
+    "saveFamilyFeedbackThemeDraft": {
+      "publicName": "save-family-feedback-theme-draft",
+      "requestSchemaName": "SaveFamilyFeedbackThemeDraftCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
+    },
+    "publishFamilyFeedbackCampaign": {
+      "publicName": "publish-family-feedback-campaign",
+      "requestSchemaName": "FamilyFeedbackCampaignIdCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
+    },
+    "archiveFamilyFeedbackCampaign": {
+      "publicName": "archive-family-feedback-campaign",
+      "requestSchemaName": "FamilyFeedbackCampaignIdCommand",
+      "responseSchemaName": "FamilyFeedbackCampaignCommandResponse"
     },
     "createSchedule": {
       "publicName": "create-schedule",
@@ -746,6 +1468,26 @@
       "publicName": "request-attendance-justification",
       "requestSchemaName": "RequestAttendanceJustificationCommand",
       "responseSchemaName": "Attendance"
+    },
+    "generateClassGroupTimetable": {
+      "publicName": "generate-class-group-timetable",
+      "requestSchemaName": "GenerateClassGroupTimetableCommand",
+      "responseSchemaName": "GenerateClassGroupTimetableResponse"
+    },
+    "generateSchoolTimetable": {
+      "publicName": "generate-school-timetable",
+      "requestSchemaName": "GenerateSchoolTimetableCommand",
+      "responseSchemaName": "GenerateSchoolTimetableResponse"
+    },
+    "publishClassGroupTimetable": {
+      "publicName": "publish-class-group-timetable",
+      "requestSchemaName": "PublishClassGroupTimetableCommand",
+      "responseSchemaName": "PublishClassGroupTimetableResponse"
+    },
+    "republishClassGroupTimetable": {
+      "publicName": "republish-class-group-timetable",
+      "requestSchemaName": "RepublishClassGroupTimetableCommand",
+      "responseSchemaName": "RepublishClassGroupTimetableResponse"
     },
     "createAnnouncement": {
       "publicName": "create-announcement",
@@ -824,10 +1566,150 @@
       "requestSchemaName": "GetSchoolOverviewQuery",
       "responseSchemaName": "SchoolOverviewResponse"
     },
+    "getAppShellCounts": {
+      "publicName": "get-app-shell-counts",
+      "requestSchemaName": "GetAppShellCountsQuery",
+      "responseSchemaName": "AppShellCountsResponse"
+    },
     "getClassGroupTimetable": {
       "publicName": "get-class-group-timetable",
       "requestSchemaName": "GetClassGroupTimetableQuery",
       "responseSchemaName": "ClassGroupTimetableResponse"
+    },
+    "resolveTimetableSpace": {
+      "publicName": "resolve-timetable-space",
+      "requestSchemaName": "ResolveTimetableSpaceQuery",
+      "responseSchemaName": "ResolvedTimetableSpaceResponse"
+    },
+    "getStudentFinanceSummary": {
+      "publicName": "get-student-finance-summary",
+      "requestSchemaName": "GetStudentFinanceSummaryQuery",
+      "responseSchemaName": "StudentFinanceSummaryResponse"
+    },
+    "getAccountStatement": {
+      "publicName": "get-account-statement",
+      "requestSchemaName": "GetAccountStatementQuery",
+      "responseSchemaName": "AccountStatementResponse"
+    },
+    "getSchoolFinanceAging": {
+      "publicName": "get-school-finance-aging",
+      "requestSchemaName": "GetSchoolFinanceAgingQuery",
+      "responseSchemaName": "SchoolFinanceAgingResponse"
+    },
+    "getFinanceReconciliation": {
+      "publicName": "get-finance-reconciliation",
+      "requestSchemaName": "GetFinanceReconciliationQuery",
+      "responseSchemaName": "FinanceReconciliationResponse"
+    },
+    "previewAccountAllocation": {
+      "publicName": "preview-account-allocation",
+      "requestSchemaName": "PreviewAccountAllocationQuery",
+      "responseSchemaName": "AllocationPreviewQueryResponse"
+    },
+    "getRelatedFamilyFinanceOverview": {
+      "publicName": "get-related-family-finance-overview",
+      "requestSchemaName": "GetRelatedFamilyFinanceOverviewQuery",
+      "responseSchemaName": "RelatedFamilyFinanceOverviewResponse"
+    },
+    "getStudentAccountStatement": {
+      "publicName": "get-student-account-statement",
+      "requestSchemaName": "GetStudentAccountStatementQuery",
+      "responseSchemaName": "StudentAccountStatementResponse"
+    },
+    "listOpenDueCharges": {
+      "publicName": "list-open-due-charges",
+      "requestSchemaName": "ListOpenDueChargesQuery",
+      "responseSchemaName": "OpenDueChargesResponse"
+    },
+    "getPaymentSettlementHistory": {
+      "publicName": "get-payment-settlement-history",
+      "requestSchemaName": "GetPaymentSettlementHistoryQuery",
+      "responseSchemaName": "PaymentSettlementHistoryResponse"
+    },
+    "reconcileStudentYearAccount": {
+      "publicName": "reconcile-student-year-account",
+      "requestSchemaName": "ReconcileStudentYearAccountQuery",
+      "responseSchemaName": "StudentYearAccountReconciliationResponse"
+    },
+    "reconcileSchoolFinance": {
+      "publicName": "reconcile-school-finance",
+      "requestSchemaName": "GetFinanceReconciliationQuery",
+      "responseSchemaName": "FinanceReconciliationResponse"
+    },
+    "listDocumentTemplates": {
+      "publicName": "list-document-templates",
+      "requestSchemaName": "ListDocumentTemplatesQuery",
+      "responseSchemaName": "DocumentTemplateCatalogResponse"
+    },
+    "listDocumentIssuances": {
+      "publicName": "list-document-issuances",
+      "requestSchemaName": "ListDocumentIssuancesQuery",
+      "responseSchemaName": "DocumentIssuanceListResponse"
+    },
+    "getDocumentIssuance": {
+      "publicName": "get-document-issuance",
+      "requestSchemaName": "GetDocumentIssuanceQuery",
+      "responseSchemaName": "DocumentIssuanceProjection"
+    },
+    "grantDocumentDownload": {
+      "publicName": "grant-document-download",
+      "requestSchemaName": "GrantDocumentDownloadQuery",
+      "responseSchemaName": "DocumentDownloadGrantResponse"
+    },
+    "grantDocumentBundleDownload": {
+      "publicName": "grant-document-bundle-download",
+      "requestSchemaName": "GrantDocumentBundleDownloadQuery",
+      "responseSchemaName": "DocumentDownloadBundleResponse"
+    },
+    "listFamilyFeedbackCampaigns": {
+      "publicName": "list-family-feedback-campaigns",
+      "requestSchemaName": "ListFamilyFeedbackCampaignsQuery",
+      "responseSchemaName": "FamilyFeedbackCampaignProjectionList"
+    },
+    "getFamilyFeedbackCampaign": {
+      "publicName": "get-family-feedback-campaign",
+      "requestSchemaName": "GetFamilyFeedbackCampaignQuery",
+      "responseSchemaName": "FamilyFeedbackCampaignProjection"
+    },
+    "previewFamilyFeedbackAudience": {
+      "publicName": "preview-family-feedback-audience",
+      "requestSchemaName": "PreviewFamilyFeedbackAudienceQuery",
+      "responseSchemaName": "FamilyFeedbackAudiencePreview"
+    },
+    "getFamilyFeedbackInstrument": {
+      "publicName": "get-family-feedback-instrument",
+      "requestSchemaName": "GetFamilyFeedbackInstrumentQuery",
+      "responseSchemaName": "FamilyFeedbackInstrument"
+    },
+    "listGuardianFamilyFeedbackCampaigns": {
+      "publicName": "list-guardian-family-feedback-campaigns",
+      "requestSchemaName": "ListGuardianFamilyFeedbackCampaignsQuery",
+      "responseSchemaName": "GuardianFamilyFeedbackCampaignList"
+    },
+    "getGuardianFamilyFeedbackQuestionnaire": {
+      "publicName": "get-guardian-family-feedback-questionnaire",
+      "requestSchemaName": "GetGuardianFamilyFeedbackQuestionnaireQuery",
+      "responseSchemaName": "GuardianFamilyFeedbackQuestionnaire"
+    },
+    "listFamilyFeedbackComments": {
+      "publicName": "list-family-feedback-comments",
+      "requestSchemaName": "ListFamilyFeedbackCommentsQuery",
+      "responseSchemaName": "FamilyFeedbackComments"
+    },
+    "getFamilyFeedbackAggregateReview": {
+      "publicName": "get-family-feedback-aggregate-review",
+      "requestSchemaName": "GetFamilyFeedbackAggregateReviewQuery",
+      "responseSchemaName": "FamilyFeedbackAggregate"
+    },
+    "listTeacherFamilyFeedbackResults": {
+      "publicName": "list-teacher-family-feedback-results",
+      "requestSchemaName": "ListTeacherFamilyFeedbackResultsQuery",
+      "responseSchemaName": "TeacherFamilyFeedbackResultList"
+    },
+    "getTeacherFamilyFeedbackResult": {
+      "publicName": "get-teacher-family-feedback-result",
+      "requestSchemaName": "GetTeacherFamilyFeedbackResultQuery",
+      "responseSchemaName": "TeacherFamilyFeedbackResult"
     }
   },
   "authorization": {
@@ -882,6 +1764,12 @@
       "path": "onboarding/invite-staff-members",
       "requestSchemaName": "OnboardingInviteStaffMembersRequest",
       "responseSchemaName": "OnboardingInviteStaffMembersResponse"
+    },
+    "provision": {
+      "method": "POST",
+      "path": "onboarding/provision",
+      "requestSchemaName": "OnboardingProvisionRequest",
+      "responseSchemaName": "OnboardingProvisionResponse"
     }
   },
   "serviceAccounts": {
@@ -923,15 +1811,80 @@
       "responseSchemaName": "RotateServiceAccountKeyResponse"
     }
   },
-  "webhooks": {
-    "notificationDelivery": {
+  "platformUsers": {
+    "me": {
+      "method": "GET",
+      "path": "platform/me",
+      "responseSchemaName": "PlatformMeResponse"
+    },
+    "list": {
+      "method": "GET",
+      "path": "platform-users",
+      "responseSchemaName": "PlatformUserResponse",
+      "responseIsArray": true
+    },
+    "create": {
       "method": "POST",
-      "path": "webhooks/notification-delivery",
-      "responseSchemaName": "NotificationDeliveryWebhookResponse",
-      "basePath": "root"
+      "path": "platform-users",
+      "requestSchemaName": "CreatePlatformUserRequest",
+      "responseSchemaName": "PlatformUserResponse"
+    },
+    "deactivate": {
+      "method": "POST",
+      "path": "platform-users/{id}/deactivate",
+      "pathParams": [
+        "id"
+      ],
+      "responseSchemaName": "PlatformUserResponse"
+    }
+  },
+  "s2sClients": {
+    "list": {
+      "method": "GET",
+      "path": "s2s-clients",
+      "responseSchemaName": "S2sClientResponse",
+      "responseIsArray": true
+    },
+    "create": {
+      "method": "POST",
+      "path": "s2s-clients",
+      "requestSchemaName": "CreateS2sClientRequest",
+      "responseSchemaName": "CreateS2sClientResponse"
+    },
+    "revoke": {
+      "method": "POST",
+      "path": "s2s-clients/{id}/revoke",
+      "pathParams": [
+        "id"
+      ],
+      "responseSchemaName": "S2sClientResponse"
+    },
+    "rotateKey": {
+      "method": "POST",
+      "path": "s2s-clients/{id}/rotate-key",
+      "pathParams": [
+        "id"
+      ],
+      "requestSchemaName": "RotateS2sClientKeyRequest",
+      "responseSchemaName": "RotateS2sClientKeyResponse"
     }
   },
   "public": {
+    "listMyInvitations": {
+      "method": "GET",
+      "path": "public/me/invitations",
+      "responseSchemaName": "ListMyInvitationsResponse",
+      "basePath": "root"
+    },
+    "acceptMyInvitation": {
+      "method": "POST",
+      "path": "public/me/invitations/{invitationId}/accept",
+      "pathParams": [
+        "invitationId"
+      ],
+      "responseSchemaName": "AcceptInvitationResponse",
+      "basePath": "root"
+    },
     "previewInvitation": {
       "method": "GET",
       "path": "public/invitations/{token}",

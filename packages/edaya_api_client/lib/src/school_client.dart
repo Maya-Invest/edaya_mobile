@@ -8,7 +8,11 @@ class SchoolClient {
   SchoolClient(this._transport)
     : _entities = {
         for (final entry in ClientBindings.entities.entries)
-          entry.key: EntityResource(_transport, entry.value.publicName),
+          entry.key: EntityResource(
+            _transport,
+            entry.value.publicName,
+            publicOperations: entry.value.publicOperations,
+          ),
       };
 
   final Transport _transport;
@@ -62,7 +66,18 @@ class SchoolClient {
     return EntityResource(_transport, publicName).get(id);
   }
 
-  /// Presigned (or local-dev) download URL for an attachment.
+  Future<T> requestRoute<T>(
+    String method,
+    String path, {
+    Object? body,
+  }) {
+    return _transport.request<T>(
+      method,
+      path.startsWith('/') ? path : '/$path',
+      options: body == null ? null : TransportRequestOptions(body: body),
+    );
+  }
+
   Future<Map<String, dynamic>> getDownloadUrl({
     required String attachmentId,
   }) {

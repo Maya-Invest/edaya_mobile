@@ -1,11 +1,12 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 
-import '../../app/formatters.dart';
 import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
 import 'fee_detail_controller.dart';
-import 'models/student_fee_line.dart';
+import 'models/fee_formatting.dart';
+import 'models/student_charge_line.dart';
 
 class FeeAmountTrailing extends StatelessWidget {
   const FeeAmountTrailing({
@@ -67,28 +68,28 @@ class FeeAmountTrailing extends StatelessWidget {
   }
 }
 
-SemanticTone _feeStatusTone(String status) {
+SemanticTone _chargeStatusTone(ChargeStatus status) {
   return switch (status) {
-    'En retard' => SemanticTone.error,
-    'Payé' => SemanticTone.success,
-    'Partiel' => SemanticTone.warning,
+    ChargeStatus.overdue => SemanticTone.error,
+    ChargeStatus.paid => SemanticTone.success,
+    ChargeStatus.partial => SemanticTone.warning,
     _ => SemanticTone.neutral,
   };
 }
 
-class FeeDetailSummaryCard extends StatelessWidget {
-  const FeeDetailSummaryCard({super.key, required this.fee});
+class ChargeDetailSummaryCard extends StatelessWidget {
+  const ChargeDetailSummaryCard({super.key, required this.charge});
 
-  final StudentFeeLine fee;
+  final StudentChargeLine charge;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final statusLabel = frenchFeeStatus(fee.status);
-    final isOverdue = fee.status == StudentFeeStatus.overdue;
-    final progress = fee.expectedAmount == 0
+    final statusLabel = frenchChargeStatus(charge.status);
+    final isOverdue = charge.status == ChargeStatus.overdue;
+    final progress = charge.expectedAmount == 0
         ? 0.0
-        : (fee.paidAmount / fee.expectedAmount).clamp(0.0, 1.0);
+        : (charge.allocatedAmount / charge.expectedAmount).clamp(0.0, 1.0);
 
     return SurfaceCard(
       child: Column(
@@ -96,11 +97,14 @@ class FeeDetailSummaryCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              StatusChip(label: statusLabel, tone: _feeStatusTone(statusLabel)),
+              StatusChip(
+                label: statusLabel,
+                tone: _chargeStatusTone(charge.status),
+              ),
               const Spacer(),
-              if (fee.dueDate != null)
+              if (charge.dueDate != null)
                 Text(
-                  'Échéance ${formatDate(fee.dueDate!)}',
+                  'Échéance ${context.formatShortDate(charge.dueDate!)}',
                   style: textTheme.labelSmall?.copyWith(
                     color: PrototypeColors.onSurfaceVariant,
                   ),
@@ -113,14 +117,14 @@ class FeeDetailSummaryCard extends StatelessWidget {
               Expanded(
                 child: SummaryMetric(
                   label: 'Attendu',
-                  value: formatMoney(fee.expectedAmount, fee.currency),
+                  value: formatMoney(charge.expectedAmount, charge.currency),
                 ),
               ),
               Expanded(
                 child: SummaryMetric(
                   label: 'Payé',
-                  value: formatMoney(fee.paidAmount, fee.currency),
-                  valueColor: fee.paidAmount > 0
+                  value: formatMoney(charge.allocatedAmount, charge.currency),
+                  valueColor: charge.allocatedAmount > 0
                       ? PrototypeColors.primary
                       : null,
                 ),
@@ -128,8 +132,11 @@ class FeeDetailSummaryCard extends StatelessWidget {
               Expanded(
                 child: SummaryMetric(
                   label: 'Solde',
-                  value: formatMoney(fee.balance, fee.currency),
-                  valueColor: fee.balance > 0 && isOverdue
+                  value: formatMoney(
+                    charge.remainingObligation,
+                    charge.currency,
+                  ),
+                  valueColor: charge.remainingObligation > 0 && isOverdue
                       ? PrototypeColors.error
                       : null,
                 ),
@@ -151,38 +158,19 @@ class FeeDetailSummaryCard extends StatelessWidget {
   }
 }
 
-class InstallmentCard extends StatelessWidget {
-  const InstallmentCard({super.key, required this.installment});
+class ChargeInstallmentCard extends StatelessWidget {
+  const ChargeInstallmentCard({
+    super.key,
+    required this.installment,
+    required this.currency,
+  });
 
-  final FeeInstallment installment;
+  final ChargeInstallment installment;
+  final String currency;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final isOverdue = installment.status == 'En retard';
-    final isPaid = installment.isPaid;
-    final tone = _feeStatusTone(installment.status);
-
-    final icon = isPaid
-        ? Icons.check_circle_outline
-        : isOverdue
-        ? Icons.warning_amber_rounded
-        : Icons.event_outlined;
-    final (iconBg, iconColor) = switch (tone) {
-      SemanticTone.error => (
-        PrototypeColors.errorContainer,
-        PrototypeColors.error,
-      ),
-      SemanticTone.success => (
-        PrototypeColors.primaryContainer,
-        PrototypeColors.primary,
-      ),
-      _ => (
-        PrototypeColors.primaryContainer,
-        PrototypeColors.primary,
-      ),
-    };
-
     return SurfaceCard(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,32 +178,37 @@ class InstallmentCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: iconBg,
+              color: PrototypeColors.primaryContainer,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, size: 20, color: iconColor),
+            child: const Icon(
+              Icons.event_outlined,
+              size: 20,
+              color: PrototypeColors.primary,
+            ),
           ),
           const SizedBox(width: PrototypeSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(installment.label, style: textTheme.titleSmall),
-                const SizedBox(height: 4),
                 Text(
-                  'Échéance ${formatDate(installment.dueDate)}',
-                  style: textTheme.bodySmall,
+                  installment.label.isEmpty ? 'Échéance' : installment.label,
+                  style: textTheme.titleSmall,
                 ),
+                if (installment.dueDate != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Échéance ${context.formatShortDate(installment.dueDate!)}',
+                    style: textTheme.bodySmall,
+                  ),
+                ],
               ],
             ),
           ),
           FeeAmountTrailing(
-            amount: formatMoney(
-              isPaid ? installment.amount : installment.balance,
-              installment.currency,
-            ),
-            label: installment.status,
-            labelColor: isOverdue ? PrototypeColors.error : null,
+            amount: formatMoney(installment.expectedAmount, currency),
+            label: 'Attendu',
           ),
         ],
       ),

@@ -7,6 +7,7 @@ import '../features/account/account_page.dart';
 import '../features/calendar/calendar_page.dart';
 import '../features/classes/classes_page.dart';
 import '../features/evaluations/evaluations_page.dart';
+import '../features/evaluations/family_feedback_page.dart';
 import '../features/home/home_page.dart';
 import '../features/inbox/inbox_page.dart';
 import '../features/login/login_page.dart';
@@ -116,6 +117,18 @@ GoRouter createRouter({
               GoRoute(
                 path: '/evaluations',
                 builder: (_, _) => const SizedBox.shrink(),
+              ),
+              GoRoute(
+                path: '/evaluations/avis',
+                builder: (_, _) => const FamilyFeedbackListPage(),
+                routes: [
+                  GoRoute(
+                    path: ':feedbackId',
+                    builder: (context, state) => FamilyFeedbackDetailPage(
+                      feedbackId: state.pathParameters['feedbackId']!,
+                    ),
+                  ),
+                ],
               ),
               GoRoute(
                 path: '/evaluations/report-cards/:classId/:periodId',

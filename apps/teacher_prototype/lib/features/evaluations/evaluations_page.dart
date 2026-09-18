@@ -41,6 +41,19 @@ class EvaluationsPage extends LScopedView<StoreBoundController> {
             const SizedBox(height: PrototypeSpacing.xs),
           ],
           const SizedBox(height: PrototypeSpacing.xl),
+          const SectionHeader(title: 'Avis des familles'),
+          const SizedBox(height: PrototypeSpacing.sm),
+          ListRow(
+            title: 'Campagnes et archives',
+            subtitle: 'Nouveaux retours depuis Accueil, historique ici',
+            leading: Icon(
+              Icons.campaign_outlined,
+              color: PrototypeColors.primary,
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go('/evaluations/avis'),
+          ),
+          const SizedBox(height: PrototypeSpacing.xl),
           const SectionHeader(title: 'Bulletins'),
           const SizedBox(height: PrototypeSpacing.sm),
           for (final rc in store.reportCardClasses) ...[

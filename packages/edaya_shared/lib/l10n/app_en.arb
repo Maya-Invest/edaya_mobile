@@ -8,20 +8,26 @@
   "accountProfileLoginEmail": "Sign-in email: {email}",
   "@accountProfileLoginEmail": {
     "placeholders": {
-      "email": {"type": "String"}
+      "email": {
+        "type": "String"
+      }
     }
   },
   "accountProfileUnavailable": "Your school profile is not available.",
   "accountProfileLoadError": "Could not load your profile. {error}",
   "@accountProfileLoadError": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "accountProfileSaveError": "Could not save your profile. {error}",
   "@accountProfileSaveError": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "accountProfileUpdateSuccess": "Profile updated.",
@@ -41,7 +47,9 @@
   "signedInSchoolSessionUnavailable": "Signed in, but school session is unavailable: {error}",
   "@signedInSchoolSessionUnavailable": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "apiUrlCannotBeEmpty": "API URL cannot be empty",
@@ -50,13 +58,17 @@
   "apiUrlUpdatedReloadPage": "API URL updated to {url}. Reload the page to connect to the new server.",
   "@apiUrlUpdatedReloadPage": {
     "placeholders": {
-      "url": {"type": "String"}
+      "url": {
+        "type": "String"
+      }
     }
   },
   "apiUrlUpdatedRestartApp": "API URL updated to {url}. Restart the app to connect to the new server.",
   "@apiUrlUpdatedRestartApp": {
     "placeholders": {
-      "url": {"type": "String"}
+      "url": {
+        "type": "String"
+      }
     }
   },
   "restartApp": "Restart app",
@@ -64,7 +76,9 @@
   "currentApiUrl": "Current: {url}",
   "@currentApiUrl": {
     "placeholders": {
-      "url": {"type": "String"}
+      "url": {
+        "type": "String"
+      }
     }
   },
   "usingSavedDevOverride": "Using saved dev override",
@@ -108,21 +122,29 @@
   "couldNotLoadTeachingData": "Could not load teaching data: {error}",
   "@couldNotLoadTeachingData": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "couldNotLoadReportCards": "Could not load report cards: {error}",
   "@couldNotLoadReportCards": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "reportCardClassNoResults": "No report cards generated for this period.",
   "reportCardClassProgress": "{filled} / {total} comments filled",
   "@reportCardClassProgress": {
     "placeholders": {
-      "filled": {"type": "int"},
-      "total": {"type": "int"}
+      "filled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "reportCardRosterComingSoon": "Student roster coming soon.",
@@ -130,19 +152,25 @@
   "couldNotLoadReportCardRoster": "Could not load report card roster: {error}",
   "@couldNotLoadReportCardRoster": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "couldNotLoadReportCardComments": "Could not load report card comments: {error}",
   "@couldNotLoadReportCardComments": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "couldNotSaveReportCardComment": "Could not save report card comment: {error}",
   "@couldNotSaveReportCardComment": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "reportCardCommentsTitle": "Report card comments",
@@ -152,7 +180,9 @@
   "subjectComment": "{subject} comment",
   "@subjectComment": {
     "placeholders": {
-      "subject": {"type": "String"}
+      "subject": {
+        "type": "String"
+      }
     }
   },
   "reportCardStatusDraft": "Draft",
@@ -169,19 +199,25 @@
   "couldNotLoadAcademicYears": "Could not load academic years: {error}",
   "@couldNotLoadAcademicYears": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "couldNotLoadStudentContext": "Could not load student context: {error}",
   "@couldNotLoadStudentContext": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "couldNotLoadEnrollment": "Could not load enrollment: {error}",
   "@couldNotLoadEnrollment": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "myStudents": "My students",
@@ -189,19 +225,25 @@
   "matriculeLabel": "Matricule: {matricule}",
   "@matriculeLabel": {
     "placeholders": {
-      "matricule": {"type": "String"}
+      "matricule": {
+        "type": "String"
+      }
     }
   },
   "statusLabel": "Status: {status}",
   "@statusLabel": {
     "placeholders": {
-      "status": {"type": "String"}
+      "status": {
+        "type": "String"
+      }
     }
   },
   "couldNotLoadLinkedStudents": "Could not load linked students: {error}",
   "@couldNotLoadLinkedStudents": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "calendarViewTimetable": "Timetable",
@@ -214,19 +256,25 @@
   "couldNotLoadCalendar": "Could not load calendar: {error}",
   "@couldNotLoadCalendar": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "couldNotLoadSessionDetails": "Could not load session details: {error}",
   "@couldNotLoadSessionDetails": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "couldNotLoadAttendance": "Could not load attendance: {error}",
   "@couldNotLoadAttendance": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "attendance": "Attendance",
@@ -240,13 +288,17 @@
   "homeworkValue": "Homework: {homework}",
   "@homeworkValue": {
     "placeholders": {
-      "homework": {"type": "String"}
+      "homework": {
+        "type": "String"
+      }
     }
   },
   "progressPercent": "Progress: {percent}%",
   "@progressPercent": {
     "placeholders": {
-      "percent": {"type": "int"}
+      "percent": {
+        "type": "int"
+      }
     }
   },
   "noAttendanceRecordsForStudent": "No attendance records for this student.",
@@ -270,13 +322,17 @@
   "couldNotLoadAcademicData": "Could not load academic data: {error}",
   "@couldNotLoadAcademicData": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "couldNotLoadReportCard": "Could not load report card: {error}",
   "@couldNotLoadReportCard": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "subjectFallback": "Subject",
@@ -285,8 +341,12 @@
   "gradePeriodCoefficient": "{periodName} · Coefficient {coefficient}",
   "@gradePeriodCoefficient": {
     "placeholders": {
-      "periodName": {"type": "String"},
-      "coefficient": {"type": "String"}
+      "periodName": {
+        "type": "String"
+      },
+      "coefficient": {
+        "type": "String"
+      }
     }
   },
   "score": "Score",
@@ -299,20 +359,26 @@
   "assessmentCount": "{count, plural, =1{1 assessment} other{{count} assessments}}",
   "@assessmentCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subjectAverage": "Average {average} / 20",
   "@subjectAverage": {
     "placeholders": {
-      "average": {"type": "String"}
+      "average": {
+        "type": "String"
+      }
     }
   },
   "noScoreDash": "—",
   "percentComplete": "{percent}% complete",
   "@percentComplete": {
     "placeholders": {
-      "percent": {"type": "int"}
+      "percent": {
+        "type": "int"
+      }
     }
   },
   "noProgrammeUnitsTracked": "No programme units tracked yet.",
@@ -320,34 +386,48 @@
   "publishedOn": "Published {date}",
   "@publishedOn": {
     "placeholders": {
-      "date": {"type": "String"}
+      "date": {
+        "type": "String"
+      }
     }
   },
   "scoreOutOfTwentyValue": "{average} / 20",
   "@scoreOutOfTwentyValue": {
     "placeholders": {
-      "average": {"type": "String"}
+      "average": {
+        "type": "String"
+      }
     }
   },
   "rankLabel": "Rank {rank}/{classSize}",
   "@rankLabel": {
     "placeholders": {
-      "rank": {"type": "int"},
-      "classSize": {"type": "int"}
+      "rank": {
+        "type": "int"
+      },
+      "classSize": {
+        "type": "int"
+      }
     }
   },
   "reportCardNotFound": "Report card not found.",
   "overallAverage": "Overall average: {average} / 20",
   "@overallAverage": {
     "placeholders": {
-      "average": {"type": "String"}
+      "average": {
+        "type": "String"
+      }
     }
   },
   "classRank": "Class rank: {rank}/{classSize}",
   "@classRank": {
     "placeholders": {
-      "rank": {"type": "int"},
-      "classSize": {"type": "int"}
+      "rank": {
+        "type": "int"
+      },
+      "classSize": {
+        "type": "int"
+      }
     }
   },
   "homeroomComment": "Homeroom comment",
@@ -362,7 +442,9 @@
   "couldNotLoadFees": "Could not load fees: {error}",
   "@couldNotLoadFees": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "paymentMethodCash": "Cash",
@@ -382,25 +464,33 @@
   "overdueFeeLinesCount": "{count, plural, =1{1 overdue fee line} other{{count} overdue fee lines}}",
   "@overdueFeeLinesCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "dueDate": "Due {date}",
   "@dueDate": {
     "placeholders": {
-      "date": {"type": "String"}
+      "date": {
+        "type": "String"
+      }
     }
   },
   "paymentCount": "{count, plural, =1{1 payment} other{{count} payments}}",
   "@paymentCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "paidAmount": "Paid {amount}",
   "@paidAmount": {
     "placeholders": {
-      "amount": {"type": "String"}
+      "amount": {
+        "type": "String"
+      }
     }
   },
   "paymentDetails": "Payment details",
@@ -411,14 +501,18 @@
   "unreadCount": "{count} unread",
   "@unreadCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "noMessagesInInbox": "No messages in your inbox yet.",
   "couldNotLoadInbox": "Could not load inbox: {error}",
   "@couldNotLoadInbox": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "inboxStatusPending": "Pending",
@@ -431,7 +525,9 @@
   "couldNotMarkMessageRead": "Could not mark message as read: {error}",
   "@couldNotMarkMessageRead": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "allClasses": "All classes",
@@ -440,13 +536,17 @@
   "evaluationCount": "{count, plural, =1{1 evaluation} other{{count} evaluations}}",
   "@evaluationCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "sessionCount": "{count, plural, =1{1 session} other{{count} sessions}}",
   "@sessionCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "tooltipNewEvaluation": "New evaluation",
@@ -457,7 +557,9 @@
   "couldNotLoadTeachingContext": "Could not load teaching context: {error}",
   "@couldNotLoadTeachingContext": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "signInToViewCalendar": "Sign in to view your teaching calendar.",
@@ -467,8 +569,12 @@
   "attendanceProgress": "Attendance {recorded} / {total}",
   "@attendanceProgress": {
     "placeholders": {
-      "recorded": {"type": "int"},
-      "total": {"type": "int"}
+      "recorded": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "takeAttendance": "Take attendance",
@@ -489,7 +595,9 @@
   "couldNotSaveSessionNote": "Could not save lesson notes: {error}",
   "@couldNotSaveSessionNote": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "curriculumProgressTitle": "Curriculum progress",
@@ -497,19 +605,25 @@
   "subjectProgressSummary": "Subject {percent}%",
   "@subjectProgressSummary": {
     "placeholders": {
-      "percent": {"type": "int"}
+      "percent": {
+        "type": "int"
+      }
     }
   },
   "cumulativeProgressLabel": "Overall {percent}%",
   "@cumulativeProgressLabel": {
     "placeholders": {
-      "percent": {"type": "int"}
+      "percent": {
+        "type": "int"
+      }
     }
   },
   "lessonProgressLabel": "This lesson {percent}%",
   "@lessonProgressLabel": {
     "placeholders": {
-      "percent": {"type": "int"}
+      "percent": {
+        "type": "int"
+      }
     }
   },
   "lessonProgressPercentLabel": "Progress for this lesson (%)",
@@ -522,19 +636,25 @@
   "couldNotSaveMatterProgress": "Could not save curriculum progress: {error}",
   "@couldNotSaveMatterProgress": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "matterProgressMinimum": "Must be at least {percent}%",
   "@matterProgressMinimum": {
     "placeholders": {
-      "percent": {"type": "int"}
+      "percent": {
+        "type": "int"
+      }
     }
   },
   "progressMustNotDecrease": "Progress must be at least {percent}%",
   "@progressMustNotDecrease": {
     "placeholders": {
-      "percent": {"type": "int"}
+      "percent": {
+        "type": "int"
+      }
     }
   },
   "matterStatusNotStarted": "Not started",
@@ -555,15 +675,21 @@
   "attendanceFlowTitle": "Attendance · {classLabel}",
   "@attendanceFlowTitle": {
     "placeholders": {
-      "classLabel": {"type": "String"}
+      "classLabel": {
+        "type": "String"
+      }
     }
   },
   "noStudentsToRecord": "No students to record.",
   "attendanceRecordedProgress": "{recorded} / {total} recorded",
   "@attendanceRecordedProgress": {
     "placeholders": {
-      "recorded": {"type": "int"},
-      "total": {"type": "int"}
+      "recorded": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "attendanceComplete": "Attendance complete",
@@ -573,7 +699,9 @@
   "attendanceExceptionTitle": "Attendance · {studentName}",
   "@attendanceExceptionTitle": {
     "placeholders": {
-      "studentName": {"type": "String"}
+      "studentName": {
+        "type": "String"
+      }
     }
   },
   "attendanceReasonLabel": "Reason",
@@ -589,8 +717,12 @@
   "calendarIncompleteAttendance": "Attendance · {classLabel} {subjectLabel}",
   "@calendarIncompleteAttendance": {
     "placeholders": {
-      "classLabel": {"type": "String"},
-      "subjectLabel": {"type": "String"}
+      "classLabel": {
+        "type": "String"
+      },
+      "subjectLabel": {
+        "type": "String"
+      }
     }
   },
   "sessionAttendanceComplete": "Attendance complete",
@@ -602,27 +734,37 @@
   "couldNotLoadSession": "Could not load session: {error}",
   "@couldNotLoadSession": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "couldNotSaveAttendance": "Could not save attendance: {error}",
   "@couldNotSaveAttendance": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "couldNotSaveLogbook": "Could not save logbook: {error}",
   "@couldNotSaveLogbook": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "chapterFallback": "Chapter",
   "evaluationGradedProgress": "{graded} / {total} graded",
   "@evaluationGradedProgress": {
     "placeholders": {
-      "graded": {"type": "int"},
-      "total": {"type": "int"}
+      "graded": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "selectPeriodToViewEvaluations": "Select a period to view evaluations.",
@@ -630,19 +772,25 @@
   "couldNotLoadEvaluations": "Could not load evaluations: {error}",
   "@couldNotLoadEvaluations": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "couldNotLoadMarks": "Could not load marks: {error}",
   "@couldNotLoadMarks": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "couldNotSaveMark": "Could not save mark: {error}",
   "@couldNotSaveMark": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "publishedReportCardImmutable": "This student's report card has already been published for this period. Marks can no longer be changed.",
@@ -651,13 +799,17 @@
   "couldNotLoadSubjects": "Could not load subjects: {error}",
   "@couldNotLoadSubjects": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "couldNotLoadPeriods": "Could not load periods: {error}",
   "@couldNotLoadPeriods": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "titleRequired": "Title is required.",
@@ -666,7 +818,9 @@
   "couldNotCreateEvaluation": "Could not create evaluation: {error}",
   "@couldNotCreateEvaluation": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "newEvaluation": "New evaluation",
@@ -688,7 +842,9 @@
   "invalidScoreValue": "Enter a score between 0 and {maxScore}.",
   "@invalidScoreValue": {
     "placeholders": {
-      "maxScore": {"type": "String"}
+      "maxScore": {
+        "type": "String"
+      }
     }
   },
   "syncStatusSaved": "Saved",
@@ -708,13 +864,17 @@
   "accountPendingSyncSummary": "{count, plural, =1{1 item waiting to sync} other{{count} items waiting to sync}}",
   "@accountPendingSyncSummary": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "accountPendingSyncOldest": "Oldest pending {age}",
   "@accountPendingSyncOldest": {
     "placeholders": {
-      "age": {"type": "String"}
+      "age": {
+        "type": "String"
+      }
     }
   },
   "accountPendingSyncNone": "All changes are synced",
@@ -723,59 +883,83 @@
   "accountPendingSyncMinutes": "{minutes} min ago",
   "@accountPendingSyncMinutes": {
     "placeholders": {
-      "minutes": {"type": "int"}
+      "minutes": {
+        "type": "int"
+      }
     }
   },
   "accountPendingSyncHours": "{hours} hr ago",
   "@accountPendingSyncHours": {
     "placeholders": {
-      "hours": {"type": "int"}
+      "hours": {
+        "type": "int"
+      }
     }
   },
   "accountPendingSyncDays": "{days} d ago",
   "@accountPendingSyncDays": {
     "placeholders": {
-      "days": {"type": "int"}
+      "days": {
+        "type": "int"
+      }
     }
   },
   "outOfMaxScore": "Out of {maxScore}",
   "@outOfMaxScore": {
     "placeholders": {
-      "maxScore": {"type": "String"}
+      "maxScore": {
+        "type": "String"
+      }
     }
   },
   "currentScore": "Current: {score}",
   "@currentScore": {
     "placeholders": {
-      "score": {"type": "String"}
+      "score": {
+        "type": "String"
+      }
     }
   },
   "scoreHintOutOf": "/ {maxScore}",
   "@scoreHintOutOf": {
     "placeholders": {
-      "maxScore": {"type": "String"}
+      "maxScore": {
+        "type": "String"
+      }
     }
   },
   "periodLabel": "Period",
   "timeRange": "{start} – {end}",
   "@timeRange": {
     "placeholders": {
-      "start": {"type": "String"},
-      "end": {"type": "String"}
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
     }
   },
   "sessionDateTime": "{date} · {timeRange}",
   "@sessionDateTime": {
     "placeholders": {
-      "date": {"type": "String"},
-      "timeRange": {"type": "String"}
+      "date": {
+        "type": "String"
+      },
+      "timeRange": {
+        "type": "String"
+      }
     }
   },
   "paymentMethodAndDate": "{method} · {date}",
   "@paymentMethodAndDate": {
     "placeholders": {
-      "method": {"type": "String"},
-      "date": {"type": "String"}
+      "method": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
     }
   },
   "settingsTitle": "Settings",
@@ -802,5 +986,195 @@
   "settingsTimeFormat": "Time format",
   "settingsTimeFormatSystem": "System default",
   "settingsTimeFormat24h": "24-hour",
-  "settingsTimeFormat12h": "12-hour"
+  "settingsTimeFormat12h": "12-hour",
+  "emailRequired": "Enter your email.",
+  "sendCodeButton": "Send code",
+  "otpSendFailed": "Could not send a verification code.",
+  "verifyEmailTitle": "Verify your email",
+  "otpLabel": "Verification code",
+  "verifyCodeButton": "Verify and continue",
+  "resendCodeButton": "Resend code",
+  "useDifferentEmail": "Use a different email",
+  "verificationCodeSent": "We sent a code to {email}.",
+  "@verificationCodeSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "invitationTitle": "Join your school",
+  "invitationContinue": "Continue",
+  "invitationAcceptCta": "Accept invitation",
+  "invitationAccepting": "Linking your account…",
+  "invitationSuccess": "Your account is linked. Opening your family view.",
+  "invitationWrongKind": "This invitation is for another Edaya app.",
+  "invitationWrongAccount": "This invitation is for a different account. Sign out, then continue with the invited email.",
+  "invitationSignOutSwitch": "Sign out and continue",
+  "invitationNotFound": "This invitation link was not found.",
+  "invitationExpired": "This invitation has expired. Ask the school office for a new link.",
+  "invitationRevoked": "This invitation was replaced. Open the latest email or ask the school office to resend.",
+  "invitationInvalid": "This invitation is not valid.",
+  "invitationAlreadyAccepted": "This invitation was already used.",
+  "invitationLoadError": "Could not load this invitation. {error}",
+  "@invitationLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "invitationSummary": "{name} is invited as a guardian at {school}.",
+  "@invitationSummary": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "school": {
+        "type": "String"
+      }
+    }
+  },
+  "invitationExpires": "Expires {date}",
+  "@invitationExpires": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "missingChargeDetailsRouteData": "Missing charge details route data.",
+  "waitingForStudentsTitle": "You're signed in",
+  "waitingForStudentsBody": "Your account is ready. When the school links you to a child, their timetable, grades, and messages will appear here.",
+  "waitingForStudentsCheckAgain": "Check again",
+  "waitingPendingInvitationsTitle": "Pending invitations",
+  "waitingNoPendingInvitations": "No pending invitations for this email. If the school sent a link, open it from the email.",
+  "noChildrenLinkedYet": "No children are linked to your account yet.",
+  "feeStatusWaived": "Waived",
+  "availableAmount": "Available",
+  "outstandingAmount": "Outstanding",
+  "overdueAmount": "Overdue",
+  "remainingAmountLabel": "Remaining",
+  "chargeSchedule": "Payment schedule",
+  "noInstallmentsForCharge": "No installment schedule for this charge.",
+  "installmentDue": "{label} · due {date}",
+  "@installmentDue": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentKind": "Type",
+  "paymentKindReceipt": "Receipt",
+  "paymentKindDisbursement": "Refund",
+  "mutationConflict": "This change conflicts with the current record. Reload it and review before trying again.",
+  "mutationSavedRefreshFailed": "Your change was saved, but the screen could not refresh. Reopen this screen to see the saved result.",
+  "profilePhotoCropTitle": "Adjust portrait",
+  "profilePhotoCropHint": "Rotate and confirm a square JPEG under 1 MiB.",
+  "profilePhotoRotate": "Rotate",
+  "profilePhotoConfirmCrop": "Use this photo",
+  "profilePhotoTooLarge": "The photo is still larger than 1 MiB after compression.",
+  "profilePhotoUpdateSuccess": "Profile photo updated.",
+  "profilePhotoUpdateError": "Could not update the profile photo. {error}",
+  "@profilePhotoUpdateError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "childProfileTitle": "Child portrait",
+  "childProfileUnavailable": "Select a child to propose a portrait.",
+  "childProfileLoadError": "Could not load the child portrait. {error}",
+  "@childProfileLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "childProfilePublished": "Published portrait",
+  "childProfileProposed": "Proposed portrait",
+  "childProfileNoPublished": "No published portrait yet.",
+  "childProfilePending": "Waiting for school review.",
+  "childProfilePendingIndicator": "A portrait is waiting for review.",
+  "childProfileSubmitHint": "Take or choose a photo. The school must approve it before it appears on documents.",
+  "childProfileSubmit": "Submit portrait",
+  "childProfileResubmit": "Submit a new portrait",
+  "childProfileWithdraw": "Withdraw proposal",
+  "childProfileSubmitted": "Portrait submitted for review.",
+  "childProfileWithdrawn": "Proposal withdrawn.",
+  "childProfileSubmitError": "Could not submit the portrait. {error}",
+  "@childProfileSubmitError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "childProfileWithdrawError": "Could not withdraw the proposal. {error}",
+  "@childProfileWithdrawError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "childProfileRejected": "The school rejected this portrait: {reason}",
+  "@childProfileRejected": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "childProfileRejectedNoReason": "No reason was provided.",
+  "documentsTitle": "Official documents",
+  "tooltipDocuments": "Official documents",
+  "documentsEntry": "Official documents",
+  "documentsEmpty": "No official documents for this school year yet.",
+  "documentsDownloadRecall": "Already downloaded files cannot be remotely recalled.",
+  "documentsDownload": "Download",
+  "documentsGeneratePdf": "Generate PDF",
+  "documentsOpened": "Opening the PDF.",
+  "documentsRendering": "The PDF is still rendering. Open Official documents when it is ready.",
+  "documentsFailed": "This document failed ({code}).",
+  "@documentsFailed": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "documentsNotIssued": "No downloadable PDF is ready yet.",
+  "documentsOpenFailed": "Could not open the PDF.",
+  "documentStatusRequested": "Pending",
+  "documentStatusRendering": "Pending",
+  "documentStatusReady": "Issued",
+  "documentStatusFailed": "Error",
+  "documentStatusSuperseded": "Replaced",
+  "documentStatusVoided": "Replaced",
+  "documentStatusPreview": "Issued",
+  "exportLogbookPdf": "Logbook PDF",
+  "exportTimetablePdf": "Timetable PDF",
+  "exportRosterPdf": "Class roster PDF",
+  "exportAttendancePdf": "Attendance sheet PDF",
+  "familyFeedbackEntry": "Family feedback",
+  "familyFeedbackTitle": "Family feedback",
+  "familyFeedbackEmpty": "No family feedback campaigns yet.",
+  "familyFeedbackConfidential": "Confidential and aggregated. This is not an academic assessment.",
+  "familyFeedbackSubmit": "Submit",
+  "familyFeedbackSubmitted": "Your response was recorded.",
+  "familyFeedbackAlreadyCompleted": "A response is already recorded for this student.",
+  "familyFeedbackClosed": "This campaign is closed.",
+  "familyFeedbackComment": "Optional comment",
+  "familyFeedbackCannotAssess": "Cannot assess",
+  "familyFeedbackInsufficient": "Insufficient responses",
+  "familyFeedbackThemes": "Themes",
+  "familyFeedbackSlotOpen": "Open",
+  "familyFeedbackSlotCompleted": "Completed"
 }

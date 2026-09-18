@@ -1,68 +1,68 @@
-import 'dart:convert';
-
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Persists auth cookies and logged-out state on native platforms.
+/// Only the signed renewal credential is persisted, in the OS secure store.
 class AuthSessionStorage {
+  AuthSessionStorage({FlutterSecureStorage? secureStorage})
+    : _secure =
+          secureStorage ??
+          const FlutterSecureStorage(
+            iOptions: IOSOptions(
+              accessibility: KeychainAccessibility.first_unlock_this_device,
+            ),
+          );
+  final FlutterSecureStorage _secure;
   static const cookiesKey = 'edaya_auth_cookies';
   static const loggedOutKey = 'edaya_auth_logged_out';
+  static const renewalKey = 'edaya_auth_renewal_v1';
+  static const originKey = 'edaya_auth_renewal_origin_v1';
 
-  Future<bool> isLoggedOut() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(loggedOutKey) ?? false;
+  Future<bool> isLoggedOut() async =>
+      (await SharedPreferences.getInstance()).getBool(loggedOutKey) ?? false;
+  Future<void> markLoggedOut() async =>
+      (await SharedPreferences.getInstance()).setBool(loggedOutKey, true);
+  Future<void> markLoggedIn() async =>
+      (await SharedPreferences.getInstance()).remove(loggedOutKey);
+
+  Future<void> persist(AuthClient client) async {
+    if (kIsWeb) return;
+    await (await SharedPreferences.getInstance()).remove(cookiesKey);
+    final credential = client.renewalCredential;
+    if (credential == null) {
+      await clearCookies();
+      return;
+    }
+    await _secure.write(
+      key: originKey,
+      value: Uri.parse(client.baseUrl).origin,
+    );
+    await _secure.write(key: renewalKey, value: credential);
   }
 
-  Future<void> markLoggedOut() async {
+  Future<void> restoreInto(AuthClient client) async {
+    if (kIsWeb) return;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(loggedOutKey, true);
-  }
-
-  Future<void> markLoggedIn() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(loggedOutKey);
-  }
-
-  Future<void> persist(CookieJar jar) async {
-    if (kIsWeb) {
+    client.clearCredentials();
+    if (prefs.containsKey(cookiesKey)) {
+      // The cutover requires fresh login proof; never convert old cookie files.
+      await clearCookies();
       return;
     }
-
-    final prefs = await SharedPreferences.getInstance();
-    if (jar.snapshot().isEmpty) {
-      await prefs.remove(cookiesKey);
+    if (await _secure.read(key: originKey) !=
+        Uri.parse(client.baseUrl).origin) {
+      await clearCookies();
       return;
     }
-
-    await prefs.setString(cookiesKey, jsonEncode(jar.snapshot()));
-  }
-
-  Future<void> restoreInto(CookieJar jar) async {
-    if (kIsWeb) {
-      return;
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(cookiesKey);
-    if (raw == null) {
-      return;
-    }
-
-    final decoded = jsonDecode(raw);
-    if (decoded is! Map) {
-      return;
-    }
-
-    jar.restore(Map<String, String>.from(decoded));
+    final credential = await _secure.read(key: renewalKey);
+    if (credential != null) client.restoreRenewalCredential(credential);
   }
 
   Future<void> clearCookies() async {
-    if (kIsWeb) {
-      return;
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(cookiesKey);
+    if (kIsWeb) return;
+    await (await SharedPreferences.getInstance()).remove(cookiesKey);
+    await _secure.delete(key: renewalKey);
+    await _secure.delete(key: originKey);
   }
 }

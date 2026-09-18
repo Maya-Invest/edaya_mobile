@@ -8,7 +8,7 @@ import '../../common/utils/entity_filters.dart';
 import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
 import 'models/payment_record.dart';
-import 'models/student_fee_line.dart';
+import 'models/student_charge_line.dart';
 
 class FeesController extends LevitController with LevitReactiveTasksMixin {
   FeesController({
@@ -23,7 +23,7 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
   final AcademicYearController _academicYear;
   final SchoolClientFactory _schoolClient;
 
-  final feeLines = LxVar<List<StudentFeeLine>>(const []);
+  final charges = LxVar<List<StudentChargeLine>>(const []);
   final payments = LxVar<List<PaymentRecord>>(const []);
   final summary = LxVar<FeesSummary?>(null);
   final errorMessage = LxVar('');
@@ -31,7 +31,7 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
   @override
   void onInit() {
     super.onInit();
-    autoDispose(feeLines);
+    autoDispose(charges);
     autoDispose(payments);
     autoDispose(summary);
     autoDispose(errorMessage);
@@ -56,12 +56,16 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
   }
 
   DataStatus get dataStatus {
-    if (isBusy.value && feeLines.value.isEmpty && payments.value.isEmpty) {
+    if (isBusy.value &&
+        charges.value.isEmpty &&
+        payments.value.isEmpty &&
+        summary.value == null) {
       return DataStatus.loading;
     }
     if (errorMessage.value.isNotEmpty &&
-        feeLines.value.isEmpty &&
-        payments.value.isEmpty) {
+        charges.value.isEmpty &&
+        payments.value.isEmpty &&
+        summary.value == null) {
       return DataStatus.error;
     }
     if (_studentContext.activeStudent.value == null) {
@@ -75,7 +79,7 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
     if (_studentContext.activeStudent.value == null) {
       return l10n.selectStudentToViewFees;
     }
-    if (feeLines.value.isEmpty && payments.value.isEmpty) {
+    if (charges.value.isEmpty && payments.value.isEmpty) {
       return l10n.noFeesOrPaymentsForYear;
     }
     return l10n.nothingToShowYet;
@@ -86,7 +90,7 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
     final yearId = _academicYear.selectedYearId.value;
 
     if (studentId == null || yearId == null) {
-      feeLines(const []);
+      charges(const []);
       payments(const []);
       summary(null);
       errorMessage('');
@@ -97,137 +101,240 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
     await runTask(() async {
       try {
         final client = _schoolClient();
-        final studentFeeRows = await client.studentFees.list(
-          studentFeesForStudent(studentId),
-        );
-        final yearFees = studentFeeRows
-            .where((row) => row['academicYearId'] == yearId)
+        final financeQuery = {'studentId': studentId, 'academicYearId': yearId};
+        final results = await Future.wait([
+          client.getStudentFinanceSummary(financeQuery),
+          client.studentCharges.list(
+            studentChargesForStudent(
+              studentId: studentId,
+              academicYearId: yearId,
+            ),
+          ),
+        ]);
+        final financeSummary = results[0] as Map<String, dynamic>;
+        final chargeRows = (results[1] as List<Map<String, dynamic>>)
             .where((row) => row['status'] != 'cancelled')
             .toList();
 
-        final feeIds = yearFees
-            .map((row) => row['feeId'] as String?)
-            .whereType<String>()
-            .toSet()
-            .toList();
-        final feeNameById = await _loadFeeNames(client, feeIds);
-
-        final studentFeeIds = yearFees
-            .map((row) => row['id'] as String)
-            .toList();
-        final paymentRows = studentFeeIds.isEmpty
-            ? <Map<String, dynamic>>[]
-            : await client.payments.list(paymentsForStudentFees(studentFeeIds));
-
-        final paymentsByFeeId = <String, List<Map<String, dynamic>>>{};
-        for (final payment in paymentRows) {
-          if (payment['status'] != 'recorded') {
-            continue;
+        final accountId = financeSummary['accountId'] as String?;
+        Map<String, dynamic> history = const {};
+        if (accountId != null && accountId.isNotEmpty) {
+          try {
+            history = await client.getPaymentSettlementHistory({
+              'accountId': accountId,
+            });
+          } on Object {
+            history = const {};
           }
-          final studentFeeId = payment['studentFeeId'] as String;
-          paymentsByFeeId.putIfAbsent(studentFeeId, () => []).add(payment);
         }
 
-        final lines =
-            yearFees.map((row) {
-              final id = row['id'] as String;
-              final feeId = row['feeId'] as String;
-              return StudentFeeLine.fromJson(
-                row,
-                label: feeNameById[feeId] ?? systemL10n().schoolFee,
-                paymentCount: paymentsByFeeId[id]?.length ?? 0,
-              );
-            }).toList()..sort((a, b) {
-              final aDate = a.dueDate;
-              final bDate = b.dueDate;
-              if (aDate == null && bDate == null) {
-                return a.label.compareTo(b.label);
-              }
-              if (aDate == null) {
-                return 1;
-              }
-              if (bDate == null) {
-                return -1;
-              }
-              return aDate.compareTo(bDate);
+        final allocationRows =
+            (history['allocations'] as List?)?.whereType<Map>().toList() ??
+            const [];
+        var paymentRows = ((history['payments'] as List?) ?? const [])
+            .whereType<Map>()
+            .map((row) => Map<String, dynamic>.from(row))
+            .toList();
+        if (paymentRows.isEmpty) {
+          try {
+            paymentRows = await client.payments.list({
+              'studentId': studentId,
+              'academicYearId': yearId,
             });
+          } on Object {
+            paymentRows = const [];
+          }
+        }
+        final parsedCharges = chargeRows.map((row) {
+          final id = row['id'] as String;
+          return StudentChargeLine.fromJson(
+            row,
+            settlementCount: _settleCountForCharge(id, allocationRows),
+          );
+        }).toList()..sort(_compareCharges);
 
-        final feeLabelById = {for (final line in lines) line.id: line.label};
-        final parsedPayments =
-            paymentRows
-                .where((row) => row['status'] == 'recorded')
-                .map(
-                  (row) => PaymentRecord.fromJson(
-                    row,
-                    feeLabel:
-                        feeLabelById[row['studentFeeId'] as String] ??
-                        systemL10n().schoolFee,
-                  ),
-                )
-                .toList()
-              ..sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
-
-        final currency = lines.isNotEmpty
-            ? lines.first.currency
-            : parsedPayments.isNotEmpty
-            ? parsedPayments.first.currency
-            : 'EUR';
-        final totalExpected = lines.fold<double>(
-          0,
-          (sum, line) => sum + line.expectedAmount,
-        );
-        final totalPaid = lines.fold<double>(
-          0,
-          (sum, line) => sum + line.paidAmount,
-        );
-        final overdueCount = lines
-            .where((line) => line.status == StudentFeeStatus.overdue)
-            .length;
-
-        feeLines(lines);
-        payments(parsedPayments);
-        summary(
-          FeesSummary(
-            totalExpected: totalExpected,
-            totalPaid: totalPaid,
-            totalBalance: (totalExpected - totalPaid).clamp(0, totalExpected),
-            overdueCount: overdueCount,
+        final chargeLabelById = {
+          for (final charge in parsedCharges) charge.id: charge.label,
+        };
+        final currency =
+            financeSummary['currency'] as String? ??
+            (parsedCharges.isNotEmpty
+                ? parsedCharges.first.currency
+                : history['currency'] as String? ?? 'XOF');
+        final parsedPayments = paymentRows.map((json) {
+          return PaymentRecord.fromJson(
+            json,
+            feeLabel: _paymentLabel(json, chargeLabelById, allocationRows),
             currency: currency,
-          ),
-        );
+          );
+        }).toList()..sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
+
+        charges(parsedCharges);
+        payments(parsedPayments);
+        summary(FeesSummary.fromJson(financeSummary));
       } on api.ApiError catch (error) {
         errorMessage(systemL10n().couldNotLoadFees(error.toString()));
-        feeLines(const []);
+        charges(const []);
         payments(const []);
         summary(null);
       } on Object catch (error) {
         errorMessage(systemL10n().couldNotLoadFees(error.toString()));
-        feeLines(const []);
+        charges(const []);
         payments(const []);
         summary(null);
       }
     });
   }
 
-  Future<Map<String, String>> _loadFeeNames(
-    api.SchoolClient client,
-    List<String> feeIds,
-  ) async {
-    final names = <String, String>{};
-    for (final feeId in feeIds) {
-      try {
-        final fee = await client.fees.get(feeId);
-        names[feeId] = fee['name'] as String? ?? feeId;
-      } on Object {
-        names[feeId] = systemL10n().schoolFee;
+  int get overdueCount =>
+      charges.value.where((line) => line.status == ChargeStatus.overdue).length;
+
+  int get totalExpected =>
+      charges.value.fold<int>(0, (sum, line) => sum + line.expectedAmount);
+
+  int get totalPaid =>
+      charges.value.fold<int>(0, (sum, line) => sum + line.allocatedAmount);
+
+  int get totalBalance =>
+      charges.value.fold<int>(0, (sum, line) => sum + line.remainingObligation);
+
+  Future<DocumentJobResult> downloadStatement({required String? schoolId}) {
+    final studentId = _studentContext.activeStudentId;
+    final yearId = _academicYear.selectedYearId.value;
+    final currency = summary.value?.currency ??
+        (charges.value.isNotEmpty ? charges.value.first.currency : 'XOF');
+    if (schoolId == null || studentId == null || yearId == null) {
+      return Future.value(const DocumentJobResult.missing());
+    }
+    return downloadReadyIssuance(
+      _schoolClient(),
+      sourceId: studentYearAccountSourceId(
+        schoolId: schoolId,
+        studentId: studentId,
+        academicYearId: yearId,
+        currency: currency,
+      ),
+      templateKey: 'account-statement.v1',
+      studentId: studentId,
+      academicYearId: yearId,
+    );
+  }
+
+  int _settleCountForCharge(String chargeId, List<Map> allocations) {
+    return allocations
+        .where(
+          (row) =>
+              row['chargeId'] == chargeId &&
+              (row['kind'] == null || row['kind'] == 'settle'),
+        )
+        .length;
+  }
+
+  String _paymentLabel(
+    Map<String, dynamic> payment,
+    Map<String, String> chargeLabelById,
+    List<Map> allocations,
+  ) {
+    final paymentId = payment['id'];
+    final labels = <String>{};
+    for (final allocation in allocations) {
+      if (allocation['causedByPaymentId'] != paymentId) {
+        continue;
+      }
+      if (allocation['kind'] == 'reverse') {
+        continue;
+      }
+      final chargeId = allocation['chargeId'] as String?;
+      final label = chargeId == null ? null : chargeLabelById[chargeId];
+      if (label != null && label.isNotEmpty) {
+        labels.add(label);
       }
     }
-    return names;
+    if (labels.isNotEmpty) {
+      return labels.join(', ');
+    }
+    return payment['kind'] == 'disbursement'
+        ? systemL10n().paymentKindDisbursement
+        : systemL10n().paymentKindReceipt;
+  }
+
+  int _compareCharges(StudentChargeLine a, StudentChargeLine b) {
+    final aDate = a.dueDate;
+    final bDate = b.dueDate;
+    if (aDate == null && bDate == null) {
+      return a.label.compareTo(b.label);
+    }
+    if (aDate == null) {
+      return 1;
+    }
+    if (bDate == null) {
+      return -1;
+    }
+    final byDate = aDate.compareTo(bDate);
+    if (byDate != 0) {
+      return byDate;
+    }
+    return a.id.compareTo(b.id);
   }
 }
 
 class PaymentDetailsController extends LevitController {
-  PaymentDetailsController({required this.payment});
+  PaymentDetailsController({
+    required this.payment,
+    required SchoolClientFactory schoolClient,
+    required this.studentId,
+    required this.academicYearId,
+  }) : _schoolClient = schoolClient;
 
   final PaymentRecord payment;
+  final SchoolClientFactory _schoolClient;
+  final String? studentId;
+  final String? academicYearId;
+
+  Future<DocumentJobResult> downloadReceipt() {
+    return downloadReadyIssuance(
+      _schoolClient(),
+      sourceId: payment.id,
+      templateKey: 'receipt.v1',
+      studentId: studentId,
+      academicYearId: academicYearId,
+    );
+  }
+}
+
+class ChargeDetailsController extends LevitController {
+  ChargeDetailsController({
+    required this.charge,
+    required SchoolClientFactory schoolClient,
+    required this.studentId,
+    required this.academicYearId,
+    required this.schoolId,
+  }) : _schoolClient = schoolClient;
+
+  final StudentChargeLine charge;
+  final SchoolClientFactory _schoolClient;
+  final String? studentId;
+  final String? academicYearId;
+  final String? schoolId;
+
+  Future<DocumentJobResult> downloadInvoice() {
+    final schoolId = this.schoolId;
+    final studentId = this.studentId;
+    final yearId = academicYearId;
+    if (schoolId == null || studentId == null || yearId == null) {
+      return Future.value(const DocumentJobResult.missing());
+    }
+    return downloadReadyIssuance(
+      _schoolClient(),
+      sourceId: studentYearAccountSourceId(
+        schoolId: schoolId,
+        studentId: studentId,
+        academicYearId: yearId,
+        currency: charge.currency,
+      ),
+      templateKey: 'invoice.v1',
+      studentId: studentId,
+      academicYearId: yearId,
+    );
+  }
 }

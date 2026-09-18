@@ -29,7 +29,7 @@ Exactly **five** primary destinations after authentication:
 | 1 | Agenda | `/calendar` | Merged day list (sessions + school events) |
 | 2 | Scolarité | `/scolarite/notes` | Grades and bulletins hub |
 | 3 | Frais | `/fees` | Fee summary and lines |
-| 4 | Messages | `/inbox` | Inbox list |
+| 4 | Messages | `/inbox` | Inbox: Messages and Avis |
 
 Labels must stay short enough for a 390 px width at 200% text scale.
 
@@ -39,6 +39,20 @@ Labels must stay short enough for a 390 px width at 200% text scale.
 - There must be **no** top sub-tab bar for Programme / Cahier / Notes / Bulletins.
 - Programme, cahier, subject grades, grade detail, and report cards are reached by **drill-down** from the hub (and related detail routes).
 - Legacy paths `/scolarite`, `/scolarite/programme`, `/scolarite/cahier`, and `/scolarite/bulletins` must resolve to the hub (`/scolarite/notes`).
+- There is **no Documents destination** (no sixth tab, no Scolarité “Documents” hub row). Print from the owning object: bulletin PDF on the bulletin detail; receipts/invoices/statement on Frais.
+
+### Messages information architecture
+
+- Bottom nav stays **Messages**. Inside `/inbox`, a two-segment control: **Messages | Avis**.
+- URL-backed: `/inbox` (deliveries) vs `/inbox/avis` (family-feedback campaigns).
+- Questionnaire is a **detail** of Messages (`/inbox/avis/:campaignId`), not a third inbox segment and not a Home archive.
+- Accueil may ping an open campaign, then open `/inbox/avis` (or the questionnaire when there is exactly one open item).
+
+### Child profile
+
+- Entry is the **student context card** (avatar / name), not a sixth tab.
+- Route `/child` shows shell chrome with **no** primary tab forced (same as Account).
+- The page is the selected-child hub: identity, photo proposal, and leftover family papers (certificate, student ID, convocation, …) with print/download in place.
 
 ### Tab highlighting
 
@@ -49,7 +63,7 @@ Labels must stay short enough for a 390 px width at 200% text scale.
 | `/scolarite…`, `/grade…`, `/report-card…` | Scolarité |
 | `/fees…` | Frais |
 | `/inbox…` | Messages |
-| `/account…`, `/settings…` | None of the five (chrome still shown; no primary tab forced) |
+| `/account…`, `/settings…`, `/child…` | None of the five (chrome still shown; no primary tab forced) |
 
 ---
 
@@ -59,12 +73,15 @@ Labels must stay short enough for a 390 px width at 200% text scale.
 
 | Path | Screen |
 |------|--------|
-| `/login` | Connexion (outside shell) |
+| `/login` | Connexion OTP (outside shell) |
+| `/invite/:token` | Invitation accept (outside shell) |
+| `/waiting` | Waiting for linked students (outside shell) |
 | `/home` | Accueil |
 | `/calendar` | Agenda |
 | `/scolarite/notes` | Scolarité hub |
 | `/fees` | Frais |
 | `/inbox` | Messages |
+| `/inbox/avis` | Avis / campagnes (same Messages tab) |
 
 ### Detail / drill-down (under shell)
 
@@ -80,6 +97,8 @@ Labels must stay short enough for a 390 px width at 200% text scale.
 | `/fees/fee/:id` | Détail frais | Frais |
 | `/fees/payment/:id` | Reçu paiement | Frais |
 | `/inbox/message/:id` | Message | Messages |
+| `/inbox/avis/:campaignId` | Questionnaire avis | Messages |
+| `/child` | Profil élève (photo + leftover papers) | none (chrome, no tab) |
 | `/account` | Compte (full page under shell) | Account |
 | `/account/profile` | Profil | Account |
 | `/settings` | Paramètres | Account |
@@ -107,7 +126,7 @@ Unauthenticated users must land on `/login`. Authenticated users on `/login` mus
 
 ### Student context visibility
 
-Whenever shell chrome is shown (including Accueil, the five primary tabs, their details, **Account**, and **Settings**), the **student context card** must remain part of the chrome. Account is guardian-scoped but still shows the active student/school context so the guardian can switch child without leaving account flows.
+Whenever shell chrome is shown (including Accueil, the five primary tabs, their details, **Account**, **Settings**, and **child profile**), the **student context card** must remain part of the chrome. Tapping the avatar or name opens `/child`. The expand control still opens the context sheet (student switcher).
 
 ### Compact width (&lt; 600)
 
@@ -134,6 +153,7 @@ Must show, for the active student:
 - Avatar (photo or initials)
 - Student name + class label
 - School name + school year
+- Affordance to open the **child profile** (`/child`) from avatar / name
 - Affordance to open the **context sheet** (student switcher)
 
 Layout: dual columns — student | school — inside a borderless card under the brand app bar (or under chrome on list masters).
@@ -171,7 +191,7 @@ Prefer a single Agenda-style content column. Must **not** use a permanent side-b
 
 ## 6. List–detail presentation
 
-Applies to: Agenda, Scolarité, Frais, Messages, and Account profile/settings.
+Applies to: Agenda, Scolarité, Frais, Messages (including Avis details), and Account profile/settings.
 
 ### Compact / medium (&lt; 1000)
 
@@ -196,10 +216,18 @@ Applies to: Agenda, Scolarité, Frais, Messages, and Account profile/settings.
 - `/account` is a full page under the shell (list path for the account host).
 - `/account/profile` and `/settings` are details of that host (drawer on expanded; full body when &lt; 1000).
 
+### Print from the owning page
+
+- **Frais** — receipt from a payment; invoice from a charge; account statement from the year summary.
+- **Scolarité** — report card PDF from the bulletin detail.
+- Leftover family papers without a domain page (schooling certificate, enrollment record, student ID, withdrawal certificate, convocation) live on `/child`.
+- Do **not** list `receipt.v1` / `invoice.v1` / `account-statement.v1` / `report-card.v1` on a generic documents inbox.
+
 ### Home
 
 - Home does **not** use the list–detail drawer host.
 - Home shows app bar + student context + page body in the content column.
+- Home attention pings (overdue fees, open campaign, photo/paper, bulletin, unread mail) then deep-links to the owning tab or `/child`. Do not keep a campaign inbox on Home.
 
 ---
 
@@ -212,10 +240,13 @@ Applies to: Agenda, Scolarité, Frais, Messages, and Account profile/settings.
 5. ≥ 1000: right overlay detail drawer (~40%, scrim, close); no permanent split.
 6. Drawer covers title → bottom of the content column beside the rail.
 7. Max unconstrained content width 840.
-8. Student context card visible whenever shell chrome is shown (including Account / Settings).
+8. Student context card visible whenever shell chrome is shown (including Account / Settings / child profile); avatar/name open `/child`.
 9. Year selection only via menu overlay in the context sheet (per school, beside school name).
 10. v1 is mostly read-only (profile contact / notification channels allowed); help/settings stubs must not be documented as product features (see §8).
 11. Design-review (or equivalent) must cover **compact**, **medium** (rail, no drawer), and **expanded** (rail + drawer) widths.
+12. No Documents destination. Print from Frais / Scolarité / child leftover papers.
+13. Inbox has exactly two URL-backed lists: `/inbox` and `/inbox/avis`.
+14. Unauthenticated users land on `/login`; invite/waiting stay outside the five tabs; authenticated users with linked children land on `/home`.
 
 ---
 
@@ -225,6 +256,7 @@ Must not be treated as shell requirements:
 
 - A `ShellContextBar` with student chip left + guardian chip right as the primary header model
 - Scolarité top sub-tabs (Programme / Cahier / Notes / Bulletins)
+- A dedicated Documents menu or issuance dump as a product surface
 - Help centre implemented as a SnackBar stub
 - Settings controls that are no-ops (dark mode, language) presented as finished product behavior
 - Triple paint-path implementation details for the app bar (Scaffold vs chrome wrappers) — only the UX outcomes in §4–§6 are normative
