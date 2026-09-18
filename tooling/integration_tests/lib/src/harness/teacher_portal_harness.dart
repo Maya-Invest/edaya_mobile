@@ -45,13 +45,13 @@ class TeacherPortalContext {
     return academicPeriods.first['id'] as String?;
   }
 
-  /// Period used for grade write probes — demo-ci publishes bulletins for all
-  /// trimesters; pair with the last enrollment student in [probeTeacherEvaluationWrites].
+  /// Period used for grade write probes — demo-ci publishes Trimestre 1 only
+  /// and leaves T1 bulletins unpublished so writes do not 409.
   String? get writeProbePeriodId {
     if (academicPeriods.isEmpty) {
       return null;
     }
-    return academicPeriods.last['id'] as String?;
+    return academicPeriods.first['id'] as String?;
   }
 
   String get primaryClassGroupId => profile.primaryClassGroupId;

@@ -13,7 +13,7 @@ class IntegrationConfig {
 
   /// Narrative "today" for demo-ci calendar/timetable probes — matches backend
   /// `SEED_REFERENCE_DATE` so integration tests stay stable across real dates.
-  static const defaultCalendarReferenceDate = '2026-06-16';
+  static const defaultCalendarReferenceDate = '2026-09-17';
 
   factory IntegrationConfig.fromEnvironment() {
     return IntegrationConfig(

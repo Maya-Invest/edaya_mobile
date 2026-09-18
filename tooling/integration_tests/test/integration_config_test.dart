@@ -55,7 +55,7 @@ void main() {
   );
 
   test(
-    'TeacherPortalContext.writeProbePeriodId prefers last academic period',
+    'TeacherPortalContext.writeProbePeriodId prefers first academic period',
     () {
       const context = TeacherPortalContext(
         profile: TeacherPortalProfile.subjectTeacher,
@@ -82,7 +82,7 @@ void main() {
       );
 
       expect(context.firstPeriodId, 'ci-2025-t1');
-      expect(context.writeProbePeriodId, 'ci-2025-t3');
+      expect(context.writeProbePeriodId, 'ci-2025-t1');
     },
   );
 
