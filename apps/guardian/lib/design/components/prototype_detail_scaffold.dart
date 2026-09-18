@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../app/shell_tabs.dart';
 import '../colors.dart';
 
 class PrototypeDetailScaffold extends StatelessWidget {
@@ -10,7 +11,7 @@ class PrototypeDetailScaffold extends StatelessWidget {
     this.titleWidget,
     required this.body,
     this.fallbackRoute = '/home',
-    this.embedded = false,
+    this.embedded = true,
   });
 
   final String? title;
@@ -18,15 +19,16 @@ class PrototypeDetailScaffold extends StatelessWidget {
   final Widget body;
   final String fallbackRoute;
 
-  /// When true (right detail drawer), show close instead of back.
+  /// Overlay toolbar (close). When false, uses a nested back AppBar.
   final bool embedded;
 
   static void popOrGo(BuildContext context, {required String fallbackRoute}) {
     if (context.canPop()) {
       context.pop();
-    } else {
-      context.go(fallbackRoute);
+      return;
     }
+    final hub = GuardianShellScope.maybeOf(context)?.hubPath;
+    context.go(hub ?? fallbackRoute);
   }
 
   @override

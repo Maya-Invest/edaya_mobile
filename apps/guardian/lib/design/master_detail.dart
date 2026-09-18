@@ -7,11 +7,9 @@ import 'breakpoints.dart';
 import 'colors.dart';
 import 'shell_chrome.dart';
 
-/// Full-width [master] with an optional right overlay detail drawer.
+/// Full-width [master] with an overlay [detail].
 ///
-/// On wide layouts the overlay spans this host’s full height. Pair with
-/// [ShellChromeDrawerMaster] (and optional app bar above the master) so the
-/// drawer covers the title bar as well as page content.
+/// Compact / medium: the detail covers the hub. Expanded (≥ 1000): right drawer.
 class DetailDrawerScaffold extends StatelessWidget {
   const DetailDrawerScaffold({
     super.key,
@@ -32,9 +30,24 @@ class DetailDrawerScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        if (!hasSelection) return master;
+
         final useDrawer =
             PrototypeBreakpoints.useDetailDrawer(constraints.maxWidth);
-        if (!useDrawer || !hasSelection) return master;
+        if (!useDrawer) {
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned.fill(child: master),
+              Positioned.fill(
+                child: Material(
+                  color: PrototypeColors.background,
+                  child: detail,
+                ),
+              ),
+            ],
+          );
+        }
 
         final drawerWidth = math.min(
           math.max(constraints.maxWidth * widthFraction, 360.0),

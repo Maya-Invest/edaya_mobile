@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'breakpoints.dart';
 import 'master_detail.dart';
 
 /// Hosts a list [master] with optional nested [detailChild] (GoRouter shell child).
 ///
-/// Compact / medium (&lt; expanded): list or detail under shell chrome (brand app
-/// bar when present + student context).
-/// Wide (≥ [PrototypeBreakpoints.expanded]): list stays full-width; detail opens
-/// as a full-height right overlay (title bar to bottom, beside the rail).
+/// The hub stays mounted. Compact / medium cover it with a full-width overlay;
+/// wide layouts use a right drawer.
 class ListDetailHost extends StatelessWidget {
   const ListDetailHost({
     super.key,
@@ -34,25 +31,11 @@ class ListDetailHost extends StatelessWidget {
     final path = GoRouterState.of(context).uri.path;
     final hasSelection = !_isList(path);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final useDrawer =
-            PrototypeBreakpoints.useDetailDrawer(constraints.maxWidth);
-
-        if (!useDrawer) {
-          // Always keep brand app bar (medium+) + student context above content.
-          return DetailDrawerMasterColumn(
-            child: hasSelection ? detailChild : master,
-          );
-        }
-
-        return DetailDrawerScaffold(
-          master: DetailDrawerMasterColumn(child: master),
-          detail: detailChild,
-          hasSelection: hasSelection,
-          listPath: listPath,
-        );
-      },
+    return DetailDrawerScaffold(
+      master: DetailDrawerMasterColumn(child: master),
+      detail: detailChild,
+      hasSelection: hasSelection,
+      listPath: listPath,
     );
   }
 }
