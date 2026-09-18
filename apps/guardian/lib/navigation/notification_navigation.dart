@@ -1,6 +1,8 @@
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/inbox/inbox_routes.dart';
+
 /// Routes the user after they open a push notification in the guardian app.
 void handleGuardianNotificationOpened(RemoteMessage message) {
   final session = EdayaRootScope.find<AppSessionController>();
@@ -21,7 +23,7 @@ void handleGuardianNotificationOpened(RemoteMessage message) {
       router.go('/inbox');
       return;
     }
-    router.go('/inbox/message/$deliveryId');
+    router.go(inboxMessagePath(deliveryId));
     return;
   }
 

@@ -67,7 +67,7 @@ class CalendarPage extends LScopedView<CalendarController> {
               children: [
                 Flexible(child: _CalendarDatePicker(controller: controller)),
                 TextButton.icon(
-                  onPressed: () => context.go('/attendance'),
+                  onPressed: () => context.push('/attendance'),
                   icon: const Icon(Icons.list_alt_outlined, size: 18),
                   label: const Text('Toutes les présences'),
                 ),
@@ -178,16 +178,12 @@ class _WeekSelector extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           child: FilledButton(
                             style: FilledButton.styleFrom(
-                              backgroundColor: isSameCalendarDay(
-                                    weekDates[i],
-                                    selected,
-                                  )
+                              backgroundColor:
+                                  isSameCalendarDay(weekDates[i], selected)
                                   ? PrototypeColors.primary
                                   : PrototypeColors.surface,
-                              foregroundColor: isSameCalendarDay(
-                                    weekDates[i],
-                                    selected,
-                                  )
+                              foregroundColor:
+                                  isSameCalendarDay(weekDates[i], selected)
                                   ? Colors.white
                                   : PrototypeColors.onBackground,
                               minimumSize: const Size(0, 48),
@@ -297,7 +293,7 @@ class _MergedDayList extends StatelessWidget {
               category: _categoryForKind(sessions[i].kind),
             ),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.go('/session/${sessions[i].id}'),
+            onTap: () => context.push('/session/${sessions[i].id}'),
           ),
         ],
       ],
@@ -330,7 +326,10 @@ class _NoSchoolBanner extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(event.title, style: Theme.of(context).textTheme.titleSmall),
+                Text(
+                  event.title,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
                 if ((event.description ?? '').isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(

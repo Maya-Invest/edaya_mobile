@@ -28,99 +28,67 @@ class StudentContextCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    final classYear = '$classLabel · $schoolYear';
+    final textTheme = Theme.of(context).textTheme;
+
+    return SurfaceCard(
       padding: const EdgeInsets.fromLTRB(
-        PrototypeSpacing.md,
-        0,
-        PrototypeSpacing.md,
+        PrototypeSpacing.sm,
+        PrototypeSpacing.sm,
+        PrototypeSpacing.xs,
         PrototypeSpacing.sm,
       ),
-      child: SurfaceCard(
-        padding: const EdgeInsets.fromLTRB(
-          PrototypeSpacing.sm,
-          PrototypeSpacing.sm,
-          PrototypeSpacing.xs,
-          PrototypeSpacing.sm,
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            InkWell(
+      child: Row(
+        children: [
+          InkWell(
+            onTap: onOpenProfile,
+            borderRadius: BorderRadius.circular(24),
+            child: PersonAvatar(
+              initials: studentInitials,
+              photoUrl: photoUrl,
+              radius: 24,
+            ),
+          ),
+          const SizedBox(width: PrototypeSpacing.sm),
+          Expanded(
+            child: InkWell(
               onTap: onOpenProfile,
-              borderRadius: BorderRadius.circular(24),
-              child: PersonAvatar(
-                initials: studentInitials,
-                photoUrl: photoUrl,
-                radius: 24,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    studentName,
+                    style: textTheme.titleSmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    schoolName,
+                    style: textTheme.bodySmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    classYear,
+                    style: textTheme.bodySmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: PrototypeSpacing.sm),
-            Expanded(
-              child: InkWell(
-                onTap: onOpenProfile,
-                child: Column(
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            studentName,
-                            style: Theme.of(context).textTheme.titleSmall,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: PrototypeSpacing.sm),
-                        Expanded(
-                          child: Text(
-                            schoolName,
-                            style: Theme.of(context).textTheme.titleSmall,
-                            textAlign: TextAlign.right,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            classLabel,
-                            style: Theme.of(context).textTheme.bodySmall,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: PrototypeSpacing.sm),
-                        Expanded(
-                          child: Text(
-                            schoolYear,
-                            style: Theme.of(context).textTheme.bodySmall,
-                            textAlign: TextAlign.right,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            IconButton(
-              tooltip: 'Choisir un élève',
-              icon: const Icon(Icons.expand_more),
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              onPressed: onSelectStudent,
-            ),
-          ],
-        ),
+          ),
+          IconButton(
+            tooltip: 'Choisir un élève',
+            icon: const Icon(Icons.expand_more),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            onPressed: onSelectStudent,
+          ),
+        ],
       ),
     );
   }
 }
-

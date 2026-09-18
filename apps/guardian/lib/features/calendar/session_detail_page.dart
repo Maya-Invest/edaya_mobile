@@ -49,11 +49,8 @@ class SessionDetailPage extends LScopedView<SessionDetailController> {
 
   @override
   Widget buildView(BuildContext context, SessionDetailController controller) {
-    final embedded = PrototypeBreakpoints.detailDrawerActive(context);
-
     if (controller.isBusy.value && controller.session.value == null) {
       return PrototypeDetailScaffold(
-        embedded: embedded,
         fallbackRoute: '/calendar',
         title: 'Séance',
         body: const Center(child: CircularProgressIndicator()),
@@ -63,7 +60,6 @@ class SessionDetailPage extends LScopedView<SessionDetailController> {
     final session = controller.session.value;
     if (session == null) {
       return PrototypeDetailScaffold(
-        embedded: embedded,
         fallbackRoute: '/calendar',
         title: 'Séance',
         body: EmptyState(
@@ -82,7 +78,6 @@ class SessionDetailPage extends LScopedView<SessionDetailController> {
     final timeFmt = DateFormat('HH:mm', 'fr_FR');
 
     return PrototypeDetailScaffold(
-      embedded: embedded,
       fallbackRoute: '/calendar',
       titleWidget: Row(
         children: [
@@ -227,14 +222,16 @@ class _AssessmentSection extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              if ((controller.assessmentDescription.value ?? '').isNotEmpty) ...[
+              if ((controller.assessmentDescription.value ?? '')
+                  .isNotEmpty) ...[
                 const SizedBox(height: PrototypeSpacing.sm),
                 Text(
                   controller.assessmentDescription.value!,
                   style: textTheme.bodyMedium,
                 ),
               ],
-              if ((controller.assessmentInstructions.value ?? '').isNotEmpty) ...[
+              if ((controller.assessmentInstructions.value ?? '')
+                  .isNotEmpty) ...[
                 const SizedBox(height: PrototypeSpacing.sm),
                 Text('Consignes', style: textTheme.labelSmall),
                 Text(
@@ -269,8 +266,8 @@ class _ActivitySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final notes = controller.activityNotes.value ??
-        controller.logbook.value?.content;
+    final notes =
+        controller.activityNotes.value ?? controller.logbook.value?.content;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [

@@ -1,17 +1,16 @@
-import 'package:flutter/material.dart';
+import 'edaya_tokens.g.dart';
 
-/// Brand colors from the Edaya design system.
+/// Stable brand aliases. Semantic states belong to the active theme.
 abstract final class EdayaColors {
-  static const primary = Color(0xFF2563EB);
-  static const primaryLight = Color(0xFF60A5FA);
-  static const accent = Color(0xFFFBBF24);
-  static const background = Color(0xFFF0F7FF);
-  static const onBackground = Color(0xFF1E293B);
-
-  static const primaryContainer = Color(0xFFDBEAFE);
-  static const secondaryContainer = Color(0xFFE0F2FE);
-  static const accentContainer = Color(0xFFFEF3C7);
-  static const onSurfaceVariant = Color(0xFF64748B);
-  static const outline = Color(0xFF94A3B8);
-  static const outlineVariant = Color(0xFFCBD5E1);
+  static const primary = EdayaTokens.lightPrimary;
+  static const primaryLight = EdayaTokens.lightBrandSky;
+  static const accent = EdayaTokens.lightBrandAmber;
+  static const background = EdayaTokens.lightBackground;
+  static const onBackground = EdayaTokens.lightForeground;
+  static const primaryContainer = EdayaTokens.lightPrimaryContainer;
+  static const secondaryContainer = EdayaTokens.lightSkySoft;
+  static const accentContainer = EdayaTokens.lightHighlightSoft;
+  static const onSurfaceVariant = EdayaTokens.lightMutedForeground;
+  static const outline = EdayaTokens.lightInput;
+  static const outlineVariant = EdayaTokens.lightBorder;
 }

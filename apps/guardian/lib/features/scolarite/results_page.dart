@@ -42,7 +42,7 @@ class ResultsPage extends LScopedView<ResultsController> {
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
           SurfaceCard(
-            onTap: () => context.go('/scolarite/progress'),
+            onTap: () => context.push('/scolarite/progress'),
             child: Row(
               children: [
                 Container(
@@ -51,7 +51,10 @@ class ResultsPage extends LScopedView<ResultsController> {
                     color: PrototypeColors.primaryContainer,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.insights_outlined, color: Colors.blue),
+                  child: const Icon(
+                    Icons.insights_outlined,
+                    color: Colors.blue,
+                  ),
                 ),
                 const SizedBox(width: PrototypeSpacing.sm),
                 Expanded(
@@ -127,11 +130,12 @@ class ResultsPage extends LScopedView<ResultsController> {
                       ),
                     ],
                   ),
-                  onTap: () => context.go('/report-card/${reportCard.id}'),
+                  onTap: () => context.push('/report-card/${reportCard.id}'),
                 ),
               ],
-              for (final result
-                  in controller.subjectResultsForPeriod(periods[i].id)) ...[
+              for (final result in controller.subjectResultsForPeriod(
+                periods[i].id,
+              )) ...[
                 const SizedBox(height: PrototypeSpacing.xs),
                 ListRow(
                   title: result.subject,
@@ -159,7 +163,7 @@ class ResultsPage extends LScopedView<ResultsController> {
                       ),
                     ],
                   ),
-                  onTap: () => context.go(
+                  onTap: () => context.push(
                     '/scolarite/period/${periods[i].id}/subject/${ResultsController.subjectRouteParam(result.subject)}',
                   ),
                 ),

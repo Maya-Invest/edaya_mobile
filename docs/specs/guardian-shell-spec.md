@@ -51,10 +51,12 @@ Labels must stay short enough for a 390 px width at 200% text scale.
 ### Child profile
 
 - Entry is the **student context card** (avatar / name), not a sixth tab.
-- Route `/child` shows shell chrome with **no** primary tab forced (same as Account).
+- Route `/child` is a **pushed page** on compact / medium and a **right drawer** on expanded. The last of the five primary tabs stays selected underneath.
 - The page is the selected-child hub: identity, photo proposal, and leftover family papers (certificate, student ID, convocation, …) with print/download in place.
 
 ### Tab highlighting
+
+The highlighted tab is always one of the five hubs. Pushed / drawer routes never clear the selection.
 
 | Location family | Selected tab |
 |-----------------|--------------|
@@ -63,7 +65,7 @@ Labels must stay short enough for a 390 px width at 200% text scale.
 | `/scolarite…`, `/grade…`, `/report-card…` | Scolarité |
 | `/fees…` | Frais |
 | `/inbox…` | Messages |
-| `/account…`, `/settings…`, `/child…` | None of the five (chrome still shown; no primary tab forced) |
+| `/account…`, `/settings…`, `/child…` | Last of the five (the hub stays mounted underneath) |
 
 ---
 
@@ -98,10 +100,12 @@ Labels must stay short enough for a 390 px width at 200% text scale.
 | `/fees/payment/:id` | Reçu paiement | Frais |
 | `/inbox/message/:id` | Message | Messages |
 | `/inbox/avis/:campaignId` | Questionnaire avis | Messages |
-| `/child` | Profil élève (photo + leftover papers) | none (chrome, no tab) |
-| `/account` | Compte (full page under shell) | Account |
-| `/account/profile` | Profil | Account |
-| `/settings` | Paramètres | Account |
+| `/child` | Profil élève (photo + leftover papers) | last hub |
+| `/account` | Compte | last hub |
+| `/account/profile` | Profil | last hub (close returns to `/account`) |
+| `/settings` | Paramètres | last hub (close returns to `/account`) |
+
+Delivery ids (`delivery:v2:…`) include `:` and percent-encoded source keys (`%3A`). Navigate with `inboxMessagePath(id)` so GoRouter keeps the raw id, and load the row with POST `/one` (JSON body). GET `/message-deliveries/{id}` decodes `%3A` in the path and 404s for event notifications.
 
 Legacy redirects that must remain:
 
@@ -123,40 +127,60 @@ Unauthenticated users must land on `/login`. Authenticated users on `/login` mus
 - Centered wordmark **`edaya`** (Nunito brand style).
 - Canvas background matching the app scaffold (`#F0F7FF`); no elevation tint.
 - No automatic back leading on primary shell destinations.
+- **No** profile control and **no** help control on the app bar or the navigation rail.
 
-### Student context visibility
+### Header cards
 
-Whenever shell chrome is shown (including Accueil, the five primary tabs, their details, **Account**, **Settings**, and **child profile**), the **student context card** must remain part of the chrome. Tapping the avatar or name opens `/child`. The expand control still opens the context sheet (student switcher).
+On the **five hubs**, a single header row sits below the wordmark:
+
+- **Child card** (flex, remaining width) — `StudentContextCard`
+- **Parent card** (square, photo only) — to the right of the child card; height matches the child card
+
+Tapping the child avatar or name **pushes** `/child`. The expand control still opens the context sheet (student switcher). Tapping the parent card **pushes** `/account`. Compact / medium pushed pages do **not** repeat this header.
 
 ### Compact width (&lt; 600)
 
 | Element | Requirement |
 |---------|-------------|
 | Primary nav | Bottom `NavigationBar` with the five destinations |
-| Profile | App bar leading control → `/account` |
-| Help | App bar trailing control |
-| Student context | `StudentContextCard` below the app bar on destinations that show chrome |
+| App bar | Brand wordmark only |
+| Header | Child card + square parent photo card below the app bar |
 
 ### Medium and wider (≥ 600)
 
 | Element | Requirement |
 |---------|-------------|
 | Primary nav | Full-height `NavigationRail` (labels always visible) |
-| Profile + help | At the **bottom** of the rail (not on the app bar) |
-| App bar | Brand wordmark only (no profile / help) |
-| Layout | Rail edge-to-edge with content column; app bar lives in the content column so the rail border runs full height |
+| App bar | Brand wordmark only (in the content column so the rail border runs full height) |
+| Header | Same child + parent cards in the content column |
+| Rail trailing | Empty — no profile / help icons |
 
 ### Student context card
 
-Must show, for the active student:
+Must show, for the active student, **three left-aligned rows** beside the avatar:
 
-- Avatar (photo or initials)
-- Student name + class label
-- School name + school year
-- Affordance to open the **child profile** (`/child`) from avatar / name
+1. Student name
+2. School name
+3. Class with school year (`6ème 1 · 2026 — 2027`)
+
+Plus:
+
+- Avatar (photo or initials) — opens `/child`
 - Affordance to open the **context sheet** (student switcher)
 
-Layout: dual columns — student | school — inside a borderless card under the brand app bar (or under chrome on list masters).
+Layout: one flex card in the header row (not a 2×2 grid).
+
+### Parent account card
+
+- Square `SurfaceCard` with `tint` = primary container (light blue).
+- **No name and no email** — avatar / initials only.
+- Sized to the child card height so the child card keeps the remaining width.
+- Tooltip `Mon compte`. Tap opens `/account`.
+- Initials come from the account / session display name (same source as the account overlay).
+
+### Assistance
+
+Assistance is a row on the **account overlay** (with Profil / Paramètres), not a shell chrome control. Do not document the in-app help SnackBar stub as a product feature (see §8).
 
 ### Context sheet
 
@@ -173,9 +197,9 @@ Year control must scale as historical years accumulate (scrollable menu; current
 
 | Tier | Width (logical px) | Chrome | Content |
 |------|--------------------|--------|---------|
-| Compact | &lt; 600 | Bottom navigation | Single column |
-| Medium | ≥ 600 and &lt; 1000 | Navigation rail + brand app bar in content column | Max content width **840**; details replace body under chrome (no overlay drawer) |
-| Expanded | ≥ 1000 | Rail + right overlay drawer | Detail over list |
+| Compact | &lt; 600 | Bottom navigation | Single column; details **push a full-screen page** (covers chrome) |
+| Medium | ≥ 600 and &lt; 1000 | Navigation rail + brand app bar in content column | Max content width **840**; details push a full-screen page (no right drawer) |
+| Expanded | ≥ 1000 | Rail + right overlay drawer | Detail over hub in the content column |
 
 Constants (checkable):
 
@@ -191,30 +215,43 @@ Prefer a single Agenda-style content column. Must **not** use a permanent side-b
 
 ## 6. List–detail presentation
 
-Applies to: Agenda, Scolarité, Frais, Messages (including Avis details), and Account profile/settings.
+The five tab hubs stay **mounted** (`IndexedStack`). Every non-hub route leaves the tab stack in place and opens as:
+
+- **Compact / medium (&lt; 1000):** a **pushed full-screen page** covering the brand bar, header cards, and bottom nav / rail. Back returns to the hub.
+- **Expanded (≥ 1000):** a **right drawer** over the hub; brand bar, header cards, and rail stay visible.
+
+Applies to: Agenda, Scolarité, Frais, Messages (including Avis details), child profile, account, profile, and settings.
+
+### Shell body vs pushed / drawer routes
+
+| Kind | Paths |
+|------|--------|
+| Shell hubs (tab body) | `/home`, `/calendar`, `/scolarite/notes`, `/fees`, `/inbox`, `/inbox/avis` |
+| Pushed page (compact/medium) or right drawer (expanded) | `/child`, `/account`, `/account/profile`, `/settings`, and every drill-down (session, attendance, programme, cahier, notes, bulletin, fee, payment, message, avis questionnaire) |
+
+Home pings that switch **tabs** (`go('/fees')`) stay tab switches. Pings to `/child` or `/inbox/avis/:id` push (or open the drawer) on the current or target tab.
 
 ### Compact / medium (&lt; 1000)
 
-- List (or hub) fills the shell body under chrome.
-- Opening a detail **replaces** the body with the detail screen (back returns to the list path).
-- Detail uses a back affordance (not close).
+- Hub stays mounted underneath (not disposed).
+- Opening a detail **pushes a full-screen page** over the shell (no nested header cards, no bottom nav).
+- Detail chrome is a back AppBar (`Retour`), not a close control and not an embedded strip under the child card.
 
 ### Expanded (≥ 1000)
 
-- List remains full width in the content column.
-- Detail opens as a **right overlay drawer**:
+- Hub remains full width in the content column under the drawer.
+- Detail opens as a **right overlay drawer** over the hub (not over the wordmark or header cards):
   - Default width fraction **0.4** of the host
   - Clamped roughly **360–520** dp and at most **50%** of host width
-  - Scrim over the master (~18% black); tap scrim dismisses to the list path via navigation to `listPath`
-  - Close control on the detail (×), not a system back in the drawer header
-  - Close may **pop when possible**, otherwise navigate to the detail’s `fallbackRoute` / list path — pop-when-possible is allowed even if that path differs slightly from a hard `go(listPath)`
-  - Drawer is not permanently split; when there is no selection, only the list is shown
-- Drawer must cover the content column from **brand title through bottom** (edge-to-edge with the rail): master column includes app bar + student context + list so the overlay sits on top of that stack.
+  - Scrim over the hub (~18% black); tap scrim dismisses (pop when possible, else `go(listPath)`)
+  - Close control on the detail (×)
+  - Drawer is not permanently split; when there is no selection, only the hub is shown
 
-### Account special case
+### Account and child
 
-- `/account` is a full page under the shell (list path for the account host).
-- `/account/profile` and `/settings` are details of that host (drawer on expanded; full body when &lt; 1000).
+- `/child` and `/account` are pushed pages / drawer details, not extra tabs.
+- `/account/profile` and `/settings` stack on `/account` (back returns to `/account`).
+- Assistance lives on the account page, not in shell chrome.
 
 ### Print from the owning page
 
@@ -225,9 +262,8 @@ Applies to: Agenda, Scolarité, Frais, Messages (including Avis details), and Ac
 
 ### Home
 
-- Home does **not** use the list–detail drawer host.
-- Home shows app bar + student context + page body in the content column.
-- Home attention pings (overdue fees, open campaign, photo/paper, bulletin, unread mail) then deep-links to the owning tab or `/child`. Do not keep a campaign inbox on Home.
+- Home is a mounted hub like the other tabs (not a special chrome exception).
+- Home attention pings (overdue fees, open campaign, photo/paper, bulletin, unread mail) then deep-link to the owning tab or push `/child`. Do not keep a campaign inbox on Home.
 
 ---
 
@@ -235,15 +271,15 @@ Applies to: Agenda, Scolarité, Frais, Messages (including Avis details), and Ac
 
 1. Exactly five primary FR labels: Accueil, Agenda, Scolarité, Frais, Messages.
 2. Scolarité hub path is `/scolarite/notes`; no top Programme/Cahier/Notes/Bulletins tab bar.
-3. Compact (&lt; 600): bottom nav; profile + help on app bar.
-4. ≥ 600: rail; profile + help on rail trailing; brand-only app bar.
-5. ≥ 1000: right overlay detail drawer (~40%, scrim, close); no permanent split.
-6. Drawer covers title → bottom of the content column beside the rail.
+3. Compact (&lt; 600): bottom nav; wordmark-only app bar; child card + square parent photo card.
+4. ≥ 600: rail; wordmark-only app bar; no profile / help on the rail.
+5. ≥ 1000: right overlay detail drawer (~40%, scrim, close) over the hub; no permanent split.
+6. Compact / medium: non-hub routes push a full-screen page (covers chrome and nav). Hubs stay mounted; one of the five tabs stays selected underneath.
 7. Max unconstrained content width 840.
-8. Student context card visible whenever shell chrome is shown (including Account / Settings / child profile); avatar/name open `/child`.
+8. Header row visible on the five hubs (and behind the expanded drawer). Child avatar/name open `/child`; parent card opens `/account`.
 9. Year selection only via menu overlay in the context sheet (per school, beside school name).
 10. v1 is mostly read-only (profile contact / notification channels allowed); help/settings stubs must not be documented as product features (see §8).
-11. Design-review (or equivalent) must cover **compact**, **medium** (rail, no drawer), and **expanded** (rail + drawer) widths.
+11. Design-review (or equivalent) must cover **compact** (full-screen push), **medium** (rail, full-screen push), and **expanded** (rail + right drawer) widths.
 12. No Documents destination. Print from Frais / Scolarité / child leftover papers.
 13. Inbox has exactly two URL-backed lists: `/inbox` and `/inbox/avis`.
 14. Unauthenticated users land on `/login`; invite/waiting stay outside the five tabs; authenticated users with linked children land on `/home`.

@@ -27,15 +27,14 @@ class ProgressOverviewPage extends LScopedView<ProgressController> {
 
   @override
   Widget buildView(BuildContext context, ProgressController controller) {
-    final embedded = PrototypeBreakpoints.detailDrawerActive(context);
-    final summaries =
-        controller.summaries.value.where((s) => s.hasProgramme).toList();
+    final summaries = controller.summaries.value
+        .where((s) => s.hasProgramme)
+        .toList();
     final overall = controller.overallProgress.value;
     final expandedSubjectIds = controller.expandedSubjectIds.value;
 
     if (controller.isBusy.value && summaries.isEmpty) {
       return PrototypeDetailScaffold(
-        embedded: embedded,
         fallbackRoute: '/scolarite/notes',
         title: 'Avancement du programme',
         body: const Center(child: CircularProgressIndicator()),
@@ -43,7 +42,6 @@ class ProgressOverviewPage extends LScopedView<ProgressController> {
     }
 
     return PrototypeDetailScaffold(
-      embedded: embedded,
       fallbackRoute: '/scolarite/notes',
       title: 'Avancement du programme',
       body: ListView(
@@ -75,14 +73,15 @@ class ProgressOverviewPage extends LScopedView<ProgressController> {
             _SubjectProgressSectionHeader(
               summary: summaries[i],
               expanded: expandedSubjectIds.contains(summaries[i].subject),
-              onOpenLogbook: () => context.go(
+              onOpenLogbook: () => context.push(
                 '/scolarite/subject/${ResultsController.subjectRouteParam(summaries[i].subject)}/cahier',
               ),
               onToggle: () => controller.toggleSubject(summaries[i].subject),
             ),
             if (expandedSubjectIds.contains(summaries[i].subject)) ...[
-              for (final topic
-                  in controller.topicsForSubject(summaries[i].subject)) ...[
+              for (final topic in controller.topicsForSubject(
+                summaries[i].subject,
+              )) ...[
                 const SizedBox(height: PrototypeSpacing.xs),
                 ListRow(
                   title: topic.title,
@@ -127,7 +126,9 @@ class _SubjectProgressSectionHeader extends StatelessWidget {
             onTap: onToggle,
             borderRadius: BorderRadius.circular(PrototypeRadii.sm),
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: PrototypeSpacing.xs),
+              padding: const EdgeInsets.symmetric(
+                vertical: PrototypeSpacing.xs,
+              ),
               child: Row(
                 children: [
                   Expanded(

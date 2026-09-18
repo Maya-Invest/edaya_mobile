@@ -34,13 +34,11 @@ class AttendanceListPage extends LScopedView<AttendanceController> {
 
   @override
   Widget buildView(BuildContext context, AttendanceController controller) {
-    final embedded = PrototypeBreakpoints.detailDrawerActive(context);
     final records = controller.records.value;
     final titles = controller.sessionTitles.value;
 
     if (controller.isBusy.value && records.isEmpty) {
       return PrototypeDetailScaffold(
-        embedded: embedded,
         fallbackRoute: '/calendar',
         title: 'Présences',
         body: const Center(child: CircularProgressIndicator()),
@@ -49,7 +47,6 @@ class AttendanceListPage extends LScopedView<AttendanceController> {
 
     if (controller.errorMessage.value.isNotEmpty && records.isEmpty) {
       return PrototypeDetailScaffold(
-        embedded: embedded,
         fallbackRoute: '/calendar',
         title: 'Présences',
         body: EmptyState(title: controller.errorMessage.value),
@@ -58,7 +55,6 @@ class AttendanceListPage extends LScopedView<AttendanceController> {
 
     if (records.isEmpty) {
       return PrototypeDetailScaffold(
-        embedded: embedded,
         fallbackRoute: '/calendar',
         title: 'Présences',
         body: const EmptyState(title: 'Aucune présence enregistrée'),
@@ -66,7 +62,6 @@ class AttendanceListPage extends LScopedView<AttendanceController> {
     }
 
     return PrototypeDetailScaffold(
-      embedded: embedded,
       fallbackRoute: '/calendar',
       title: 'Présences',
       body: ListView.separated(

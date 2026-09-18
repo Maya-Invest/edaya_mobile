@@ -11,6 +11,7 @@ import 'package:edaya_guardian/features/fees/fees_page.dart';
 import 'package:edaya_guardian/features/fees/payment_detail_page.dart';
 import 'package:edaya_guardian/features/home/home_page.dart';
 import 'package:edaya_guardian/features/inbox/inbox_page.dart';
+import 'package:edaya_guardian/features/inbox/inbox_routes.dart';
 import 'package:edaya_guardian/features/inbox/message_detail_page.dart';
 import 'package:edaya_guardian/features/scolarite/grade_detail_page.dart';
 import 'package:edaya_guardian/features/scolarite/results_page.dart';
@@ -190,11 +191,7 @@ void _mariamKoneSuite() {
       final entry = probes.firstGradedEntry;
       expect(entry, isNotNull);
 
-      await pumpGuardianRoute(
-        tester,
-        harness,
-        location: '/grade/${entry!.id}',
-      );
+      await pumpGuardianRoute(tester, harness, location: '/grade/${entry!.id}');
       await pumpUntilFound(tester, find.byType(GradeDetailPage));
       expect(find.textContaining(entry.title.split(' ').first), findsWidgets);
     });
@@ -270,7 +267,7 @@ void _mariamKoneSuite() {
       await pumpGuardianRoute(
         tester,
         harness,
-        location: '/inbox/message/${delivery!.id}',
+        location: inboxMessagePath(delivery!.id),
       );
       await pumpUntilFound(tester, find.byType(MessageDetailPage));
       expect(

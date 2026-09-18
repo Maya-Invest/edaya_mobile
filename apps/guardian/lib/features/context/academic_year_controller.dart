@@ -21,25 +21,53 @@ class AcademicYearController extends LevitController
   final SchoolClientFactory _schoolClient;
 
   final years = LxVar<List<Map<String, dynamic>>>(const []);
+  final yearsBySchool = LxVar<Map<String, List<Map<String, dynamic>>>>(
+    const {},
+  );
   final selectedYearId = LxVar<String?>(null);
+  final selectedYearBySchool = LxVar<Map<String, String>>(const {});
   final errorMessage = LxVar('');
 
   @override
   void onInit() {
     super.onInit();
     autoDispose(years);
+    autoDispose(yearsBySchool);
     autoDispose(selectedYearId);
+    autoDispose(selectedYearBySchool);
     autoDispose(errorMessage);
   }
 
   String? get selectedYearLabel {
-    final yearId = selectedYearId.value;
-    if (yearId == null) {
-      return null;
+    return yearLabelFor(selectedYearId.value);
+  }
+
+  String? selectedYearLabelForSchool(String schoolId) {
+    final yearId = selectedYearBySchool.value[schoolId] ?? selectedYearId.value;
+    return yearLabelFor(yearId, schoolId: schoolId);
+  }
+
+  List<Map<String, dynamic>> yearsForSchool(String schoolId) {
+    if (schoolId.isNotEmpty) {
+      final scoped = yearsBySchool.value[schoolId];
+      if (scoped != null && scoped.isNotEmpty) return scoped;
     }
-    for (final year in years.value) {
+    return years.value;
+  }
+
+  String? yearLabelFor(String? yearId, {String? schoolId}) {
+    if (yearId == null) return null;
+    final pool = schoolId == null ? years.value : yearsForSchool(schoolId);
+    for (final year in pool) {
       if (year['id'] == yearId) {
         return year['name'] as String? ?? yearId;
+      }
+    }
+    if (schoolId != null) {
+      for (final year in years.value) {
+        if (year['id'] == yearId) {
+          return year['name'] as String? ?? yearId;
+        }
       }
     }
     return yearId;
@@ -48,6 +76,7 @@ class AcademicYearController extends LevitController
   Future<void> loadYears() async {
     if (!_session.isAuthenticated) {
       years(const []);
+      yearsBySchool(const {});
       selectedYearId(null);
       return;
     }
@@ -62,6 +91,7 @@ class AcademicYearController extends LevitController
         if (resolved.isEmpty) {
           errorMessage(systemL10n().noAcademicYearsAvailable);
           years(const []);
+          yearsBySchool(const {});
           return;
         }
         await _applyYearSelection(resolved);
@@ -73,6 +103,7 @@ class AcademicYearController extends LevitController
         }
         errorMessage(systemL10n().couldNotLoadAcademicYears(error.toString()));
         years(const []);
+        yearsBySchool(const {});
       } on Object catch (error) {
         final fallback = await _loadYearsFromEnrollments();
         if (fallback.isNotEmpty) {
@@ -81,34 +112,104 @@ class AcademicYearController extends LevitController
         }
         errorMessage(systemL10n().couldNotLoadAcademicYears(error.toString()));
         years(const []);
+        yearsBySchool(const {});
       }
     });
   }
 
   Future<void> selectYear(String yearId) async {
     selectedYearId(yearId);
+    final schoolId = _session.schoolIdHeader;
+    if (schoolId != null && schoolId.isNotEmpty) {
+      selectedYearBySchool({...selectedYearBySchool.value, schoolId: yearId});
+      await _sessionStorage.writeAcademicYearIdForSchool(schoolId, yearId);
+      return;
+    }
     await _sessionStorage.writeAcademicYearId(yearId);
+  }
+
+  Future<void> selectYearForSchool(String schoolId, String yearId) async {
+    if (schoolId.isEmpty) {
+      await selectYear(yearId);
+      return;
+    }
+    selectedYearBySchool({...selectedYearBySchool.value, schoolId: yearId});
+    await _sessionStorage.writeAcademicYearIdForSchool(schoolId, yearId);
+    final currentSchool = _session.schoolIdHeader;
+    if (currentSchool == null ||
+        currentSchool.isEmpty ||
+        currentSchool == schoolId) {
+      selectedYearId(yearId);
+    }
+  }
+
+  Future<void> applyStoredYearForSchool(String schoolId) async {
+    if (schoolId.isEmpty) return;
+    final stored = await _sessionStorage.readAcademicYearIdForSchool(schoolId);
+    if (stored == null || stored == selectedYearId.value) return;
+    if (!yearsForSchool(schoolId).any((year) => year['id'] == stored) &&
+        !years.value.any((year) => year['id'] == stored)) {
+      return;
+    }
+    await selectYearForSchool(schoolId, stored);
   }
 
   Future<void> _applyYearSelection(
     List<Map<String, dynamic>> sortedYears,
   ) async {
     years(sortedYears);
+    _indexYearsBySchool(sortedYears);
 
-    final persistedId = await _sessionStorage.readAcademicYearId();
+    final schoolId = _session.schoolIdHeader;
+    final persistedId = schoolId == null || schoolId.isEmpty
+        ? await _sessionStorage.readAcademicYearId()
+        : await _sessionStorage.readAcademicYearIdForSchool(schoolId);
     if (persistedId != null &&
         sortedYears.any((year) => year['id'] == persistedId)) {
-      selectedYearId(persistedId);
-      return;
+      await selectYear(persistedId);
+    } else {
+      final activeYear = sortedYears.cast<Map<String, dynamic>?>().firstWhere(
+        (year) => _isActiveYear(year!),
+        orElse: () => sortedYears.isEmpty ? null : sortedYears.first,
+      );
+      if (activeYear != null) {
+        await selectYear(activeYear['id'] as String);
+      }
     }
 
-    final activeYear = sortedYears.cast<Map<String, dynamic>?>().firstWhere(
-      (year) => _isActiveYear(year!),
-      orElse: () => sortedYears.isEmpty ? null : sortedYears.first,
-    );
-    if (activeYear != null) {
-      await selectYear(activeYear['id'] as String);
+    await _hydrateStoredYearsForSchools();
+  }
+
+  void _indexYearsBySchool(List<Map<String, dynamic>> rows) {
+    final map = <String, List<Map<String, dynamic>>>{};
+    for (final row in rows) {
+      final schoolId = row['schoolId'] as String? ?? '';
+      if (schoolId.isEmpty) continue;
+      map.putIfAbsent(schoolId, () => []).add(row);
     }
+    final current = _session.schoolIdHeader;
+    if (map.isEmpty && current != null && current.isNotEmpty) {
+      map[current] = List<Map<String, dynamic>>.from(rows);
+    }
+    yearsBySchool(map);
+  }
+
+  Future<void> _hydrateStoredYearsForSchools() async {
+    final next = {...selectedYearBySchool.value};
+    var changed = false;
+    for (final schoolId in yearsBySchool.value.keys) {
+      final stored = await _sessionStorage.readAcademicYearIdForSchool(
+        schoolId,
+      );
+      if (stored == null) continue;
+      if (!yearsForSchool(schoolId).any((year) => year['id'] == stored)) {
+        continue;
+      }
+      if (next[schoolId] == stored) continue;
+      next[schoolId] = stored;
+      changed = true;
+    }
+    if (changed) selectedYearBySchool(next);
   }
 
   List<Map<String, dynamic>> _sortYears(List<Map<String, dynamic>> rows) {
@@ -135,11 +236,20 @@ class AcademicYearController extends LevitController
       return const [];
     }
 
-    final enrollments = await _schoolClient().enrollments.list({
+    final client = _schoolClient();
+    final enrollments = await client.enrollments.list({
       'studentId': {'\$in': studentIds},
     });
+    final studentRows = await client.students.list(entitiesByIds(studentIds));
+    final schoolByStudent = <String, String>{
+      for (final row in studentRows)
+        if (row['id'] is String)
+          row['id'] as String: row['schoolId'] as String? ?? '',
+    };
+    final fallbackSchoolId = _session.schoolIdHeader ?? '';
 
     final yearMeta = <String, bool>{};
+    final schoolByYear = <String, String>{};
     for (final enrollment in enrollments) {
       final yearId = enrollment['academicYearId'] as String?;
       if (yearId == null || yearId.isEmpty) {
@@ -147,6 +257,14 @@ class AcademicYearController extends LevitController
       }
       final isActiveEnrollment = enrollment['status'] == 'active';
       yearMeta[yearId] = yearMeta[yearId] == true || isActiveEnrollment;
+      final studentId = enrollment['studentId'] as String?;
+      final fromStudent = studentId == null
+          ? ''
+          : (schoolByStudent[studentId] ?? '');
+      final schoolId = fromStudent.isNotEmpty ? fromStudent : fallbackSchoolId;
+      if (schoolId.isNotEmpty) {
+        schoolByYear.putIfAbsent(yearId, () => schoolId);
+      }
     }
 
     return yearMeta.entries
@@ -155,6 +273,8 @@ class AcademicYearController extends LevitController
             'id': entry.key,
             'name': entry.key,
             'isActive': entry.value,
+            if (schoolByYear[entry.key] != null)
+              'schoolId': schoolByYear[entry.key],
           },
         )
         .toList()

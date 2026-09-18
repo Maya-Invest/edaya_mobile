@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../app/shell_tabs.dart';
+import '../breakpoints.dart';
 import '../colors.dart';
 
 class PrototypeDetailScaffold extends StatelessWidget {
@@ -11,7 +11,7 @@ class PrototypeDetailScaffold extends StatelessWidget {
     this.titleWidget,
     required this.body,
     this.fallbackRoute = '/home',
-    this.embedded = true,
+    this.embedded,
   });
 
   final String? title;
@@ -19,20 +19,22 @@ class PrototypeDetailScaffold extends StatelessWidget {
   final Widget body;
   final String fallbackRoute;
 
-  /// Overlay toolbar (close). When false, uses a nested back AppBar.
-  final bool embedded;
+  /// Drawer close toolbar when true; full-page back AppBar when false.
+  /// Null follows the expanded (≥ 1000) breakpoint.
+  final bool? embedded;
 
   static void popOrGo(BuildContext context, {required String fallbackRoute}) {
     if (context.canPop()) {
       context.pop();
       return;
     }
-    final hub = GuardianShellScope.maybeOf(context)?.hubPath;
-    context.go(hub ?? fallbackRoute);
+    context.go(fallbackRoute);
   }
 
   @override
   Widget build(BuildContext context) {
+    final embedded =
+        this.embedded ?? PrototypeBreakpoints.detailDrawerActive(context);
     if (embedded) {
       return ColoredBox(
         color: PrototypeColors.background,

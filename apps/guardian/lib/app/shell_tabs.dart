@@ -10,6 +10,7 @@ abstract final class GuardianShellTabs {
     '/inbox',
   ];
 
+  /// Tab body routes. `/inbox/avis` is the Messages list, not a detail.
   static bool isHub(String path) {
     return path == '/home' ||
         path == '/calendar' ||
@@ -19,8 +20,8 @@ abstract final class GuardianShellTabs {
         path == '/inbox/avis';
   }
 
-  /// Tab for a location, or `null` when the route is a global overlay
-  /// (`/child`, `/account`, `/settings`) that keeps the last tab selected.
+  /// Tab for a location, or `null` for global overlays (`/child`, `/account`,
+  /// `/settings`) that keep the last primary tab selected.
   static int? tabIndexFor(String path) {
     if (path.startsWith('/account') ||
         path.startsWith('/settings') ||
@@ -46,6 +47,26 @@ abstract final class GuardianShellTabs {
     if (path.startsWith('/home')) {
       return 0;
     }
+    return null;
+  }
+
+  /// Hub path for a location, or `null` so the last hub stays (child/account).
+  static String? hubPathForLocation(String path) {
+    if (isHub(path)) return path;
+    if (path.startsWith('/inbox/avis')) return '/inbox/avis';
+    if (path.startsWith('/inbox')) return '/inbox';
+    if (path.startsWith('/fees')) return '/fees';
+    if (path.startsWith('/session') ||
+        path.startsWith('/attendance') ||
+        path.startsWith('/calendar')) {
+      return '/calendar';
+    }
+    if (path.startsWith('/scolarite') ||
+        path.startsWith('/grade') ||
+        path.startsWith('/report-card')) {
+      return '/scolarite/notes';
+    }
+    if (path.startsWith('/home')) return '/home';
     return null;
   }
 

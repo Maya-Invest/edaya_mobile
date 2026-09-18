@@ -8,17 +8,24 @@ import '../../design/components/components.dart';
 import '../../design/spacing.dart';
 import 'inbox_controller.dart';
 import 'message_detail_controller.dart';
+import 'models/inbox_delivery.dart';
 
 class MessageDetailPage extends LScopedView<MessageDetailController> {
-  const MessageDetailPage({super.key, required this.messageId});
+  const MessageDetailPage({
+    super.key,
+    required this.messageId,
+    this.initialDelivery,
+  });
 
   final String messageId;
+  final InboxDelivery? initialDelivery;
 
   @override
   MessageDetailController onConfigScope(LevitScope scope) {
     return scope.put(
       () => MessageDetailController(
         messageId: messageId,
+        initialDelivery: initialDelivery,
         schoolClient: scope.find<SchoolClientFactory>(),
         onDeliveryUpdated: (updated) {
           try {
@@ -33,13 +40,10 @@ class MessageDetailPage extends LScopedView<MessageDetailController> {
 
   @override
   Widget buildView(BuildContext context, MessageDetailController controller) {
-    final embedded = PrototypeBreakpoints.detailDrawerActive(context);
-
     if (controller.isBusy.value && controller.delivery.value == null) {
       return PrototypeDetailScaffold(
         fallbackRoute: '/inbox',
         title: 'Message',
-        embedded: embedded,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -49,7 +53,6 @@ class MessageDetailPage extends LScopedView<MessageDetailController> {
       return PrototypeDetailScaffold(
         fallbackRoute: '/inbox',
         title: 'Message',
-        embedded: embedded,
         body: EmptyState(
           title: controller.errorMessage.value.isEmpty
               ? 'Message introuvable'
@@ -63,12 +66,10 @@ class MessageDetailPage extends LScopedView<MessageDetailController> {
     return PrototypeDetailScaffold(
       fallbackRoute: '/inbox',
       title: 'Message',
-      embedded: embedded,
       body: ListView(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
-          if (controller.isMarkingRead.value)
-            const LinearProgressIndicator(),
+          if (controller.isMarkingRead.value) const LinearProgressIndicator(),
           SurfaceCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

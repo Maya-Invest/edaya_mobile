@@ -11,11 +11,13 @@ class MessageDetailController extends LevitController
   MessageDetailController({
     required this.messageId,
     required SchoolClientFactory schoolClient,
+    this.initialDelivery,
     this.onDeliveryUpdated,
   }) : _schoolClient = schoolClient;
 
   final String messageId;
   final SchoolClientFactory _schoolClient;
+  final InboxDelivery? initialDelivery;
   final void Function(InboxDelivery updated)? onDeliveryUpdated;
 
   final delivery = LxVar<InboxDelivery?>(null);
@@ -28,6 +30,9 @@ class MessageDetailController extends LevitController
     autoDispose(delivery);
     autoDispose(isMarkingRead);
     autoDispose(errorMessage);
+    if (initialDelivery != null && initialDelivery!.id == messageId) {
+      delivery(initialDelivery);
+    }
     unawaited(loadAndMarkRead());
   }
 
@@ -35,9 +40,14 @@ class MessageDetailController extends LevitController
     await runTask(() async {
       try {
         final client = _schoolClient();
-        final row = await client.messageDeliveries.get(messageId);
-        var parsed = InboxDelivery.fromJson(row);
-        delivery(parsed);
+        var parsed = delivery.value;
+        if (parsed == null) {
+          // POST /one keeps `:` / `%3A` in the JSON body. GET /:id decodes
+          // `%3A` in the path and 404s for notification delivery ids.
+          final row = await client.messageDeliveries.one({'id': messageId});
+          parsed = InboxDelivery.fromJson(row);
+          delivery(parsed);
+        }
 
         if (parsed.isUnread) {
           isMarkingRead(true);
@@ -62,10 +72,10 @@ class MessageDetailController extends LevitController
         }
       } on api.ApiError catch (error) {
         errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
-        delivery(null);
+        if (delivery.value == null) delivery(null);
       } on Object catch (error) {
         errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
-        delivery(null);
+        if (delivery.value == null) delivery(null);
       }
     }, id: 'load-message-detail');
   }

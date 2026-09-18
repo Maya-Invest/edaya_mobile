@@ -2,6 +2,7 @@ import 'package:edaya_shared/edaya_shared.dart' hide PersonAvatar;
 import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
+import '../../app/shell_tabs.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
 import '../context/academic_year_controller.dart';
@@ -25,17 +26,22 @@ class ChildProfilePage extends LScopedView<ChildProfileController> {
 
   @override
   Widget buildView(BuildContext context, ChildProfileController controller) {
-    return AdaptiveContent(
-      child: LWatch(
-        () => DataState(
-          status: controller.dataStatus,
-          errorMessage: controller.errorMessage.value,
-          emptyMessage: context.tr.childProfileUnavailable,
-          onRetry: controller.load,
-          child: LWatch(() => _ChildProfileBody(controller: controller)),
+    return LWatch(() {
+      final hubPath = GuardianShellScope.maybeOf(context)?.hubPath ?? '/home';
+      return PrototypeDetailScaffold(
+        title: controller.student.value?.fullName ?? 'Profil élève',
+        fallbackRoute: hubPath,
+        body: AdaptiveContent(
+          child: DataState(
+            status: controller.dataStatus,
+            errorMessage: controller.errorMessage.value,
+            emptyMessage: context.tr.childProfileUnavailable,
+            onRetry: controller.load,
+            child: LWatch(() => _ChildProfileBody(controller: controller)),
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 }
 
@@ -143,7 +149,8 @@ class _ChildProfileBody extends StatelessWidget {
           for (final paper in papers) ...[
             ListRow(
               title: leftoverFamilyPaperLabel(paper.templateKey),
-              subtitle: paper.number ?? documentStatusLabel(context.tr, paper.status),
+              subtitle:
+                  paper.number ?? documentStatusLabel(context.tr, paper.status),
               trailing: paper.isDownloadable
                   ? DocumentActionButton(
                       label: 'Ouvrir',

@@ -178,11 +178,21 @@ Initials avatar: primary fill, white Nunito semibold text.
 | `studentInitials` | yes | Avatar fallback |
 | `classLabel` | yes | Class |
 | `schoolName` | yes | School |
-| `schoolYear` | yes | Year label shown in school column |
+| `schoolYear` | yes | Year shown on the third row with class |
 | `photoUrl` | no | Student photo |
+| `onOpenProfile` | no | Opens `/child` from avatar / name |
 | `onSelectStudent` | no | Opens context sheet |
 
-Borderless card; dual columns student | school; chevron affordance when selectable. May use tighter-than-default `SurfaceCard` padding.
+Borderless card; **three left-aligned rows** (name, school, `class · year`) beside the avatar; chevron affordance when selectable. Used as the flex child in the shell header row.
+
+### `ParentAccountCard`
+
+| Param | Required | Contract |
+|-------|----------|----------|
+| `initials` | yes | Guardian initials |
+| `onTap` | no | Opens `/account` |
+
+Square light-blue (`primaryContainer`) photo card; no name or email. Tooltip `Mon compte`. Height matches the sibling child card.
 
 ### `AcademicYearPicker`
 
@@ -196,12 +206,7 @@ Must use an overlay menu (`MenuAnchor`), not an inline list of all years. Select
 
 ### `PrototypeAppBar`
 
-| Param | Required | Contract |
-|-------|----------|----------|
-| `onProfileTap` | no | When null, omit profile control |
-| `onHelpTap` | no | When null, omit help control |
-
-Centered `edaya` wordmark. Preferred size = standard toolbar height. Canvas background, no surface tint.
+Centered `edaya` wordmark only. No profile or help actions (those live on the parent card / account overlay). Preferred size = standard toolbar height. Canvas background, no surface tint.
 
 ### `PrototypeDetailScaffold`
 
@@ -210,14 +215,15 @@ Centered `edaya` wordmark. Preferred size = standard toolbar height. Canvas back
 | `body` | yes | Detail content |
 | `title` / `titleWidget` | one | Header label |
 | `fallbackRoute` | no (default `/home`) | If cannot pop |
-| `embedded` | no (default false) | Drawer mode |
+| `embedded` | no (null = adaptive) | Drawer vs full page |
 
 | `embedded` | Chrome |
 |------------|--------|
-| false | Scaffold with back affordance |
-| true | Column with title + **close** (×); no system back in the header |
+| false | Scaffold with **Retour** back affordance (compact / medium pushed page) |
+| true | Column with title + **close** (×) for the expanded drawer |
+| null | `true` when width ≥ 1000, otherwise `false` |
 
-Dismiss must **pop when possible**, else navigate to `fallbackRoute`. Scrim on the list–detail host may instead `go(listPath)`; both patterns are allowed.
+Dismiss must **pop when possible**, else navigate to `fallbackRoute`. Scrim on the list–detail host may instead pop or `go(listPath)`; both patterns are allowed.
 
 ### `PrototypeProgressBar`
 

@@ -7,9 +7,10 @@ import 'breakpoints.dart';
 import 'colors.dart';
 import 'shell_chrome.dart';
 
-/// Full-width [master] with an overlay [detail].
+/// Full-width [master] with an optional right [detail] drawer on expanded widths.
 ///
-/// Compact / medium: the detail covers the hub. Expanded (≥ 1000): right drawer.
+/// Compact / medium push the detail as a full-screen page in [PrototypeShell]
+/// instead of overlaying this host.
 class DetailDrawerScaffold extends StatelessWidget {
   const DetailDrawerScaffold({
     super.key,
@@ -32,8 +33,9 @@ class DetailDrawerScaffold extends StatelessWidget {
       builder: (context, constraints) {
         if (!hasSelection) return master;
 
-        final useDrawer =
-            PrototypeBreakpoints.useDetailDrawer(constraints.maxWidth);
+        final useDrawer = PrototypeBreakpoints.useDetailDrawer(
+          constraints.maxWidth,
+        );
         if (!useDrawer) {
           return Stack(
             fit: StackFit.expand,
@@ -49,10 +51,12 @@ class DetailDrawerScaffold extends StatelessWidget {
           );
         }
 
-        final drawerWidth = math.min(
-          math.max(constraints.maxWidth * widthFraction, 360.0),
-          math.min(constraints.maxWidth * 0.5, 520.0),
-        ).toDouble();
+        final drawerWidth = math
+            .min(
+              math.max(constraints.maxWidth * widthFraction, 360.0),
+              math.min(constraints.maxWidth * 0.5, 520.0),
+            )
+            .toDouble();
 
         return Stack(
           fit: StackFit.expand,
@@ -61,10 +65,14 @@ class DetailDrawerScaffold extends StatelessWidget {
             Positioned.fill(
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: () => context.go(listPath),
-                child: ColoredBox(
-                  color: Colors.black.withValues(alpha: 0.18),
-                ),
+                onTap: () {
+                  if (context.canPop()) {
+                    context.pop();
+                    return;
+                  }
+                  context.go(listPath);
+                },
+                child: ColoredBox(color: Colors.black.withValues(alpha: 0.18)),
               ),
             ),
             Positioned(

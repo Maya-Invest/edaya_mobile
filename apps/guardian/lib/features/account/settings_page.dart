@@ -21,16 +21,7 @@ class SettingsPage extends LScopedView<SettingsController> {
 
   @override
   Widget buildView(BuildContext context, SettingsController controller) {
-    final embedded = PrototypeBreakpoints.detailDrawerActive(context);
-
-    // Shared settings page owns its scaffold; when embedded in the detail drawer
-    // we show a compact French summary + developer URL controls.
-    if (!embedded) {
-      return const edaya.SettingsPage();
-    }
-
     return PrototypeDetailScaffold(
-      embedded: true,
       fallbackRoute: '/account',
       title: 'Paramètres',
       body: ListView(

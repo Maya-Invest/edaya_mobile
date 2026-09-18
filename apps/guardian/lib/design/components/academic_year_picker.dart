@@ -31,6 +31,11 @@ class AcademicYearPicker extends StatelessWidget {
             }
           },
           icon: const Icon(Icons.expand_more, size: 18),
+          iconAlignment: IconAlignment.end,
+          style: TextButton.styleFrom(
+            visualDensity: VisualDensity.compact,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+          ),
           label: Text(selectedYear),
         );
       },
@@ -47,4 +52,3 @@ class AcademicYearPicker extends StatelessWidget {
     );
   }
 }
-

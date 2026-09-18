@@ -36,12 +36,10 @@ class SubjectGradesPage extends LScopedView<SubjectGradesController> {
 
   @override
   Widget buildView(BuildContext context, SubjectGradesController controller) {
-    final embedded = PrototypeBreakpoints.detailDrawerActive(context);
     final grades = controller.grades.value;
 
     if (controller.isBusy.value && grades.isEmpty) {
       return PrototypeDetailScaffold(
-        embedded: embedded,
         fallbackRoute: '/scolarite/notes',
         title: controller.subject,
         body: const Center(child: CircularProgressIndicator()),
@@ -49,7 +47,6 @@ class SubjectGradesPage extends LScopedView<SubjectGradesController> {
     }
 
     return PrototypeDetailScaffold(
-      embedded: embedded,
       fallbackRoute: '/scolarite/notes',
       title: controller.subject,
       body: ListView(
@@ -115,7 +112,7 @@ class SubjectGradesPage extends LScopedView<SubjectGradesController> {
                     color: PrototypeColors.primary,
                   ),
                 ),
-                onTap: () => context.go('/grade/${grade.id}'),
+                onTap: () => context.push('/grade/${grade.id}'),
               ),
               const SizedBox(height: PrototypeSpacing.xs),
             ],

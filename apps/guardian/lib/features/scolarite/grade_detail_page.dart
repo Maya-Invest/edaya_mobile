@@ -28,11 +28,8 @@ class GradeDetailPage extends LScopedView<GradeDetailController> {
 
   @override
   Widget buildView(BuildContext context, GradeDetailController controller) {
-    final embedded = PrototypeBreakpoints.detailDrawerActive(context);
-
     if (controller.isBusy.value && controller.entry.value == null) {
       return PrototypeDetailScaffold(
-        embedded: embedded,
         fallbackRoute: '/scolarite/notes',
         title: 'Détail de la note',
         body: const Center(child: CircularProgressIndicator()),
@@ -42,7 +39,6 @@ class GradeDetailPage extends LScopedView<GradeDetailController> {
     final grade = controller.entry.value;
     if (grade == null) {
       return PrototypeDetailScaffold(
-        embedded: embedded,
         fallbackRoute: '/scolarite/notes',
         title: 'Détail de la note',
         body: EmptyState(
@@ -54,7 +50,6 @@ class GradeDetailPage extends LScopedView<GradeDetailController> {
     }
 
     return PrototypeDetailScaffold(
-      embedded: embedded,
       fallbackRoute: '/scolarite/notes',
       title: 'Détail de la note',
       body: ListView(

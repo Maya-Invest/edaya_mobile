@@ -24,11 +24,8 @@ class ReportCardDetailPage extends LScopedView<ReportCardController> {
 
   @override
   Widget buildView(BuildContext context, ReportCardController controller) {
-    final embedded = PrototypeBreakpoints.detailDrawerActive(context);
-
     if (controller.isBusy.value && controller.detail.value == null) {
       return PrototypeDetailScaffold(
-        embedded: embedded,
         fallbackRoute: '/scolarite/notes',
         title: 'Bulletin',
         body: const Center(child: CircularProgressIndicator()),
@@ -38,7 +35,6 @@ class ReportCardDetailPage extends LScopedView<ReportCardController> {
     final card = controller.detail.value;
     if (card == null) {
       return PrototypeDetailScaffold(
-        embedded: embedded,
         fallbackRoute: '/scolarite/notes',
         title: 'Bulletin',
         body: EmptyState(
@@ -58,7 +54,6 @@ class ReportCardDetailPage extends LScopedView<ReportCardController> {
     final downloadHint = controller.downloadMessage.value;
 
     return PrototypeDetailScaffold(
-      embedded: embedded,
       fallbackRoute: '/scolarite/notes',
       title: card.periodName,
       body: ListView(
@@ -115,9 +110,7 @@ class ReportCardDetailPage extends LScopedView<ReportCardController> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.download_outlined),
-            label: Text(
-              downloading ? 'Téléchargement…' : 'Télécharger le PDF',
-            ),
+            label: Text(downloading ? 'Téléchargement…' : 'Télécharger le PDF'),
           ),
           if (downloadHint.isNotEmpty) ...[
             const SizedBox(height: PrototypeSpacing.sm),

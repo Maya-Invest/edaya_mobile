@@ -55,7 +55,10 @@ class HomePage extends LScopedView<HomeController> {
           onTap: () {
             final open = controller.openCampaigns.value;
             if (open.length == 1) {
-              context.go('/inbox/avis/${open.first.campaignId}', extra: open.first);
+              context.push(
+                '/inbox/avis/${open.first.campaignId}',
+                extra: open.first,
+              );
             } else {
               context.go('/inbox/avis');
             }
@@ -67,7 +70,7 @@ class HomePage extends LScopedView<HomeController> {
           title: 'Photo de l\'élève',
           subtitle: 'Une action est demandée sur la photo',
           icon: Icons.photo_camera_outlined,
-          onTap: () => context.go('/child'),
+          onTap: () => context.push('/child'),
         ),
       if (controller.leftoverPapers.value.isNotEmpty)
         AttentionCard(
@@ -77,7 +80,7 @@ class HomePage extends LScopedView<HomeController> {
             controller.leftoverPapers.value.first.templateKey,
           ),
           icon: Icons.description_outlined,
-          onTap: () => context.go('/child'),
+          onTap: () => context.push('/child'),
         ),
       if (reportCard != null)
         AttentionCard(
@@ -86,7 +89,7 @@ class HomePage extends LScopedView<HomeController> {
           subtitle:
               '${reportCard.periodName} · Moyenne ${reportCard.overallAverage == null ? '—' : reportCard.overallAverage!.toStringAsFixed(1).replaceAll('.', ',')}',
           icon: Icons.menu_book_outlined,
-          onTap: () => context.go('/report-card/${reportCard.id}'),
+          onTap: () => context.push('/report-card/${reportCard.id}'),
         ),
       if (controller.unreadCount.value > 0)
         AttentionCard(
@@ -161,7 +164,7 @@ class HomePage extends LScopedView<HomeController> {
                   color: PrototypeColors.primary,
                 ),
               ),
-              onTap: () => context.go('/grade/${grade.id}'),
+              onTap: () => context.push('/grade/${grade.id}'),
             ),
             const SizedBox(height: PrototypeSpacing.xs),
           ],
@@ -262,10 +265,7 @@ class _HomeDaySection extends StatelessWidget {
             const SizedBox(height: PrototypeSpacing.xs),
           ],
           if (plan!.noSchoolDay == null)
-            TimetableSummaryCard(
-              summary: summary,
-              onTap: onOpenCalendar,
-            ),
+            TimetableSummaryCard(summary: summary, onTap: onOpenCalendar),
           if (plan!.sessions.isNotEmpty) ...[
             const SizedBox(height: PrototypeSpacing.xs),
             for (final session in plan!.sessions.take(3)) ...[
@@ -273,7 +273,7 @@ class _HomeDaySection extends StatelessWidget {
                 title: session.subjectLabel ?? session.title,
                 subtitle:
                     '${DateFormat('HH:mm', 'fr_FR').format(session.startsAt)} – ${DateFormat('HH:mm', 'fr_FR').format(session.endsAt)}',
-                onTap: () => context.go('/session/${session.id}'),
+                onTap: () => context.push('/session/${session.id}'),
               ),
               const SizedBox(height: PrototypeSpacing.xs),
             ],
@@ -293,8 +293,9 @@ class _FinanceAlertRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final badgeLabel = alert.isOverdue ? 'En retard' : 'À venir';
-    final badgeTone =
-        alert.isOverdue ? SemanticTone.error : SemanticTone.neutral;
+    final badgeTone = alert.isOverdue
+        ? SemanticTone.error
+        : SemanticTone.neutral;
 
     return ListRow(
       title: alert.label,

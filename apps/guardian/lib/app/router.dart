@@ -15,7 +15,9 @@ import '../features/context/student_context_controller.dart';
 import '../features/family_feedback/family_feedback_page.dart';
 import '../features/fees/fee_detail_page.dart';
 import '../features/fees/payment_detail_page.dart';
+import '../features/inbox/inbox_routes.dart';
 import '../features/inbox/message_detail_page.dart';
+import '../features/inbox/models/inbox_delivery.dart';
 import '../features/invite/invitation_page.dart';
 import '../features/login/login_page.dart';
 import '../features/scolarite/grade_detail_page.dart';
@@ -26,7 +28,6 @@ import '../features/scolarite/subject_logbook_page.dart';
 import '../features/waiting/waiting_for_students_page.dart';
 import '../mock/mock_store.dart';
 import 'shell_page.dart';
-import 'shell_tabs.dart';
 
 GoRouter createRouter({
   required AppSessionController session,
@@ -130,14 +131,8 @@ GoRouter createRouter({
             path: '/calendar',
             builder: (_, _) => hubPlaceholder(),
             routes: [
-              GoRoute(
-                path: 'events',
-                redirect: (_, _) => '/calendar',
-              ),
-              GoRoute(
-                path: 'attendance',
-                redirect: (_, _) => '/attendance',
-              ),
+              GoRoute(path: 'events', redirect: (_, _) => '/calendar'),
+              GoRoute(path: 'attendance', redirect: (_, _) => '/attendance'),
             ],
           ),
           GoRoute(
@@ -146,14 +141,10 @@ GoRouter createRouter({
           ),
           GoRoute(
             path: '/session/:id',
-            builder: (context, state) => SessionDetailPage(
-              sessionId: state.pathParameters['id']!,
-            ),
+            builder: (context, state) =>
+                SessionDetailPage(sessionId: state.pathParameters['id']!),
           ),
-          GoRoute(
-            path: '/scolarite',
-            redirect: (_, _) => '/scolarite/notes',
-          ),
+          GoRoute(path: '/scolarite', redirect: (_, _) => '/scolarite/notes'),
           GoRoute(
             path: '/scolarite/notes',
             builder: (_, _) => hubPlaceholder(),
@@ -178,17 +169,13 @@ GoRouter createRouter({
             path: '/scolarite/period/:periodId/subject/:subject',
             builder: (context, state) => SubjectGradesPage(
               periodId: state.pathParameters['periodId']!,
-              subject: Uri.decodeComponent(
-                state.pathParameters['subject']!,
-              ),
+              subject: Uri.decodeComponent(state.pathParameters['subject']!),
             ),
           ),
           GoRoute(
             path: '/scolarite/subject/:subject/cahier',
             builder: (context, state) => SubjectLogbookPage(
-              subject: Uri.decodeComponent(
-                state.pathParameters['subject']!,
-              ),
+              subject: Uri.decodeComponent(state.pathParameters['subject']!),
             ),
           ),
           GoRoute(
@@ -204,15 +191,13 @@ GoRouter createRouter({
           ),
           GoRoute(
             path: '/grade/:id',
-            builder: (context, state) => GradeDetailPage(
-              gradeId: state.pathParameters['id']!,
-            ),
+            builder: (context, state) =>
+                GradeDetailPage(gradeId: state.pathParameters['id']!),
           ),
           GoRoute(
             path: '/report-card/:id',
-            builder: (context, state) => ReportCardDetailPage(
-              reportCardId: state.pathParameters['id']!,
-            ),
+            builder: (context, state) =>
+                ReportCardDetailPage(reportCardId: state.pathParameters['id']!),
           ),
           GoRoute(
             path: '/fees',
@@ -220,15 +205,13 @@ GoRouter createRouter({
             routes: [
               GoRoute(
                 path: 'fee/:id',
-                builder: (context, state) => FeeDetailPage(
-                  feeId: state.pathParameters['id']!,
-                ),
+                builder: (context, state) =>
+                    FeeDetailPage(feeId: state.pathParameters['id']!),
               ),
               GoRoute(
                 path: 'payment/:id',
-                builder: (context, state) => PaymentDetailPage(
-                  paymentId: state.pathParameters['id']!,
-                ),
+                builder: (context, state) =>
+                    PaymentDetailPage(paymentId: state.pathParameters['id']!),
               ),
             ],
           ),
@@ -238,9 +221,13 @@ GoRouter createRouter({
             routes: [
               GoRoute(
                 path: 'message/:id',
-                builder: (context, state) => MessageDetailPage(
-                  messageId: state.pathParameters['id']!,
-                ),
+                builder: (context, state) {
+                  final extra = state.extra;
+                  return MessageDetailPage(
+                    messageId: state.pathParameters['id']!,
+                    initialDelivery: extra is InboxDelivery ? extra : null,
+                  );
+                },
               ),
               GoRoute(
                 path: 'avis',
@@ -274,14 +261,8 @@ GoRouter createRouter({
               ),
             ],
           ),
-          GoRoute(
-            path: '/child',
-            builder: (_, _) => const ChildProfilePage(),
-          ),
-          GoRoute(
-            path: '/account',
-            builder: (_, _) => const AccountPage(),
-          ),
+          GoRoute(path: '/child', builder: (_, _) => const ChildProfilePage()),
+          GoRoute(path: '/account', builder: (_, _) => const AccountPage()),
           GoRoute(
             path: '/account/profile',
             builder: (_, _) => const proto.AccountProfilePage(),
@@ -294,8 +275,7 @@ GoRouter createRouter({
       ),
       GoRoute(
         path: '/fee/:id',
-        redirect: (context, state) =>
-            '/fees/fee/${state.pathParameters['id']}',
+        redirect: (context, state) => '/fees/fee/${state.pathParameters['id']}',
       ),
       GoRoute(
         path: '/payment/:id',
@@ -305,7 +285,7 @@ GoRouter createRouter({
       GoRoute(
         path: '/message/:id',
         redirect: (context, state) =>
-            '/inbox/message/${state.pathParameters['id']}',
+            inboxMessagePath(state.pathParameters['id']!),
       ),
     ],
   );

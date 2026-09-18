@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:edaya_guardian/design/components/parent_account_card.dart';
+import 'package:edaya_guardian/design/components/student_context_card.dart';
+import 'package:edaya_guardian/features/account/account_page.dart';
 import 'package:edaya_guardian/features/calendar/calendar_page.dart';
 import 'package:edaya_guardian/features/home/home_page.dart';
+import 'package:edaya_guardian/features/scolarite/progress_page.dart';
 import 'package:edaya_guardian/features/scolarite/results_page.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -15,9 +19,7 @@ import '../integration/support/pump_prototype_page.dart';
 void main() {
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});
-    ApiBaseUrlConfig.configure(
-      appDefaultUrl: 'http://localhost:9999',
-    );
+    ApiBaseUrlConfig.configure(appDefaultUrl: 'http://localhost:9999');
     await ApiBaseUrlConfig.load();
     await AppSettingsController.preload();
     Levit.enableAutoLinking();
@@ -33,7 +35,7 @@ void main() {
     );
     guest.router.go('/login');
     await tester.pump();
-    await pumpUntilFound(tester, find.text('Se connecter'));
+    await pumpUntilFound(tester, find.text('Envoyer le code'));
     await resetIntegrationTestSurface(tester);
 
     final auth = PrototypeWidgetTestHarness()..bootstrap(authenticated: true);
@@ -67,24 +69,47 @@ void main() {
     expect(find.byType(NavigationBar), findsNothing);
   });
 
-  testWidgets('account clears primary tab selection', (tester) async {
+  testWidgets('account pushes a full page on compact', (tester) async {
     final auth = PrototypeWidgetTestHarness()..bootstrap(authenticated: true);
     await pumpPrototypeApp(
       tester,
       auth,
       formFactor: DesignReviewFormFactor.phone,
     );
+    auth.router.go('/home');
+    await tester.pumpAndSettle();
     auth.router.go('/account');
     await tester.pumpAndSettle();
 
-    final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
-    // Material requires an index; theme + identical icons keep none visually selected.
-    expect(bar.selectedIndex, 0);
-    final destinations = bar.destinations.cast<NavigationDestination>();
-    expect(destinations.length, 5);
-    for (final d in destinations) {
-      expect((d.selectedIcon as Icon).icon, (d.icon as Icon).icon);
-    }
+    expect(find.byType(AccountPage), findsOneWidget);
+    expect(find.byTooltip('Retour'), findsOneWidget);
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(
+      tester
+          .widget<NavigationBar>(
+            find.byType(NavigationBar, skipOffstage: false),
+          )
+          .selectedIndex,
+      0,
+    );
+  });
+
+  testWidgets('header is wordmark plus child and parent cards', (tester) async {
+    final auth = PrototypeWidgetTestHarness()..bootstrap(authenticated: true);
+    await pumpPrototypeApp(
+      tester,
+      auth,
+      formFactor: DesignReviewFormFactor.phone,
+    );
+    auth.router.go('/home');
+    await tester.pumpAndSettle();
+
+    expect(find.text('edaya'), findsOneWidget);
+    expect(find.byTooltip('Aide'), findsNothing);
+    expect(find.byIcon(Icons.help_outline), findsNothing);
+    expect(find.byType(StudentContextCard), findsOneWidget);
+    expect(find.byType(ParentAccountCard), findsOneWidget);
+    expect(find.byTooltip('Mon compte'), findsOneWidget);
   });
 
   testWidgets('medium width paints brand app bar on list hubs', (tester) async {
@@ -105,7 +130,37 @@ void main() {
     auth.router.go('/fees');
     await tester.pumpAndSettle();
 
-    expect(find.byType(NavigationRail), findsOneWidget);
     expect(find.text('edaya'), findsOneWidget);
+    expect(find.byType(NavigationRail), findsOneWidget);
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.byTooltip('Aide'), findsNothing);
+  });
+
+  testWidgets('scolarite progress pushes a full page on compact', (
+    tester,
+  ) async {
+    final auth = PrototypeWidgetTestHarness()..bootstrap(authenticated: true);
+    await pumpPrototypeApp(
+      tester,
+      auth,
+      formFactor: DesignReviewFormFactor.phone,
+    );
+    auth.router.go('/scolarite/notes');
+    await tester.pumpAndSettle();
+    auth.router.go('/scolarite/progress');
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ProgressOverviewPage), findsOneWidget);
+    expect(find.byTooltip('Retour'), findsOneWidget);
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.byType(StudentContextCard), findsNothing);
+    expect(
+      tester
+          .widget<NavigationBar>(
+            find.byType(NavigationBar, skipOffstage: false),
+          )
+          .selectedIndex,
+      2,
+    );
   });
 }

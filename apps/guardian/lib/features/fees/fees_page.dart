@@ -49,16 +49,15 @@ class FeesPage extends LScopedView<FeesController> {
       );
     }
     if (controller.dataStatus == DataStatus.empty) {
-      return AdaptiveContent(
-        child: EmptyState(title: controller.emptyMessage),
-      );
+      return AdaptiveContent(child: EmptyState(title: controller.emptyMessage));
     }
 
     final summary = controller.summary.value;
     final progress = controller.totalExpected == 0
         ? 0.0
         : (controller.totalPaid / controller.totalExpected).clamp(0.0, 1.0);
-    final currency = summary?.currency ??
+    final currency =
+        summary?.currency ??
         (controller.charges.value.isNotEmpty
             ? controller.charges.value.first.currency
             : 'XOF');
@@ -165,7 +164,7 @@ class FeesPage extends LScopedView<FeesController> {
                     : null,
                 showChevron: true,
               ),
-              onTap: () => context.go('/fees/fee/${fee.id}'),
+              onTap: () => context.push('/fees/fee/${fee.id}'),
             ),
             const SizedBox(height: PrototypeSpacing.xs),
           ],
@@ -182,7 +181,7 @@ class FeesPage extends LScopedView<FeesController> {
                 label: 'Reçu',
                 showChevron: true,
               ),
-              onTap: () => context.go('/fees/payment/${payment.id}'),
+              onTap: () => context.push('/fees/payment/${payment.id}'),
             ),
             const SizedBox(height: PrototypeSpacing.xs),
           ],

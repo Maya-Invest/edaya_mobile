@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import 'package:edaya_shared/edaya_shared.dart';
 import 'linked_student.dart';
 
 class GuardianStudentsController extends LevitController
@@ -18,12 +18,14 @@ class GuardianStudentsController extends LevitController
   final SchoolClientFactory _schoolClient;
 
   final students = LxVar<List<LinkedStudent>>(const []);
+  final groups = LxVar<List<GuardianSchoolGroup>>(const []);
   final errorMessage = LxVar('');
 
   @override
   void onInit() {
     super.onInit();
     autoDispose(students);
+    autoDispose(groups);
     autoDispose(errorMessage);
     unawaited(loadStudents());
   }
@@ -34,6 +36,7 @@ class GuardianStudentsController extends LevitController
       final grants = _session.grants.value;
       if (grants == null || grants.kind != 'guardian') {
         students(const []);
+        groups(const []);
         return;
       }
 
@@ -45,22 +48,52 @@ class GuardianStudentsController extends LevitController
 
         if (studentIds.isEmpty) {
           students(const []);
+          groups(const []);
           return;
         }
 
         final rows = await _schoolClient().students.list(
           entitiesByIds(studentIds),
         );
-        final linkedStudents = rows.map(LinkedStudent.fromJson).toList()
-          ..sort((a, b) => a.fullName.compareTo(b.fullName));
+        final linkedStudents = rows.map(LinkedStudent.fromJson).toList();
+        final schoolIds = <String>{
+          if (grants.schoolId.isNotEmpty) grants.schoolId,
+          for (final student in linkedStudents)
+            if (student.schoolId.isNotEmpty) student.schoolId,
+        };
+        final schoolNames = <String, String>{};
+        for (final schoolId in schoolIds) {
+          schoolNames[schoolId] = await _loadSchoolName(schoolId);
+        }
+
         students(linkedStudents);
+        groups(
+          groupStudentsBySchool(
+            students: linkedStudents,
+            schoolNames: schoolNames,
+            fallbackSchoolId: grants.schoolId,
+          ),
+        );
       } on api.ApiError catch (error) {
         errorMessage(systemL10n().couldNotLoadLinkedStudents(error.toString()));
         students(const []);
+        groups(const []);
       } on Object catch (error) {
         errorMessage(systemL10n().couldNotLoadLinkedStudents(error.toString()));
         students(const []);
+        groups(const []);
       }
     }, id: 'load-students');
+  }
+
+  Future<String> _loadSchoolName(String schoolId) async {
+    try {
+      final row = await _schoolClient().schools.get(schoolId);
+      final name = row['name'] as String?;
+      if (name != null && name.trim().isNotEmpty) return name;
+    } on Object {
+      // Fall back to the school id when the name is not readable.
+    }
+    return schoolId;
   }
 }

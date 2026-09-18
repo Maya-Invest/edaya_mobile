@@ -4,11 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../app/formatters.dart';
+import '../../app/shell_tabs.dart';
 import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
 import '../context/student_context_controller.dart';
 import 'inbox_controller.dart';
+import 'inbox_routes.dart';
 
 class InboxPage extends LScopedView<InboxController> {
   const InboxPage({super.key});
@@ -27,8 +29,11 @@ class InboxPage extends LScopedView<InboxController> {
   @override
   Widget buildView(BuildContext context, InboxController controller) {
     final path = GoRouterState.of(context).uri.path;
-    final showingAvis = path.startsWith('/inbox/avis');
-    final selectedId = GoRouterState.of(context).pathParameters['id'] ??
+    final hubPath = GuardianShellScope.maybeOf(context)?.hubPath ?? path;
+    final inboxPath = path.startsWith('/inbox') ? path : hubPath;
+    final showingAvis = inboxPath.startsWith('/inbox/avis');
+    final selectedId =
+        GoRouterState.of(context).pathParameters['id'] ??
         GoRouterState.of(context).pathParameters['campaignId'];
 
     if (controller.dataStatus == DataStatus.loading) {
@@ -70,14 +75,8 @@ class InboxPage extends LScopedView<InboxController> {
           ),
           Expanded(
             child: showingAvis
-                ? _CampaignList(
-                    controller: controller,
-                    selectedId: selectedId,
-                  )
-                : _MessageList(
-                    controller: controller,
-                    selectedId: selectedId,
-                  ),
+                ? _CampaignList(controller: controller, selectedId: selectedId)
+                : _MessageList(controller: controller, selectedId: selectedId),
           ),
         ],
       ),
@@ -132,7 +131,7 @@ class _MessageList extends StatelessWidget {
                   : PrototypeColors.onSurfaceVariant,
             ),
           ),
-          onTap: () => context.go('/inbox/message/${m.id}'),
+          onTap: () => context.push(inboxMessagePath(m.id), extra: m),
           trailing: Icon(
             Icons.chevron_right,
             color: selected
@@ -168,7 +167,8 @@ class _CampaignList extends StatelessWidget {
         final title = item.context?.subjectName.isNotEmpty == true
             ? '${item.context!.subjectName} · ${item.context!.teacherName}'
             : context.tr.familyFeedbackTitle;
-        final subtitle = item.slotState == 'completed' ||
+        final subtitle =
+            item.slotState == 'completed' ||
                 item.slotState == 'already_completed'
             ? context.tr.familyFeedbackSlotCompleted
             : item.slotState == 'open'
@@ -188,10 +188,8 @@ class _CampaignList extends StatelessWidget {
             child: const Icon(Icons.campaign_outlined, size: 20),
           ),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.go(
-            '/inbox/avis/${item.campaignId}',
-            extra: item,
-          ),
+          onTap: () =>
+              context.push('/inbox/avis/${item.campaignId}', extra: item),
         );
       },
     );

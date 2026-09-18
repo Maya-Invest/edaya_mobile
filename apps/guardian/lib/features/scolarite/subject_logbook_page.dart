@@ -9,10 +9,7 @@ import '../context/student_context_controller.dart';
 import 'subject_logbook_controller.dart';
 
 class SubjectLogbookPage extends LScopedView<SubjectLogbookController> {
-  const SubjectLogbookPage({
-    super.key,
-    required this.subject,
-  });
+  const SubjectLogbookPage({super.key, required this.subject});
 
   final String subject;
 
@@ -29,12 +26,10 @@ class SubjectLogbookPage extends LScopedView<SubjectLogbookController> {
 
   @override
   Widget buildView(BuildContext context, SubjectLogbookController controller) {
-    final embedded = PrototypeBreakpoints.detailDrawerActive(context);
     final entries = controller.entries.value;
 
     if (controller.isBusy.value && entries.isEmpty) {
       return PrototypeDetailScaffold(
-        embedded: embedded,
         fallbackRoute: '/scolarite/notes',
         title: subject,
         body: const Center(child: CircularProgressIndicator()),
@@ -42,7 +37,6 @@ class SubjectLogbookPage extends LScopedView<SubjectLogbookController> {
     }
 
     return PrototypeDetailScaffold(
-      embedded: embedded,
       fallbackRoute: '/scolarite/notes',
       title: subject,
       body: ListView(

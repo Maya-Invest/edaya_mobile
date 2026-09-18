@@ -32,13 +32,10 @@ class FeeDetailPage extends LScopedView<FeeDetailController> {
 
   @override
   Widget buildView(BuildContext context, FeeDetailController controller) {
-    final embedded = PrototypeBreakpoints.detailDrawerActive(context);
-
     if (controller.isBusy.value && controller.charge.value == null) {
       return PrototypeDetailScaffold(
         fallbackRoute: '/fees',
         title: 'Détail des frais',
-        embedded: embedded,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -48,7 +45,6 @@ class FeeDetailPage extends LScopedView<FeeDetailController> {
       return PrototypeDetailScaffold(
         fallbackRoute: '/fees',
         title: 'Détail des frais',
-        embedded: embedded,
         body: EmptyState(
           title: controller.errorMessage.value.isEmpty
               ? 'Frais introuvables'
@@ -60,7 +56,6 @@ class FeeDetailPage extends LScopedView<FeeDetailController> {
     return PrototypeDetailScaffold(
       fallbackRoute: '/fees',
       title: fee.label,
-      embedded: embedded,
       body: ListView(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
@@ -74,7 +69,10 @@ class FeeDetailPage extends LScopedView<FeeDetailController> {
             const SizedBox(height: PrototypeSpacing.xl),
             const SectionHeader(title: 'Échéances'),
             for (final installment in fee.installments) ...[
-              ChargeInstallmentCard(installment: installment, currency: fee.currency),
+              ChargeInstallmentCard(
+                installment: installment,
+                currency: fee.currency,
+              ),
               const SizedBox(height: PrototypeSpacing.xs),
             ],
           ],

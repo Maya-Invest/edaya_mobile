@@ -30,6 +30,7 @@ class StudentContextController extends LevitController
   final activeStudent = LxVar<LinkedStudent?>(null);
   final classGroupId = LxVar<String?>(null);
   final classLabel = LxVar<String?>(null);
+  final schoolName = LxVar<String?>(null);
   final isEnrolled = LxVar(false);
   final isLoading = LxVar(false);
   final errorMessage = LxVar('');
@@ -48,6 +49,7 @@ class StudentContextController extends LevitController
     autoDispose(activeStudent);
     autoDispose(classGroupId);
     autoDispose(classLabel);
+    autoDispose(schoolName);
     autoDispose(isEnrolled);
     autoDispose(isLoading);
     autoDispose(errorMessage);
@@ -122,6 +124,7 @@ class StudentContextController extends LevitController
     activeStudent(null);
     classGroupId(null);
     classLabel(null);
+    schoolName(null);
     isEnrolled(false);
     errorMessage('');
     isLoading(false);
@@ -141,7 +144,6 @@ class StudentContextController extends LevitController
       return;
     }
 
-    final yearId = _academicYear.selectedYearId.value;
     errorMessage('');
 
     await runTask(() async {
@@ -149,9 +151,13 @@ class StudentContextController extends LevitController
       try {
         final schoolClient = _schoolClient();
         final studentJson = await schoolClient.students.get(studentId);
-        activeStudent(LinkedStudent.fromJson(studentJson));
+        final student = LinkedStudent.fromJson(studentJson);
+        activeStudent(student);
+        schoolName(await _loadSchoolName(schoolClient, student.schoolId));
+        await _academicYear.applyStoredYearForSchool(student.schoolId);
+        final resolvedYearId = _academicYear.selectedYearId.value;
 
-        if (yearId == null) {
+        if (resolvedYearId == null) {
           classGroupId(null);
           classLabel(null);
           isEnrolled(false);
@@ -161,19 +167,21 @@ class StudentContextController extends LevitController
         await _loadEnrollment(
           schoolClient: schoolClient,
           studentId: studentId,
-          yearId: yearId,
+          yearId: resolvedYearId,
         );
       } on api.ApiError catch (error) {
         errorMessage(systemL10n().couldNotLoadStudentContext(error.toString()));
         activeStudent(null);
         classGroupId(null);
         classLabel(null);
+        schoolName(null);
         isEnrolled(false);
       } on Object catch (error) {
         errorMessage(systemL10n().couldNotLoadStudentContext(error.toString()));
         activeStudent(null);
         classGroupId(null);
         classLabel(null);
+        schoolName(null);
         isEnrolled(false);
       } finally {
         isLoading(false);
@@ -228,5 +236,20 @@ class StudentContextController extends LevitController
       classLabel(null);
       isEnrolled(false);
     }
+  }
+
+  Future<String?> _loadSchoolName(
+    api.SchoolClient schoolClient,
+    String schoolId,
+  ) async {
+    if (schoolId.isEmpty) return _session.schoolIdHeader;
+    try {
+      final row = await schoolClient.schools.get(schoolId);
+      final name = row['name'] as String?;
+      if (name != null && name.trim().isNotEmpty) return name;
+    } on Object {
+      // Fall back to the school id when the directory name is not readable.
+    }
+    return schoolId;
   }
 }

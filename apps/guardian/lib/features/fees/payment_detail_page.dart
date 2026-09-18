@@ -33,13 +33,10 @@ class PaymentDetailPage extends LScopedView<PaymentDetailController> {
 
   @override
   Widget buildView(BuildContext context, PaymentDetailController controller) {
-    final embedded = PrototypeBreakpoints.detailDrawerActive(context);
-
     if (controller.isBusy.value && controller.payment.value == null) {
       return PrototypeDetailScaffold(
         fallbackRoute: '/fees',
         title: 'Reçu de paiement',
-        embedded: embedded,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -49,7 +46,6 @@ class PaymentDetailPage extends LScopedView<PaymentDetailController> {
       return PrototypeDetailScaffold(
         fallbackRoute: '/fees',
         title: 'Reçu de paiement',
-        embedded: embedded,
         body: EmptyState(
           title: controller.errorMessage.value.isEmpty
               ? 'Paiement introuvable'
@@ -61,7 +57,6 @@ class PaymentDetailPage extends LScopedView<PaymentDetailController> {
     return PrototypeDetailScaffold(
       fallbackRoute: '/fees',
       title: 'Reçu de paiement',
-      embedded: embedded,
       body: ListView(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
