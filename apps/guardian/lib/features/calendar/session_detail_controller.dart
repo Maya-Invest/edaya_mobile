@@ -135,7 +135,10 @@ class SessionDetailController extends LevitController
       final assessment = await client.assessments.get(sessionId);
       final startsAt =
           parseApiDateTime(
-            assessment['date'] ?? assessment['dueAt'] ?? assessment['metAt'],
+            assessment['startsAt'] ??
+                assessment['dueAt'] ??
+                assessment['date'] ??
+                assessment['metAt'],
           ) ??
           DateTime.now();
       return CalendarSession(
@@ -173,7 +176,12 @@ class SessionDetailController extends LevitController
         'assessmentId': resolved.id,
       });
       if (results.isNotEmpty) {
-        assessmentScore((results.first['score'] as num?)?.toDouble());
+        final rawScore = results.first['score'];
+        assessmentScore(
+          rawScore is num
+              ? rawScore.toDouble()
+              : double.tryParse(rawScore?.toString() ?? ''),
+        );
       }
     } on Object {
       // Optional enrichment — leave fields null.

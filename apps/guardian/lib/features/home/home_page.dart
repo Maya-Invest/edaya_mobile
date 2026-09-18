@@ -168,6 +168,11 @@ class HomePage extends LScopedView<HomeController> {
             ),
             const SizedBox(height: PrototypeSpacing.xs),
           ],
+          if (controller.latestGrades.value.isEmpty)
+            Text(
+              'Aucune note pour le moment',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
         ],
       ),
     );

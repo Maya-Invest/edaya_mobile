@@ -22,11 +22,16 @@ class GradeEntry {
     required String periodName,
   }) {
     final date = parseApiDateTime(
-      assessment['date'] ?? assessment['dueAt'] ?? assessment['metAt'],
+      assessment['startsAt'] ??
+          assessment['dueAt'] ??
+          assessment['date'] ??
+          assessment['metAt'],
     );
 
     final rawScore = result['score'];
-    final score = rawScore is num ? rawScore.toDouble() : null;
+    final score = rawScore is num
+        ? rawScore.toDouble()
+        : double.tryParse(rawScore?.toString() ?? '');
 
     return GradeEntry(
       id: result['id'] as String,

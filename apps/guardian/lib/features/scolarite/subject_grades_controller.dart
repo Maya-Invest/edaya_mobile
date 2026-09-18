@@ -7,6 +7,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../../common/utils/academic_period.dart';
 import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
+import 'grades_data.dart';
 import 'models/grade_entry.dart';
 import 'results_controller.dart';
 
@@ -71,49 +72,22 @@ class SubjectGradesController extends LevitController
           period == null ? periodId : academicPeriodLabel(period),
         );
 
-        final classSubjectRows = await client.classSubjects.list(
-          classGroupScope(classGroupId),
+        final sources = await fetchStudentGradeSources(
+          client: client,
+          studentId: studentId,
+          classGroupId: classGroupId,
+          subjectFallback: systemL10n().subjectFallback,
         );
-        final subjectIds = classSubjectRows
-            .map((row) => row['subjectId'] as String?)
-            .whereType<String>()
-            .toSet()
-            .toList();
-        final subjectRows = subjectIds.isEmpty
-            ? <Map<String, dynamic>>[]
-            : await client.subjects.list(entitiesByIds(subjectIds));
-        final subjectNameById = {
-          for (final s in subjectRows)
-            s['id'] as String: s['name'] as String? ?? s['id'] as String,
-        };
-        final subjectNameByClassSubjectId = {
-          for (final cs in classSubjectRows)
-            cs['id'] as String:
-                subjectNameById[cs['subjectId'] as String] ??
-                cs['subjectId'] as String,
-        };
-
-        final assessmentRows = await client.assessments.list(
-          classGroupScope(classGroupId),
-        );
-        final assessmentById = {
-          for (final a in assessmentRows) a['id'] as String: a,
-        };
-        final resultRows = assessmentById.isEmpty
-            ? <Map<String, dynamic>>[]
-            : await client.assessmentResults.list({
-                'studentId': studentId,
-                ...recordsForField('assessmentId', assessmentById.keys.toList()),
-              });
 
         final entries = <GradeEntry>[];
-        for (final result in resultRows) {
-          final assessment = assessmentById[result['assessmentId'] as String?];
+        for (final result in sources.results) {
+          final assessment =
+              sources.assessmentById[result['assessmentId'] as String?];
           if (assessment == null) continue;
           if (assessment['periodId'] != periodId) continue;
           final classSubjectId = assessment['classSubjectId'] as String?;
           final name =
-              subjectNameByClassSubjectId[classSubjectId] ??
+              sources.subjectNameByClassSubjectId[classSubjectId] ??
               systemL10n().subjectFallback;
           if (name != subject) continue;
           entries.add(

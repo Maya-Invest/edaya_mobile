@@ -8,6 +8,7 @@ import '../../common/utils/academic_period.dart';
 import '../../common/utils/entity_filters.dart';
 import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
+import 'grades_data.dart';
 import 'models/grade_entry.dart';
 import 'models/report_card_summary.dart';
 
@@ -214,50 +215,19 @@ class ResultsController extends LevitController with LevitReactiveTasksMixin {
         if (classGroupId == null) {
           gradeGroups(const []);
         } else {
-          final classSubjectRows = await client.classSubjects.list(
-            classGroupScope(classGroupId),
+          final sources = await fetchStudentGradeSources(
+            client: client,
+            studentId: studentId,
+            classGroupId: classGroupId,
+            subjectFallback: systemL10n().subjectFallback,
           );
-          final subjectIds = classSubjectRows
-              .map((row) => row['subjectId'] as String?)
-              .whereType<String>()
-              .toSet()
-              .toList();
-          final subjectRows = subjectIds.isEmpty
-              ? <Map<String, dynamic>>[]
-              : await client.subjects.list(entitiesByIds(subjectIds));
-          final subjectNameById = {
-            for (final subject in subjectRows)
-              subject['id'] as String:
-                  subject['name'] as String? ?? subject['id'] as String,
-          };
-          final subjectNameByClassSubjectId = {
-            for (final classSubject in classSubjectRows)
-              classSubject['id'] as String:
-                  subjectNameById[classSubject['subjectId'] as String] ??
-                  classSubject['subjectId'] as String,
-          };
-
-          final assessmentRows = await client.assessments.list(
-            classGroupScope(classGroupId),
-          );
-          final assessmentById = {
-            for (final assessment in assessmentRows)
-              assessment['id'] as String: assessment,
-          };
-          final assessmentIds = assessmentById.keys.toList();
-          final resultRows = assessmentIds.isEmpty
-              ? <Map<String, dynamic>>[]
-              : await client.assessmentResults.list({
-                  'studentId': studentId,
-                  ...recordsForField('assessmentId', assessmentIds),
-                });
 
           final entries = <GradeEntry>[];
-          for (final result in resultRows) {
+          for (final result in sources.results) {
             final assessmentId = result['assessmentId'] as String?;
             final assessment = assessmentId == null
                 ? null
-                : assessmentById[assessmentId];
+                : sources.assessmentById[assessmentId];
             if (assessment == null) continue;
             final classSubjectId = assessment['classSubjectId'] as String?;
             entries.add(
@@ -265,7 +235,7 @@ class ResultsController extends LevitController with LevitReactiveTasksMixin {
                 result: result,
                 assessment: assessment,
                 subjectName:
-                    subjectNameByClassSubjectId[classSubjectId] ??
+                    sources.subjectNameByClassSubjectId[classSubjectId] ??
                     systemL10n().subjectFallback,
                 periodName:
                     periodNameById[assessment['periodId'] as String?] ??

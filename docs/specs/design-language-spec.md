@@ -90,7 +90,7 @@ Bundled, offline fonts. Logos are artwork, never UI text.
 | `labelLarge` | Inter | 14 | 600 |
 | `labelSmall` | Inter | 12 | 500 |
 
-Minimum logo widths: vertical 88, horizontal 128, symbol 32. Vertical artwork on splash, bootstrap, login, invite, and waiting. Do not place the logo on authenticated hub chrome.
+Minimum logo widths: vertical 88, horizontal 128, symbol 32. Symbol on native splash and Flutter bootstrap; vertical on login, invite, and waiting. Do not place the logo on authenticated hub chrome.
 
 ---
 

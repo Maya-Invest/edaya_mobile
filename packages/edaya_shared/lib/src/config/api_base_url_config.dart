@@ -164,6 +164,32 @@ abstract final class ApiBaseUrlConfig {
         .toString();
   }
 
+  static const _loopbackHosts = {'localhost', '127.0.0.1', '::1'};
+
+  /// Rewrites server-issued loopback URLs onto the client School API host.
+  ///
+  /// Local API mints upload URLs with `API_ORIGIN` (`http://localhost:9999`).
+  /// Android emulators and physical devices reach that origin through
+  /// `10.0.2.2` or a LAN address instead.
+  static String rewriteLocalDevUrl(String url, {String? apiBaseUrl}) {
+    final uri = Uri.tryParse(url);
+    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
+      return url;
+    }
+    if (!_loopbackHosts.contains(uri.host)) {
+      return url;
+    }
+
+    final base = Uri.tryParse(apiBaseUrl ?? baseUrl);
+    if (base == null ||
+        base.host.isEmpty ||
+        _loopbackHosts.contains(base.host)) {
+      return url;
+    }
+
+    return uri.replace(scheme: base.scheme, host: base.host).toString();
+  }
+
   /// Maps Android loopback (`10.0.2.2`) to localhost on iOS/desktop simulators.
   static String _coerceUrlForPlatform(String url) {
     if (kIsWeb || defaultTargetPlatform == TargetPlatform.android) {

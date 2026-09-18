@@ -121,6 +121,13 @@ EntityQuery attendanceForStudent(String studentId) {
   return {'studentId': studentId};
 }
 
+EntityQuery catalogQuery(EntityQuery query) {
+  return {
+    ...query,
+    r'$limit': 500,
+  };
+}
+
 EntityQuery classGroupScope(String classGroupId) {
   return {'classGroupId': classGroupId};
 }
@@ -255,15 +262,11 @@ Future<GuardianAcademicProbe> loadGuardianAcademicData(
       : await client.subjects.list(entitiesByIds(subjectIds));
 
   final assessments = await client.assessments.list(
-    classGroupScope(classGroupId),
+    catalogQuery(classGroupScope(classGroupId)),
   );
-  final assessmentIds = assessments.map((row) => row['id'] as String).toList();
-  final assessmentResults = assessmentIds.isEmpty
-      ? <Map<String, dynamic>>[]
-      : await client.assessmentResults.list({
-          'studentId': studentId,
-          ...recordsForField('assessmentId', assessmentIds),
-        });
+  final assessmentResults = await client.assessmentResults.list(
+    catalogQuery({'studentId': studentId}),
+  );
 
   final classSubjectIds = classSubjects
       .map((row) => row['id'] as String)

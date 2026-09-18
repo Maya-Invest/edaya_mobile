@@ -110,4 +110,34 @@ void main() {
       expect((d.selectedIcon as Icon).icon, (d.icon as Icon).icon);
     }
   });
+
+  testWidgets('class picker sheet scrolls instead of overflowing', (
+    tester,
+  ) async {
+    final auth = PrototypeWidgetTestHarness()..bootstrap(authenticated: true);
+    await pumpPrototypeApp(
+      tester,
+      auth,
+      formFactor: DesignReviewFormFactor.phone,
+    );
+    auth.router.go('/home');
+    await tester.pump();
+    await pumpUntilFound(tester, find.byType(HomePage));
+
+    const short = Size(390, 420);
+    tester.view.devicePixelRatio = 1.0;
+    await tester.binding.setSurfaceSize(short);
+    tester.view.physicalSize = short;
+    addTearDown(() async {
+      await resetIntegrationTestViewport(tester);
+    });
+    await tester.pump();
+
+    await tester.tap(find.byTooltip('Changer de classe'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mes classes'), findsOneWidget);
+    expect(find.byType(ListView), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
 }

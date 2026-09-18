@@ -294,6 +294,7 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (ctx) {
         return LWatch(() {
           teacherContext.assignments.value;
@@ -302,53 +303,29 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
           academicYear.selectedYearId.value;
           final years = academicYear.yearLabels;
           final selected = academicYear.selectedYearLabel ?? '';
-          return Padding(
-            padding: EdgeInsets.only(
-              left: PrototypeSpacing.md,
-              right: PrototypeSpacing.md,
-              top: PrototypeSpacing.md,
-              bottom:
-                  MediaQuery.viewInsetsOf(context).bottom + PrototypeSpacing.md,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        teacherContext.schoolName.value ?? '',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                    ),
-                    if (years.isNotEmpty)
-                      AcademicYearPicker(
-                        selectedYear: selected,
-                        years: years,
-                        onSelected: (label) {
-                          final id = academicYear.idForYearLabel(label);
-                          if (id != null) {
-                            academicYear.selectYear(id);
-                          }
-                        },
-                      ),
-                  ],
-                ),
-                const SizedBox(height: PrototypeSpacing.md),
-                Text(
-                  'Mes classes',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                const SizedBox(height: PrototypeSpacing.sm),
-                if (teacherContext.assignments.value.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(
-                      vertical: PrototypeSpacing.md,
-                    ),
-                    child: Text('Aucune affectation pour cette année.'),
+          final assignments = teacherContext.assignments.value;
+          return _ContextPickerSheet(
+            schoolName: teacherContext.schoolName.value ?? '',
+            yearPicker: years.isEmpty
+                ? null
+                : AcademicYearPicker(
+                    selectedYear: selected,
+                    years: years,
+                    onSelected: (label) {
+                      final id = academicYear.idForYearLabel(label);
+                      if (id != null) {
+                        academicYear.selectYear(id);
+                      }
+                    },
                   ),
-                for (final a in teacherContext.assignments.value)
+            children: [
+              if (assignments.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: PrototypeSpacing.md),
+                  child: Text('Aucune affectation pour cette année.'),
+                )
+              else
+                for (final a in assignments)
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: Text(a.classLabel),
@@ -368,8 +345,7 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
                       Navigator.pop(context);
                     },
                   ),
-              ],
-            ),
+            ],
           );
         });
       },
@@ -380,66 +356,90 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (ctx) {
         return ListenableBuilder(
           listenable: store,
           builder: (context, _) {
-            return Padding(
-              padding: EdgeInsets.only(
-                left: PrototypeSpacing.md,
-                right: PrototypeSpacing.md,
-                top: PrototypeSpacing.md,
-                bottom:
-                    MediaQuery.viewInsetsOf(context).bottom +
-                    PrototypeSpacing.md,
+            return _ContextPickerSheet(
+              schoolName: store.activeSchool.name,
+              yearPicker: AcademicYearPicker(
+                selectedYear: store.selectedYear,
+                years: store.years,
+                onSelected: store.selectYear,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          store.activeSchool.name,
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ),
-                      AcademicYearPicker(
-                        selectedYear: store.selectedYear,
-                        years: store.years,
-                        onSelected: store.selectYear,
-                      ),
-                    ],
+              children: [
+                for (final a in store.assignments)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(a.classLabel),
+                    subtitle: Text(a.subjectLabel),
+                    trailing: store.activeAssignmentId == a.id
+                        ? Icon(
+                            Icons.check_circle,
+                            color: PrototypeColors.primary,
+                          )
+                        : null,
+                    onTap: () {
+                      store.selectAssignment(a.id);
+                      Navigator.pop(context);
+                    },
                   ),
-                  const SizedBox(height: PrototypeSpacing.md),
-                  Text(
-                    'Mes classes',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  const SizedBox(height: PrototypeSpacing.sm),
-                  for (final a in store.assignments)
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(a.classLabel),
-                      subtitle: Text(a.subjectLabel),
-                      trailing: store.activeAssignmentId == a.id
-                          ? Icon(
-                              Icons.check_circle,
-                              color: PrototypeColors.primary,
-                            )
-                          : null,
-                      onTap: () {
-                        store.selectAssignment(a.id);
-                        Navigator.pop(context);
-                      },
-                    ),
-                ],
-              ),
+              ],
             );
           },
         );
       },
+    );
+  }
+}
+
+class _ContextPickerSheet extends StatelessWidget {
+  const _ContextPickerSheet({
+    required this.schoolName,
+    required this.children,
+    this.yearPicker,
+  });
+
+  final String schoolName;
+  final Widget? yearPicker;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: PrototypeSpacing.md,
+        right: PrototypeSpacing.md,
+        top: PrototypeSpacing.md,
+        bottom: MediaQuery.viewInsetsOf(context).bottom + PrototypeSpacing.md,
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.75,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    schoolName,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                ?yearPicker,
+              ],
+            ),
+            const SizedBox(height: PrototypeSpacing.md),
+            Text('Mes classes', style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: PrototypeSpacing.sm),
+            Flexible(child: ListView(shrinkWrap: true, children: children)),
+          ],
+        ),
+      ),
     );
   }
 }

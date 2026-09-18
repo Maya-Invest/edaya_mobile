@@ -10,6 +10,7 @@ import '../calendar/models/school_event.dart';
 import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
 import '../fees/models/student_charge_line.dart';
+import '../scolarite/grades_data.dart';
 import '../scolarite/models/grade_entry.dart';
 import '../scolarite/models/report_card_summary.dart';
 
@@ -309,29 +310,25 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
 
     try {
       final client = _schoolClient();
-      final assessments = await client.assessments.list(
-        classGroupScope(classGroupId),
+      final sources = await fetchStudentGradeSources(
+        client: client,
+        studentId: studentId,
+        classGroupId: classGroupId,
+        subjectFallback: systemL10n().subjectFallback,
       );
-      final assessmentById = {
-        for (final a in assessments) a['id'] as String: a,
-      };
-      if (assessmentById.isEmpty) {
-        latestGrades(const []);
-        return;
-      }
-      final results = await client.assessmentResults.list({
-        'studentId': studentId,
-        ...recordsForField('assessmentId', assessmentById.keys.toList()),
-      });
       final entries = <GradeEntry>[];
-      for (final result in results) {
-        final assessment = assessmentById[result['assessmentId'] as String?];
+      for (final result in sources.results) {
+        final assessment =
+            sources.assessmentById[result['assessmentId'] as String?];
         if (assessment == null) continue;
         entries.add(
           GradeEntry.fromMaps(
             result: result,
             assessment: assessment,
-            subjectName: systemL10n().subjectFallback,
+            subjectName:
+                sources.subjectNameByClassSubjectId[assessment['classSubjectId']
+                    as String?] ??
+                systemL10n().subjectFallback,
             periodName:
                 assessment['periodId'] as String? ?? systemL10n().periodFallback,
           ),
@@ -342,7 +339,7 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
         final bDate = b.date ?? DateTime.fromMillisecondsSinceEpoch(0);
         return bDate.compareTo(aDate);
       });
-      latestGrades(entries.take(3).toList());
+      latestGrades(entries.where((entry) => entry.hasScore).take(3).toList());
     } on Object {
       latestGrades(const []);
     }
