@@ -1,11 +1,11 @@
 {
-    "name": "guardian_prototype",
-    "short_name": "guardian_prototype",
+    "name": "Edaya",
+    "short_name": "Edaya",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FFFFFF",
+    "theme_color": "#2563EB",
+    "description": "EDAYA Guardian school workspace.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
