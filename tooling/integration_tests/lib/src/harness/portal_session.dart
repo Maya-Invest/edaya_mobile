@@ -22,10 +22,23 @@ class PortalSession {
     required String actorKind,
     String? academicYearId,
   }) async {
-    final authClient = AuthClient(baseUrl: config.baseUrl);
-    final signIn = await authClient.signInWithEmail(
+    final authClient = AuthClient(baseUrl: config.authUrl);
+    final send = await authClient.sendEmailOtp(email: config.email);
+    if (!send.isSuccess) {
+      throw StateError(
+        'OTP send failed for ${config.email}: ${send.error?.message ?? 'unknown error'}',
+      );
+    }
+    final peek = await authClient.peekDevLastOtp(email: config.email);
+    final otp = peek.data?.trim() ?? '';
+    if (!peek.isSuccess || otp.isEmpty) {
+      throw StateError(
+        'Could not read local OTP for ${config.email}: ${peek.error?.message ?? 'empty'}',
+      );
+    }
+    final signIn = await authClient.signInWithEmailOtp(
       email: config.email,
-      password: config.password,
+      otp: otp,
     );
 
     if (!signIn.isSuccess || signIn.data == null) {
@@ -40,8 +53,11 @@ class PortalSession {
     final schoolClient = createSchoolClient(
       HttpTransport(
         baseUrl: config.baseUrl,
-        client: authClient.httpClient,
-        cookieHeader: () => authClient.cookieHeader,
+        client: authClient.businessHttpClient,
+        getAccessToken: ({required Uri resource}) {
+          return authClient.getAccessToken(resource: resource);
+        },
+        invalidateAccessToken: authClient.invalidateAccessToken,
         getAcademicYearId: () => yearId,
         getActorKind: () => actorKind,
         getActorId: () => resolvedActorId,

@@ -1,7 +1,7 @@
 name: edaya_teacher
 description: Edaya mobile app for teachers and classroom workflows.
-resolution: workspace
 publish_to: none
+resolution: workspace
 
 version: 1.0.0+2
 
@@ -11,18 +11,20 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   edaya_api_client:
     path: ../../packages/edaya_api_client
   edaya_auth:
     path: ../../packages/edaya_auth
   edaya_shared:
     path: ../../packages/edaya_shared
+  go_router: ^17.3.0
+  intl: any
   levit_flutter: ^0.0.9
   shared_preferences: ^2.5.5
-  cupertino_icons: ^1.0.9
-  firebase_core: ^4.11.0
-  go_router: ^17.3.0
   sqlite3_flutter_libs: ^0.5.42
+  firebase_core: ^4.11.0
 
 dev_dependencies:
   flutter_test:
@@ -31,9 +33,6 @@ dev_dependencies:
     path: ../../tooling/integration_tests
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
-  flutter_localizations:
-    sdk: flutter
-  google_fonts: ^8.1.0
 
 flutter_launcher_icons:
   android: true

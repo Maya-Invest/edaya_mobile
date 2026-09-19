@@ -340,15 +340,17 @@ class GuardianProbeBundle {
     }
 
     final payment = fees.payments.first;
-    final studentFeeId = payment['studentFeeId'] as String?;
-    final studentFee = fees.studentFees
-        .where((row) => row['id'] == studentFeeId)
+    final chargeId =
+        payment['studentChargeId'] as String? ??
+        payment['chargeId'] as String? ??
+        payment['studentFeeId'] as String?;
+    final charge = fees.studentFees
+        .where((row) => row['id'] == chargeId)
         .cast<Map<String, dynamic>?>()
         .firstWhere((row) => row != null, orElse: () => null);
-    final feeId = studentFee?['feeId'] as String?;
-    final feeLabel = feeId == null
-        ? 'Fee'
-        : fees.feeNamesById[feeId] ?? feeId;
+    final feeLabel =
+        charge?['label'] as String? ??
+        (chargeId == null ? 'Fee' : fees.feeNamesById[chargeId] ?? chargeId);
 
     return PaymentRecord.fromJson(payment, feeLabel: feeLabel);
   }

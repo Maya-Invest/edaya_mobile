@@ -301,33 +301,26 @@ Future<GuardianAcademicProbe> loadGuardianAcademicData(
   );
 }
 
-/// Mirrors [FeesController.loadFeesData].
+/// Mirrors [FeesController.loadFeesData] against student charges.
 Future<GuardianFeesProbe> loadGuardianFeesData(
   SchoolClient client, {
   required String studentId,
   required String academicYearId,
 }) async {
-  final studentFees =
-      (await client.studentFees.list(studentFeesForStudent(studentId)))
-          .where((row) => row['academicYearId'] == academicYearId)
-          .where((row) => row['status'] != 'cancelled')
-          .toList();
+  final studentFees = (await client.studentCharges.list({
+    'studentId': studentId,
+    'academicYearId': academicYearId,
+  })).where((row) => row['status'] != 'cancelled').toList();
 
-  final studentFeeIds = studentFees.map((row) => row['id'] as String).toList();
-  final payments = studentFeeIds.isEmpty
-      ? <Map<String, dynamic>>[]
-      : await client.payments.list(paymentsForStudentFees(studentFeeIds));
+  final payments = await client.payments.list({
+    'studentId': studentId,
+    'academicYearId': academicYearId,
+  });
 
-  final feeIds = studentFees
-      .map((row) => row['feeId'] as String?)
-      .whereType<String>()
-      .toSet()
-      .toList();
-  final feeNamesById = <String, String>{};
-  for (final feeId in feeIds) {
-    final fee = await client.fees.get(feeId);
-    feeNamesById[feeId] = fee['name'] as String? ?? feeId;
-  }
+  final feeNamesById = <String, String>{
+    for (final row in studentFees)
+      row['id'] as String: row['label'] as String? ?? row['id'] as String,
+  };
 
   return GuardianFeesProbe(
     studentFees: studentFees,

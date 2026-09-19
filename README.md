@@ -8,9 +8,9 @@ Flutter monorepo for the Edaya mobile apps, managed with [Melos](https://melos.i
 edaya_mobile/
 ├── apps/
 │   ├── guardian/              edaya_guardian — parent/guardian app (production)
-│   ├── guardian/             Guardian app (new IA + live API)
-│   ├── teacher/               edaya_teacher — teacher & classroom app (production)
-│   └── teacher_prototype/     next Teacher UI/IA (mock-first Accueil shell)
+│   ├── guardian_legacy/       archived pre-cutover Guardian IA
+│   ├── teacher/               edaya_teacher — Accueil-first teacher app (production)
+│   └── teacher_legacy/        archived four-tab teacher IA
 ├── packages/
 │   ├── edaya_api_client/      domain-shaped Core API client
 │   ├── edaya_auth/            Better Auth HTTP client
@@ -25,11 +25,10 @@ edaya_mobile/
 
 | App | Package | Audience | Notes |
 |-----|---------|----------|-------|
-| Guardian | `edaya_guardian` | Parents and guardians | `com.softilab.edaya.guardian` — calendar, academic records, fees, inbox, student switching; Firebase push |
-| Guardian | `guardian` | Parents / guardians | Accueil-first IA + live API; [design-language-spec](docs/specs/design-language-spec.md) |
-| Guardian legacy | `guardian_legacy` | Archived IA | Frozen pre-cutover Guardian |
-| Teacher | `edaya_teacher` | Teachers and staff | `com.softilab.edaya.staff` — calendar, evaluations, attendance; class filter. Sprint plan: [docs/sprints/teacher-app-implementation-plan.md](docs/sprints/teacher-app-implementation-plan.md) |
-| Teacher prototype | `teacher_prototype` | Accueil product surface | Accueil-first IA + live OTP; [teacher-shell-spec](docs/specs/teacher-shell-spec.md); `melos run run:teacher:prototype` |
+| Guardian | `edaya_guardian` | Parents and guardians | `com.softilab.edaya.guardian` — Accueil-first IA + live API; [design-language-spec](docs/specs/design-language-spec.md) |
+| Guardian legacy | `edaya_guardian_legacy` | Archived IA | Frozen pre-cutover Guardian |
+| Teacher | `edaya_teacher` | Teachers and staff | `com.softilab.edaya.staff` — Accueil-first IA + live OTP; [teacher-shell-spec](docs/specs/teacher-shell-spec.md) |
+| Teacher legacy | `edaya_teacher_legacy` | Archived IA | Frozen four-tab classroom app |
 
 Both apps share auth, bootstrap, theme, and most UI primitives via `edaya_shared`. Each app keeps a thin layer for routes, domain features, and app-specific preferences.
 
@@ -167,8 +166,7 @@ Or use Melos shortcuts:
 
 ```bash
 melos run run:guardian:local   # explicit Android emulator URL
-melos run run:teacher:local    # explicit localhost
-melos run run:teacher:prototype # Accueil-first teacher vs local Identity + API
+melos run run:teacher:local    # Identity + school API on Android emulator
 ```
 
 The login and account screens expose **Developer settings** in all build modes (including production) to change the API URL at runtime (persisted in `SharedPreferences`). Presets include local, staging, and production. Restart the app after saving.

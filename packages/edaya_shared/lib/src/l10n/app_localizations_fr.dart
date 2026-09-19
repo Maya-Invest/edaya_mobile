@@ -116,6 +116,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get ok => 'OK';
 
   @override
+  String get help => 'Aide';
+
+  @override
   String currentApiUrl(String url) {
     return 'Actuelle : $url';
   }
@@ -206,6 +209,15 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get accountNotLinkedToTeacher =>
       'Ce compte n\'est pas lié à un profil enseignant.';
+
+  @override
+  String get navHome => 'Accueil';
+
+  @override
+  String get navAgenda => 'Agenda';
+
+  @override
+  String get navClasses => 'Classes';
 
   @override
   String get navCalendar => 'Calendrier';

@@ -3,424 +3,287 @@ library;
 
 import 'dart:io';
 
-import 'package:edaya_integration_tests/edaya_integration_tests.dart';
-import 'package:edaya_shared/edaya_shared.dart';
-import 'package:edaya_teacher/features/account/account_sheet.dart';
-import 'package:edaya_teacher/features/calendar/calendar_page.dart';
-import 'package:edaya_teacher/features/evaluations/evaluation_create_sheet.dart';
-import 'package:edaya_teacher/features/evaluations/marks_entry_sheet.dart';
-import 'package:edaya_teacher/features/evaluations/widgets/mark_row_tile.dart';
-import 'package:edaya_teacher/features/report_cards/report_card_comment_sheet.dart';
-import 'package:edaya_teacher/features/report_cards/report_card_roster_sheet.dart';
-import 'package:edaya_teacher/features/session/attendance_flow_page.dart';
-import 'package:edaya_teacher/features/session/session_details_sheet.dart';
-import 'package:edaya_teacher/features/session/session_route_args.dart';
-import 'package:edaya_teacher/features/session/widgets/attendance_row_tile.dart';
-import 'package:edaya_teacher/navigation/teacher_route_paths.dart';
-import 'package:flutter/material.dart';
+import 'package:edaya_shared/edaya_shared.dart'
+    hide LoginPage, SettingsPage, AccountProfilePage;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:levit_flutter/levit_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:edaya_teacher/features/account/account_page.dart';
+import 'package:edaya_teacher/features/calendar/calendar_page.dart';
+import 'package:edaya_teacher/features/classes/classes_page.dart';
+import 'package:edaya_teacher/features/evaluations/evaluations_page.dart';
+import 'package:edaya_teacher/features/evaluations/family_feedback_page.dart';
+import 'package:edaya_teacher/features/home/home_page.dart';
+import 'package:edaya_teacher/features/inbox/inbox_page.dart';
+import 'package:edaya_teacher/features/login/login_page.dart';
+import 'package:edaya_teacher/features/session/attendance_page.dart';
+import 'package:edaya_teacher/features/session/logbook_page.dart';
+import 'package:edaya_teacher/features/session/session_detail_page.dart';
 
 import 'support/design_review_capture.dart';
 import 'support/design_review_config.dart';
 import 'support/design_review_environment.dart';
 import 'support/design_review_index.dart';
 import 'support/integration_test_lifecycle.dart';
-import 'support/live_api_test_binding.dart';
-import 'support/pump_teacher_page.dart';
-import 'support/pump_until_found.dart';
-import 'support/teacher_probe_bundle.dart';
-import 'support/teacher_widget_test_harness.dart';
+import 'support/prototype_widget_test_harness.dart';
+import 'support/pump_prototype_page.dart';
 
 Future<void> main() async {
-  LiveApiWidgetTestBinding();
-  Levit.enableAutoLinking();
-
-  final apiError = await resolveDesignReviewApiSkipReason();
-  if (apiError != null) {
-    test('teacher design review pack', () {
-      fail(apiError);
-    });
-    return;
-  }
-
-  setUpAll(configureDesignReviewEnvironment);
+  setUpAll(() async {
+    SharedPreferences.setMockInitialValues({});
+    Levit.enableAutoLinking();
+    await initializeDateFormatting('fr_FR');
+    await AppSettingsController.preload();
+    await configureDesignReviewEnvironment();
+  });
   tearDownAll(resetDesignReviewEnvironment);
 
-  testWidgets('generates local design review pack', (tester) async {
-    final language = designReviewLanguage();
-    final localeSlug = language.name;
-    final localeLabel = designReviewLocaleLabel(language);
+  testWidgets(
+    'generates local design review pack',
+    (tester) async {
+      final localeSlug = designReviewLocaleSlug();
+      final localeLabel = designReviewLocaleLabel(localeSlug);
 
-    final outputDir = teacherDesignReviewOutputDirectory();
-    if (outputDir.existsSync()) {
-      outputDir.deleteSync(recursive: true);
-    }
-    outputDir.createSync(recursive: true);
-
-    final config = IntegrationConfig.fromEnvironment();
-    final shots = <DesignReviewShot>[];
-    var teacherEmail = config.email;
-
-    Future<void> captureCurrent({
-      required TeacherWidgetTestHarness harness,
-      required DesignReviewFormFactor formFactor,
-      required String slug,
-      required String title,
-      required String description,
-    }) async {
-      await configureDesignReviewViewport(tester, formFactor);
-      harness.viewportSize = designReviewLogicalSize(formFactor);
-      await tester.pump();
-
-      final file = designReviewShotFile(
-        outputDir,
-        formFactor: formFactor.slug,
-        locale: localeSlug,
-        slug: slug,
-      );
-      await captureDesignReviewShot(
-        tester,
-        file,
-        logicalSize: designReviewLogicalSize(formFactor),
-      );
-      shots.add(
-        DesignReviewShot(
-          relativePath: '${formFactor.slug}-$localeSlug/$slug.png',
-          title: title,
-          description: description,
-        ),
-      );
-    }
-
-    for (final formFactor in DesignReviewFormFactor.values) {
-      final layoutLabel =
-          formFactor == DesignReviewFormFactor.phone ? 'phone' : 'tablet';
-
-      final guestHarness = await TeacherWidgetTestHarness.createGuest(
-        language: language,
-      );
-      await pumpTeacherLoginShell(tester, guestHarness, formFactor: formFactor);
-      await captureCurrent(
-        harness: guestHarness,
-        formFactor: formFactor,
-        slug: '00-login',
-        title: 'Login ($layoutLabel, $localeLabel)',
-        description: 'Staff sign-in screen.',
-      );
-      await resetIntegrationTestSurface(tester);
-      await resetIntegrationTestViewport(tester);
-      Levit.reset();
-
-      final harness = await TeacherWidgetTestHarness.create(language: language);
-      final probes = await TeacherProbeBundle.load(harness);
-      teacherEmail = harness.profile!.email;
-
-      await pumpTeacherShellUntil<CalendarPage>(
-        tester,
-        harness,
-        formFactor: formFactor,
-      );
-      await pumpUntilCalendarHasSessions(
-        tester,
-        preferDay: probes.sessionProbe?.sessionDay,
-      );
-      await captureCurrent(
-        harness: harness,
-        formFactor: formFactor,
-        slug: '01-calendar',
-        title: 'Calendar ($layoutLabel, $localeLabel)',
-        description: 'Week view with seeded sessions.',
-      );
-
-      await openEvaluationsTab(tester, harness, formFactor: formFactor);
-      final assessmentTitle = probes.firstAssessmentTitle;
-      if (assessmentTitle != null) {
-        await pumpUntilEvaluationsLoaded(
-          tester,
-          expectedTitle: assessmentTitle,
-          harness: harness,
-        );
+      final outputDir = teacherPrototypeDesignReviewOutputDirectory();
+      if (outputDir.existsSync()) {
+        outputDir.deleteSync(recursive: true);
       }
-      await captureCurrent(
-        harness: harness,
-        formFactor: formFactor,
-        slug: '02-evaluations',
-        title: 'Evaluations ($layoutLabel, $localeLabel)',
-        description: 'Assessment list for the active period.',
-      );
+      outputDir.createSync(recursive: true);
 
-      await openTeachingTab(
-        tester,
-        harness,
-        classSubjectId: probes.teachingProbe?.classSubjectId,
-        formFactor: formFactor,
-      );
-      await tester.pump(const Duration(milliseconds: 1200));
-      await captureCurrent(
-        harness: harness,
-        formFactor: formFactor,
-        slug: '03-teaching-progress',
-        title: 'Teaching — progress ($layoutLabel, $localeLabel)',
-        description: 'Curriculum progress for an assigned subject.',
-      );
+      final shots = <DesignReviewShot>[];
 
-      await openTeachingTab(
-        tester,
-        harness,
-        classSubjectId: probes.teachingProbe?.classSubjectId,
-        formFactor: formFactor,
-      );
-      await openTeachingLogbookTab(tester);
-      await captureCurrent(
-        harness: harness,
-        formFactor: formFactor,
-        slug: '04-teaching-logbook',
-        title: 'Teaching — logbook ($layoutLabel, $localeLabel)',
-        description: 'Session log entries for the selected subject.',
-      );
-
-      await openReportCardsTab(tester, harness, formFactor: formFactor);
-      await captureCurrent(
-        harness: harness,
-        formFactor: formFactor,
-        slug: '05-report-cards',
-        title: 'Report cards ($layoutLabel, $localeLabel)',
-        description: 'Class list for report-card comments.',
-      );
-
-      await pumpTeacherRoute(
-        tester,
-        harness,
-        location: '/settings',
-        formFactor: formFactor,
-      );
-      await pumpUntilFound(tester, find.byType(SettingsPage));
-      await captureCurrent(
-        harness: harness,
-        formFactor: formFactor,
-        slug: '06-settings',
-        title: 'Settings ($layoutLabel, $localeLabel)',
-        description: 'Language and app preferences.',
-      );
-
-      await pumpTeacherRoute(
-        tester,
-        harness,
-        location: '/account',
-        formFactor: formFactor,
-      );
-      await pumpUntilFound(tester, find.byType(AccountSheet));
-      await captureCurrent(
-        harness: harness,
-        formFactor: formFactor,
-        slug: '07-account',
-        title: 'Account ($layoutLabel, $localeLabel)',
-        description: 'Account actions sheet.',
-      );
-
-      await pumpTeacherRoute(
-        tester,
-        harness,
-        location: '/account/profile',
-        formFactor: formFactor,
-      );
-      await pumpUntilFound(tester, find.byType(AccountProfilePage));
-      await captureCurrent(
-        harness: harness,
-        formFactor: formFactor,
-        slug: '08-account-profile',
-        title: 'Account profile ($layoutLabel, $localeLabel)',
-        description: 'Editable teacher profile.',
-      );
-
-      await pumpTeacherShellUntil<CalendarPage>(
-        tester,
-        harness,
-        formFactor: formFactor,
-      );
-      await openClassFilterSheet(tester);
-      await captureCurrent(
-        harness: harness,
-        formFactor: formFactor,
-        slug: '09-class-filter',
-        title: 'Class filter ($layoutLabel, $localeLabel)',
-        description: 'Filter calendar and lists by class.',
-      );
-
-      await pumpTeacherRoute(
-        tester,
-        harness,
-        location: '/evaluations/create',
-        formFactor: formFactor,
-      );
-      await pumpUntilFound(tester, find.byType(EvaluationCreateSheet));
-      await captureCurrent(
-        harness: harness,
-        formFactor: formFactor,
-        slug: '10-evaluation-create',
-        title: 'Create evaluation ($layoutLabel, $localeLabel)',
-        description: 'New assessment form.',
-      );
-
-      final session = probes.sessionProbe;
-      if (session != null) {
-        await pumpTeacherShellUntil<CalendarPage>(
-          tester,
-          harness,
-          formFactor: formFactor,
-        );
-        await pumpUntilCalendarHasSessions(
-          tester,
-          preferDay: session.sessionDay,
-        );
-        await tapTeacherSessionTile(
-          tester,
-          titleNeedle: session.sessionTitle,
-        );
+      Future<void> captureCurrent({
+        required PrototypeWidgetTestHarness harness,
+        required DesignReviewFormFactor formFactor,
+        required String slug,
+        required String title,
+        required String description,
+      }) async {
+        await configureDesignReviewViewport(tester, formFactor);
+        harness.viewportSize = designReviewLogicalSize(formFactor);
         await tester.pump();
-        await pumpUntilFound(tester, find.byType(SessionDetailsSheet));
-        if (session.studentCount > 0) {
-          await pumpUntilFound(tester, find.byType(AttendanceRowTile));
-        }
-        await captureCurrent(
-          harness: harness,
-          formFactor: formFactor,
-          slug: '11-session-detail',
-          title: 'Session detail ($layoutLabel, $localeLabel)',
-          description: 'Attendance sheet for a seeded lesson.',
-        );
 
-        if (session.studentCount > 0) {
-          await openAttendanceExceptionSheet(tester);
+        final file = designReviewShotFile(
+          outputDir,
+          formFactor: formFactor.slug,
+          locale: localeSlug,
+          slug: slug,
+        );
+        await captureDesignReviewShot(
+          tester,
+          file,
+          logicalSize: designReviewLogicalSize(formFactor),
+        );
+        shots.add(
+          DesignReviewShot(
+            relativePath: '${formFactor.slug}-$localeSlug/$slug.png',
+            title: title,
+            description: description,
+          ),
+        );
+      }
+
+      Future<void> navigateTo(
+        PrototypeWidgetTestHarness harness,
+        String location,
+      ) async {
+        harness.router.go(location);
+        await tester.pump();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+      }
+
+      final authenticatedRoutesBase =
+          <
+            ({
+              String Function(PrototypeWidgetTestHarness) path,
+              String slug,
+              String title,
+              String description,
+              Type pageType,
+            })
+          >[
+            (
+              path: (_) => '/home',
+              slug: '01-home',
+              title: 'Home',
+              description: 'Today action centre with incomplete tasks.',
+              pageType: HomePage,
+            ),
+            (
+              path: (_) => '/calendar',
+              slug: '02-calendar',
+              title: 'Calendar',
+              description: 'Week agenda with teacher sessions.',
+              pageType: CalendarPage,
+            ),
+            (
+              path: (h) => '/session/${h.store.sessions.first.id}',
+              slug: '03-session',
+              title: 'Session details',
+              description: 'Session summary with attendance and logbook.',
+              pageType: SessionDetailPage,
+            ),
+            (
+              path: (h) => '/session/${h.store.sessions.first.id}/attendance',
+              slug: '04-attendance',
+              title: 'Attendance',
+              description: 'Roster attendance capture.',
+              pageType: AttendancePage,
+            ),
+            (
+              path: (h) => '/session/${h.store.sessions.first.id}/logbook',
+              slug: '04b-logbook',
+              title: 'Logbook',
+              description: 'Structured lesson logbook and progress.',
+              pageType: LogbookPage,
+            ),
+            (
+              path: (_) => '/classes',
+              slug: '05-classes',
+              title: 'Classes',
+              description: 'Assigned classes and subjects.',
+              pageType: ClassesPage,
+            ),
+            (
+              path: (h) => '/classes/${h.store.assignments.first.classId}',
+              slug: '06-roster',
+              title: 'Class roster',
+              description: 'Students in the selected class.',
+              pageType: ClassRosterPage,
+            ),
+            (
+              path: (h) =>
+                  '/classes/${h.store.assignments.first.classId}/student/${h.store.students.first.id}',
+              slug: '06b-student-profile',
+              title: 'Student profile',
+              description: 'Student identity card in the class workspace.',
+              pageType: StudentProfilePage,
+            ),
+            (
+              path: (_) => '/evaluations',
+              slug: '07-evaluations',
+              title: 'Evaluations',
+              description: 'Assessments and report-card hub.',
+              pageType: EvaluationsPage,
+            ),
+            (
+              path: (_) => '/evaluations/avis',
+              slug: '07b-family-feedback',
+              title: 'Family feedback list',
+              description: 'Teacher family-feedback archive under Evaluations.',
+              pageType: FamilyFeedbackListPage,
+            ),
+            (
+              path: (h) =>
+                  '/evaluations/avis/${h.store.familyFeedback.first.id}',
+              slug: '07c-family-feedback-detail',
+              title: 'Family feedback detail',
+              description: 'Family-feedback result from the Evaluations hub.',
+              pageType: FamilyFeedbackDetailPage,
+            ),
+            (
+              path: (h) => '/home/avis/${h.store.familyFeedback.first.id}',
+              slug: '07d-home-family-feedback',
+              title: 'Home family feedback',
+              description: 'Family-feedback result opened from Accueil.',
+              pageType: FamilyFeedbackDetailPage,
+            ),
+            (
+              path: (h) => '/evaluations/${h.store.evaluations.first.id}/marks',
+              slug: '08-marks',
+              title: 'Marks entry',
+              description: 'Per-student marks for an evaluation.',
+              pageType: MarksEntryPage,
+            ),
+            (
+              path: (h) =>
+                  '/evaluations/report-cards/${h.store.reportCardClasses.first.classId}/${h.store.reportCardClasses.first.periodId}',
+              slug: '08b-bulletin-roster',
+              title: 'Bulletin comments',
+              description: 'Report-card comment roster for a class period.',
+              pageType: ReportCardRosterPage,
+            ),
+            (
+              path: (_) => '/inbox',
+              slug: '09-inbox',
+              title: 'Inbox',
+              description: 'Teacher message list.',
+              pageType: InboxPage,
+            ),
+            (
+              path: (h) => '/inbox/message/${h.store.messages.first.id}',
+              slug: '10-message',
+              title: 'Message details',
+              description: 'Inbox message content.',
+              pageType: MessageDetailPage,
+            ),
+            (
+              path: (_) => '/account',
+              slug: '11-account',
+              title: 'Account',
+              description: 'Teacher account actions.',
+              pageType: AccountPage,
+            ),
+            (
+              path: (_) => '/settings',
+              slug: '12-settings',
+              title: 'Settings',
+              description: 'Language, theme, timezone, and outbox sync.',
+              pageType: SettingsPage,
+            ),
+          ];
+
+      for (final formFactor in DesignReviewFormFactor.values) {
+        final layoutLabel = formFactor.slug;
+
+        final guestHarness = PrototypeWidgetTestHarness()
+          ..bootstrap(authenticated: false);
+        await pumpPrototypeApp(tester, guestHarness, formFactor: formFactor);
+        await navigateTo(guestHarness, '/login');
+        await pumpUntilFound(tester, find.byType(LoginPage));
+        await captureCurrent(
+          harness: guestHarness,
+          formFactor: formFactor,
+          slug: '00-login',
+          title: 'Login ($layoutLabel, $localeLabel)',
+          description: 'Teacher sign-in screen (prototype).',
+        );
+        await resetIntegrationTestSurface(tester);
+
+        final harness = PrototypeWidgetTestHarness()
+          ..bootstrap(authenticated: true);
+        expect(harness.store.sessions, isNotEmpty);
+
+        await pumpPrototypeApp(tester, harness, formFactor: formFactor);
+        await navigateTo(harness, '/home');
+
+        for (final route in authenticatedRoutesBase) {
+          await navigateTo(harness, route.path(harness));
+          await pumpUntilFound(tester, find.byType(route.pageType));
           await captureCurrent(
             harness: harness,
             formFactor: formFactor,
-            slug: '12-attendance-exception',
-            title: 'Attendance exception ($layoutLabel, $localeLabel)',
-            description: 'Record absence, lateness, or excuse.',
+            slug: route.slug,
+            title: '${route.title} ($layoutLabel, $localeLabel)',
+            description: route.description,
           );
         }
 
-        final resolvedSession = probes.resolvedSession;
-        if (resolvedSession != null && session.studentCount > 0) {
-          await pumpTeacherRoute(
-            tester,
-            harness,
-            location: '/calendar/attendance-flow',
-            extra: AttendanceFlowArgs(session: resolvedSession),
-            formFactor: formFactor,
-          );
-          await pumpUntilRouteReady(tester, find.byType(AttendanceFlowPage));
-          await captureCurrent(
-            harness: harness,
-            formFactor: formFactor,
-            slug: '13-attendance-flow',
-            title: 'Attendance flow ($layoutLabel, $localeLabel)',
-            description: 'Swipe-based attendance capture.',
-          );
-
-          await pumpTeacherRoute(
-            tester,
-            harness,
-            location: TeacherRoutePaths.session(session.lessonSessionId),
-            formFactor: formFactor,
-          );
-          await pumpUntilRouteReady(tester, find.byType(SessionDetailsSheet));
-          if (find
-              .descendant(
-                of: find.byType(SessionDetailsSheet),
-                matching: find.byIcon(Icons.menu_book_outlined),
-              )
-              .evaluate()
-              .isNotEmpty) {
-            await openSessionLogbookSegment(tester);
-            await captureCurrent(
-              harness: harness,
-              formFactor: formFactor,
-              slug: '14-session-logbook',
-              title: 'Session logbook ($layoutLabel, $localeLabel)',
-              description: 'Structured lesson log for a session.',
-            );
-          }
-        }
+        await resetIntegrationTestSurface(tester);
+        await resetIntegrationTestViewport(tester);
       }
 
-      final assessmentId = probes.firstAssessmentId;
-      if (assessmentId != null && probes.marksStudentCount > 0) {
-        await pumpTeacherRoute(
-          tester,
-          harness,
-          location: TeacherRoutePaths.assessmentMarks(assessmentId),
-          formFactor: formFactor,
-        );
-        await pumpUntilRouteReady(tester, find.byType(MarksEntrySheet));
-        await pumpUntilFound(tester, find.byType(MarkRowTile));
-        await captureCurrent(
-          harness: harness,
-          formFactor: formFactor,
-          slug: '15-marks-entry',
-          title: 'Marks entry ($layoutLabel, $localeLabel)',
-          description: 'Grade entry sheet for a seeded assessment.',
-        );
-      }
+      writeDesignReviewPack(
+        outputDir: outputDir,
+        shots: shots,
+        localeLabel: localeLabel,
+      );
 
-      final rosterArgs = probes.reportCardRosterArgs;
-      if (rosterArgs != null) {
-        await pumpTeacherRoute(
-          tester,
-          harness,
-          location: TeacherRoutePaths.reportCardRoster(
-            classGroupId: rosterArgs.classGroupId,
-            periodId: rosterArgs.periodId,
-          ),
-          formFactor: formFactor,
-        );
-        await pumpUntilRouteReady(tester, find.byType(ReportCardRosterSheet));
-        await captureCurrent(
-          harness: harness,
-          formFactor: formFactor,
-          slug: '16-report-card-roster',
-          title: 'Report card roster ($layoutLabel, $localeLabel)',
-          description: 'Student list for report-card comments.',
-        );
-      }
-
-      final comment = probes.reportCardCommentProbe;
-      if (comment != null) {
-        await pumpTeacherRoute(
-          tester,
-          harness,
-          location: TeacherRoutePaths.reportCardComment(
-            resultId: comment.resultId,
-            studentId: comment.studentId,
-          ),
-          formFactor: formFactor,
-        );
-        await pumpUntilRouteReady(tester, find.byType(ReportCardCommentSheet));
-        await captureCurrent(
-          harness: harness,
-          formFactor: formFactor,
-          slug: '17-report-card-comment',
-          title: 'Report card comment ($layoutLabel, $localeLabel)',
-          description: 'Per-student report-card comment editor.',
-        );
-      }
-
-      await resetIntegrationTestSurface(tester);
-      await resetIntegrationTestViewport(tester);
-      Levit.reset();
-    }
-
-    writeDesignReviewPack(
-      outputDir: outputDir,
-      shots: shots,
-      teacherEmail: teacherEmail,
-      apiBaseUrl: config.baseUrl,
-      localeLabel: localeLabel,
-    );
-
-    expect(shots, isNotEmpty);
-    expect(File('${outputDir.path}/index.html').existsSync(), isTrue);
-  });
+      expect(shots, isNotEmpty);
+      expect(File('${outputDir.path}/index.html').existsSync(), isTrue);
+    },
+    timeout: const Timeout(Duration(minutes: 15)),
+  );
 }

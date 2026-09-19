@@ -1,20 +1,14 @@
-import 'dart:io';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-const _pathProviderChannel = MethodChannel('plugins.flutter.io/path_provider');
 
 FlutterExceptionHandler? _previousFlutterErrorHandler;
-Directory? _fontCacheDirectory;
 
 /// Prepares widget-test rendering so design-review PNGs match the real app.
 Future<void> configureDesignReviewEnvironment() async {
-  _mockPathProviderForGoogleFonts();
-  await loadDesignReviewIconFonts();
+  await loadDesignReviewFonts();
   _previousFlutterErrorHandler = FlutterError.onError;
   FlutterError.onError = (details) {
     final message = details.exceptionAsString();
@@ -23,63 +17,101 @@ Future<void> configureDesignReviewEnvironment() async {
     }
     _previousFlutterErrorHandler?.call(details);
   };
-
-  GoogleFonts.config.allowRuntimeFetching = true;
-  await GoogleFonts.pendingFonts([
-    GoogleFonts.nunito(fontWeight: FontWeight.w400),
-    GoogleFonts.nunito(fontWeight: FontWeight.w500),
-    GoogleFonts.nunito(fontWeight: FontWeight.w600),
-    GoogleFonts.nunito(fontWeight: FontWeight.w700),
-    GoogleFonts.nunito(fontWeight: FontWeight.w800),
-  ]);
 }
 
 void resetDesignReviewEnvironment() {
-  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-      .setMockMethodCallHandler(_pathProviderChannel, null);
-  _fontCacheDirectory?.deleteSync(recursive: true);
-  _fontCacheDirectory = null;
-
   if (_previousFlutterErrorHandler != null) {
     FlutterError.onError = _previousFlutterErrorHandler!;
     _previousFlutterErrorHandler = null;
   }
 }
 
-void _mockPathProviderForGoogleFonts() {
-  _fontCacheDirectory = Directory.systemTemp.createTempSync(
-    'edaya_teacher_design_review_fonts_',
-  );
-  final cachePath = _fontCacheDirectory!.path;
-
-  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-      .setMockMethodCallHandler(_pathProviderChannel, (methodCall) async {
-    switch (methodCall.method) {
-      case 'getTemporaryDirectory':
-      case 'getApplicationSupportDirectory':
-      case 'getApplicationDocumentsDirectory':
-        return cachePath;
-      default:
-        return null;
-    }
-  });
+Future<void> loadDesignReviewFonts() async {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  final loaded = await _loadFontsFromManifest();
+  await _loadEdayaUiFonts();
+  if (!loaded.contains('MaterialIcons')) {
+    await (FontLoader('MaterialIcons')
+          ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf')))
+        .load();
+  }
 }
 
-Future<void> loadDesignReviewIconFonts() async {
-  final materialIcons = FontLoader('MaterialIcons')
-    ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'));
-  await materialIcons.load();
+/// [EdayaTypography] looks up `packages/edaya_shared/Inter` (and Poppins).
+/// Widget tests do not install package fonts under that family unless we do.
+Future<void> _loadEdayaUiFonts() async {
+  const interAssets = [
+    'packages/edaya_shared/assets/fonts/Inter-Regular.ttf',
+    'packages/edaya_shared/assets/fonts/Inter-Medium.ttf',
+    'packages/edaya_shared/assets/fonts/Inter-SemiBold.ttf',
+    'packages/edaya_shared/assets/fonts/Inter-Bold.ttf',
+  ];
+  const poppinsAssets = [
+    'packages/edaya_shared/assets/fonts/Poppins-SemiBold.ttf',
+  ];
+  await Future.wait([
+    _loadFamily('Inter', interAssets),
+    _loadFamily('packages/edaya_shared/Inter', interAssets),
+    _loadFamily('Poppins', poppinsAssets),
+    _loadFamily('packages/edaya_shared/Poppins', poppinsAssets),
+  ]);
+}
+
+Future<Set<String>> _loadFontsFromManifest() async {
+  try {
+    final raw = await rootBundle.loadString('FontManifest.json');
+    final manifest = jsonDecode(raw);
+    if (manifest is! List) {
+      return {};
+    }
+    final families = <String>{};
+    for (final item in manifest) {
+      if (item is! Map) {
+        continue;
+      }
+      final family = item['family'] as String?;
+      final fonts = item['fonts'];
+      if (family == null || fonts is! List || fonts.isEmpty) {
+        continue;
+      }
+      final loader = FontLoader(family);
+      for (final font in fonts) {
+        if (font is! Map) {
+          continue;
+        }
+        final asset = font['asset'] as String?;
+        if (asset == null) {
+          continue;
+        }
+        loader.addFont(rootBundle.load(asset));
+      }
+      await loader.load();
+      families.add(family);
+    }
+    return families;
+  } on Object {
+    return {};
+  }
+}
+
+Future<void> _loadFamily(String family, List<String> assets) async {
+  final loader = FontLoader(family);
+  for (final asset in assets) {
+    loader.addFont(rootBundle.load(asset));
+  }
+  await loader.load();
 }
 
 bool _isBenignDesignReviewRenderingIssue(String message) {
   return message.contains('overflowed') ||
       message.contains('RenderFlex') ||
-      message.contains('A RenderFlex');
+      message.contains('A RenderFlex') ||
+      message.contains('ListTile background color');
 }
 
 /// Clears layout exceptions so a screenshot can still be saved.
-void drainBenignRenderingExceptions(WidgetTester tester) {
-  while (true) {
+void drainBenignRenderingExceptions(WidgetTester tester, {int max = 50}) {
+  for (var i = 0; i < max; i++) {
     final exception = tester.takeException();
     if (exception == null) {
       return;

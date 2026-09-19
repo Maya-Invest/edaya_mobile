@@ -62,7 +62,7 @@ Demo accounts: `m.kone@mail.ci` (children `ci-s1` + `ci-s10`), `k.yao@mail.ci` (
 
 Live API widget tests live in `apps/teacher/test/integration/`. They reuse `PortalSession`, `bootstrapTeacherPortal`, and feature probes, then pump real teacher pages under `flutter test`.
 
-Coverage includes the app shell (bottom navigation), calendar, evaluations, teaching, and report cards views.
+Coverage includes Accueil, agenda, classes, evaluations, inbox, account/settings, and live session routes.
 
 Run with the rest of the integration suite:
 

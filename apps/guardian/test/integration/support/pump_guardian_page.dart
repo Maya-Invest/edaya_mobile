@@ -262,7 +262,9 @@ Future<void> pumpUntilCalendarHasSessions(
 
 Finder _sessionRows(WidgetTester tester, String? titleNeedle) {
   if (titleNeedle == null || titleNeedle.isEmpty) {
-    return find.byType(ListRow);
+    return find.byWidgetPredicate((widget) {
+      return widget is ListRow && widget.onTap != null;
+    });
   }
   final needle = titleNeedle.split(' ').first;
   return find.byWidgetPredicate((widget) {

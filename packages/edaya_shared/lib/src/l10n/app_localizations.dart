@@ -284,6 +284,12 @@ abstract class AppLocalizations {
   /// **'OK'**
   String get ok;
 
+  /// No description provided for @help.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get help;
+
   /// No description provided for @currentApiUrl.
   ///
   /// In en, this message translates to:
@@ -433,6 +439,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This account is not linked to a teacher profile.'**
   String get accountNotLinkedToTeacher;
+
+  /// No description provided for @navHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get navHome;
+
+  /// No description provided for @navAgenda.
+  ///
+  /// In en, this message translates to:
+  /// **'Agenda'**
+  String get navAgenda;
+
+  /// No description provided for @navClasses.
+  ///
+  /// In en, this message translates to:
+  /// **'Classes'**
+  String get navClasses;
 
   /// No description provided for @navCalendar.
   ///

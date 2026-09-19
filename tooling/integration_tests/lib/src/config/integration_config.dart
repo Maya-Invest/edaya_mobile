@@ -4,6 +4,7 @@ import 'dart:io';
 class IntegrationConfig {
   const IntegrationConfig({
     required this.baseUrl,
+    required this.authUrl,
     required this.email,
     required this.password,
     required this.academicYearId,
@@ -21,6 +22,11 @@ class IntegrationConfig {
         'EDAYA_API_URL',
         fallbackKeys: ['BASE_URL'],
         defaultValue: 'http://localhost:9999',
+      ).replaceAll(RegExp(r'/+$'), ''),
+      authUrl: _readEnv(
+        'EDAYA_AUTH_URL',
+        fallbackKeys: ['AUTH_URL'],
+        defaultValue: 'http://localhost:9900',
       ).replaceAll(RegExp(r'/+$'), ''),
       email: _readEnv(
         'EDAYA_TEACHER_EMAIL',
@@ -50,6 +56,7 @@ class IntegrationConfig {
   }
 
   final String baseUrl;
+  final String authUrl;
   final String email;
   final String password;
   final String academicYearId;
@@ -69,6 +76,7 @@ class IntegrationConfig {
   IntegrationConfig withTeacherEmail(String email) {
     return IntegrationConfig(
       baseUrl: baseUrl,
+      authUrl: authUrl,
       email: email,
       password: password,
       academicYearId: academicYearId,
@@ -90,6 +98,7 @@ class IntegrationConfig {
   IntegrationConfig withStaffDirectorEmail([String? email]) {
     return IntegrationConfig(
       baseUrl: baseUrl,
+      authUrl: authUrl,
       email: email ?? defaultStaffDirectorEmail,
       password: password,
       academicYearId: academicYearId,

@@ -7,6 +7,7 @@ void main() {
     final config = IntegrationConfig.fromEnvironment();
 
     expect(config.baseUrl, 'http://localhost:9999');
+    expect(config.authUrl, 'http://localhost:9900');
     expect(config.email, 'a.toure@ecole-ci.edaya.dev');
     expect(config.password, 'DevPassword1!');
     expect(config.academicYearId, '2025-ci');
@@ -64,11 +65,7 @@ void main() {
           actorId: 'ci-t1',
           schoolId: 'ci-school',
           assuranceLevel: 'standard',
-          effectiveGrants: EffectiveGrants(
-            permissions: [],
-            scopeIdsByPermission: {},
-            isElevated: false,
-          ),
+          grants: [],
         ),
         academicYears: [],
         teacherAssignments: [],

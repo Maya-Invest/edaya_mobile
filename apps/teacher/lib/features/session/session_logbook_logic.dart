@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'models/session_detail_models.dart';
-
 const _structuredLogbookPrefix = '{"edayaLogbook":';
 
 class StructuredLogbookContent {
@@ -22,6 +20,58 @@ class StructuredLogbookContent {
       objectives.isEmpty &&
       (homework == null || homework!.trim().isEmpty) &&
       (familySummary == null || familySummary!.trim().isEmpty);
+
+  bool get isComplete => !isEmpty;
+}
+
+class SessionMatterProgress {
+  const SessionMatterProgress({
+    required this.id,
+    required this.classSubjectMatterId,
+    required this.completedPercentage,
+    this.notes,
+    this.recordedAt,
+  });
+
+  final String id;
+  final String classSubjectMatterId;
+  final int completedPercentage;
+  final String? notes;
+  final DateTime? recordedAt;
+}
+
+enum ClassSubjectMatterStatus { notStarted, inProgress, completed }
+
+class SessionSubjectMatterOption {
+  const SessionSubjectMatterOption({
+    required this.id,
+    required this.name,
+    required this.sequenceOrder,
+    required this.status,
+    required this.cumulativePercentage,
+    this.sessionProgress,
+  });
+
+  final String id;
+  final String name;
+  final int sequenceOrder;
+  final ClassSubjectMatterStatus status;
+  final int cumulativePercentage;
+  final SessionMatterProgress? sessionProgress;
+
+  bool get hasSessionProgress => sessionProgress != null;
+}
+
+class LogbookProgressDraft {
+  const LogbookProgressDraft({
+    required this.matterId,
+    required this.completedPercentage,
+    this.notes,
+  });
+
+  final String matterId;
+  final int completedPercentage;
+  final String? notes;
 }
 
 StructuredLogbookContent decodeStructuredSessionNote(String? raw) {
@@ -62,7 +112,8 @@ String encodeStructuredSessionNote(StructuredLogbookContent content) {
     return '';
   }
 
-  final hasStructuredFields = content.objectives.isNotEmpty ||
+  final hasStructuredFields =
+      content.objectives.isNotEmpty ||
       (content.homework?.trim().isNotEmpty ?? false) ||
       (content.familySummary?.trim().isNotEmpty ?? false);
 
@@ -84,24 +135,6 @@ String encodeStructuredSessionNote(StructuredLogbookContent content) {
         'familySummary': content.familySummary!.trim(),
     },
   });
-}
-
-String composeFamilyVisiblePreview(StructuredLogbookContent content) {
-  final sections = <String>[];
-  if (content.content.trim().isNotEmpty) {
-    sections.add(content.content.trim());
-  }
-  if (content.objectives.isNotEmpty) {
-    sections.add(content.objectives.map((item) => '• $item').join('\n'));
-  }
-  if (content.homework?.trim().isNotEmpty ?? false) {
-    sections.add(content.homework!.trim());
-  }
-  final summary = content.familySummary?.trim();
-  if (summary != null && summary.isNotEmpty) {
-    return summary;
-  }
-  return sections.join('\n\n');
 }
 
 String? normalizeSessionNote(String? value) {
@@ -180,20 +213,6 @@ List<SessionSubjectMatterOption> buildSessionSubjectMatters({
   return options;
 }
 
-/// Matters that already have a progress snapshot for this lesson session.
-List<SessionSubjectMatterOption> recordedSessionMatters(
-  List<SessionSubjectMatterOption> matters,
-) {
-  return matters.where((matter) => matter.hasSessionProgress).toList();
-}
-
-/// Matters linked to the class subject that are not yet recorded for this session.
-List<SessionSubjectMatterOption> pickableSessionMatters(
-  List<SessionSubjectMatterOption> matters,
-) {
-  return matters.where((matter) => !matter.hasSessionProgress).toList();
-}
-
 int minMatterProgressPercentage(SessionSubjectMatterOption matter) {
   return matter.sessionProgress?.completedPercentage ??
       matter.cumulativePercentage;
@@ -249,4 +268,8 @@ Map<String, dynamic> updateProgressPayload({
     'notes': normalizeSessionNote(notes),
     'recordedAt': recordedAt.toUtc().toIso8601String(),
   };
+}
+
+bool sessionNoteIndicatesComplete(String? raw) {
+  return decodeStructuredSessionNote(raw).isComplete;
 }

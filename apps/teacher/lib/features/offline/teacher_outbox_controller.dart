@@ -4,21 +4,16 @@ import 'package:edaya_api_client/edaya_api_client.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../common/observability/teacher_observability.dart';
-
 class TeacherOutboxController extends LevitController
     with LevitReactiveTasksMixin {
   TeacherOutboxController({
     required TeacherOutboxStore outboxStore,
     required SchoolClientFactory schoolClient,
-    TeacherObservability? observability,
   }) : _outboxStore = outboxStore,
-       _schoolClient = schoolClient,
-       _observability = observability ?? const TeacherObservability();
+       _schoolClient = schoolClient;
 
   final TeacherOutboxStore _outboxStore;
   final SchoolClientFactory _schoolClient;
-  final TeacherObservability _observability;
 
   final summary = LxVar(const TeacherOutboxSummary(pendingCount: 0));
 
@@ -43,14 +38,12 @@ class TeacherOutboxController extends LevitController
       }
 
       final client = _schoolClient();
-
       for (final entry in pending) {
         final synced = await _syncEntry(client, entry);
         if (synced) {
           syncedCount++;
         }
       }
-
       await refreshSummary();
     });
     return syncedCount;
@@ -67,19 +60,7 @@ class TeacherOutboxController extends LevitController
     try {
       await syncTeacherOutboxEntry(client, entry);
       await _outboxStore.remove(entry.id);
-      _observability.recordOutboxSyncSuccess(entry.kind);
       return true;
-    } on ApiError catch (error) {
-      await _outboxStore.upsert(
-        entry.copyWith(
-          state: TeacherOutboxState.failed,
-          attemptCount: entry.attemptCount + 1,
-          lastError: '$error',
-          updatedAt: DateTime.now(),
-        ),
-      );
-      _observability.recordOutboxSyncFailure(entry.kind, error: '$error');
-      return false;
     } on Object catch (error) {
       await _outboxStore.upsert(
         entry.copyWith(
@@ -89,7 +70,6 @@ class TeacherOutboxController extends LevitController
           updatedAt: DateTime.now(),
         ),
       );
-      _observability.recordOutboxSyncFailure(entry.kind, error: '$error');
       return false;
     }
   }

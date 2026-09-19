@@ -16,14 +16,18 @@ import 'package:edaya_guardian/features/fees/payment_detail_page.dart';
 import 'package:edaya_guardian/features/home/home_page.dart';
 import 'package:edaya_guardian/features/inbox/inbox_page.dart';
 import 'package:edaya_guardian/features/inbox/message_detail_page.dart';
+import 'package:edaya_guardian/features/login/login_page.dart';
 import 'package:edaya_guardian/features/scolarite/grade_detail_page.dart';
 import 'package:edaya_guardian/features/scolarite/progress_page.dart';
 import 'package:edaya_guardian/features/scolarite/report_card_page.dart';
 import 'package:edaya_guardian/features/scolarite/results_page.dart';
 import 'package:edaya_guardian/features/scolarite/subject_grades_page.dart';
 import 'package:edaya_guardian/features/scolarite/subject_logbook_page.dart';
+import 'package:edaya_shared/edaya_shared.dart'
+    hide LoginPage, SettingsPage, AccountProfilePage;
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:levit_flutter/levit_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/design_review_capture.dart';
 import 'support/design_review_config.dart';
@@ -35,8 +39,10 @@ import 'support/pump_prototype_page.dart';
 
 Future<void> main() async {
   setUpAll(() async {
+    SharedPreferences.setMockInitialValues({});
     Levit.enableAutoLinking();
     await initializeDateFormatting('fr_FR');
+    await AppSettingsController.preload();
     await configureDesignReviewEnvironment();
   });
   tearDownAll(resetDesignReviewEnvironment);
@@ -238,7 +244,7 @@ Future<void> main() async {
           ..bootstrap(authenticated: false);
         await pumpPrototypeApp(tester, guestHarness, formFactor: formFactor);
         await navigateTo(guestHarness, '/login');
-        await pumpUntilFound(tester, find.text('Se connecter'));
+        await pumpUntilFound(tester, find.byType(LoginPage));
         await captureCurrent(
           harness: guestHarness,
           formFactor: formFactor,

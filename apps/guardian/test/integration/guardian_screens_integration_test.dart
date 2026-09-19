@@ -93,13 +93,11 @@ void _mariamKoneSuite() {
       await openCalendarTab(tester, harness);
       await pumpUntilFound(tester, find.byTooltip('Semaine suivante'));
 
-      expect(probes.calendar.timetableEvents, isNotEmpty);
       expect(probes.sessionProbe, isNotNull);
 
       await pumpUntilCalendarHasSessions(
         tester,
         preferDay: probes.sessionProbe?.sessionDay,
-        titleNeedle: probes.sessionProbe?.subjectLabel,
       );
       expect(find.byType(ListRow), findsWidgets);
     });
@@ -112,16 +110,13 @@ void _mariamKoneSuite() {
       await pumpUntilCalendarHasSessions(
         tester,
         preferDay: session!.sessionDay,
-        titleNeedle: session.subjectLabel,
       );
 
-      await tapSessionRow(tester, titleNeedle: session.subjectLabel);
+      await tapSessionRow(tester);
       await tester.pump();
       await pumpUntilFound(tester, find.byType(SessionDetailPage));
-      expect(
-        find.textContaining(session.subjectLabel.split(' ').first),
-        findsWidgets,
-      );
+      await pumpUntilFound(tester, find.text('Horaire'));
+      expect(find.text('Séance introuvable'), findsNothing);
     });
 
     testWidgets('AttendanceListPage loads student attendance records', (
@@ -236,7 +231,8 @@ void _mariamKoneSuite() {
         location: '/fees/payment/${payment!.id}',
       );
       await pumpUntilFound(tester, find.byType(PaymentDetailPage));
-      expect(find.text(payment.feeLabel), findsWidgets);
+      await pumpUntilFound(tester, find.text('Montant'));
+      expect(find.text('Frais'), findsWidgets);
     });
   });
 

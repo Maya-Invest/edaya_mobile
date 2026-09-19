@@ -40,6 +40,7 @@ class PersonAvatar extends StatelessWidget {
         initials,
         style: TextStyle(
           fontFamily: PrototypeTypography.uiFamily,
+          package: 'edaya_shared',
           fontWeight: FontWeight.w600,
           color: Colors.white,
           fontSize: radius * 0.7,

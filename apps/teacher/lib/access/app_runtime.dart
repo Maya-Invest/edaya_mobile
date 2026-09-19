@@ -1,4 +1,3 @@
-import 'package:edaya_auth/edaya_auth.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 
 import '../features/context/academic_year_controller.dart';
@@ -14,8 +13,6 @@ abstract final class AppRuntime {
 
   static TeacherContextController get teacherContext =>
       EdayaRootScope.find<TeacherContextController>();
-
-  static AuthClient get auth => EdayaRootScope.find<AuthClient>();
 
   static SchoolClientFactory get schoolClient =>
       EdayaRootScope.find<SchoolClientFactory>();

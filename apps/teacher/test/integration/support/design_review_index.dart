@@ -15,21 +15,15 @@ class DesignReviewShot {
 void writeDesignReviewPack({
   required Directory outputDir,
   required List<DesignReviewShot> shots,
-  required String teacherEmail,
-  required String apiBaseUrl,
-  String? localeLabel,
+  required String localeLabel,
 }) {
   final generatedAt = DateTime.now().toUtc().toIso8601String();
   final readme = StringBuffer()
-    ..writeln('# Teacher app — design review pack')
+    ..writeln('# Teacher — design review pack')
     ..writeln()
     ..writeln('Generated: $generatedAt')
-    ..writeln('Teacher account: $teacherEmail')
-    ..writeln('API: $apiBaseUrl');
-  if (localeLabel != null) {
-    readme.writeln('Locale: $localeLabel');
-  }
-  readme
+    ..writeln('Data: mock fixtures (no API)')
+    ..writeln('Locale: $localeLabel')
     ..writeln()
     ..writeln('Open `index.html` in a browser to browse screenshots.')
     ..writeln()
@@ -47,7 +41,8 @@ void writeDesignReviewPack({
 
   final cards = shots
       .map(
-        (shot) => '''
+        (shot) =>
+            '''
     <figure>
       <img src="${shot.relativePath}" alt="${_escapeHtml(shot.title)}" loading="lazy" />
       <figcaption>
@@ -65,7 +60,7 @@ void writeDesignReviewPack({
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Edaya Teacher — design review</title>
+  <title>Edaya Guardian Prototype — design review</title>
   <style>
     :root {
       color-scheme: light;
@@ -124,11 +119,11 @@ void writeDesignReviewPack({
 </head>
 <body>
   <header>
-    <h1>Edaya Teacher — design review</h1>
+    <h1>Edaya Guardian Prototype — design review</h1>
     <p class="meta">
       Generated $generatedAt<br />
-      Account: $teacherEmail<br />
-      API: $apiBaseUrl${localeLabel == null ? '' : '<br />Locale: $localeLabel'}
+      Data: mock fixtures (no API)<br />
+      Locale: $localeLabel
     </p>
   </header>
   <section class="grid">

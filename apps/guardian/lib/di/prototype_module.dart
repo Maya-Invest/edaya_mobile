@@ -37,11 +37,13 @@ void registerPrototypeDependencies(LevitScope scope, {MockStore? store}) {
     getSchoolId: () => scope.find<AppSessionController>().schoolIdHeader,
   );
   scope.put<PushNotificationService>(
-    () => FcmPushNotificationService(
-      schoolClientFactory: scope.find<SchoolClientFactory>(),
-      config: PushNotificationConfigs.guardian,
-      onNotificationOpened: handleGuardianNotificationOpened,
-    ),
+    () => store != null
+        ? const _NoOpPushNotificationService()
+        : FcmPushNotificationService(
+            schoolClientFactory: scope.find<SchoolClientFactory>(),
+            config: PushNotificationConfigs.guardian,
+            onNotificationOpened: handleGuardianNotificationOpened,
+          ),
     permanent: true,
   );
   scope.put<AppSessionController>(
@@ -89,25 +91,43 @@ void registerPrototypeDependencies(LevitScope scope, {MockStore? store}) {
     () => PrototypeAppRouter(scope.find<GoRouter>()),
     permanent: true,
   );
-  scope.put<AppBootstrapController>(
-    () => AppBootstrapController(
-      authClient: scope.find<AuthClient>(),
-      sessionStorage: scope.find<SessionStorage>(),
-      session: scope.find<AppSessionController>(),
-      pushNotifications: scope.find<PushNotificationService>(),
-      hydratePendingInvitation: () =>
-          scope.find<PendingInvitationStore>().hydrate(),
-      initializeAuthenticatedContext: () async {
-        await scope.find<AcademicYearController>().loadYears();
-        await scope.find<StudentContextController>().initializeFromSession();
-      },
-    ),
-    permanent: true,
-  );
+  if (store == null) {
+    scope.put<AppBootstrapController>(
+      () => AppBootstrapController(
+        authClient: scope.find<AuthClient>(),
+        sessionStorage: scope.find<SessionStorage>(),
+        session: scope.find<AppSessionController>(),
+        pushNotifications: scope.find<PushNotificationService>(),
+        hydratePendingInvitation: () =>
+            scope.find<PendingInvitationStore>().hydrate(),
+        initializeAuthenticatedContext: () async {
+          await scope.find<AcademicYearController>().loadYears();
+          await scope.find<StudentContextController>().initializeFromSession();
+        },
+      ),
+      permanent: true,
+    );
+  }
 
   if (store != null) {
     store.addListener(() => scope.find<EdayaRouterRefresh>().refresh());
   }
+}
+
+class _NoOpPushNotificationService implements PushNotificationService {
+  const _NoOpPushNotificationService();
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<void> registerForAuthenticatedUser() async {}
+
+  @override
+  Future<void> unregister() async {}
+
+  @override
+  Future<void> consumePendingNavigation() async {}
 }
 
 class PrototypeAppRouter implements EdayaAppRouter {

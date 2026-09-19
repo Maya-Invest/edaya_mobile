@@ -59,6 +59,32 @@ class EffectiveGrantsResponse {
     );
   }
 
+  GuardianPortalScope? get guardianScope {
+    if (kind != 'guardian') {
+      return null;
+    }
+    final studentIds = <String>{};
+    final classGroupIds = <String>{};
+    for (final grant in grants) {
+      for (final scope in grant.scopes) {
+        switch (scope) {
+          case StudentGrantScope(:final studentId):
+            studentIds.add(studentId);
+          case ClassGroupGrantScope(:final classGroupId):
+            classGroupIds.add(classGroupId);
+          case ClassSubjectGrantScope(:final classGroupId):
+            classGroupIds.add(classGroupId);
+          default:
+            break;
+        }
+      }
+    }
+    return GuardianPortalScope(
+      studentIds: studentIds.toList(),
+      classGroupIds: classGroupIds.toList(),
+    );
+  }
+
   Map<String, dynamic> toJson() => {
     'kind': kind,
     'actorId': actorId,
@@ -76,6 +102,16 @@ class TeacherPortalScope {
 
   final List<String> classSubjectIds;
   final List<String> homeroomClassGroupIds;
+}
+
+class GuardianPortalScope {
+  const GuardianPortalScope({
+    required this.studentIds,
+    required this.classGroupIds,
+  });
+
+  final List<String> studentIds;
+  final List<String> classGroupIds;
 }
 
 enum GrantSource { manual, assignment, relationship, owner }

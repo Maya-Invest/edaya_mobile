@@ -1,22 +1,29 @@
 /// Canonical teacher-app routes that can be opened from notifications or links.
 abstract final class TeacherRoutePaths {
+  static const home = '/home';
   static const calendar = '/calendar';
+  static const classes = '/classes';
   static const evaluations = '/evaluations';
-  static const teaching = '/teaching';
-  static const reportCards = '/report-cards';
+  static const inbox = '/inbox';
+  static const settings = '/settings';
+  static const account = '/account';
 
-  static String session(String sessionId) => '/calendar/sessions/$sessionId';
+  static String session(String sessionId) => '/session/$sessionId';
 
   static String assessmentMarks(String assessmentId) =>
-      '/evaluations/assessments/$assessmentId/marks';
+      '/evaluations/$assessmentId/marks';
 
   static String reportCardRoster({
     required String classGroupId,
     required String periodId,
-  }) => '/report-cards/classes/$classGroupId/periods/$periodId/roster';
+  }) => '/evaluations/report-cards/$classGroupId/$periodId';
 
   static String reportCardComment({
-    required String resultId,
+    required String classGroupId,
+    required String periodId,
     required String studentId,
-  }) => '/report-cards/results/$resultId/students/$studentId/comment';
+  }) => '/evaluations/report-cards/$classGroupId/$periodId/$studentId';
+
+  static String classWorkspace(String classGroupId) =>
+      '/classes/$classGroupId';
 }

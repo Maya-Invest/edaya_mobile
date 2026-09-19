@@ -73,6 +73,7 @@
   },
   "restartApp": "Restart app",
   "ok": "OK",
+  "help": "Help",
   "currentApiUrl": "Current: {url}",
   "@currentApiUrl": {
     "placeholders": {
@@ -105,6 +106,9 @@
   "signedInNoTeacherProfile": "Signed in, but no linked teacher profile. Run: bun seed --scope auth:link",
   "accountNotLinkedToStaff": "This account is not linked to a staff profile.",
   "accountNotLinkedToTeacher": "This account is not linked to a teacher profile.",
+  "navHome": "Home",
+  "navAgenda": "Agenda",
+  "navClasses": "Classes",
   "navCalendar": "Calendar",
   "navAcademic": "Academic",
   "navFees": "Fees",

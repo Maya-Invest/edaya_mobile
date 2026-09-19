@@ -1,6 +1,6 @@
 # Teacher Shell Spec
 
-> **Applies to:** Teacher Flutter prototype (`apps/teacher_prototype`) and future teacher production shell  
+> **Applies to:** Teacher Flutter production shell (`apps/teacher`)  
 > **Audience:** Implementers and agents  
 > **Authority:** This document is normative for the teacher Accueil-first shell. Visual tokens live in [design-language-spec.md](design-language-spec.md). Shared widgets follow [guardian-shared-components-spec.md](guardian-shared-components-spec.md) unless a teacher-specific component is listed below.
 
@@ -14,9 +14,9 @@ This spec defines information architecture, shell chrome, teacher/class context,
 |------|-------------|
 | Audience | Teachers (subject and homeroom), French-first |
 | Tone | Staff classroom companion — polished like guardian, job-oriented |
-| Auth | Pre-shell email OTP against Identity (`sendEmailOtp` / `signInWithEmailOtp`). Success lands on `/home`. Widget tests may keep a mock OTP harness; the runnable product (`melos run run:teacher:prototype`) is live. |
-| Live after OTP | Shell teacher context (class / subject / year), Accueil tasks, and family-feedback avis must read the school API. Do not ship real Identity in front of fake classrooms. |
-| Other hubs | Agenda sessions, class rosters, marks, attendance, and logbook resolve live IDs when those controllers are wired. Inbox and bulletin comments may stay empty/mock until a later cutover. |
+| Auth | Pre-shell email OTP against Identity (`sendEmailOtp` / `signInWithEmailOtp`). Success lands on `/home`. Widget tests may keep a mock OTP harness; the runnable product (`melos run run:teacher:local`) is live. |
+| Live after OTP | Shell teacher context (class / subject / year), Accueil tasks, family-feedback avis, inbox, and bulletin comments must read the school API. Do not ship real Identity in front of fake classrooms. |
+| Other hubs | Agenda sessions, class rosters, marks, attendance, logbook, evaluations, and report-card comments resolve live IDs. |
 | Context awareness | Active class/subject and school year must remain visible in the shell whenever chrome is shown |
 
 ---
@@ -211,5 +211,5 @@ All other chrome and list widgets reuse the guardian design-language catalog.
 6. Teacher context card visible whenever shell chrome is shown.
 7. Post-login landing is `/home`.
 8. Design-review (or equivalent) must cover compact, medium, and expanded widths.
-9. Login is Identity OTP (not “any code works”) on the runnable prototype.
+9. Login is Identity OTP (not “any code works”) on the runnable product.
 10. Accueil family-feedback tasks and `/evaluations/avis` read live teacher results.
