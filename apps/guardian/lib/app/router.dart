@@ -1,392 +1,292 @@
-import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_shared/edaya_shared.dart' hide LoginPage;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
+import '../config/api_config.dart';
+import '../features/account/account_page.dart';
+import '../features/account/account_profile_page.dart' as proto;
+import '../features/account/settings_page.dart' as proto;
+import '../features/calendar/attendance_page.dart';
+import '../features/calendar/session_detail_page.dart';
+import '../features/child_profile/child_profile_page.dart';
 import '../features/context/academic_year_controller.dart';
 import '../features/context/student_context_controller.dart';
-import '../config/api_config.dart';
-import '../features/academic/academic_page.dart';
-import '../features/academic/grade_details_dialog.dart';
-import '../features/academic/models/grade_entry.dart';
-import '../features/academic/models/report_card_summary.dart';
-import '../features/academic/report_card_details_dialog.dart';
-import '../features/account/account_sheet.dart';
-import '../features/app_shell/app_shell_page.dart';
-import '../features/child_profile/child_profile_page.dart';
-import '../features/calendar/attendance_list_page.dart';
-import '../features/calendar/calendar_page.dart';
-import '../features/calendar/models/calendar_session.dart';
-import '../features/calendar/session_details_dialog.dart';
-import '../features/context/academic_year_picker_sheet.dart';
-import '../features/documents/documents_page.dart';
 import '../features/family_feedback/family_feedback_page.dart';
-import '../features/evaluations/evaluations_page.dart';
-import '../features/fees/charge_details_dialog.dart';
-import '../features/fees/fees_page.dart';
-import '../features/fees/models/payment_record.dart';
-import '../features/fees/models/student_charge_line.dart';
-import '../features/fees/payment_details_dialog.dart';
-import '../features/inbox/inbox_page.dart';
+import '../features/fees/fee_detail_page.dart';
+import '../features/fees/payment_detail_page.dart';
+import '../features/inbox/inbox_routes.dart';
+import '../features/inbox/message_detail_page.dart';
 import '../features/inbox/models/inbox_delivery.dart';
-import '../features/inbox/message_details_dialog.dart';
 import '../features/invite/invitation_page.dart';
-import '../features/my_students/my_students_sheet.dart';
-
+import '../features/login/login_page.dart';
+import '../features/scolarite/grade_detail_page.dart';
+import '../features/scolarite/progress_page.dart';
+import '../features/scolarite/report_card_page.dart';
+import '../features/scolarite/subject_grades_page.dart';
+import '../features/scolarite/subject_logbook_page.dart';
 import '../features/waiting/waiting_for_students_page.dart';
+import '../mock/mock_store.dart';
+import 'shell_page.dart';
 
-final rootNavigatorKey = GlobalKey<NavigatorState>();
-final shellNavigatorKey = GlobalKey<NavigatorState>();
+GoRouter createRouter({
+  required AppSessionController session,
+  required StudentContextController studentContext,
+  required AcademicYearController academicYear,
+  required PendingInvitationStore pendingInvitation,
+  required Listenable routerRefresh,
+  MockStore? mockStore,
+}) {
+  Future<void> completePostAuthNavigation([BuildContext? context]) async {
+    await academicYear.loadYears();
+    await studentContext.initializeFromSession();
+    if (context != null && context.mounted) {
+      final next = resolveGuardianPostAuthHome(
+        hasSchoolSession: session.hasSchoolSession,
+        hasLinkedStudents: studentContext.hasLinkedStudents,
+      );
+      context.go(next);
+    }
+  }
 
-class AppRouter extends LevitController implements EdayaAppRouter {
-  AppRouter({
-    required AppSessionController session,
-    required AcademicYearController academicYear,
-    required StudentContextController studentContext,
-    required EdayaRouterRefresh routerRefresh,
-    required PendingInvitationStore pendingInvitation,
-  }) : _session = session,
-       _academicYear = academicYear,
-       _studentContext = studentContext,
-       _routerRefresh = routerRefresh,
-       _pendingInvitation = pendingInvitation {
-    router = GoRouter(
-      navigatorKey: rootNavigatorKey,
-      initialLocation: guardianLoginRoute,
-      refreshListenable: _routerRefresh,
-      redirect: (context, state) {
-        final incoming = parseInvitationDeepLink(state.uri);
-        if (incoming != null) {
-          _pendingInvitation.remember(incoming.token);
-        } else {
-          final routeToken = state.pathParameters['token'];
-          if (routeToken != null && routeToken.trim().isNotEmpty) {
-            _pendingInvitation.remember(routeToken);
-          }
+  Widget hubPlaceholder() => const SizedBox.shrink();
+
+  return GoRouter(
+    initialLocation: guardianLoginRoute,
+    refreshListenable: routerRefresh,
+    redirect: (context, state) {
+      if (mockStore != null) {
+        final loggedIn = mockStore.isAuthenticated;
+        final onLogin = state.matchedLocation == guardianLoginRoute;
+        if (!loggedIn && !onLogin) return guardianLoginRoute;
+        if (loggedIn && onLogin) return guardianHomeRoute;
+        return null;
+      }
+
+      final incoming = parseInvitationDeepLink(state.uri);
+      if (incoming != null) {
+        pendingInvitation.remember(incoming.token);
+      } else {
+        final routeToken = state.pathParameters['token'];
+        if (routeToken != null && routeToken.trim().isNotEmpty) {
+          pendingInvitation.remember(routeToken);
         }
-        return resolveGuardianAuthRedirect(
-          isAuthenticated: _session.isAuthenticated,
-          matchedLocation: state.matchedLocation,
-          pendingInvitationToken: _pendingInvitation.token,
-          hasSchoolSession: _session.hasSchoolSession,
-          linkedStudentsResolved: _studentContext.linkedStudentsResolved.value,
-          hasLinkedStudents: _studentContext.hasLinkedStudents,
-        );
-      },
-      routes: [
-        GoRoute(
-          path: guardianLoginRoute,
-          builder: (context, state) => LoginPage(
-            appTitle: context.tr.appTitleGuardian,
-            subtitle: context.tr.loginSubtitleGuardianDev,
+      }
+
+      return resolveGuardianAuthRedirect(
+        isAuthenticated: session.isAuthenticated,
+        matchedLocation: state.matchedLocation,
+        pendingInvitationToken: pendingInvitation.token,
+        hasSchoolSession: session.hasSchoolSession,
+        linkedStudentsResolved: studentContext.linkedStudentsResolved.value,
+        hasLinkedStudents: studentContext.hasLinkedStudents,
+      );
+    },
+    routes: [
+      GoRoute(
+        path: guardianLoginRoute,
+        builder: (context, state) {
+          return LoginPage(
+            mockStore: mockStore,
             defaultEmail: ApiConfig.devGuardianEmail,
             onSignInSuccess: () async {
-              final pending = _pendingInvitation.token;
+              final pending = pendingInvitation.token;
               if (pending != null) {
-                AppRouter.find.router.go(invitationRoutePath(pending));
+                if (context.mounted) {
+                  context.go(invitationRoutePath(pending));
+                }
                 return;
               }
-              await completePostAuthNavigation();
+              await completePostAuthNavigation(context);
             },
-          ),
-        ),
-        GoRoute(
-          path: '/invite/:token',
-          builder: (context, state) => InvitationPage(
-            token: state.pathParameters['token'] ?? '',
-            onAccepted: completePostAuthNavigation,
-            onContinueToLogin: () async {
-              AppRouter.find.router.go(guardianLoginRoute);
-            },
-          ),
-        ),
-        GoRoute(
-          parentNavigatorKey: rootNavigatorKey,
-          path: guardianWaitingRoute,
-          builder: (context, state) => WaitingForStudentsPage(
-            onCheckAgain: () async {
-              await _session.refreshGrants();
-              await completePostAuthNavigation();
-            },
-          ),
-        ),
-        GoRoute(
-          parentNavigatorKey: rootNavigatorKey,
-          path: '/settings',
-          builder: (context, state) => const SettingsPage(),
-        ),
-        GoRoute(
-          parentNavigatorKey: rootNavigatorKey,
-          path: '/account/profile',
-          builder: (context, state) => AccountProfilePage(
-            session: context.levit.find<AppSessionController>(),
-            schoolClient: context.levit.find<SchoolClientFactory>(),
-          ),
-        ),
-        GoRoute(
-          parentNavigatorKey: rootNavigatorKey,
-          path: '/child-profile',
-          builder: (context, state) => const ChildProfilePage(),
-        ),
-        GoRoute(
-          parentNavigatorKey: rootNavigatorKey,
-          path: '/account',
-          pageBuilder: (context, state) {
-            return const ModalBottomSheetPage<void>(
-              isScrollControlled: true,
-              useSafeArea: true,
-              child: AccountSheet(),
-            );
+          );
+        },
+      ),
+      GoRoute(
+        path: '/invite/:token',
+        builder: (context, state) => InvitationPage(
+          token: state.pathParameters['token'] ?? '',
+          onAccepted: () => completePostAuthNavigation(context),
+          onContinueToLogin: () async {
+            if (context.mounted) context.go(guardianLoginRoute);
           },
         ),
-        GoRoute(
-          parentNavigatorKey: rootNavigatorKey,
-          path: '/my-students',
-          pageBuilder: (context, state) {
-            return const ModalBottomSheetPage<void>(
-              isScrollControlled: true,
-              useSafeArea: true,
-              child: MyStudentsSheet(),
-            );
+      ),
+      GoRoute(
+        path: guardianWaitingRoute,
+        builder: (context, state) => WaitingForStudentsPage(
+          onCheckAgain: () async {
+            await session.refreshGrants();
+            if (context.mounted) {
+              await completePostAuthNavigation(context);
+            }
           },
         ),
-        GoRoute(
-          parentNavigatorKey: rootNavigatorKey,
-          path: '/academic-year-picker',
-          pageBuilder: (context, state) {
-            return const ModalBottomSheetPage<void>(
-              isScrollControlled: true,
-              useSafeArea: true,
-              child: AcademicYearPickerSheet(),
-            );
-          },
-        ),
-        ShellRoute(
-          navigatorKey: shellNavigatorKey,
-          builder: (context, state, child) => AppShellPage(child: child),
-          routes: [
-            GoRoute(
-              path: '/calendar',
-              builder: (context, state) => const CalendarPage(),
-              routes: [
-                GoRoute(
-                  path: 'attendance',
-                  builder: (context, state) => const AttendanceListPage(),
-                ),
-                GoRoute(
-                  parentNavigatorKey: rootNavigatorKey,
-                  path: 'session-details',
-                  pageBuilder: (context, state) {
-                    final extra = state.extra;
-                    if (extra is! CalendarSession) {
-                      return MaterialPage<void>(
-                        child: RouteErrorPage(
-                          message: context.tr.missingSessionDetailsRouteData,
-                        ),
-                      );
-                    }
-
-                    return ModalBottomSheetPage<void>(
-                      isScrollControlled: true,
-                      useSafeArea: true,
-                      child: SessionDetailsDialog(session: extra),
-                    );
-                  },
-                ),
-              ],
+      ),
+      ShellRoute(
+        builder: (context, state, child) => PrototypeShell(child: child),
+        routes: [
+          GoRoute(path: '/home', builder: (_, _) => hubPlaceholder()),
+          GoRoute(
+            path: '/calendar',
+            builder: (_, _) => hubPlaceholder(),
+            routes: [
+              GoRoute(path: 'events', redirect: (_, _) => '/calendar'),
+              GoRoute(path: 'attendance', redirect: (_, _) => '/attendance'),
+            ],
+          ),
+          GoRoute(
+            path: '/attendance',
+            builder: (_, _) => const AttendanceListPage(),
+          ),
+          GoRoute(
+            path: '/session/:id',
+            builder: (context, state) =>
+                SessionDetailPage(sessionId: state.pathParameters['id']!),
+          ),
+          GoRoute(path: '/scolarite', redirect: (_, _) => '/scolarite/notes'),
+          GoRoute(
+            path: '/scolarite/notes',
+            builder: (_, _) => hubPlaceholder(),
+          ),
+          GoRoute(
+            path: '/scolarite/bulletins',
+            redirect: (_, _) => '/scolarite/notes',
+          ),
+          GoRoute(
+            path: '/scolarite/programme',
+            redirect: (_, _) => '/scolarite/notes',
+          ),
+          GoRoute(
+            path: '/scolarite/cahier',
+            redirect: (_, _) => '/scolarite/notes',
+          ),
+          GoRoute(
+            path: '/scolarite/progress',
+            builder: (_, _) => const ProgressOverviewPage(),
+          ),
+          GoRoute(
+            path: '/scolarite/period/:periodId/subject/:subject',
+            builder: (context, state) => SubjectGradesPage(
+              periodId: state.pathParameters['periodId']!,
+              subject: Uri.decodeComponent(state.pathParameters['subject']!),
             ),
-            GoRoute(
-              path: '/academic',
-              builder: (context, state) => const AcademicPage(),
-              routes: [
-                GoRoute(
-                  path: 'family-feedback',
-                  builder: (context, state) => const GuardianFamilyFeedbackPage(),
-                  routes: [
-                    GoRoute(
-                      path: ':campaignId',
-                      builder: (context, state) {
-                        final extra = state.extra;
-                        final campaignId = state.pathParameters['campaignId'] ?? '';
-                        final studentId = extra is GuardianFamilyFeedbackCampaign
-                            ? extra.studentId
-                            : state.uri.queryParameters['studentId'];
-                        if (studentId != null && studentId.isNotEmpty && campaignId.isNotEmpty) {
-                          return GuardianFamilyFeedbackQuestionnairePage(
-                            questionnaireArgs: GuardianFamilyFeedbackQuestionnaireArgs(
-                              campaignId: extra is GuardianFamilyFeedbackCampaign
-                                  ? extra.campaignId
-                                  : campaignId,
+          ),
+          GoRoute(
+            path: '/scolarite/subject/:subject/cahier',
+            builder: (context, state) => SubjectLogbookPage(
+              subject: Uri.decodeComponent(state.pathParameters['subject']!),
+            ),
+          ),
+          GoRoute(
+            path: '/scolarite/subject/:subject',
+            redirect: (context, state) {
+              final subject = state.pathParameters['subject']!;
+              final tab = state.uri.queryParameters['tab'];
+              if (tab == 'cahier') {
+                return '/scolarite/subject/$subject/cahier';
+              }
+              return '/scolarite/progress';
+            },
+          ),
+          GoRoute(
+            path: '/grade/:id',
+            builder: (context, state) =>
+                GradeDetailPage(gradeId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/report-card/:id',
+            builder: (context, state) =>
+                ReportCardDetailPage(reportCardId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/fees',
+            builder: (_, _) => hubPlaceholder(),
+            routes: [
+              GoRoute(
+                path: 'fee/:id',
+                builder: (context, state) =>
+                    FeeDetailPage(feeId: state.pathParameters['id']!),
+              ),
+              GoRoute(
+                path: 'payment/:id',
+                builder: (context, state) =>
+                    PaymentDetailPage(paymentId: state.pathParameters['id']!),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/inbox',
+            builder: (_, _) => hubPlaceholder(),
+            routes: [
+              GoRoute(
+                path: 'message/:id',
+                builder: (context, state) {
+                  final extra = state.extra;
+                  return MessageDetailPage(
+                    messageId: state.pathParameters['id']!,
+                    initialDelivery: extra is InboxDelivery ? extra : null,
+                  );
+                },
+              ),
+              GoRoute(
+                path: 'avis',
+                builder: (_, _) => hubPlaceholder(),
+                routes: [
+                  GoRoute(
+                    path: ':campaignId',
+                    builder: (context, state) {
+                      final campaignId = state.pathParameters['campaignId']!;
+                      final extra = state.extra;
+                      final studentId = extra is GuardianFamilyFeedbackCampaign
+                          ? extra.studentId
+                          : context.levit
+                                .find<StudentContextController>()
+                                .activeStudentId;
+                      if (studentId == null || studentId.isEmpty) {
+                        return const RouteErrorPage(
+                          message: 'Élève introuvable pour cet avis.',
+                        );
+                      }
+                      return GuardianFamilyFeedbackQuestionnairePage(
+                        questionnaireArgs:
+                            GuardianFamilyFeedbackQuestionnaireArgs(
+                              campaignId: campaignId,
                               studentId: studentId,
                             ),
-                          );
-                        }
-                        return RouteErrorPage(
-                          message: context.tr.familyFeedbackEmpty,
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            GoRoute(
-              path: '/documents',
-              builder: (context, state) => const DocumentsPage(),
-            ),
-            GoRoute(
-              path: '/evaluations',
-              builder: (context, state) => const EvaluationsPage(),
-              routes: [
-                GoRoute(
-                  parentNavigatorKey: rootNavigatorKey,
-                  path: 'grade-details',
-                  pageBuilder: (context, state) {
-                    final extra = state.extra;
-                    if (extra is! GradeEntry) {
-                      return MaterialPage<void>(
-                        child: RouteErrorPage(
-                          message: context.tr.missingGradeDetailsRouteData,
-                        ),
                       );
-                    }
-
-                    return ModalBottomSheetPage<void>(
-                      isScrollControlled: true,
-                      useSafeArea: true,
-                      child: GradeDetailsDialog(entry: extra),
-                    );
-                  },
-                ),
-                GoRoute(
-                  parentNavigatorKey: rootNavigatorKey,
-                  path: 'report-card-details',
-                  pageBuilder: (context, state) {
-                    final extra = state.extra;
-                    if (extra is! ReportCardSummary) {
-                      return MaterialPage<void>(
-                        child: RouteErrorPage(
-                          message: context.tr.missingReportCardRouteData,
-                        ),
-                      );
-                    }
-
-                    return ModalBottomSheetPage<void>(
-                      isScrollControlled: true,
-                      useSafeArea: true,
-                      child: ReportCardDetailsDialog(reportCard: extra),
-                    );
-                  },
-                ),
-              ],
-            ),
-            GoRoute(
-              path: '/fees',
-              builder: (context, state) => const FeesPage(),
-              routes: [
-                GoRoute(
-                  parentNavigatorKey: rootNavigatorKey,
-                  path: 'charge-details',
-                  pageBuilder: (context, state) {
-                    final extra = state.extra;
-                    if (extra is! StudentChargeLine) {
-                      return MaterialPage<void>(
-                        child: RouteErrorPage(
-                          message: context.tr.missingChargeDetailsRouteData,
-                        ),
-                      );
-                    }
-
-                    return ModalBottomSheetPage<void>(
-                      isScrollControlled: true,
-                      useSafeArea: true,
-                      child: ChargeDetailsDialog(charge: extra),
-                    );
-                  },
-                ),
-                GoRoute(
-                  parentNavigatorKey: rootNavigatorKey,
-                  path: 'payment-details',
-                  pageBuilder: (context, state) {
-                    final extra = state.extra;
-                    if (extra is! PaymentRecord) {
-                      return MaterialPage<void>(
-                        child: RouteErrorPage(
-                          message: context.tr.missingPaymentDetailsRouteData,
-                        ),
-                      );
-                    }
-
-                    return ModalBottomSheetPage<void>(
-                      isScrollControlled: true,
-                      useSafeArea: true,
-                      child: PaymentDetailsDialog(payment: extra),
-                    );
-                  },
-                ),
-              ],
-            ),
-            GoRoute(
-              path: '/inbox',
-              builder: (context, state) => const InboxPage(),
-              routes: [
-                GoRoute(
-                  parentNavigatorKey: rootNavigatorKey,
-                  path: 'message',
-                  pageBuilder: (context, state) {
-                    final extra = state.extra;
-                    if (extra is! InboxDelivery) {
-                      return MaterialPage<void>(
-                        child: RouteErrorPage(
-                          message: context.tr.missingMessageDetailsRouteData,
-                        ),
-                      );
-                    }
-
-                    return ModalBottomSheetPage<void>(
-                      isScrollControlled: true,
-                      useSafeArea: true,
-                      child: MessageDetailsDialog(initialDelivery: extra),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  final AppSessionController _session;
-  final AcademicYearController _academicYear;
-  final StudentContextController _studentContext;
-  final EdayaRouterRefresh _routerRefresh;
-  final PendingInvitationStore _pendingInvitation;
-
-  static AppRouter get find => EdayaRootScope.find<AppRouter>();
-
-  late final GoRouter router;
-
-  Future<void> hydrateSessionContext() async {
-    if (_session.hasSchoolSession) {
-      await _academicYear.loadYears();
-      await _studentContext.initializeFromSession();
-      return;
-    }
-    _studentContext.markNoLinkedStudents();
-  }
-
-  Future<void> completePostAuthNavigation() async {
-    await hydrateSessionContext();
-    router.go(
-      resolveGuardianPostAuthHome(
-        hasSchoolSession: _session.hasSchoolSession,
-        hasLinkedStudents: _studentContext.hasLinkedStudents,
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+          GoRoute(path: '/child', builder: (_, _) => const ChildProfilePage()),
+          GoRoute(path: '/account', builder: (_, _) => const AccountPage()),
+          GoRoute(
+            path: '/account/profile',
+            builder: (_, _) => const proto.AccountProfilePage(),
+          ),
+          GoRoute(
+            path: '/settings',
+            builder: (_, _) => const proto.SettingsPage(),
+          ),
+        ],
       ),
-    );
-  }
-
-  @override
-  RouterConfig<Object> config() => router;
+      GoRoute(
+        path: '/fee/:id',
+        redirect: (context, state) => '/fees/fee/${state.pathParameters['id']}',
+      ),
+      GoRoute(
+        path: '/payment/:id',
+        redirect: (context, state) =>
+            '/fees/payment/${state.pathParameters['id']}',
+      ),
+      GoRoute(
+        path: '/message/:id',
+        redirect: (context, state) =>
+            inboxMessagePath(state.pathParameters['id']!),
+      ),
+    ],
+  );
 }

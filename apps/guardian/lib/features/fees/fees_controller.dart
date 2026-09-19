@@ -119,9 +119,13 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
         final accountId = financeSummary['accountId'] as String?;
         Map<String, dynamic> history = const {};
         if (accountId != null && accountId.isNotEmpty) {
-          history = await client.getPaymentSettlementHistory({
-            'accountId': accountId,
-          });
+          try {
+            history = await client.getPaymentSettlementHistory({
+              'accountId': accountId,
+            });
+          } on Object {
+            history = const {};
+          }
         }
 
         final allocationRows =
@@ -180,6 +184,40 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
         summary(null);
       }
     });
+  }
+
+  int get overdueCount =>
+      charges.value.where((line) => line.status == ChargeStatus.overdue).length;
+
+  int get totalExpected =>
+      charges.value.fold<int>(0, (sum, line) => sum + line.expectedAmount);
+
+  int get totalPaid =>
+      charges.value.fold<int>(0, (sum, line) => sum + line.allocatedAmount);
+
+  int get totalBalance =>
+      charges.value.fold<int>(0, (sum, line) => sum + line.remainingObligation);
+
+  Future<DocumentJobResult> downloadStatement({required String? schoolId}) {
+    final studentId = _studentContext.activeStudentId;
+    final yearId = _academicYear.selectedYearId.value;
+    final currency = summary.value?.currency ??
+        (charges.value.isNotEmpty ? charges.value.first.currency : 'XOF');
+    if (schoolId == null || studentId == null || yearId == null) {
+      return Future.value(const DocumentJobResult.missing());
+    }
+    return downloadReadyIssuance(
+      _schoolClient(),
+      sourceId: studentYearAccountSourceId(
+        schoolId: schoolId,
+        studentId: studentId,
+        academicYearId: yearId,
+        currency: currency,
+      ),
+      templateKey: 'account-statement.v1',
+      studentId: studentId,
+      academicYearId: yearId,
+    );
   }
 
   int _settleCountForCharge(String chargeId, List<Map> allocations) {

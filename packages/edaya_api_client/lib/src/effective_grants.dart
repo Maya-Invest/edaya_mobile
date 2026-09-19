@@ -29,6 +29,62 @@ class EffectiveGrantsResponse {
   final String assuranceLevel;
   final List<ActionGrant> grants;
 
+  TeacherPortalScope? get teacherScope {
+    if (kind != 'teacher') {
+      return null;
+    }
+    final classSubjectIds = <String>{};
+    final homeroomClassGroupIds = <String>{};
+    for (final grant in grants) {
+      for (final scope in grant.scopes) {
+        switch (scope) {
+          case ClassSubjectGrantScope(
+            :final classSubjectId,
+            :final classGroupId,
+          ):
+            if (classSubjectId != null) {
+              classSubjectIds.add(classSubjectId);
+            }
+            homeroomClassGroupIds.add(classGroupId);
+          case ClassGroupGrantScope(:final classGroupId):
+            homeroomClassGroupIds.add(classGroupId);
+          default:
+            break;
+        }
+      }
+    }
+    return TeacherPortalScope(
+      classSubjectIds: classSubjectIds.toList(),
+      homeroomClassGroupIds: homeroomClassGroupIds.toList(),
+    );
+  }
+
+  GuardianPortalScope? get guardianScope {
+    if (kind != 'guardian') {
+      return null;
+    }
+    final studentIds = <String>{};
+    final classGroupIds = <String>{};
+    for (final grant in grants) {
+      for (final scope in grant.scopes) {
+        switch (scope) {
+          case StudentGrantScope(:final studentId):
+            studentIds.add(studentId);
+          case ClassGroupGrantScope(:final classGroupId):
+            classGroupIds.add(classGroupId);
+          case ClassSubjectGrantScope(:final classGroupId):
+            classGroupIds.add(classGroupId);
+          default:
+            break;
+        }
+      }
+    }
+    return GuardianPortalScope(
+      studentIds: studentIds.toList(),
+      classGroupIds: classGroupIds.toList(),
+    );
+  }
+
   Map<String, dynamic> toJson() => {
     'kind': kind,
     'actorId': actorId,
@@ -36,6 +92,26 @@ class EffectiveGrantsResponse {
     'assuranceLevel': assuranceLevel,
     'grants': grants.map((grant) => grant.toJson()).toList(),
   };
+}
+
+class TeacherPortalScope {
+  const TeacherPortalScope({
+    required this.classSubjectIds,
+    required this.homeroomClassGroupIds,
+  });
+
+  final List<String> classSubjectIds;
+  final List<String> homeroomClassGroupIds;
+}
+
+class GuardianPortalScope {
+  const GuardianPortalScope({
+    required this.studentIds,
+    required this.classGroupIds,
+  });
+
+  final List<String> studentIds;
+  final List<String> classGroupIds;
 }
 
 enum GrantSource { manual, assignment, relationship, owner }

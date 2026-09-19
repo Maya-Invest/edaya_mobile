@@ -30,6 +30,29 @@ class DocumentJobResult {
   final String? failureCode;
 }
 
+const leftoverFamilyPaperTemplates = {
+  'schooling-certificate.v1',
+  'enrollment-record.v1',
+  'student-id.v1',
+  'student-id-card.v1',
+  'withdrawal-certificate.v1',
+  'convocation.v1',
+};
+
+bool isLeftoverFamilyPaper(String templateKey) =>
+    leftoverFamilyPaperTemplates.contains(templateKey);
+
+String leftoverFamilyPaperLabel(String templateKey) {
+  return switch (templateKey) {
+    'schooling-certificate.v1' => 'Certificat de scolarité',
+    'enrollment-record.v1' => "Dossier d'inscription",
+    'student-id.v1' || 'student-id-card.v1' => "Carte d'élève",
+    'withdrawal-certificate.v1' => 'Certificat de radiation',
+    'convocation.v1' => 'Convocation',
+    _ => templateKey,
+  };
+}
+
 class DocumentIssuanceRecord {
   const DocumentIssuanceRecord({
     required this.id,

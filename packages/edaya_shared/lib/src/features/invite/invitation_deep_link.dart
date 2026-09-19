@@ -34,7 +34,7 @@ InvitationDeepLink? parseInvitationDeepLink(Uri uri) {
 String invitationRoutePath(String token) => '/invite/$token';
 
 const guardianLoginRoute = '/login';
-const guardianHomeRoute = '/calendar';
+const guardianHomeRoute = '/home';
 const guardianWaitingRoute = '/waiting';
 
 bool guardianHasLinkedChildren({

@@ -1,5 +1,16 @@
 typedef EntityQuery = Map<String, dynamic>;
 
+/// Matches school API `MAX_LIST_LIMIT`. Use whenever a family/teacher catalog
+/// load can exceed the API default of 50 rows.
+const catalogListPageSize = 500;
+
+EntityQuery catalogQuery(EntityQuery query) {
+  return {
+    ...query,
+    r'$limit': catalogListPageSize,
+  };
+}
+
 EntityQuery entitiesByIds(List<String> ids) {
   if (ids.isEmpty) {
     return {

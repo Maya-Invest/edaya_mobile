@@ -131,7 +131,7 @@ void main() {
   );
 
   test(
-    'resolveGuardianAuthRedirect opens calendar when children are linked',
+    'resolveGuardianAuthRedirect opens home when children are linked',
     () {
       expect(
         resolveGuardianAuthRedirect(
@@ -142,7 +142,7 @@ void main() {
           linkedStudentsResolved: true,
           hasLinkedStudents: true,
         ),
-        '/calendar',
+        '/home',
       );
       expect(
         resolveGuardianAuthRedirect(
@@ -153,7 +153,7 @@ void main() {
           linkedStudentsResolved: true,
           hasLinkedStudents: true,
         ),
-        '/calendar',
+        '/home',
       );
     },
   );

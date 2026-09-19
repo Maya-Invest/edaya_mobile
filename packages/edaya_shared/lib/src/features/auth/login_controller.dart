@@ -1,6 +1,7 @@
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
+import '../../config/developer_settings_config.dart';
 import '../../l10n/l10n_lookup.dart';
 import 'app_session_controller.dart';
 
@@ -63,7 +64,14 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
         errorMessage(result.error?.message ?? systemL10n().otpSendFailed);
         return;
       }
-      otp('');
+      var nextOtp = '';
+      if (DeveloperSettingsConfig.enabled) {
+        final peek = await _authClient.peekDevLastOtp(email: trimmedEmail);
+        if (peek.isSuccess && peek.data != null) {
+          nextOtp = peek.data!.trim();
+        }
+      }
+      otp(nextOtp);
       mode(LoginMode.verifyOtp);
     }, id: 'send-otp');
   }

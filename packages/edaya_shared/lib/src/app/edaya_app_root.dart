@@ -6,6 +6,7 @@ import '../features/auth/app_bootstrap_controller.dart';
 import '../features/settings/app_settings_controller.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/l10n_extension.dart';
+import '../ui/edaya_startup_screen.dart';
 import 'theme.dart';
 
 /// Provides the [RouterConfig] for [MaterialApp.router].
@@ -75,9 +76,7 @@ class EdayaBootstrapGate extends LView<AppBootstrapController> {
         routerConfig: context.levit.find<EdayaAppRouter>().config(),
         builder: (context, child) {
           if (!controller.isReady.value) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
+            return const EdayaStartupScreen();
           }
           return child ?? const SizedBox.shrink();
         },

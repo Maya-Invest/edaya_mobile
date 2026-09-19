@@ -25,14 +25,15 @@ class StudentContextController extends LevitController
   final AcademicYearController _academicYear;
   final SchoolClientFactory _schoolClient;
 
+  final linkedStudentIds = LxVar<List<String>>(const []);
+  final linkedStudentsResolved = LxVar(false);
   final activeStudent = LxVar<LinkedStudent?>(null);
   final classGroupId = LxVar<String?>(null);
   final classLabel = LxVar<String?>(null);
+  final schoolName = LxVar<String?>(null);
   final isEnrolled = LxVar(false);
   final isLoading = LxVar(false);
   final errorMessage = LxVar('');
-  final linkedStudentIds = LxVar<List<String>>(const []);
-  final linkedStudentsResolved = LxVar(false);
 
   Future<void>? _pendingReload;
 
@@ -43,14 +44,15 @@ class StudentContextController extends LevitController
   @override
   void onInit() {
     super.onInit();
+    autoDispose(linkedStudentIds);
+    autoDispose(linkedStudentsResolved);
     autoDispose(activeStudent);
     autoDispose(classGroupId);
     autoDispose(classLabel);
+    autoDispose(schoolName);
     autoDispose(isEnrolled);
     autoDispose(isLoading);
     autoDispose(errorMessage);
-    autoDispose(linkedStudentIds);
-    autoDispose(linkedStudentsResolved);
 
     autoDispose(
       _academicYear.selectedYearId.stream.listen((_) {
@@ -60,28 +62,26 @@ class StudentContextController extends LevitController
     autoDispose(
       _session.grants.stream.listen((grants) {
         if (grants == null || grants.kind != 'guardian') {
-          markNoLinkedStudents();
+          linkedStudentIds(const []);
+          linkedStudentsResolved(true);
+          _clearContext();
         }
       }),
     );
   }
 
-  void markNoLinkedStudents() {
-    linkedStudentIds(const []);
-    linkedStudentsResolved(true);
-    _clearContext();
-  }
-
-  Future<bool> initializeFromSession() async {
+  Future<void> initializeFromSession() async {
     if (!_session.isAuthenticated) {
-      markNoLinkedStudents();
-      return false;
+      linkedStudentIds(const []);
+      linkedStudentsResolved(true);
+      return;
     }
 
     final grants = _session.grants.value;
     if (grants == null || grants.kind != 'guardian') {
-      markNoLinkedStudents();
-      return false;
+      linkedStudentIds(const []);
+      linkedStudentsResolved(true);
+      return;
     }
 
     final scopedStudentIds = await loadGuardianLinkedStudentIds(
@@ -89,20 +89,22 @@ class StudentContextController extends LevitController
       grants.actorId,
     );
     linkedStudentIds(scopedStudentIds);
-    linkedStudentsResolved(true);
     if (scopedStudentIds.isEmpty) {
+      await _sessionStorage.writeActiveStudentId(null);
       _clearContext();
-      return false;
+      linkedStudentsResolved(true);
+      return;
     }
 
     final persistedId = await _sessionStorage.readActiveStudentId();
     if (persistedId != null && scopedStudentIds.contains(persistedId)) {
       await selectStudent(persistedId);
-      return true;
+      linkedStudentsResolved(true);
+      return;
     }
 
     await selectStudent(scopedStudentIds.first);
-    return true;
+    linkedStudentsResolved(true);
   }
 
   Future<void> selectStudent(String studentId) async {
@@ -122,6 +124,7 @@ class StudentContextController extends LevitController
     activeStudent(null);
     classGroupId(null);
     classLabel(null);
+    schoolName(null);
     isEnrolled(false);
     errorMessage('');
     isLoading(false);
@@ -141,7 +144,6 @@ class StudentContextController extends LevitController
       return;
     }
 
-    final yearId = _academicYear.selectedYearId.value;
     errorMessage('');
 
     await runTask(() async {
@@ -149,9 +151,13 @@ class StudentContextController extends LevitController
       try {
         final schoolClient = _schoolClient();
         final studentJson = await schoolClient.students.get(studentId);
-        activeStudent(LinkedStudent.fromJson(studentJson));
+        final student = LinkedStudent.fromJson(studentJson);
+        activeStudent(student);
+        schoolName(await _loadSchoolName(schoolClient, student.schoolId));
+        await _academicYear.applyStoredYearForSchool(student.schoolId);
+        final resolvedYearId = _academicYear.selectedYearId.value;
 
-        if (yearId == null) {
+        if (resolvedYearId == null) {
           classGroupId(null);
           classLabel(null);
           isEnrolled(false);
@@ -161,19 +167,21 @@ class StudentContextController extends LevitController
         await _loadEnrollment(
           schoolClient: schoolClient,
           studentId: studentId,
-          yearId: yearId,
+          yearId: resolvedYearId,
         );
       } on api.ApiError catch (error) {
         errorMessage(systemL10n().couldNotLoadStudentContext(error.toString()));
         activeStudent(null);
         classGroupId(null);
         classLabel(null);
+        schoolName(null);
         isEnrolled(false);
       } on Object catch (error) {
         errorMessage(systemL10n().couldNotLoadStudentContext(error.toString()));
         activeStudent(null);
         classGroupId(null);
         classLabel(null);
+        schoolName(null);
         isEnrolled(false);
       } finally {
         isLoading(false);
@@ -228,5 +236,20 @@ class StudentContextController extends LevitController
       classLabel(null);
       isEnrolled(false);
     }
+  }
+
+  Future<String?> _loadSchoolName(
+    api.SchoolClient schoolClient,
+    String schoolId,
+  ) async {
+    if (schoolId.isEmpty) return _session.schoolIdHeader;
+    try {
+      final row = await schoolClient.schools.get(schoolId);
+      final name = row['name'] as String?;
+      if (name != null && name.trim().isNotEmpty) return name;
+    } on Object {
+      // Fall back to the school id when the directory name is not readable.
+    }
+    return schoolId;
   }
 }

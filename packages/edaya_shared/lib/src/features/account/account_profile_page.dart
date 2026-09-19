@@ -17,11 +17,13 @@ class AccountProfilePage extends LScopedView<AccountProfileController> {
     required this.session,
     required this.schoolClient,
     this.onProfileSaved,
+    this.embedded = false,
   });
 
   final AppSessionController session;
   final SchoolClientFactory schoolClient;
   final Future<void> Function(AccountContactProfile profile)? onProfileSaved;
+  final bool embedded;
 
   @override
   AccountProfileController onConfigScope(LevitScope scope) {
@@ -36,17 +38,19 @@ class AccountProfilePage extends LScopedView<AccountProfileController> {
 
   @override
   Widget buildView(BuildContext context, AccountProfileController controller) {
+    final body = LWatch(
+      () => DataState(
+        status: controller.dataStatus,
+        errorMessage: controller.errorMessage.value,
+        emptyMessage: context.tr.accountProfileUnavailable,
+        onRetry: controller.loadProfile,
+        child: LWatch(() => _ProfileForm(controller: controller)),
+      ),
+    );
+    if (embedded) return body;
     return Scaffold(
       appBar: AppBar(title: Text(context.tr.accountProfileTitle)),
-      body: LWatch(
-        () => DataState(
-          status: controller.dataStatus,
-          errorMessage: controller.errorMessage.value,
-          emptyMessage: context.tr.accountProfileUnavailable,
-          onRetry: controller.loadProfile,
-          child: LWatch(() => _ProfileForm(controller: controller)),
-        ),
-      ),
+      body: body,
     );
   }
 }

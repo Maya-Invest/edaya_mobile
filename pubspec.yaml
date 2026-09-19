@@ -6,7 +6,9 @@ environment:
 
 workspace:
   - apps/guardian
+  - apps/guardian_legacy
   - apps/teacher
+  - apps/teacher_legacy
   - packages/edaya_api_client
   - packages/edaya_auth
   - packages/edaya_shared
@@ -44,15 +46,27 @@ melos:
     run:guardian:local:
       run: cd apps/guardian && flutter run --dart-define=AUTH_URL=http://10.0.2.2:9900 --dart-define=API_URL=http://10.0.2.2:9999
       description: Run guardian app against local API (Android emulator).
+    run:guardian:legacy:local:
+      run: cd apps/guardian_legacy && flutter run --dart-define=API_URL=http://10.0.2.2:9999
+      description: Run archived guardian IA against local API.
     run:teacher:local:
-      run: cd apps/teacher && flutter run --dart-define=AUTH_URL=http://localhost:9900 --dart-define=API_URL=http://localhost:9999
-      description: Run teacher app against local API (localhost).
+      run: cd apps/teacher && flutter run --dart-define=AUTH_URL=http://10.0.2.2:9900 --dart-define=API_URL=http://10.0.2.2:9999
+      description: Run teacher app against local Identity and school API (Android emulator).
+    run:teacher:legacy:local:
+      run: cd apps/teacher_legacy && flutter run --dart-define=API_URL=http://localhost:9999
+      description: Run archived teacher IA against local API (localhost).
     run:guardian:staging:
       run: cd apps/guardian && flutter run
       description: Run guardian app (default staging API).
+    run:guardian:legacy:staging:
+      run: cd apps/guardian_legacy && flutter run
+      description: Run archived guardian IA (default staging API).
     run:teacher:staging:
       run: cd apps/teacher && flutter run
       description: Run teacher app (default staging API).
+    run:teacher:legacy:staging:
+      run: cd apps/teacher_legacy && flutter run
+      description: Run archived teacher IA (default staging API).
     brand:check:
       run: python3 scripts/brand-check.py
       description: Verify EDAYA tokens, assets, contrast and visual literals.
@@ -73,6 +87,18 @@ melos:
         cd ../../apps/guardian && EDAYA_INTEGRATION_TESTS=1 flutter test test/integration --tags integration
         cd ../teacher && EDAYA_INTEGRATION_TESTS=1 flutter test test/integration --tags integration
       description: Run live API integration tests (requires local or remote API).
+    screenshots:teacher:review:
+      run: bash scripts/teacher-design-review.sh
+      description: Generate teacher app screenshots for designer review (mock harness).
+    screenshots:teacher:legacy:review:
+      run: bash scripts/teacher-legacy-design-review.sh
+      description: Generate archived teacher IA screenshots (requires API).
+    screenshots:guardian:review:
+      run: bash scripts/guardian-design-review.sh
+      description: Generate guardian app screenshots for designer review.
+    screenshots:guardian:legacy:review:
+      run: bash scripts/guardian-legacy-design-review.sh
+      description: Generate archived guardian IA screenshots (requires API).
     clean:flutter:
       exec: flutter clean
       description: Run flutter clean in all Flutter apps.

@@ -1,9 +1,36 @@
-# EDAYA Guardian
+# Edaya Guardian
 
-Current Flutter app: Calendar, Academic, Evaluations, Fees, Inbox; student/year switching. Authentication, routing and domain controllers are preserved through UI work.
+Flutter app for guardians and parents — Accueil-first IA with live API, auth, and FCM.
 
-Run from this directory with `flutter run` and the existing `AUTH_URL` / `API_URL` defines. Build and signing instructions remain in the root README and `android-signing/README.md`.
+**Deferred for v1:** justify absence, pay, reply. Home aggregates client-side.
 
-UI contract: [mobile design language](../../docs/specs/design-language-spec.md). Shared foundation: `packages/edaya_shared`, EDAYA tokens 1.0.0, local Poppins/Inter and supplied artwork. Human brief: `edaya_frontend/docs/reference/edaya-ui-brief.md` in the frontend repository (not a build dependency).
+## Run locally
 
-[Current visual review](design-review/README.md) renders production pages/components with isolated fixtures. Generate from this directory using `EDAYA_CAPTURE_DESIGN_REVIEW=1 flutter test test/design_review_test.dart`. These captures do not test live API authentication. Run `melos run verify` at repository root; relevant live journeys use `melos run test:integration` with isolated seeded services.
+```bash
+cd apps/guardian
+flutter pub get
+flutter run --dart-define=API_URL=http://10.0.2.2:9999
+```
+
+From monorepo root:
+
+```bash
+melos run run:guardian:local
+melos run run:guardian:staging
+```
+
+Archived pre-cutover IA: `apps/guardian_legacy` (`melos run run:guardian:legacy:local`).
+
+## Design review
+
+```bash
+melos run screenshots:guardian:review
+```
+
+Output: `apps/guardian/design-review/index.html`.
+
+## Specs
+
+- [design-language-spec](../../docs/specs/design-language-spec.md)
+- [guardian-shell-spec](../../docs/specs/guardian-shell-spec.md)
+- [guardian-shared-components-spec](../../docs/specs/guardian-shared-components-spec.md)

@@ -1,9 +1,10 @@
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import 'app/guardian_app_root.dart';
+import 'app/prototype_app_root.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -21,5 +22,6 @@ Future<void> main() async {
   await AppSettingsController.preload();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   Levit.enableAutoLinking();
-  runApp(GuardianAppRoot());
+  await initializeDateFormatting('fr_FR');
+  runApp(const PrototypeAppRoot());
 }

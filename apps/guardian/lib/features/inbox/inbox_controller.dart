@@ -5,56 +5,39 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
 import '../../common/utils/entity_filters.dart';
+import '../context/student_context_controller.dart';
 import 'models/inbox_delivery.dart';
 
 class InboxController extends LevitController with LevitReactiveTasksMixin {
   InboxController({
     required AppSessionController session,
     required SchoolClientFactory schoolClient,
+    required StudentContextController studentContext,
   }) : _session = session,
-       _schoolClient = schoolClient;
+       _schoolClient = schoolClient,
+       _studentContext = studentContext;
 
   final AppSessionController _session;
   final SchoolClientFactory _schoolClient;
+  final StudentContextController _studentContext;
 
   final deliveries = LxVar<List<InboxDelivery>>(const []);
+  final campaigns = LxVar<List<GuardianFamilyFeedbackCampaign>>(const []);
   final errorMessage = LxVar('');
-  int _loadVersion = 0;
-
-  ({String subjectId, String guardianId, String schoolId})? get _recipient {
-    final subjectId = _session.user.value?.id;
-    final profile = _session.grants.value;
-    if (subjectId == null ||
-        subjectId.isEmpty ||
-        profile == null ||
-        profile.kind != 'guardian' ||
-        profile.actorId.isEmpty ||
-        profile.schoolId.isEmpty) {
-      return null;
-    }
-    return (
-      subjectId: subjectId,
-      guardianId: profile.actorId,
-      schoolId: profile.schoolId,
-    );
-  }
 
   @override
   void onInit() {
     super.onInit();
     autoDispose(deliveries);
+    autoDispose(campaigns);
     autoDispose(errorMessage);
 
     autoDispose(_session.user.stream.listen((_) => unawaited(loadInbox())));
-    autoDispose(_session.grants.stream.listen((_) => unawaited(loadInbox())));
+    autoDispose(
+      _studentContext.activeStudent.stream.listen((_) => unawaited(loadInbox())),
+    );
 
     unawaited(loadInbox());
-  }
-
-  @override
-  void onClose() {
-    _loadVersion++;
-    super.onClose();
   }
 
   DataStatus get dataStatus {
@@ -72,6 +55,9 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
   int get unreadCount =>
       deliveries.value.where((delivery) => delivery.isUnread).length;
 
+  int get openCampaignCount =>
+      campaigns.value.where((item) => item.slotState == 'open').length;
+
   void applyDeliveryUpdate(InboxDelivery updated) {
     deliveries(
       deliveries.value
@@ -81,10 +67,9 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
   }
 
   Future<void> loadInbox() async {
-    final version = ++_loadVersion;
-    final recipient = _recipient;
-    deliveries(const []);
-    if (recipient == null) {
+    final subjectId = _session.user.value?.id;
+    if (subjectId == null) {
+      deliveries(const []);
       errorMessage('');
       return;
     }
@@ -93,13 +78,8 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
     await runTask(() async {
       try {
         final rows = await _schoolClient().messageDeliveries.list(
-          deliveriesForGuardian(
-            subjectId: recipient.subjectId,
-            guardianId: recipient.guardianId,
-            schoolId: recipient.schoolId,
-          ),
+          deliveriesForSubject(subjectId),
         );
-        if (version != _loadVersion || recipient != _recipient) return;
         final parsed = rows.map(InboxDelivery.fromJson).toList()
           ..sort((a, b) {
             final aTime = a.sortDate?.millisecondsSinceEpoch ?? 0;
@@ -107,12 +87,23 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
             return bTime.compareTo(aTime);
           });
         deliveries(parsed);
+        try {
+          final items = await listGuardianFamilyFeedbackCampaigns(
+            _schoolClient(),
+          );
+          final studentId = _studentContext.activeStudentId;
+          campaigns(
+            studentId == null
+                ? items
+                : items.where((item) => item.studentId == studentId).toList(),
+          );
+        } on Object {
+          campaigns(const []);
+        }
       } on api.ApiError catch (error) {
-        if (version != _loadVersion || recipient != _recipient) return;
         errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
         deliveries(const []);
       } on Object catch (error) {
-        if (version != _loadVersion || recipient != _recipient) return;
         errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
         deliveries(const []);
       }

@@ -3,9 +3,9 @@
     "short_name": "Edaya Staff",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#2563EB",
+    "background_color": "#F0F7FF",
     "theme_color": "#2563EB",
-    "description": "EDAYA Teacher school workspace.",
+    "description": "Edaya teacher classroom app — Accueil, agenda, classes, evaluations, and messages.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

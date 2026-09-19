@@ -1,69 +1,243 @@
-# EDAYA mobile design language
+# Design Language Spec
 
-Normative. Applies only to `apps/guardian`, `apps/teacher`, and presentation code in `packages/edaya_shared`. Current source defines scope. Do not restore removed apps, prototype layouts or their navigation. Backend, generated API clients, signing configuration, identifiers and business logic remain outside UI changes.
+> **Applies to:** Guardian Flutter app and Teacher Flutter app (`apps/teacher`)  
+> **Audience:** Implementers and agents  
+> **Authority:** This document is normative. Implementations must be cross-checked against it.
 
-## Visual foundations — version 1.0.0
+This spec defines the visual design language shared by the Guardian family companion and the Teacher Accueil-first shell: brand, color, type, spacing, elevation, cards, and accessibility. Navigation and shell chrome are defined in [guardian-shell-spec.md](guardian-shell-spec.md) and [teacher-shell-spec.md](teacher-shell-spec.md).
 
-EDAYA should feel calm, trustworthy, and carefully finished. Staff, teachers, and families should recognize one brand while retaining interfaces suited to their daily tasks. Improve clarity through hierarchy, typography, spacing, and consistent feedback; preserve familiar workflows and effective components.
+Visual tokens follow **EDAYA 1.0.0** (`packages/edaya_shared/design-system/tokens.json`, `AppTheme`, `EdayaColors`, `EdayaTypography`, `EdayaBrandLogo`). Accueil shell IA (five tabs, overlays, borderless cards) stays in the shell specs.
 
-| Role | Light value | Application |
-|---|---|---|
-| Primary | `#2563EB` | Actions, links, selection; hover `#1D4ED8` |
-| Supporting sky | `#60A5FA` | Decoration, never small text on white |
-| Amber | `#FBBF24` | Restrained decoration, under 10% of visible surface; navy foreground |
-| Canvas / surface | `#F0F7FF` / `#FFFFFF` | Sky canvas, white cards and chrome |
-| Text / secondary | `#1E293B` / `#64748B` | Titles/data and supporting labels |
-| Separator / control outline | `#E2E8F0` / `#64748B` | Subtle structure; identifiable inputs |
-| Success | `#15803D` on `#F0FDF4` | Confirmed success, with a label/icon |
-| Warning | `#92400E` on `#FEF3C7` | Pending or caution, with a label/icon |
-| Danger | `#B91C1C` on `#FEF2F2` | Error, overdue, destructive actions |
-| Information | `#1D4ED8` on `#E0F2FE` | Informational states |
+---
 
-The base slate remains `#64748B`; the shared secondary-text role uses `#5B6B82` so small text also meets contrast on the sky canvas (the base slate measures only 4.41:1 there).
+## 1. Brand character
 
-Poppins Semibold is for headings; Inter Regular/Medium/Semibold/Bold is for body, labels, buttons, tables, and all numerical data. Load fonts from bundled files with their OFL licenses. Never request fonts from a third-party server at runtime. Use tabular figures for aligned amounts and scores. Use 28px web page titles, 24 logical pixels mobile page titles, 20 section titles, 16 card titles, 14–16 body, and 12 supporting labels. Heading line-height is about 1.3; body 1.5–1.6. Support wrapping and enlargement; do not shrink important values to fit.
+Guardian is a **family companion** for school life — not a staff data terminal.
 
-Use the 4/8/12/16/24/32/48 spacing scale. Retain established rounded primitives: 12 controls, 14 base, 16 cards, 24 overlays. Keep shadows restrained and neutral. Useful existing motion stays, with reduced-motion support; avoid decorative perpetual animation.
+| Trait | Expression |
+|-------|------------|
+| Warm and approachable | Rounded geometry, soft shadows, Poppins headings / Inter UI |
+| Action-oriented | Home surfaces what needs attention; CTAs are obvious |
+| Trustworthy | Clear official vs provisional labels; calm empty states |
+| Child-aware | Student context always visible when content is child-specific |
+| Bilingual-ready | French-first copy; short nav labels for 390 px phones |
 
-## Artwork
+The supplied outlined EDAYA logos are the wordmark. Never reconstruct `edaya` in UI type.
 
-The supplied outlined EDAYA logos are authoritative artwork. Never reconstruct the wordmark using text or substitute an academic icon for the product logo. Use vertical artwork in spacious sign-in areas, horizontal artwork in headers/sidebar areas, and symbols only in compact contexts already identified as EDAYA. Minimum rendered artwork widths: vertical 88, horizontal 128, symbol 32. The wrapper reserves clear space; do not crop its padding. Favicons alone may use the symbol at platform-required 16/24/32px. No recoloring, stretching, shadows on the artwork, or text laid over it. White artwork belongs on a dark or royal-blue surface.
+---
 
-## Accessibility and preserved behavior
+## 2. Palette
 
-Preserve every existing destination, field, data item, control, permission condition, validation rule, loading signal, and action result. UI-only work must not change authentication clients, controllers, API payloads, redirects, route contracts, session handling, grants, business rules, or calculations. A visual limitation is not authorization for a new feature. Keep recognizable operational icons and native platform behaviors.
+### Brand tokens
 
-Target WCAG AA: ordinary text 4.5:1, large text and essential control boundaries 3:1; inactive controls remain recognizable. Pair semantic colors with text/icons. Provide persistent labels, visible keyboard focus, logical reading order, meaningful icon-button labels, 44–48px touch targets, FR/EN copy, and 200% text support. Test long names, large amounts, phone/tablet/desktop widths, landscape and keyboard-open forms. Do not hide essential information to fix an overflow.
+| Token | Hex | Role |
+|-------|-----|------|
+| `primary` | `#2563EB` | Actions, active nav, links, avatar fill |
+| `primaryLight` | `#60A5FA` | Secondary accents only (not progress track) |
+| `accent` | `#FBBF24` | Highlights |
+| `background` | `#F0F7FF` | Scaffold / canvas |
+| `onBackground` | `#1E293B` | Primary text |
+| `primaryContainer` | `#DBEAFE` | Soft primary fill (chips, selected/unread tint base, progress track) |
+| `successContainer` | `#F0FDF4` | Green fill for session/category accents where green is intentional |
+| `accentContainer` | `#FEF3C7` | Warning / pending fill |
+| `errorContainer` | `#FEF2F2` | Error / overdue fill |
+| `onErrorContainer` | `#B91C1C` | Text on error fill |
+| `onSurfaceVariant` | `#5B6B82` | Secondary / muted text |
+| `outlineVariant` | `#E2E8F0` | Dividers and input borders only — never card chrome |
+| `surface` | `#FFFFFF` | Card fill |
+| `error` | `#B91C1C` | Error icon / emphatic error title |
+| `segmentUnselected` | `#EFF6FF` | Unselected segmented-control fill (`surfaceContainerHighest`) |
 
-## Local token pipeline and themes
+### Semantic chip tones
 
-`packages/edaya_shared/design-system/tokens.json` is an identical, versioned snapshot of the canonical frontend manifest. `python3 scripts/brand-tokens.py` generates `edaya_tokens.g.dart`; `--check` verifies drift without network or another checkout. Import a reviewed version explicitly with `--sync-from /path/to/tokens.json`. Commit the snapshot and generated Dart together. `AppTheme`, `EdayaColors` and `EdayaTypography` remain the theme entry points.
+Status chips and badges must use this mapping (background / foreground):
 
-Retain existing light/dark/system preferences. Dark mode uses navy `#0F172A` canvas, `#1E293B` surfaces, `#F1F5F9` text, `#CBD5E1` secondary text, sky `#60A5FA` primary with navy foreground, stronger `#94A3B8` controls, and `#475569` separators. Success `#86EFAC`, warning `#FBBF24`, danger `#FCA5A5` and information `#93C5FD` sit on their dark semantic surfaces. Do not reuse a light contrast pair blindly in dark mode.
+| Tone | Background | Foreground |
+|------|------------|------------|
+| `neutral` | `#F1F5F9` | `#5B6B82` |
+| `info` | `#DBEAFE` | `#2563EB` |
+| `success` | `#DBEAFE` | `#1E293B` |
+| `warning` | `#FEF3C7` | `#92400E` |
+| `error` | `#FEF2F2` | `#B91C1C` |
 
-Fonts and license files are registered in the shared package. Poppins is a heading family, never a replacement for the wordmark. `EdayaBrandLogo` uses PNG derivatives of the supplied SVG outlines with reserved clear space. `ResponsiveMetrics` wraps existing values according to available width and text scaling; never changes their calculation.
+`success` chip fill is primary-container blue (not `successContainer` green). Green `successContainer` is reserved for non-chip accents (for example session category backgrounds) and must not redefine the `success` chip tone without a spec change.
 
-## Current application patterns
+Unread emphasis on list rows uses `primaryContainer` at **35%** opacity. Selected list rows use `primaryContainer` at **55%** opacity.
 
-| Application | Keep | Refine |
-|---|---|---|
-| Guardian | Login, waiting when no child is linked, Calendar, Academic, Evaluations, Fees, Inbox; student/year switches; existing details | Student identity wrapping; year selector on its own header row; lesson/event hierarchy; readable fees and score summaries; inbox title/body scanning |
-| Teacher | Calendar, Evaluations, Teaching, Report Cards; filters; attendance gestures; marks/logbook/report editors | Class/session context; neutral student names with semantic attendance labels; readable roster actions and fields; distinct locked/disabled state; sheet hierarchy |
+---
 
-Keep bottom navigation on both phone and tablet, with all existing destination labels/icons. Operational headers prioritize active student, class, session and year. Context headers accommodate enlargement; do not introduce a dashboard, Home tab, navigation rail, master/detail route or alternative detail flow from an old proposal. Constrain tablet operational content to 1120 logical pixels and modal sheets to 840 while retaining the same routes and dismissal behavior. Forms stay scrollable above the keyboard.
+## 3. Typography
 
-Shared Material primitives provide 48px filled/outlined actions, visible input boundaries, 16px cards, 24px sheets/dialogs, semantic segmented selection and labeled navigation. Reuse `DataState`, `PersonAvatar`, `AccountSheetBody`, `ModalBottomSheetPage` and the existing feature widgets. Use Inter for numeric summaries and amounts. Keep all attendance states and gestures; use text/icon in addition to color, and do not color a student's entire identity row as an error. Locked marks keep their original disabled condition and explanatory text.
+Bundled, offline fonts. Logos are artwork, never UI text.
 
-Login is email OTP only: email → send code → verification code, with resend and a different-email action on the code step. Keep developer settings. After sign-in, guardians with linked children open Calendar; guardians with a verified account but no linked child open the waiting screen (vertical logo, friendly copy, check-again and sign-out). Use the vertical supplied logo and clear heading hierarchy, with a scrollable form. Do not add password, magic-link, or recovery methods.
+| Role | Family | Usage |
+|------|--------|-------|
+| Brand | EDAYA outlined logo PNG (`EdayaBrandLogo`) | Splash, bootstrap, login, invite, waiting |
+| Display / headline | Poppins (600) | Screen heroes, large numbers, section titles |
+| Title / body / label | Inter | UI copy, nav, buttons, lists, numeric data |
 
-## Launcher and launch assets
+| Style | Family | Size (sp) | Weight |
+|-------|--------|-----------|--------|
+| `displaySmall` | Poppins | 28 | 600 |
+| `headlineMedium` | Poppins | 24 | 600 |
+| `headlineSmall` | Poppins | 24 | 600 |
+| `titleLarge` | Poppins | 20 | 600 |
+| `titleMedium` | Inter | 16 | 600 |
+| `titleSmall` | Inter | 14 | 600 |
+| `bodyLarge` | Inter | 16 | 400 |
+| `bodyMedium` | Inter | 14 | 400 |
+| `bodySmall` | Inter | 12 | 400 |
+| `labelLarge` | Inter | 14 | 600 |
+| `labelSmall` | Inter | 12 | 500 |
 
-Guardian: color symbol on white. Teacher: white symbol on royal blue. Keep names, bundle/application IDs, versioning, signing, and launch transitions unchanged. Existing native launch screens use the same background as their launcher. Android adaptive foreground artwork stays inside its safe central mask region; background is a separate layer. iOS icons are opaque. Use committed generated resolutions and retain source SVGs separately from runtime PNG assets. Mobile favicons use the same app symbol at required platform sizes.
+Minimum logo widths: vertical 88, horizontal 128, symbol 32. Symbol on native splash and Flutter bootstrap; vertical on login, invite, and waiting. Do not place the logo on authenticated hub chrome.
 
-## Reuse and exception review
+---
 
-Before any new component, inspect the shared package and the current feature widgets. Prefer extending a primitive or presentation wrapper over replacing effective UI. Controllers own data and business decisions; local presentation must consume existing signals. Reuse requires full loading/empty/error/content, enabled/disabled, selected, busy and focus states. Keep FR/EN strings in the localization system.
+## 4. Spacing, radii, elevation
 
-Document visual exceptions with component, rationale, alternatives considered, owner, scope/lifetime and contrast/responsive evidence. Review the concrete exception before adding it to the token manifest or literal allowlist. A visual change updates tokens, generated files, this spec, component registry and current gallery metadata together. Keep implementation trackers under `docs/sprints`, historical feature proposals under `docs/proposals`, and human-facing references separate from this normative specification.
+### Spacing (4 pt grid)
 
-Run `melos run verify` and relevant existing integration journeys with isolated test data. The deterministic design-review tests render current production pages/components without network; their evidence does not establish live API or authentication success. Capture FR/EN, phone/tablet, light/dark and enlarged text, and verify keyboard-open forms and touch targets. Gallery metadata records source revision/digest, design version, locale, theme and viewport. Remove superseded gallery packs after replacing them. Git preserves historical versions.
+| Token | Value (dp) | Typical use |
+|-------|------------|-------------|
+| `xxs` | 4 | Tight gaps inside rows |
+| `xs` | 8 | List gap between cards |
+| `sm` | 12 | Icon-to-text gap |
+| `md` | 16 | Screen gutter, card padding |
+| `lg` | 20 | Larger inner padding |
+| `xl` | 24 | Section gap |
+| `xxl` | 32 | Sparse vertical rhythm |
+
+Normative aliases:
+
+| Alias | Value |
+|-------|-------|
+| `screenPadding` | 16 |
+| `cardPadding` | 16 |
+| `sectionGap` | 24 |
+| `listGap` | 8 |
+
+### Radii
+
+| Token | Value (dp) | Usage |
+|-------|------------|-------|
+| `sm` | 12 | Inputs, small wells |
+| `md` | 16 | All content cards |
+| `lg` | 20 | Sheets / large containers (not default cards) |
+| `pill` | 999 | Chips, progress caps, nav indicator |
+
+### Elevation
+
+Borderless cards use soft shadow only — **no stroke**, no `outlineVariant` border around the card.
+
+```
+BoxShadow(color: #141E293B, blurRadius: 12, offset: (0, 4))
+```
+
+Material elevation on the card itself must be **0**; shadow is applied via decoration.
+
+---
+
+## 5. Card specification (normative)
+
+Guardian surfaces are **borderless** by default. Separation comes from the `#F0F7FF` canvas, white (or tinted) fill, and elevation — not from gray outlines.
+
+| Property | Value | Notes |
+|----------|-------|-------|
+| Border | None | No `BorderSide` / outline on card chrome |
+| Fill | `#FFFFFF` (`surface`) | Optional tint for unread / attention / selected |
+| Radius | 16 (`md`) | Default for all content cards |
+| Padding | 16 default | Call sites may override (e.g. denser shell chrome cards) |
+| Elevation | Soft shadow above | See §4 |
+| Gap between cards | 8 | Vertical list spacing |
+
+**Must use borderless cards for:** list rows, fee summary blocks, session tiles, inbox items, student context card, settings groups, login form container, attention rows.
+
+**May keep borders for:** text fields, segmented controls, and dividers **inside** a card — not around the card.
+
+Segmented controls inherit `AppTheme.segmentedButtonTheme`: selected fill `primary` with `onPrimary` label; unselected fill `#EFF6FF` with navy label. The Messages/Avis control is full width and must not show a selected check icon.
+
+**Must not use:** outlined Material `Card` with a stroke as the default content container.
+
+### Progress bar
+
+| Property | Value |
+|----------|-------|
+| Height | 8 dp |
+| Track | `primaryContainer` (`#DBEAFE`) |
+| Fill | `primary` (`#2563EB`) |
+| Caps | Pill radius |
+| Value | Clamped to `[0, 1]` |
+
+---
+
+## 6. Accessibility
+
+| Rule | Requirement |
+|------|-------------|
+| Touch target | Minimum **48 × 48** dp for interactive controls |
+| Contrast | Primary text on white ≥ **4.5:1** |
+| Status | Always **icon + label + color** (never color alone) |
+| Text scale | See **Text scale** below |
+| Motion | See **Reduced motion** below |
+
+### Text scale (200%)
+
+The UI must remain usable when the platform text scale factor is **2.0** (200%).
+
+**Must:**
+
+- Keep primary nav labels short enough that all five FR destinations remain readable without truncation that hides meaning at 200% on a **390** logical-px width.
+- Prefer wrapping or ellipsis on secondary lines over overlapping controls.
+- Keep touch targets at least 48×48 even when labels grow (do not shrink hit areas to fit larger type).
+- Avoid fixed-height text boxes that clip body copy at 200%.
+
+**Must not:**
+
+- Rely on tiny custom font sizes (e.g. 9–10 sp) for essential labels in chrome or primary lists.
+- Use layout that assumes single-line nav labels at default scale only.
+
+**Verification:** Manual QA on device/OS large-text settings before release. Automated text-scale pumps are not required for now.
+
+### Reduced motion
+
+When `MediaQuery.disableAnimations` is **true** (or the platform equivalent for reduced motion):
+
+**Must:**
+
+- Skip or replace non-essential motion (decorative transitions, staggered entrances, looping indicators that are purely ornamental).
+- Keep functional feedback that is not animation-dependent (color, icons, text, progress values).
+
+**Must not:**
+
+- Gate critical information exclusively behind an animation that never completes when animations are disabled.
+- Introduce custom controllers that ignore `disableAnimations` / reduced-motion flags.
+
+When the app has no custom animations, compliance is vacuous but the rule still applies as soon as motion is added.
+
+**Verification:** Manual QA with the platform reduced-motion / disable-animations setting before release. Automated reduced-motion tests are not required for now.
+
+---
+
+## 7. Font licensing
+
+| Font | Constraint |
+|------|------------|
+| Inter | Production-safe (SIL OFL); bundled in `edaya_shared` |
+| Poppins Semibold | Production-safe (SIL OFL); headings only, never a typed wordmark |
+| EDAYA outlined logos | Supplied artwork; PNG derivatives in `edaya_shared/assets/brand/` |
+
+---
+
+## 8. Non-normative
+
+The following must **not** be treated as design-language requirements:
+
+- Historical “before → after” production redesign tables
+- Phase / migration narratives that treat a prototype as the source of truth
+- Untokenized icon wells (ad-hoc padding 8 + radius 10) and raw Material `Colors.*` or one-off hex fills outside the palette tables above
+- Shipping Galak Round Demo (or any personal-use-only display font) in the app binary
+- Reconstructing the EDAYA wordmark as UI text (`Text('edaya')`)
+- Redefining chip `success` as green `successContainer` without changing §2
+- Card radius `lg` (20) as the default for attention or list cards (default remains `md` 16)
+- Progress track colored with `primaryLight` instead of `primaryContainer`

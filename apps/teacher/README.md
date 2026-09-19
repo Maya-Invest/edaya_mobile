@@ -1,9 +1,51 @@
-# EDAYA Teacher
+# Edaya Teacher
 
-Current Flutter app: Calendar, Evaluations, Teaching, Report Cards; class filters, attendance and marks. Authentication, routing and domain controllers are preserved through UI work.
+Flutter app for teachers — Accueil-first IA with live Identity OTP, school API, FCM, and offline outbox.
 
-Run from this directory with `flutter run` and the existing `AUTH_URL` / `API_URL` defines. Build and signing instructions remain in the root README and `android-signing/README.md`.
+Store identity: Android/iOS `com.softilab.edaya.staff`.
 
-UI contract: [mobile design language](../../docs/specs/design-language-spec.md). Shared foundation: `packages/edaya_shared`, EDAYA tokens 1.0.0, local Poppins/Inter and supplied artwork. Human brief: `edaya_frontend/docs/reference/edaya-ui-brief.md` in the frontend repository (not a build dependency).
+Archived pre-cutover IA: `apps/teacher_legacy` (`melos run run:teacher:legacy:local`).
 
-[Current visual review](design-review/README.md) renders production pages/components with isolated fixtures. Generate from this directory using `EDAYA_CAPTURE_DESIGN_REVIEW=1 flutter test test/design_review_test.dart`. These captures do not test live API authentication. Run `melos run verify` at repository root; relevant live journeys use `melos run test:integration` with isolated seeded services.
+## Run locally
+
+```bash
+melos run run:teacher:local
+melos run run:teacher:staging
+```
+
+Requires local Identity (`10.0.2.2:9900`) and school API (`10.0.2.2:9999`) for emulator runs. Default demo email: `a.toure@ecole-ci.edaya.dev`.
+
+Widget tests (mock harness, no API):
+
+```bash
+cd apps/teacher
+flutter test --exclude-tags integration
+```
+
+## Information architecture
+
+Five shell tabs (post-login → `/home`):
+
+| Tab | Route | Role |
+|-----|-------|------|
+| Accueil | `/home` | Action centre — one primary task + remaining count, current/next session |
+| Agenda | `/calendar` | Day list of teacher sessions; week chips + date picker |
+| Classes | `/classes` | Assigned classes → roster, teaching progress, cahier history |
+| Évaluations | `/evaluations` | Assessments, marks, bulletins, family-feedback avis |
+| Messages | `/inbox` | Inbox list + message detail |
+
+Family feedback from Accueil opens `/home/avis/:id` (Accueil tab stays selected). The archive is `/evaluations/avis`.
+
+## Specs
+
+- [Design language](../../docs/specs/design-language-spec.md)
+- [Teacher shell](../../docs/specs/teacher-shell-spec.md)
+- Shared widgets: [guardian-shared-components-spec](../../docs/specs/guardian-shared-components-spec.md)
+
+## Design review
+
+```bash
+melos run screenshots:teacher:review
+```
+
+Output: `apps/teacher/design-review/index.html` (mock harness, no API).

@@ -74,12 +74,19 @@ Use autoDispose for resources; field-level autoDispose for non-reactive deps.
 Flutter Widgets
 ---------------
 
-- LWatch — implicit reactive rebuild (primary)
+- LWatch — implicit reactive rebuild (primary); use for focused subtrees
 - LBuilder — single LxReactive
 - LSelectorBuilder — local derived value
 - LStatusBuilder — LxStatus rendering
 - LView / LAsyncView — consume existing scope dependency
-- LScopedView.put — create scope + controller
+- LScopedView.put / subclass + onConfigScope — create scope + controller
+
+With LScopedView / LView autoWatch true (default), read reactives directly in
+buildView / builder — do not wrap the whole buildView in return LWatch(...).
+
+Overlays that need context.levit.find: showLevitDialog /
+showLevitModalBottomSheet (capture page scope). Prefer these over raw
+showDialog / showModalBottomSheet.
 
 Kit extras (levit_flutter): LKeepAlive, LevitAppLifecycleMixin.
 

@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import 'package:edaya_shared/edaya_shared.dart';
 import '../auth/session_storage.dart';
 
 class AcademicYearController extends LevitController
@@ -43,6 +43,20 @@ class AcademicYearController extends LevitController
       }
     }
     return yearId;
+  }
+
+  List<String> get yearLabels => years.value
+      .map((year) => year['name'] as String? ?? year['id'] as String)
+      .toList();
+
+  String? idForYearLabel(String label) {
+    for (final year in years.value) {
+      final name = year['name'] as String? ?? year['id'] as String;
+      if (name == label) {
+        return year['id'] as String?;
+      }
+    }
+    return null;
   }
 
   Future<void> loadYears() async {

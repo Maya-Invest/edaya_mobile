@@ -11,6 +11,10 @@ EntityQuery studentChargesForStudent({
   return {'studentId': studentId, 'academicYearId': academicYearId};
 }
 
+EntityQuery deliveriesForSubject(String subjectId) {
+  return {'subjectId': subjectId};
+}
+
 EntityQuery deliveriesForGuardian({
   required String subjectId,
   required String guardianId,

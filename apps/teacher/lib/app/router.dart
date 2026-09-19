@@ -1,262 +1,223 @@
-import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:levit_flutter/levit_flutter.dart';
 
-import '../di/teacher_module.dart';
-import '../features/context/teacher_context_controller.dart';
-import '../config/api_config.dart';
-import '../features/account/account_sheet.dart';
-import '../features/app_shell/app_shell_page.dart';
+import '../design/list_detail_host.dart';
+import '../design/shell_chrome.dart';
+import '../features/account/account_page.dart';
 import '../features/calendar/calendar_page.dart';
-import '../features/calendar/models/teacher_session.dart';
-import '../features/context/class_filter_sheet.dart';
-import '../features/evaluations/evaluation_create_sheet.dart';
+import '../features/classes/classes_page.dart';
 import '../features/evaluations/evaluations_page.dart';
-import '../features/evaluations/marks_entry_sheet.dart';
-import '../features/evaluations/models/evaluation_models.dart';
-import '../features/report_cards/models/report_card_roster_models.dart';
-import '../features/report_cards/report_card_roster_sheet.dart';
-import '../features/report_cards/report_cards_page.dart';
-import '../features/teaching/teaching_page.dart';
-import '../features/family_feedback/family_feedback_page.dart';
-import '../features/session/attendance_flow_page.dart';
-import '../features/session/session_details_sheet.dart';
-import '../features/session/session_route_args.dart';
+import '../features/evaluations/family_feedback_page.dart';
+import '../features/home/home_page.dart';
+import '../features/inbox/inbox_page.dart';
+import '../features/login/login_page.dart';
+import '../features/session/attendance_page.dart';
+import '../features/session/logbook_page.dart';
+import '../features/session/session_detail_page.dart';
+import 'shell_page.dart';
 
-final rootNavigatorKey = GlobalKey<NavigatorState>();
-final shellNavigatorKey = GlobalKey<NavigatorState>();
-
-class AppRouter extends LevitController implements EdayaAppRouter {
-  AppRouter({
-    required AppSessionController session,
-    required EdayaRouterRefresh routerRefresh,
-  }) : _session = session,
-       _routerRefresh = routerRefresh {
-    router = GoRouter(
-      navigatorKey: rootNavigatorKey,
-      initialLocation: '/login',
-      refreshListenable: _routerRefresh,
-      redirect: (context, state) {
-        final isAuthenticated = _session.isAuthenticated;
-        final isAuthRoute = state.matchedLocation == '/login';
-
-        if (!isAuthenticated && !isAuthRoute) {
-          return '/login';
-        }
-        if (isAuthenticated && isAuthRoute) {
-          return '/calendar';
-        }
+GoRouter createRouter({
+  required Listenable routerRefresh,
+  required bool Function() isAuthenticated,
+  bool Function()? isBootstrapping,
+}) {
+  return GoRouter(
+    initialLocation: '/login',
+    refreshListenable: routerRefresh,
+    redirect: (context, state) {
+      if (isBootstrapping?.call() ?? false) {
         return null;
-      },
-      routes: [
-        GoRoute(
-          path: '/login',
-          builder: (context, state) => LoginPage(
-            appTitle: context.tr.appTitleTeacher,
-            subtitle: context.tr.loginSubtitleStaffDev,
-            defaultEmail: ApiConfig.devTeacherEmail,
-            onSignInSuccess: () async {
-              await initializeTeacherAuthenticatedContext();
-              AppRouter.find.router.go('/calendar');
-            },
+      }
+      final loggedIn = isAuthenticated();
+      final onLogin = state.matchedLocation == '/login';
+      if (!loggedIn && !onLogin) return '/login';
+      if (loggedIn && onLogin) return '/home';
+      return null;
+    },
+    routes: [
+      GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
+      ShellRoute(
+        builder: (context, state, child) => PrototypeShell(child: child),
+        routes: [
+          GoRoute(
+            path: '/home',
+            builder: (_, _) => const ShellChromeBody(child: HomePage()),
+            routes: [
+              GoRoute(
+                path: 'avis/:feedbackId',
+                builder: (context, state) => ShellChromeBody(
+                  child: FamilyFeedbackDetailPage(
+                    feedbackId: state.pathParameters['feedbackId']!,
+                    fromHome: true,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ),
-        GoRoute(
-          parentNavigatorKey: rootNavigatorKey,
-          path: '/settings',
-          builder: (context, state) => const SettingsPage(),
-        ),
-        GoRoute(
-          parentNavigatorKey: rootNavigatorKey,
-          path: '/account/profile',
-          builder: (context, state) => AccountProfilePage(
-            session: context.levit.find<AppSessionController>(),
-            schoolClient: context.levit.find<SchoolClientFactory>(),
-            onProfileSaved: (_) =>
-                context.levit.find<TeacherContextController>().reloadContext(),
+          ShellRoute(
+            builder: (context, state, child) => ListDetailHost(
+              listPath: '/calendar',
+              master: const CalendarPage(),
+              detailChild: child,
+              isListPath: (path) => path == '/calendar',
+            ),
+            routes: [
+              GoRoute(
+                path: '/calendar',
+                builder: (_, _) => const SizedBox.shrink(),
+              ),
+              GoRoute(
+                path: '/session/:id',
+                builder: (context, state) =>
+                    SessionDetailPage(sessionId: state.pathParameters['id']!),
+                routes: [
+                  GoRoute(
+                    path: 'attendance',
+                    builder: (context, state) =>
+                        AttendancePage(sessionId: state.pathParameters['id']!),
+                  ),
+                  GoRoute(
+                    path: 'logbook',
+                    builder: (context, state) =>
+                        LogbookPage(sessionId: state.pathParameters['id']!),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ),
-        GoRoute(
-          parentNavigatorKey: rootNavigatorKey,
-          path: '/account',
-          pageBuilder: (context, state) {
-            return const ModalBottomSheetPage<void>(
-              isScrollControlled: true,
-              useSafeArea: true,
-              child: AccountSheet(),
-            );
-          },
-        ),
-        GoRoute(
-          parentNavigatorKey: rootNavigatorKey,
-          path: '/class-filter',
-          pageBuilder: (context, state) {
-            return const ModalBottomSheetPage<void>(
-              isScrollControlled: true,
-              useSafeArea: true,
-              child: ClassFilterSheet(),
-            );
-          },
-        ),
-        ShellRoute(
-          navigatorKey: shellNavigatorKey,
-          builder: (context, state, child) => AppShellPage(child: child),
-          routes: [
-            GoRoute(
-              path: '/calendar',
-              builder: (context, state) => const CalendarPage(),
-              routes: [
-                GoRoute(
-                  parentNavigatorKey: rootNavigatorKey,
-                  path: 'session-details',
-                  pageBuilder: (context, state) {
-                    final extra = state.extra;
-                    if (extra is! TeacherSession) {
-                      return MaterialPage<void>(
-                        child: RouteErrorPage(
-                          message: context.tr.missingSessionDetailsRouteData,
-                        ),
-                      );
-                    }
-
-                    return ModalBottomSheetPage<void>(
-                      isScrollControlled: true,
-                      useSafeArea: true,
-                      child: SessionDetailsSheet(session: extra),
-                    );
-                  },
-                ),
-                GoRoute(
-                  parentNavigatorKey: rootNavigatorKey,
-                  path: 'attendance-flow',
-                  builder: (context, state) {
-                    final extra = state.extra;
-                    if (extra is AttendanceFlowArgs) {
-                      return AttendanceFlowPage(
-                        session: extra.session,
-                        controller: extra.controller,
-                      );
-                    }
-                    if (extra is TeacherSession) {
-                      return AttendanceFlowPage(session: extra);
-                    }
-
-                    return RouteErrorPage(
-                      message: context.tr.missingAttendanceFlowRouteData,
-                    );
-                  },
-                ),
-              ],
+          ShellRoute(
+            builder: (context, state, child) => ListDetailHost(
+              listPath: '/classes',
+              master: const ClassesPage(),
+              detailChild: child,
+              isListPath: (path) => path == '/classes',
             ),
-            GoRoute(
-              path: '/evaluations',
-              builder: (context, state) => const EvaluationsPage(),
-              routes: [
-                GoRoute(
-                  parentNavigatorKey: rootNavigatorKey,
-                  path: 'create',
-                  pageBuilder: (context, state) {
-                    return const ModalBottomSheetPage<void>(
-                      isScrollControlled: true,
-                      useSafeArea: true,
-                      child: EvaluationCreateSheet(),
-                    );
-                  },
-                ),
-                GoRoute(
-                  parentNavigatorKey: rootNavigatorKey,
-                  path: 'marks',
-                  pageBuilder: (context, state) {
-                    final extra = state.extra;
-                    if (extra is! EvaluationSummary) {
-                      return MaterialPage<void>(
-                        child: RouteErrorPage(
-                          message: context.tr.missingMarksEntryRouteData,
-                        ),
-                      );
-                    }
-
-                    return ModalBottomSheetPage<void>(
-                      isScrollControlled: true,
-                      useSafeArea: true,
-                      child: MarksEntrySheet(evaluation: extra),
-                    );
-                  },
-                ),
-              ],
-            ),
-            GoRoute(
-              path: '/teaching',
-              builder: (context, state) => const TeachingPage(),
-              routes: [
-                GoRoute(
-                  path: 'family-feedback',
-                  builder: (context, state) => const TeacherFamilyFeedbackPage(),
-                  routes: [
-                    GoRoute(
-                      path: ':campaignId',
-                      builder: (context, state) {
-                        final extra = state.extra;
-                        final campaignId = extra is TeacherFamilyFeedbackResult
-                            ? extra.campaignId
-                            : state.pathParameters['campaignId'] ?? '';
-                        if (campaignId.isEmpty) {
-                          return RouteErrorPage(
-                            message: context.tr.familyFeedbackEmpty,
-                          );
-                        }
-                        return TeacherFamilyFeedbackResultRoutePage(
-                          routeArgs: TeacherFamilyFeedbackResultRouteArgs(
-                            campaignId: campaignId,
-                            result: extra is TeacherFamilyFeedbackResult ? extra : null,
-                          ),
-                        );
-                      },
+            routes: [
+              GoRoute(
+                path: '/classes',
+                builder: (_, _) => const SizedBox.shrink(),
+              ),
+              GoRoute(
+                path: '/classes/:classId',
+                builder: (context, state) =>
+                    ClassRosterPage(classId: state.pathParameters['classId']!),
+                routes: [
+                  GoRoute(
+                    path: 'student/:studentId',
+                    builder: (context, state) => StudentProfilePage(
+                      classId: state.pathParameters['classId']!,
+                      studentId: state.pathParameters['studentId']!,
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+          ShellRoute(
+            builder: (context, state, child) => ListDetailHost(
+              listPath: '/evaluations',
+              master: const EvaluationsPage(),
+              detailChild: child,
+              isListPath: (path) => path == '/evaluations',
             ),
-            GoRoute(
-              path: '/report-cards',
-              builder: (context, state) => const ReportCardsPage(),
-              routes: [
-                GoRoute(
-                  parentNavigatorKey: rootNavigatorKey,
-                  path: 'roster',
-                  pageBuilder: (context, state) {
-                    final extra = state.extra;
-                    if (extra is! ReportCardRosterArgs) {
-                      return MaterialPage<void>(
-                        child: RouteErrorPage(
-                          message: context.tr.missingReportCardRosterRouteData,
-                        ),
-                      );
-                    }
-
-                    return ModalBottomSheetPage<void>(
-                      isScrollControlled: true,
-                      useSafeArea: true,
-                      child: ReportCardRosterSheet(rosterArgs: extra),
-                    );
-                  },
+            routes: [
+              GoRoute(
+                path: '/evaluations',
+                builder: (_, _) => const SizedBox.shrink(),
+              ),
+              GoRoute(
+                path: '/evaluations/avis',
+                builder: (_, _) => const FamilyFeedbackListPage(),
+                routes: [
+                  GoRoute(
+                    path: ':feedbackId',
+                    builder: (context, state) => FamilyFeedbackDetailPage(
+                      feedbackId: state.pathParameters['feedbackId']!,
+                    ),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: '/evaluations/report-cards/:classId/:periodId',
+                builder: (context, state) => ReportCardRosterPage(
+                  classId: state.pathParameters['classId']!,
+                  periodId: state.pathParameters['periodId']!,
                 ),
-              ],
+                routes: [
+                  GoRoute(
+                    path: ':rosterId',
+                    builder: (context, state) => ReportCardCommentPage(
+                      classId: state.pathParameters['classId']!,
+                      periodId: state.pathParameters['periodId']!,
+                      rosterId: state.pathParameters['rosterId']!,
+                    ),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: '/evaluations/create',
+                builder: (_, _) => const EvaluationCreatePage(),
+              ),
+              GoRoute(
+                path: '/evaluations/:evaluationId/marks',
+                builder: (context, state) => MarksEntryPage(
+                  evaluationId: state.pathParameters['evaluationId']!,
+                ),
+              ),
+            ],
+          ),
+          ShellRoute(
+            builder: (context, state, child) => ListDetailHost(
+              listPath: '/inbox',
+              master: const InboxPage(),
+              detailChild: child,
             ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  final AppSessionController _session;
-  final EdayaRouterRefresh _routerRefresh;
-
-  static AppRouter get find => EdayaRootScope.find<AppRouter>();
-
-  late final GoRouter router;
-
-  @override
-  RouterConfig<Object> config() => router;
+            routes: [
+              GoRoute(
+                path: '/inbox',
+                builder: (_, _) => const SizedBox.shrink(),
+                routes: [
+                  GoRoute(
+                    path: 'message/:id',
+                    builder: (context, state) => MessageDetailPage(
+                      messageId: Uri.decodeComponent(
+                        state.pathParameters['id']!,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          ShellRoute(
+            builder: (context, state, child) => ListDetailHost(
+              listPath: '/account',
+              master: const AccountPage(),
+              detailChild: child,
+              isListPath: (path) => path == '/account',
+            ),
+            routes: [
+              GoRoute(
+                path: '/account',
+                builder: (_, _) => const SizedBox.shrink(),
+              ),
+              GoRoute(
+                path: '/account/profile',
+                builder: (_, _) => const AccountProfilePage(),
+              ),
+              GoRoute(
+                path: '/settings',
+                builder: (_, _) => const SettingsPage(),
+              ),
+            ],
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/message/:id',
+        redirect: (context, state) =>
+            '/inbox/message/${state.pathParameters['id']}',
+      ),
+    ],
+  );
 }

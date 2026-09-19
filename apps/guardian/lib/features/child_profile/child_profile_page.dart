@@ -1,7 +1,11 @@
-import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_shared/edaya_shared.dart' hide PersonAvatar;
 import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
+import '../../app/shell_tabs.dart';
+import '../../design/components/components.dart';
+import '../../design/spacing.dart';
+import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
 import 'child_profile_controller.dart';
 
@@ -15,24 +19,29 @@ class ChildProfilePage extends LScopedView<ChildProfileController> {
         session: scope.find<AppSessionController>(),
         schoolClient: scope.find<SchoolClientFactory>(),
         studentContext: scope.find<StudentContextController>(),
+        academicYear: scope.find<AcademicYearController>(),
       ),
     );
   }
 
   @override
   Widget buildView(BuildContext context, ChildProfileController controller) {
-    return Scaffold(
-      appBar: AppBar(title: Text(context.tr.childProfileTitle)),
-      body: LWatch(
-        () => DataState(
-          status: controller.dataStatus,
-          errorMessage: controller.errorMessage.value,
-          emptyMessage: context.tr.childProfileUnavailable,
-          onRetry: controller.load,
-          child: LWatch(() => _ChildProfileBody(controller: controller)),
+    return LWatch(() {
+      final hubPath = GuardianShellScope.maybeOf(context)?.hubPath ?? '/home';
+      return PrototypeDetailScaffold(
+        title: controller.student.value?.fullName ?? 'Profil élève',
+        fallbackRoute: hubPath,
+        body: AdaptiveContent(
+          child: DataState(
+            status: controller.dataStatus,
+            errorMessage: controller.errorMessage.value,
+            emptyMessage: context.tr.childProfileUnavailable,
+            onRetry: controller.load,
+            child: LWatch(() => _ChildProfileBody(controller: controller)),
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 }
 
@@ -52,19 +61,16 @@ class _ChildProfileBody extends StatelessWidget {
     final proposedUrl = controller.isSubmitter && pending != null
         ? profilePhotoContentPath(pending['attachmentId'] as String)
         : null;
+    final papers = controller.leftoverPapers.value;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
       children: [
         Text(student.fullName, style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 24),
-        Text(
-          context.tr.childProfilePublished,
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
-        const SizedBox(height: 12),
+        const SizedBox(height: PrototypeSpacing.xl),
+        const SectionHeader(title: 'Photo'),
+        const SizedBox(height: PrototypeSpacing.sm),
         PersonAvatar(
-          name: student.fullName,
           initials: student.initials,
           photoUrl: student.photoUrl,
           radius: 48,
@@ -73,7 +79,7 @@ class _ChildProfileBody extends StatelessWidget {
           const SizedBox(height: 8),
           Text(context.tr.childProfileNoPublished),
         ],
-        const SizedBox(height: 24),
+        const SizedBox(height: PrototypeSpacing.md),
         Text(
           context.tr.childProfileProposed,
           style: Theme.of(context).textTheme.titleSmall,
@@ -82,7 +88,6 @@ class _ChildProfileBody extends StatelessWidget {
         if (pending != null) ...[
           if (proposedUrl != null)
             PersonAvatar(
-              name: student.fullName,
               initials: student.initials,
               photoUrl: proposedUrl,
               radius: 48,
@@ -135,6 +140,26 @@ class _ChildProfileBody extends StatelessWidget {
           const SizedBox(height: 16),
           const LinearProgressIndicator(),
         ],
+        const SizedBox(height: PrototypeSpacing.xl),
+        const SectionHeader(title: 'Documents'),
+        const SizedBox(height: PrototypeSpacing.sm),
+        if (papers.isEmpty)
+          const Text('Aucun document scolaire pour cet élève.')
+        else
+          for (final paper in papers) ...[
+            ListRow(
+              title: leftoverFamilyPaperLabel(paper.templateKey),
+              subtitle:
+                  paper.number ?? documentStatusLabel(context.tr, paper.status),
+              trailing: paper.isDownloadable
+                  ? DocumentActionButton(
+                      label: 'Ouvrir',
+                      run: () => controller.downloadLeftover(paper),
+                    )
+                  : Text(documentStatusLabel(context.tr, paper.status)),
+            ),
+            const SizedBox(height: PrototypeSpacing.xs),
+          ],
       ],
     );
   }

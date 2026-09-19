@@ -74,97 +74,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInTitle => 'Sign in';
 
   @override
+  String get signInButton => 'Sign in';
+
+  @override
   String get emailLabel => 'Email';
 
   @override
-  String get emailRequired => 'Enter your email.';
+  String get passwordLabel => 'Password';
 
   @override
   String get signInFailed => 'Sign-in failed';
-
-  @override
-  String get sendCodeButton => 'Send code';
-
-  @override
-  String get otpSendFailed => 'Could not send a verification code.';
-
-  @override
-  String get verifyEmailTitle => 'Verify your email';
-
-  @override
-  String get otpLabel => 'Verification code';
-
-  @override
-  String get verifyCodeButton => 'Verify and continue';
-
-  @override
-  String get resendCodeButton => 'Resend code';
-
-  @override
-  String get useDifferentEmail => 'Use a different email';
-
-  @override
-  String verificationCodeSent(String email) {
-    return 'We sent a code to $email.';
-  }
-
-  @override
-  String get invitationTitle => 'Join your school';
-
-  @override
-  String get invitationContinue => 'Continue';
-
-  @override
-  String get invitationAcceptCta => 'Accept invitation';
-
-  @override
-  String get invitationAccepting => 'Linking your account…';
-
-  @override
-  String get invitationSuccess =>
-      'Your account is linked. Opening your family view.';
-
-  @override
-  String get invitationWrongKind => 'This invitation is for another Edaya app.';
-
-  @override
-  String get invitationWrongAccount =>
-      'This invitation is for a different account. Sign out, then continue with the invited email.';
-
-  @override
-  String get invitationSignOutSwitch => 'Sign out and continue';
-
-  @override
-  String get invitationNotFound => 'This invitation link was not found.';
-
-  @override
-  String get invitationExpired =>
-      'This invitation has expired. Ask the school office for a new link.';
-
-  @override
-  String get invitationRevoked =>
-      'This invitation was replaced. Open the latest email or ask the school office to resend.';
-
-  @override
-  String get invitationInvalid => 'This invitation is not valid.';
-
-  @override
-  String get invitationAlreadyAccepted => 'This invitation was already used.';
-
-  @override
-  String invitationLoadError(String error) {
-    return 'Could not load this invitation. $error';
-  }
-
-  @override
-  String invitationSummary(String name, String school) {
-    return '$name is invited as a guardian at $school.';
-  }
-
-  @override
-  String invitationExpires(String date) {
-    return 'Expires $date';
-  }
 
   @override
   String signedInSchoolSessionUnavailable(String error) {
@@ -195,6 +114,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ok => 'OK';
+
+  @override
+  String get help => 'Help';
 
   @override
   String currentApiUrl(String url) {
@@ -232,10 +154,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get developerSettings => 'Developer settings';
 
   @override
-  String get loginSubtitleGuardianDev => 'We\'ll email you a sign-in code.';
+  String get loginSubtitleGuardianDev =>
+      'Use dev guardian credentials to test against the local API.';
 
   @override
-  String get loginSubtitleStaffDev => 'We\'ll email you a sign-in code.';
+  String get loginSubtitleStaffDev =>
+      'Use dev staff credentials to test against the local API.';
 
   @override
   String get missingSessionDetailsRouteData =>
@@ -253,10 +177,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Missing payment details route data.';
 
   @override
-  String get missingChargeDetailsRouteData =>
-      'Missing charge details route data.';
-
-  @override
   String get missingMessageDetailsRouteData =>
       'Missing message details route data.';
 
@@ -269,36 +189,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signedInNoGuardianProfile =>
-      'This account isn\'t linked to a guardian profile yet. Ask the school to add you.';
+      'Signed in, but no linked guardian/staff profile. Run: bun seed --scope auth:link';
 
   @override
   String get signedInNoStaffProfile =>
-      'This account isn\'t linked to a staff profile yet. Ask the school to add you.';
+      'Signed in, but no linked staff profile. Run: bun seed --scope auth:link';
 
   @override
   String get signedInNoTeacherProfile =>
-      'This account isn\'t linked to a teacher profile yet. Ask the school to add you.';
-
-  @override
-  String get waitingForStudentsTitle => 'You\'re signed in';
-
-  @override
-  String get waitingForStudentsBody =>
-      'Your account is ready. When the school links you to a child, their timetable, grades, and messages will appear here.';
-
-  @override
-  String get waitingForStudentsCheckAgain => 'Check again';
-
-  @override
-  String get waitingPendingInvitationsTitle => 'Pending invitations';
-
-  @override
-  String get waitingNoPendingInvitations =>
-      'No pending invitations for this email. If the school sent a link, open it from the email.';
-
-  @override
-  String get noChildrenLinkedYet =>
-      'No children are linked to your account yet.';
+      'Signed in, but no linked teacher profile. Run: bun seed --scope auth:link';
 
   @override
   String get accountNotLinkedToStaff =>
@@ -307,6 +206,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get accountNotLinkedToTeacher =>
       'This account is not linked to a teacher profile.';
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get navAgenda => 'Agenda';
+
+  @override
+  String get navClasses => 'Classes';
 
   @override
   String get navCalendar => 'Calendar';
@@ -379,6 +287,35 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String couldNotLoadReportCardRoster(String error) {
     return 'Could not load report card roster: $error';
+  }
+
+  @override
+  String couldNotLoadReportCardComments(String error) {
+    return 'Could not load report card comments: $error';
+  }
+
+  @override
+  String couldNotSaveReportCardComment(String error) {
+    return 'Could not save report card comment: $error';
+  }
+
+  @override
+  String get reportCardCommentsTitle => 'Report card comments';
+
+  @override
+  String get reportCardCommentHint => 'Enter your comment';
+
+  @override
+  String get reportCardCommentsReadOnly =>
+      'This report card is published and cannot be edited.';
+
+  @override
+  String get reportCardCommentNoEditableFields =>
+      'No comment fields are available for your role on this report card.';
+
+  @override
+  String subjectComment(String subject) {
+    return '$subject comment';
   }
 
   @override
@@ -746,9 +683,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feeStatusDue => 'Due';
 
   @override
-  String get feeStatusWaived => 'Waived';
-
-  @override
   String get summary => 'Summary';
 
   @override
@@ -759,39 +693,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get balance => 'Balance';
-
-  @override
-  String get availableAmount => 'Available';
-
-  @override
-  String get outstandingAmount => 'Outstanding';
-
-  @override
-  String get overdueAmount => 'Overdue';
-
-  @override
-  String get remainingAmountLabel => 'Remaining';
-
-  @override
-  String get chargeSchedule => 'Payment schedule';
-
-  @override
-  String get noInstallmentsForCharge =>
-      'No installment schedule for this charge.';
-
-  @override
-  String installmentDue(String label, String date) {
-    return '$label · due $date';
-  }
-
-  @override
-  String get paymentKind => 'Type';
-
-  @override
-  String get paymentKindReceipt => 'Receipt';
-
-  @override
-  String get paymentKindDisbursement => 'Refund';
 
   @override
   String overdueFeeLinesCount(int count) {
@@ -1126,6 +1027,64 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attendanceComplete => 'Attendance complete';
 
   @override
+  String get markAllPresent => 'Mark all present';
+
+  @override
+  String get attendanceModeGrid => 'Grid';
+
+  @override
+  String get attendanceModeSequential => 'Sequential';
+
+  @override
+  String attendanceExceptionTitle(String studentName) {
+    return 'Attendance · $studentName';
+  }
+
+  @override
+  String get attendanceReasonLabel => 'Reason';
+
+  @override
+  String get attendanceReasonHint => 'e.g. illness, appointment';
+
+  @override
+  String get attendanceNotesLabel => 'Notes';
+
+  @override
+  String get attendanceNotesHint => 'Optional context for the school office';
+
+  @override
+  String get attendanceSavedLocally => 'Saved locally — will sync when online';
+
+  @override
+  String get calendarTodayTitle => 'Today';
+
+  @override
+  String get calendarGoToToday => 'Go to today';
+
+  @override
+  String get calendarCurrentSession => 'Now';
+
+  @override
+  String get calendarNextSession => 'Up next';
+
+  @override
+  String get calendarNoSessionsToday => 'No sessions scheduled for today.';
+
+  @override
+  String calendarIncompleteAttendance(String classLabel, String subjectLabel) {
+    return 'Attendance · $classLabel $subjectLabel';
+  }
+
+  @override
+  String get sessionAttendanceComplete => 'Attendance complete';
+
+  @override
+  String get sessionAttendanceIncomplete => 'Attendance incomplete';
+
+  @override
+  String get logbookDraftRestored => 'Restored unsaved logbook draft';
+
+  @override
   String get done => 'Done';
 
   @override
@@ -1252,6 +1211,105 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterValidMaxScore => 'Enter a valid max score.';
 
   @override
+  String get assessmentDateLabel => 'Assessment date';
+
+  @override
+  String get homeworkDueDateLabel => 'Homework due date';
+
+  @override
+  String get assessmentDateRequired => 'Select an assessment date.';
+
+  @override
+  String get homeworkDueDateRequired => 'Select a homework due date.';
+
+  @override
+  String invalidScoreValue(String maxScore) {
+    return 'Enter a score between 0 and $maxScore.';
+  }
+
+  @override
+  String get syncStatusSaved => 'Saved';
+
+  @override
+  String get syncStatusSavedLocally => 'Saved locally';
+
+  @override
+  String get syncStatusPending => 'Waiting to sync';
+
+  @override
+  String get syncStatusSyncing => 'Syncing';
+
+  @override
+  String get syncStatusSynced => 'Synced';
+
+  @override
+  String get syncStatusFailed => 'Sync failed';
+
+  @override
+  String get duplicateEvaluation => 'Duplicate';
+
+  @override
+  String get completeEvaluation => 'Mark complete';
+
+  @override
+  String get ungradedOnlyFilter => 'Ungraded only';
+
+  @override
+  String get fillAllMarks => 'Fill all';
+
+  @override
+  String get clearAllMarks => 'Clear all';
+
+  @override
+  String get familyVisibleSummaryLabel => 'Family-visible summary';
+
+  @override
+  String get familyVisiblePreviewLabel => 'Family preview';
+
+  @override
+  String get accountSyncSectionTitle => 'Synchronization';
+
+  @override
+  String accountPendingSyncSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items waiting to sync',
+      one: '1 item waiting to sync',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String accountPendingSyncOldest(String age) {
+    return 'Oldest pending $age';
+  }
+
+  @override
+  String get accountPendingSyncNone => 'All changes are synced';
+
+  @override
+  String get accountSyncNow => 'Sync now';
+
+  @override
+  String get accountPendingSyncJustNow => 'just now';
+
+  @override
+  String accountPendingSyncMinutes(int minutes) {
+    return '$minutes min ago';
+  }
+
+  @override
+  String accountPendingSyncHours(int hours) {
+    return '$hours hr ago';
+  }
+
+  @override
+  String accountPendingSyncDays(int days) {
+    return '$days d ago';
+  }
+
+  @override
   String outOfMaxScore(String maxScore) {
     return 'Out of $maxScore';
   }
@@ -1358,6 +1416,154 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTimeFormat12h => '12-hour';
+
+  @override
+  String get emailRequired => 'Enter your email.';
+
+  @override
+  String get sendCodeButton => 'Send code';
+
+  @override
+  String get otpSendFailed => 'Could not send a verification code.';
+
+  @override
+  String get verifyEmailTitle => 'Verify your email';
+
+  @override
+  String get otpLabel => 'Verification code';
+
+  @override
+  String get verifyCodeButton => 'Verify and continue';
+
+  @override
+  String get resendCodeButton => 'Resend code';
+
+  @override
+  String get useDifferentEmail => 'Use a different email';
+
+  @override
+  String verificationCodeSent(String email) {
+    return 'We sent a code to $email.';
+  }
+
+  @override
+  String get invitationTitle => 'Join your school';
+
+  @override
+  String get invitationContinue => 'Continue';
+
+  @override
+  String get invitationAcceptCta => 'Accept invitation';
+
+  @override
+  String get invitationAccepting => 'Linking your account…';
+
+  @override
+  String get invitationSuccess =>
+      'Your account is linked. Opening your family view.';
+
+  @override
+  String get invitationWrongKind => 'This invitation is for another Edaya app.';
+
+  @override
+  String get invitationWrongAccount =>
+      'This invitation is for a different account. Sign out, then continue with the invited email.';
+
+  @override
+  String get invitationSignOutSwitch => 'Sign out and continue';
+
+  @override
+  String get invitationNotFound => 'This invitation link was not found.';
+
+  @override
+  String get invitationExpired =>
+      'This invitation has expired. Ask the school office for a new link.';
+
+  @override
+  String get invitationRevoked =>
+      'This invitation was replaced. Open the latest email or ask the school office to resend.';
+
+  @override
+  String get invitationInvalid => 'This invitation is not valid.';
+
+  @override
+  String get invitationAlreadyAccepted => 'This invitation was already used.';
+
+  @override
+  String invitationLoadError(String error) {
+    return 'Could not load this invitation. $error';
+  }
+
+  @override
+  String invitationSummary(String name, String school) {
+    return '$name is invited as a guardian at $school.';
+  }
+
+  @override
+  String invitationExpires(String date) {
+    return 'Expires $date';
+  }
+
+  @override
+  String get missingChargeDetailsRouteData =>
+      'Missing charge details route data.';
+
+  @override
+  String get waitingForStudentsTitle => 'You\'re signed in';
+
+  @override
+  String get waitingForStudentsBody =>
+      'Your account is ready. When the school links you to a child, their timetable, grades, and messages will appear here.';
+
+  @override
+  String get waitingForStudentsCheckAgain => 'Check again';
+
+  @override
+  String get waitingPendingInvitationsTitle => 'Pending invitations';
+
+  @override
+  String get waitingNoPendingInvitations =>
+      'No pending invitations for this email. If the school sent a link, open it from the email.';
+
+  @override
+  String get noChildrenLinkedYet =>
+      'No children are linked to your account yet.';
+
+  @override
+  String get feeStatusWaived => 'Waived';
+
+  @override
+  String get availableAmount => 'Available';
+
+  @override
+  String get outstandingAmount => 'Outstanding';
+
+  @override
+  String get overdueAmount => 'Overdue';
+
+  @override
+  String get remainingAmountLabel => 'Remaining';
+
+  @override
+  String get chargeSchedule => 'Payment schedule';
+
+  @override
+  String get noInstallmentsForCharge =>
+      'No installment schedule for this charge.';
+
+  @override
+  String installmentDue(String label, String date) {
+    return '$label · due $date';
+  }
+
+  @override
+  String get paymentKind => 'Type';
+
+  @override
+  String get paymentKindReceipt => 'Receipt';
+
+  @override
+  String get paymentKindDisbursement => 'Refund';
 
   @override
   String get mutationConflict =>

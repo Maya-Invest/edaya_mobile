@@ -5,6 +5,7 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
+import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
 import '../my_students/linked_student.dart';
 
@@ -14,14 +15,18 @@ class ChildProfileController extends LevitController
     required AppSessionController session,
     required SchoolClientFactory schoolClient,
     required StudentContextController studentContext,
+    required AcademicYearController academicYear,
   }) : _session = session,
        _schoolClient = schoolClient,
-       _studentContext = studentContext;
+       _studentContext = studentContext,
+       _academicYear = academicYear;
 
   final AppSessionController _session;
   final SchoolClientFactory _schoolClient;
   final StudentContextController _studentContext;
+  final AcademicYearController _academicYear;
 
+  final leftoverPapers = LxVar<List<DocumentIssuanceRecord>>(const []);
   final student = LxVar<LinkedStudent?>(null);
   final pending = LxVar<Map<String, dynamic>?>(null);
   final latestRejected = LxVar<Map<String, dynamic>?>(null);
@@ -58,6 +63,7 @@ class ChildProfileController extends LevitController
   @override
   void onInit() {
     super.onInit();
+    autoDispose(leftoverPapers);
     autoDispose(student);
     autoDispose(pending);
     autoDispose(latestRejected);
@@ -73,6 +79,7 @@ class ChildProfileController extends LevitController
       student(null);
       pending(null);
       latestRejected(null);
+      leftoverPapers(const []);
       errorMessage('');
       return;
     }
@@ -101,6 +108,13 @@ class ChildProfileController extends LevitController
         }
         pending(nextPending);
         latestRejected(nextPending == null ? nextRejected : null);
+        leftoverPapers(
+          (await listDocumentIssuances(
+            client,
+            studentId: active.id,
+            academicYearId: _academicYear.selectedYearId.value,
+          )).where((item) => isLeftoverFamilyPaper(item.templateKey)).toList(),
+        );
       } on api.ApiError catch (error) {
         errorMessage(systemL10n().childProfileLoadError('$error'));
       } on Object catch (error) {
@@ -198,5 +212,15 @@ class ChildProfileController extends LevitController
     } finally {
       isSaving(false);
     }
+  }
+
+  Future<DocumentJobResult> downloadLeftover(DocumentIssuanceRecord paper) {
+    return downloadReadyIssuance(
+      _schoolClient(),
+      sourceId: paper.sourceId,
+      templateKey: paper.templateKey,
+      studentId: student.value?.id,
+      academicYearId: _academicYear.selectedYearId.value,
+    );
   }
 }

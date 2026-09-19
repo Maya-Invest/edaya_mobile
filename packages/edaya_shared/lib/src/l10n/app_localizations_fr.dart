@@ -74,99 +74,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get signInTitle => 'Connexion';
 
   @override
+  String get signInButton => 'Se connecter';
+
+  @override
   String get emailLabel => 'E-mail';
 
   @override
-  String get emailRequired => 'Saisissez votre e-mail.';
+  String get passwordLabel => 'Mot de passe';
 
   @override
   String get signInFailed => 'Échec de la connexion';
-
-  @override
-  String get sendCodeButton => 'Envoyer le code';
-
-  @override
-  String get otpSendFailed => 'Impossible d\'envoyer un code de vérification.';
-
-  @override
-  String get verifyEmailTitle => 'Vérifiez votre e-mail';
-
-  @override
-  String get otpLabel => 'Code de vérification';
-
-  @override
-  String get verifyCodeButton => 'Vérifier et continuer';
-
-  @override
-  String get resendCodeButton => 'Renvoyer le code';
-
-  @override
-  String get useDifferentEmail => 'Utiliser une autre adresse e-mail';
-
-  @override
-  String verificationCodeSent(String email) {
-    return 'Nous avons envoyé un code à $email.';
-  }
-
-  @override
-  String get invitationTitle => 'Rejoindre l\'établissement';
-
-  @override
-  String get invitationContinue => 'Continuer';
-
-  @override
-  String get invitationAcceptCta => 'Accepter l\'invitation';
-
-  @override
-  String get invitationAccepting => 'Liaison du compte…';
-
-  @override
-  String get invitationSuccess =>
-      'Votre compte est relié. Ouverture de la vue famille.';
-
-  @override
-  String get invitationWrongKind =>
-      'Cette invitation concerne une autre application Edaya.';
-
-  @override
-  String get invitationWrongAccount =>
-      'Cette invitation concerne un autre compte. Déconnectez-vous, puis continuez avec l\'e-mail invité.';
-
-  @override
-  String get invitationSignOutSwitch => 'Se déconnecter et continuer';
-
-  @override
-  String get invitationNotFound => 'Ce lien d\'invitation est introuvable.';
-
-  @override
-  String get invitationExpired =>
-      'Cette invitation a expiré. Demandez un nouveau lien au secrétariat.';
-
-  @override
-  String get invitationRevoked =>
-      'Cette invitation a été remplacée. Ouvrez le dernier e-mail ou demandez un renvoi au secrétariat.';
-
-  @override
-  String get invitationInvalid => 'Cette invitation n\'est pas valide.';
-
-  @override
-  String get invitationAlreadyAccepted =>
-      'Cette invitation a déjà été utilisée.';
-
-  @override
-  String invitationLoadError(String error) {
-    return 'Impossible de charger cette invitation. $error';
-  }
-
-  @override
-  String invitationSummary(String name, String school) {
-    return '$name est invité(e) en tant que tuteur à $school.';
-  }
-
-  @override
-  String invitationExpires(String date) {
-    return 'Expire le $date';
-  }
 
   @override
   String signedInSchoolSessionUnavailable(String error) {
@@ -197,6 +114,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get ok => 'OK';
+
+  @override
+  String get help => 'Aide';
 
   @override
   String currentApiUrl(String url) {
@@ -236,11 +156,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get loginSubtitleGuardianDev =>
-      'Nous vous enverrons un code de connexion par e-mail.';
+      'Utilisez les identifiants de développement tuteur pour tester l\'API locale.';
 
   @override
   String get loginSubtitleStaffDev =>
-      'Nous vous enverrons un code de connexion par e-mail.';
+      'Utilisez les identifiants de développement personnel pour tester l\'API locale.';
 
   @override
   String get missingSessionDetailsRouteData =>
@@ -259,10 +179,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Données de route des détails de paiement manquantes.';
 
   @override
-  String get missingChargeDetailsRouteData =>
-      'Données de route des détails de la charge manquantes.';
-
-  @override
   String get missingMessageDetailsRouteData =>
       'Données de route des détails du message manquantes.';
 
@@ -276,36 +192,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get signedInNoGuardianProfile =>
-      'Ce compte n\'est pas encore lié à un profil tuteur. Demandez à l\'école de vous ajouter.';
+      'Connecté, mais aucun profil tuteur/personnel lié. Exécutez : bun seed --scope auth:link';
 
   @override
   String get signedInNoStaffProfile =>
-      'Ce compte n\'est pas encore lié à un profil personnel. Demandez à l\'école de vous ajouter.';
+      'Connecté, mais aucun profil personnel lié. Exécutez : bun seed --scope auth:link';
 
   @override
   String get signedInNoTeacherProfile =>
-      'Ce compte n\'est pas encore lié à un profil enseignant. Demandez à l\'école de vous ajouter.';
-
-  @override
-  String get waitingForStudentsTitle => 'Vous êtes connecté';
-
-  @override
-  String get waitingForStudentsBody =>
-      'Votre compte est prêt. Lorsque l\'école vous liera à un enfant, son emploi du temps, ses notes et ses messages apparaîtront ici.';
-
-  @override
-  String get waitingForStudentsCheckAgain => 'Vérifier à nouveau';
-
-  @override
-  String get waitingPendingInvitationsTitle => 'Invitations en attente';
-
-  @override
-  String get waitingNoPendingInvitations =>
-      'Aucune invitation en attente pour cet e-mail. Si l\'école a envoyé un lien, ouvrez-le depuis le message.';
-
-  @override
-  String get noChildrenLinkedYet =>
-      'Aucun enfant n\'est encore lié à votre compte.';
+      'Connecté, mais aucun profil enseignant lié. Exécutez : bun seed --scope auth:link';
 
   @override
   String get accountNotLinkedToStaff =>
@@ -314,6 +209,15 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get accountNotLinkedToTeacher =>
       'Ce compte n\'est pas lié à un profil enseignant.';
+
+  @override
+  String get navHome => 'Accueil';
+
+  @override
+  String get navAgenda => 'Agenda';
+
+  @override
+  String get navClasses => 'Classes';
 
   @override
   String get navCalendar => 'Calendrier';
@@ -388,6 +292,35 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String couldNotLoadReportCardRoster(String error) {
     return 'Impossible de charger la liste des bulletins : $error';
+  }
+
+  @override
+  String couldNotLoadReportCardComments(String error) {
+    return 'Impossible de charger les commentaires du bulletin : $error';
+  }
+
+  @override
+  String couldNotSaveReportCardComment(String error) {
+    return 'Impossible d\'enregistrer le commentaire du bulletin : $error';
+  }
+
+  @override
+  String get reportCardCommentsTitle => 'Commentaires du bulletin';
+
+  @override
+  String get reportCardCommentHint => 'Saisissez votre commentaire';
+
+  @override
+  String get reportCardCommentsReadOnly =>
+      'Ce bulletin est publié et ne peut pas être modifié.';
+
+  @override
+  String get reportCardCommentNoEditableFields =>
+      'Aucun champ de commentaire n\'est disponible pour votre rôle sur ce bulletin.';
+
+  @override
+  String subjectComment(String subject) {
+    return 'Commentaire $subject';
   }
 
   @override
@@ -761,9 +694,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get feeStatusDue => 'À payer';
 
   @override
-  String get feeStatusWaived => 'Exonéré';
-
-  @override
   String get summary => 'Résumé';
 
   @override
@@ -774,38 +704,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get balance => 'Solde';
-
-  @override
-  String get availableAmount => 'Disponible';
-
-  @override
-  String get outstandingAmount => 'Restant dû';
-
-  @override
-  String get overdueAmount => 'En retard';
-
-  @override
-  String get remainingAmountLabel => 'Reste à payer';
-
-  @override
-  String get chargeSchedule => 'Échéancier';
-
-  @override
-  String get noInstallmentsForCharge => 'Aucun échéancier pour cette charge.';
-
-  @override
-  String installmentDue(String label, String date) {
-    return '$label · échéance $date';
-  }
-
-  @override
-  String get paymentKind => 'Type';
-
-  @override
-  String get paymentKindReceipt => 'Encaissement';
-
-  @override
-  String get paymentKindDisbursement => 'Remboursement';
 
   @override
   String overdueFeeLinesCount(int count) {
@@ -1141,6 +1039,65 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attendanceComplete => 'Appel terminé';
 
   @override
+  String get markAllPresent => 'Tout marquer présent';
+
+  @override
+  String get attendanceModeGrid => 'Grille';
+
+  @override
+  String get attendanceModeSequential => 'Séquentiel';
+
+  @override
+  String attendanceExceptionTitle(String studentName) {
+    return 'Présence · $studentName';
+  }
+
+  @override
+  String get attendanceReasonLabel => 'Motif';
+
+  @override
+  String get attendanceReasonHint => 'ex. maladie, rendez-vous';
+
+  @override
+  String get attendanceNotesLabel => 'Notes';
+
+  @override
+  String get attendanceNotesHint => 'Contexte optionnel pour la vie scolaire';
+
+  @override
+  String get attendanceSavedLocally =>
+      'Enregistré localement — synchronisation à la reconnexion';
+
+  @override
+  String get calendarTodayTitle => 'Aujourd\'hui';
+
+  @override
+  String get calendarGoToToday => 'Aller à aujourd\'hui';
+
+  @override
+  String get calendarCurrentSession => 'En cours';
+
+  @override
+  String get calendarNextSession => 'À suivre';
+
+  @override
+  String get calendarNoSessionsToday => 'Aucune séance prévue aujourd\'hui.';
+
+  @override
+  String calendarIncompleteAttendance(String classLabel, String subjectLabel) {
+    return 'Présence · $classLabel $subjectLabel';
+  }
+
+  @override
+  String get sessionAttendanceComplete => 'Présence complète';
+
+  @override
+  String get sessionAttendanceIncomplete => 'Présence incomplète';
+
+  @override
+  String get logbookDraftRestored => 'Brouillon de cahier restauré';
+
+  @override
   String get done => 'Terminé';
 
   @override
@@ -1268,6 +1225,107 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enterValidMaxScore => 'Saisissez une note maximale valide.';
 
   @override
+  String get assessmentDateLabel => 'Date de l\'évaluation';
+
+  @override
+  String get homeworkDueDateLabel => 'Date limite du devoir';
+
+  @override
+  String get assessmentDateRequired => 'Sélectionnez une date d\'évaluation.';
+
+  @override
+  String get homeworkDueDateRequired =>
+      'Sélectionnez une date limite pour le devoir.';
+
+  @override
+  String invalidScoreValue(String maxScore) {
+    return 'Saisissez une note entre 0 et $maxScore.';
+  }
+
+  @override
+  String get syncStatusSaved => 'Enregistré';
+
+  @override
+  String get syncStatusSavedLocally => 'Enregistré localement';
+
+  @override
+  String get syncStatusPending => 'En attente de synchronisation';
+
+  @override
+  String get syncStatusSyncing => 'Synchronisation';
+
+  @override
+  String get syncStatusSynced => 'Synchronisé';
+
+  @override
+  String get syncStatusFailed => 'Échec de synchronisation';
+
+  @override
+  String get duplicateEvaluation => 'Dupliquer';
+
+  @override
+  String get completeEvaluation => 'Marquer terminée';
+
+  @override
+  String get ungradedOnlyFilter => 'Non notés seulement';
+
+  @override
+  String get fillAllMarks => 'Remplir tout';
+
+  @override
+  String get clearAllMarks => 'Effacer tout';
+
+  @override
+  String get familyVisibleSummaryLabel => 'Résumé visible par les familles';
+
+  @override
+  String get familyVisiblePreviewLabel => 'Aperçu famille';
+
+  @override
+  String get accountSyncSectionTitle => 'Synchronisation';
+
+  @override
+  String accountPendingSyncSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments en attente',
+      one: '1 élément en attente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String accountPendingSyncOldest(String age) {
+    return 'Le plus ancien : $age';
+  }
+
+  @override
+  String get accountPendingSyncNone =>
+      'Toutes les modifications sont synchronisées';
+
+  @override
+  String get accountSyncNow => 'Synchroniser';
+
+  @override
+  String get accountPendingSyncJustNow => 'à l\'instant';
+
+  @override
+  String accountPendingSyncMinutes(int minutes) {
+    return 'il y a $minutes min';
+  }
+
+  @override
+  String accountPendingSyncHours(int hours) {
+    return 'il y a $hours h';
+  }
+
+  @override
+  String accountPendingSyncDays(int days) {
+    return 'il y a $days j';
+  }
+
+  @override
   String outOfMaxScore(String maxScore) {
     return 'Sur $maxScore';
   }
@@ -1374,6 +1432,155 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsTimeFormat12h => '12 heures';
+
+  @override
+  String get emailRequired => 'Saisissez votre e-mail.';
+
+  @override
+  String get sendCodeButton => 'Envoyer le code';
+
+  @override
+  String get otpSendFailed => 'Impossible d\'envoyer un code de vérification.';
+
+  @override
+  String get verifyEmailTitle => 'Vérifiez votre e-mail';
+
+  @override
+  String get otpLabel => 'Code de vérification';
+
+  @override
+  String get verifyCodeButton => 'Vérifier et continuer';
+
+  @override
+  String get resendCodeButton => 'Renvoyer le code';
+
+  @override
+  String get useDifferentEmail => 'Utiliser une autre adresse e-mail';
+
+  @override
+  String verificationCodeSent(String email) {
+    return 'Nous avons envoyé un code à $email.';
+  }
+
+  @override
+  String get invitationTitle => 'Rejoindre l\'établissement';
+
+  @override
+  String get invitationContinue => 'Continuer';
+
+  @override
+  String get invitationAcceptCta => 'Accepter l\'invitation';
+
+  @override
+  String get invitationAccepting => 'Liaison du compte…';
+
+  @override
+  String get invitationSuccess =>
+      'Votre compte est relié. Ouverture de la vue famille.';
+
+  @override
+  String get invitationWrongKind =>
+      'Cette invitation concerne une autre application Edaya.';
+
+  @override
+  String get invitationWrongAccount =>
+      'Cette invitation concerne un autre compte. Déconnectez-vous, puis continuez avec l\'e-mail invité.';
+
+  @override
+  String get invitationSignOutSwitch => 'Se déconnecter et continuer';
+
+  @override
+  String get invitationNotFound => 'Ce lien d\'invitation est introuvable.';
+
+  @override
+  String get invitationExpired =>
+      'Cette invitation a expiré. Demandez un nouveau lien au secrétariat.';
+
+  @override
+  String get invitationRevoked =>
+      'Cette invitation a été remplacée. Ouvrez le dernier e-mail ou demandez un renvoi au secrétariat.';
+
+  @override
+  String get invitationInvalid => 'Cette invitation n\'est pas valide.';
+
+  @override
+  String get invitationAlreadyAccepted =>
+      'Cette invitation a déjà été utilisée.';
+
+  @override
+  String invitationLoadError(String error) {
+    return 'Impossible de charger cette invitation. $error';
+  }
+
+  @override
+  String invitationSummary(String name, String school) {
+    return '$name est invité(e) en tant que tuteur à $school.';
+  }
+
+  @override
+  String invitationExpires(String date) {
+    return 'Expire le $date';
+  }
+
+  @override
+  String get missingChargeDetailsRouteData =>
+      'Données de route des détails de la charge manquantes.';
+
+  @override
+  String get waitingForStudentsTitle => 'Vous êtes connecté';
+
+  @override
+  String get waitingForStudentsBody =>
+      'Votre compte est prêt. Lorsque l\'école vous liera à un enfant, son emploi du temps, ses notes et ses messages apparaîtront ici.';
+
+  @override
+  String get waitingForStudentsCheckAgain => 'Vérifier à nouveau';
+
+  @override
+  String get waitingPendingInvitationsTitle => 'Invitations en attente';
+
+  @override
+  String get waitingNoPendingInvitations =>
+      'Aucune invitation en attente pour cet e-mail. Si l\'école a envoyé un lien, ouvrez-le depuis le message.';
+
+  @override
+  String get noChildrenLinkedYet =>
+      'Aucun enfant n\'est encore lié à votre compte.';
+
+  @override
+  String get feeStatusWaived => 'Exonéré';
+
+  @override
+  String get availableAmount => 'Disponible';
+
+  @override
+  String get outstandingAmount => 'Restant dû';
+
+  @override
+  String get overdueAmount => 'En retard';
+
+  @override
+  String get remainingAmountLabel => 'Reste à payer';
+
+  @override
+  String get chargeSchedule => 'Échéancier';
+
+  @override
+  String get noInstallmentsForCharge => 'Aucun échéancier pour cette charge.';
+
+  @override
+  String installmentDue(String label, String date) {
+    return '$label · échéance $date';
+  }
+
+  @override
+  String get paymentKind => 'Type';
+
+  @override
+  String get paymentKindReceipt => 'Encaissement';
+
+  @override
+  String get paymentKindDisbursement => 'Remboursement';
 
   @override
   String get mutationConflict =>

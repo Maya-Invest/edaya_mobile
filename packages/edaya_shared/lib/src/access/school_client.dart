@@ -6,6 +6,12 @@ import '../config/api_base_url_config.dart';
 
 typedef SchoolClientFactory = api.SchoolClient Function();
 
+/// Native apps mint school JWTs from the stored renewal credential.
+/// Flutter web has no renewal credential; Identity issues the JWT from the
+/// browser cookie session instead.
+bool canIssueSchoolAccessToken(AuthClient authClient) =>
+    edayaHttpUsesBrowserCredentials || authClient.renewalCredential != null;
+
 api.SchoolClient createEdayaSchoolClient(
   AuthClient authClient, {
   String? Function()? getAcademicYearId,
@@ -18,7 +24,7 @@ api.SchoolClient createEdayaSchoolClient(
       baseUrl: ApiBaseUrlConfig.apiBaseUrl,
       client: authClient.businessHttpClient,
       getAccessToken: ({required Uri resource}) async {
-        if (authClient.renewalCredential == null) {
+        if (!canIssueSchoolAccessToken(authClient)) {
           return null;
         }
         return authClient.getAccessToken(resource: resource);

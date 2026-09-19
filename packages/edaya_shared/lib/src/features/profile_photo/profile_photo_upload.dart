@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:edaya_api_client/edaya_api_client.dart';
 import 'package:http/http.dart' as http;
 
+import '../../config/api_base_url_config.dart';
 import 'profile_photo_config.dart';
 import 'profile_photo_ids.dart';
 
@@ -41,7 +42,9 @@ Future<UploadedProfilePhoto> uploadProfilePhoto({
   final attachmentId = intent['attachmentId'] as String;
   await persistStoredId(storageKey, attachmentId);
 
-  final uploadUrl = intent['uploadUrl'] as String;
+  final uploadUrl = ApiBaseUrlConfig.rewriteLocalDevUrl(
+    intent['uploadUrl'] as String,
+  );
   final rawHeaders = intent['headers'];
   final headers = <String, String>{
     if (rawHeaders is Map)

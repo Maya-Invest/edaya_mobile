@@ -212,167 +212,29 @@ abstract class AppLocalizations {
   /// **'Sign in'**
   String get signInTitle;
 
+  /// No description provided for @signInButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get signInButton;
+
   /// No description provided for @emailLabel.
   ///
   /// In en, this message translates to:
   /// **'Email'**
   String get emailLabel;
 
-  /// No description provided for @emailRequired.
+  /// No description provided for @passwordLabel.
   ///
   /// In en, this message translates to:
-  /// **'Enter your email.'**
-  String get emailRequired;
+  /// **'Password'**
+  String get passwordLabel;
 
   /// No description provided for @signInFailed.
   ///
   /// In en, this message translates to:
   /// **'Sign-in failed'**
   String get signInFailed;
-
-  /// No description provided for @sendCodeButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Send code'**
-  String get sendCodeButton;
-
-  /// No description provided for @otpSendFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not send a verification code.'**
-  String get otpSendFailed;
-
-  /// No description provided for @verifyEmailTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Verify your email'**
-  String get verifyEmailTitle;
-
-  /// No description provided for @otpLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Verification code'**
-  String get otpLabel;
-
-  /// No description provided for @verifyCodeButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Verify and continue'**
-  String get verifyCodeButton;
-
-  /// No description provided for @resendCodeButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Resend code'**
-  String get resendCodeButton;
-
-  /// No description provided for @useDifferentEmail.
-  ///
-  /// In en, this message translates to:
-  /// **'Use a different email'**
-  String get useDifferentEmail;
-
-  /// No description provided for @verificationCodeSent.
-  ///
-  /// In en, this message translates to:
-  /// **'We sent a code to {email}.'**
-  String verificationCodeSent(String email);
-
-  /// No description provided for @invitationTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Join your school'**
-  String get invitationTitle;
-
-  /// No description provided for @invitationContinue.
-  ///
-  /// In en, this message translates to:
-  /// **'Continue'**
-  String get invitationContinue;
-
-  /// No description provided for @invitationAcceptCta.
-  ///
-  /// In en, this message translates to:
-  /// **'Accept invitation'**
-  String get invitationAcceptCta;
-
-  /// No description provided for @invitationAccepting.
-  ///
-  /// In en, this message translates to:
-  /// **'Linking your account…'**
-  String get invitationAccepting;
-
-  /// No description provided for @invitationSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Your account is linked. Opening your family view.'**
-  String get invitationSuccess;
-
-  /// No description provided for @invitationWrongKind.
-  ///
-  /// In en, this message translates to:
-  /// **'This invitation is for another Edaya app.'**
-  String get invitationWrongKind;
-
-  /// No description provided for @invitationWrongAccount.
-  ///
-  /// In en, this message translates to:
-  /// **'This invitation is for a different account. Sign out, then continue with the invited email.'**
-  String get invitationWrongAccount;
-
-  /// No description provided for @invitationSignOutSwitch.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign out and continue'**
-  String get invitationSignOutSwitch;
-
-  /// No description provided for @invitationNotFound.
-  ///
-  /// In en, this message translates to:
-  /// **'This invitation link was not found.'**
-  String get invitationNotFound;
-
-  /// No description provided for @invitationExpired.
-  ///
-  /// In en, this message translates to:
-  /// **'This invitation has expired. Ask the school office for a new link.'**
-  String get invitationExpired;
-
-  /// No description provided for @invitationRevoked.
-  ///
-  /// In en, this message translates to:
-  /// **'This invitation was replaced. Open the latest email or ask the school office to resend.'**
-  String get invitationRevoked;
-
-  /// No description provided for @invitationInvalid.
-  ///
-  /// In en, this message translates to:
-  /// **'This invitation is not valid.'**
-  String get invitationInvalid;
-
-  /// No description provided for @invitationAlreadyAccepted.
-  ///
-  /// In en, this message translates to:
-  /// **'This invitation was already used.'**
-  String get invitationAlreadyAccepted;
-
-  /// No description provided for @invitationLoadError.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not load this invitation. {error}'**
-  String invitationLoadError(String error);
-
-  /// No description provided for @invitationSummary.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} is invited as a guardian at {school}.'**
-  String invitationSummary(String name, String school);
-
-  /// No description provided for @invitationExpires.
-  ///
-  /// In en, this message translates to:
-  /// **'Expires {date}'**
-  String invitationExpires(String date);
 
   /// No description provided for @signedInSchoolSessionUnavailable.
   ///
@@ -421,6 +283,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'OK'**
   String get ok;
+
+  /// No description provided for @help.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get help;
 
   /// No description provided for @currentApiUrl.
   ///
@@ -491,13 +359,13 @@ abstract class AppLocalizations {
   /// No description provided for @loginSubtitleGuardianDev.
   ///
   /// In en, this message translates to:
-  /// **'We\'ll email you a sign-in code.'**
+  /// **'Use dev guardian credentials to test against the local API.'**
   String get loginSubtitleGuardianDev;
 
   /// No description provided for @loginSubtitleStaffDev.
   ///
   /// In en, this message translates to:
-  /// **'We\'ll email you a sign-in code.'**
+  /// **'Use dev staff credentials to test against the local API.'**
   String get loginSubtitleStaffDev;
 
   /// No description provided for @missingSessionDetailsRouteData.
@@ -524,12 +392,6 @@ abstract class AppLocalizations {
   /// **'Missing payment details route data.'**
   String get missingPaymentDetailsRouteData;
 
-  /// No description provided for @missingChargeDetailsRouteData.
-  ///
-  /// In en, this message translates to:
-  /// **'Missing charge details route data.'**
-  String get missingChargeDetailsRouteData;
-
   /// No description provided for @missingMessageDetailsRouteData.
   ///
   /// In en, this message translates to:
@@ -551,56 +413,20 @@ abstract class AppLocalizations {
   /// No description provided for @signedInNoGuardianProfile.
   ///
   /// In en, this message translates to:
-  /// **'This account isn\'t linked to a guardian profile yet. Ask the school to add you.'**
+  /// **'Signed in, but no linked guardian/staff profile. Run: bun seed --scope auth:link'**
   String get signedInNoGuardianProfile;
 
   /// No description provided for @signedInNoStaffProfile.
   ///
   /// In en, this message translates to:
-  /// **'This account isn\'t linked to a staff profile yet. Ask the school to add you.'**
+  /// **'Signed in, but no linked staff profile. Run: bun seed --scope auth:link'**
   String get signedInNoStaffProfile;
 
   /// No description provided for @signedInNoTeacherProfile.
   ///
   /// In en, this message translates to:
-  /// **'This account isn\'t linked to a teacher profile yet. Ask the school to add you.'**
+  /// **'Signed in, but no linked teacher profile. Run: bun seed --scope auth:link'**
   String get signedInNoTeacherProfile;
-
-  /// No description provided for @waitingForStudentsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'You\'re signed in'**
-  String get waitingForStudentsTitle;
-
-  /// No description provided for @waitingForStudentsBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Your account is ready. When the school links you to a child, their timetable, grades, and messages will appear here.'**
-  String get waitingForStudentsBody;
-
-  /// No description provided for @waitingForStudentsCheckAgain.
-  ///
-  /// In en, this message translates to:
-  /// **'Check again'**
-  String get waitingForStudentsCheckAgain;
-
-  /// No description provided for @waitingPendingInvitationsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Pending invitations'**
-  String get waitingPendingInvitationsTitle;
-
-  /// No description provided for @waitingNoPendingInvitations.
-  ///
-  /// In en, this message translates to:
-  /// **'No pending invitations for this email. If the school sent a link, open it from the email.'**
-  String get waitingNoPendingInvitations;
-
-  /// No description provided for @noChildrenLinkedYet.
-  ///
-  /// In en, this message translates to:
-  /// **'No children are linked to your account yet.'**
-  String get noChildrenLinkedYet;
 
   /// No description provided for @accountNotLinkedToStaff.
   ///
@@ -613,6 +439,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This account is not linked to a teacher profile.'**
   String get accountNotLinkedToTeacher;
+
+  /// No description provided for @navHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get navHome;
+
+  /// No description provided for @navAgenda.
+  ///
+  /// In en, this message translates to:
+  /// **'Agenda'**
+  String get navAgenda;
+
+  /// No description provided for @navClasses.
+  ///
+  /// In en, this message translates to:
+  /// **'Classes'**
+  String get navClasses;
 
   /// No description provided for @navCalendar.
   ///
@@ -739,6 +583,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load report card roster: {error}'**
   String couldNotLoadReportCardRoster(String error);
+
+  /// No description provided for @couldNotLoadReportCardComments.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load report card comments: {error}'**
+  String couldNotLoadReportCardComments(String error);
+
+  /// No description provided for @couldNotSaveReportCardComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save report card comment: {error}'**
+  String couldNotSaveReportCardComment(String error);
+
+  /// No description provided for @reportCardCommentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report card comments'**
+  String get reportCardCommentsTitle;
+
+  /// No description provided for @reportCardCommentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your comment'**
+  String get reportCardCommentHint;
+
+  /// No description provided for @reportCardCommentsReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'This report card is published and cannot be edited.'**
+  String get reportCardCommentsReadOnly;
+
+  /// No description provided for @reportCardCommentNoEditableFields.
+  ///
+  /// In en, this message translates to:
+  /// **'No comment fields are available for your role on this report card.'**
+  String get reportCardCommentNoEditableFields;
+
+  /// No description provided for @subjectComment.
+  ///
+  /// In en, this message translates to:
+  /// **'{subject} comment'**
+  String subjectComment(String subject);
 
   /// No description provided for @reportCardStatusDraft.
   ///
@@ -1352,12 +1238,6 @@ abstract class AppLocalizations {
   /// **'Due'**
   String get feeStatusDue;
 
-  /// No description provided for @feeStatusWaived.
-  ///
-  /// In en, this message translates to:
-  /// **'Waived'**
-  String get feeStatusWaived;
-
   /// No description provided for @summary.
   ///
   /// In en, this message translates to:
@@ -1381,66 +1261,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Balance'**
   String get balance;
-
-  /// No description provided for @availableAmount.
-  ///
-  /// In en, this message translates to:
-  /// **'Available'**
-  String get availableAmount;
-
-  /// No description provided for @outstandingAmount.
-  ///
-  /// In en, this message translates to:
-  /// **'Outstanding'**
-  String get outstandingAmount;
-
-  /// No description provided for @overdueAmount.
-  ///
-  /// In en, this message translates to:
-  /// **'Overdue'**
-  String get overdueAmount;
-
-  /// No description provided for @remainingAmountLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Remaining'**
-  String get remainingAmountLabel;
-
-  /// No description provided for @chargeSchedule.
-  ///
-  /// In en, this message translates to:
-  /// **'Payment schedule'**
-  String get chargeSchedule;
-
-  /// No description provided for @noInstallmentsForCharge.
-  ///
-  /// In en, this message translates to:
-  /// **'No installment schedule for this charge.'**
-  String get noInstallmentsForCharge;
-
-  /// No description provided for @installmentDue.
-  ///
-  /// In en, this message translates to:
-  /// **'{label} · due {date}'**
-  String installmentDue(String label, String date);
-
-  /// No description provided for @paymentKind.
-  ///
-  /// In en, this message translates to:
-  /// **'Type'**
-  String get paymentKind;
-
-  /// No description provided for @paymentKindReceipt.
-  ///
-  /// In en, this message translates to:
-  /// **'Receipt'**
-  String get paymentKindReceipt;
-
-  /// No description provided for @paymentKindDisbursement.
-  ///
-  /// In en, this message translates to:
-  /// **'Refund'**
-  String get paymentKindDisbursement;
 
   /// No description provided for @overdueFeeLinesCount.
   ///
@@ -1958,6 +1778,114 @@ abstract class AppLocalizations {
   /// **'Attendance complete'**
   String get attendanceComplete;
 
+  /// No description provided for @markAllPresent.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all present'**
+  String get markAllPresent;
+
+  /// No description provided for @attendanceModeGrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Grid'**
+  String get attendanceModeGrid;
+
+  /// No description provided for @attendanceModeSequential.
+  ///
+  /// In en, this message translates to:
+  /// **'Sequential'**
+  String get attendanceModeSequential;
+
+  /// No description provided for @attendanceExceptionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance · {studentName}'**
+  String attendanceExceptionTitle(String studentName);
+
+  /// No description provided for @attendanceReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get attendanceReasonLabel;
+
+  /// No description provided for @attendanceReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. illness, appointment'**
+  String get attendanceReasonHint;
+
+  /// No description provided for @attendanceNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get attendanceNotesLabel;
+
+  /// No description provided for @attendanceNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional context for the school office'**
+  String get attendanceNotesHint;
+
+  /// No description provided for @attendanceSavedLocally.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved locally — will sync when online'**
+  String get attendanceSavedLocally;
+
+  /// No description provided for @calendarTodayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get calendarTodayTitle;
+
+  /// No description provided for @calendarGoToToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to today'**
+  String get calendarGoToToday;
+
+  /// No description provided for @calendarCurrentSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get calendarCurrentSession;
+
+  /// No description provided for @calendarNextSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Up next'**
+  String get calendarNextSession;
+
+  /// No description provided for @calendarNoSessionsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'No sessions scheduled for today.'**
+  String get calendarNoSessionsToday;
+
+  /// No description provided for @calendarIncompleteAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance · {classLabel} {subjectLabel}'**
+  String calendarIncompleteAttendance(String classLabel, String subjectLabel);
+
+  /// No description provided for @sessionAttendanceComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance complete'**
+  String get sessionAttendanceComplete;
+
+  /// No description provided for @sessionAttendanceIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance incomplete'**
+  String get sessionAttendanceIncomplete;
+
+  /// No description provided for @logbookDraftRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored unsaved logbook draft'**
+  String get logbookDraftRestored;
+
   /// No description provided for @done.
   ///
   /// In en, this message translates to:
@@ -2162,6 +2090,168 @@ abstract class AppLocalizations {
   /// **'Enter a valid max score.'**
   String get enterValidMaxScore;
 
+  /// No description provided for @assessmentDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Assessment date'**
+  String get assessmentDateLabel;
+
+  /// No description provided for @homeworkDueDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Homework due date'**
+  String get homeworkDueDateLabel;
+
+  /// No description provided for @assessmentDateRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an assessment date.'**
+  String get assessmentDateRequired;
+
+  /// No description provided for @homeworkDueDateRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a homework due date.'**
+  String get homeworkDueDateRequired;
+
+  /// No description provided for @invalidScoreValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a score between 0 and {maxScore}.'**
+  String invalidScoreValue(String maxScore);
+
+  /// No description provided for @syncStatusSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get syncStatusSaved;
+
+  /// No description provided for @syncStatusSavedLocally.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved locally'**
+  String get syncStatusSavedLocally;
+
+  /// No description provided for @syncStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting to sync'**
+  String get syncStatusPending;
+
+  /// No description provided for @syncStatusSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing'**
+  String get syncStatusSyncing;
+
+  /// No description provided for @syncStatusSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced'**
+  String get syncStatusSynced;
+
+  /// No description provided for @syncStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed'**
+  String get syncStatusFailed;
+
+  /// No description provided for @duplicateEvaluation.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get duplicateEvaluation;
+
+  /// No description provided for @completeEvaluation.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark complete'**
+  String get completeEvaluation;
+
+  /// No description provided for @ungradedOnlyFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Ungraded only'**
+  String get ungradedOnlyFilter;
+
+  /// No description provided for @fillAllMarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill all'**
+  String get fillAllMarks;
+
+  /// No description provided for @clearAllMarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get clearAllMarks;
+
+  /// No description provided for @familyVisibleSummaryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Family-visible summary'**
+  String get familyVisibleSummaryLabel;
+
+  /// No description provided for @familyVisiblePreviewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Family preview'**
+  String get familyVisiblePreviewLabel;
+
+  /// No description provided for @accountSyncSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization'**
+  String get accountSyncSectionTitle;
+
+  /// No description provided for @accountPendingSyncSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item waiting to sync} other{{count} items waiting to sync}}'**
+  String accountPendingSyncSummary(int count);
+
+  /// No description provided for @accountPendingSyncOldest.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest pending {age}'**
+  String accountPendingSyncOldest(String age);
+
+  /// No description provided for @accountPendingSyncNone.
+  ///
+  /// In en, this message translates to:
+  /// **'All changes are synced'**
+  String get accountPendingSyncNone;
+
+  /// No description provided for @accountSyncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get accountSyncNow;
+
+  /// No description provided for @accountPendingSyncJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'just now'**
+  String get accountPendingSyncJustNow;
+
+  /// No description provided for @accountPendingSyncMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min ago'**
+  String accountPendingSyncMinutes(int minutes);
+
+  /// No description provided for @accountPendingSyncHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hr ago'**
+  String accountPendingSyncHours(int hours);
+
+  /// No description provided for @accountPendingSyncDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} d ago'**
+  String accountPendingSyncDays(int days);
+
   /// No description provided for @outOfMaxScore.
   ///
   /// In en, this message translates to:
@@ -2353,6 +2443,264 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'12-hour'**
   String get settingsTimeFormat12h;
+
+  /// No description provided for @emailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email.'**
+  String get emailRequired;
+
+  /// No description provided for @sendCodeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Send code'**
+  String get sendCodeButton;
+
+  /// No description provided for @otpSendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not send a verification code.'**
+  String get otpSendFailed;
+
+  /// No description provided for @verifyEmailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email'**
+  String get verifyEmailTitle;
+
+  /// No description provided for @otpLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification code'**
+  String get otpLabel;
+
+  /// No description provided for @verifyCodeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify and continue'**
+  String get verifyCodeButton;
+
+  /// No description provided for @resendCodeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code'**
+  String get resendCodeButton;
+
+  /// No description provided for @useDifferentEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a different email'**
+  String get useDifferentEmail;
+
+  /// No description provided for @verificationCodeSent.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a code to {email}.'**
+  String verificationCodeSent(String email);
+
+  /// No description provided for @invitationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Join your school'**
+  String get invitationTitle;
+
+  /// No description provided for @invitationContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get invitationContinue;
+
+  /// No description provided for @invitationAcceptCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept invitation'**
+  String get invitationAcceptCta;
+
+  /// No description provided for @invitationAccepting.
+  ///
+  /// In en, this message translates to:
+  /// **'Linking your account…'**
+  String get invitationAccepting;
+
+  /// No description provided for @invitationSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is linked. Opening your family view.'**
+  String get invitationSuccess;
+
+  /// No description provided for @invitationWrongKind.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation is for another Edaya app.'**
+  String get invitationWrongKind;
+
+  /// No description provided for @invitationWrongAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation is for a different account. Sign out, then continue with the invited email.'**
+  String get invitationWrongAccount;
+
+  /// No description provided for @invitationSignOutSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out and continue'**
+  String get invitationSignOutSwitch;
+
+  /// No description provided for @invitationNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation link was not found.'**
+  String get invitationNotFound;
+
+  /// No description provided for @invitationExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation has expired. Ask the school office for a new link.'**
+  String get invitationExpired;
+
+  /// No description provided for @invitationRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation was replaced. Open the latest email or ask the school office to resend.'**
+  String get invitationRevoked;
+
+  /// No description provided for @invitationInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation is not valid.'**
+  String get invitationInvalid;
+
+  /// No description provided for @invitationAlreadyAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation was already used.'**
+  String get invitationAlreadyAccepted;
+
+  /// No description provided for @invitationLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this invitation. {error}'**
+  String invitationLoadError(String error);
+
+  /// No description provided for @invitationSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is invited as a guardian at {school}.'**
+  String invitationSummary(String name, String school);
+
+  /// No description provided for @invitationExpires.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires {date}'**
+  String invitationExpires(String date);
+
+  /// No description provided for @missingChargeDetailsRouteData.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing charge details route data.'**
+  String get missingChargeDetailsRouteData;
+
+  /// No description provided for @waitingForStudentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re signed in'**
+  String get waitingForStudentsTitle;
+
+  /// No description provided for @waitingForStudentsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is ready. When the school links you to a child, their timetable, grades, and messages will appear here.'**
+  String get waitingForStudentsBody;
+
+  /// No description provided for @waitingForStudentsCheckAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get waitingForStudentsCheckAgain;
+
+  /// No description provided for @waitingPendingInvitationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending invitations'**
+  String get waitingPendingInvitationsTitle;
+
+  /// No description provided for @waitingNoPendingInvitations.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending invitations for this email. If the school sent a link, open it from the email.'**
+  String get waitingNoPendingInvitations;
+
+  /// No description provided for @noChildrenLinkedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No children are linked to your account yet.'**
+  String get noChildrenLinkedYet;
+
+  /// No description provided for @feeStatusWaived.
+  ///
+  /// In en, this message translates to:
+  /// **'Waived'**
+  String get feeStatusWaived;
+
+  /// No description provided for @availableAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get availableAmount;
+
+  /// No description provided for @outstandingAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding'**
+  String get outstandingAmount;
+
+  /// No description provided for @overdueAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get overdueAmount;
+
+  /// No description provided for @remainingAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining'**
+  String get remainingAmountLabel;
+
+  /// No description provided for @chargeSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment schedule'**
+  String get chargeSchedule;
+
+  /// No description provided for @noInstallmentsForCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'No installment schedule for this charge.'**
+  String get noInstallmentsForCharge;
+
+  /// No description provided for @installmentDue.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} · due {date}'**
+  String installmentDue(String label, String date);
+
+  /// No description provided for @paymentKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get paymentKind;
+
+  /// No description provided for @paymentKindReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt'**
+  String get paymentKindReceipt;
+
+  /// No description provided for @paymentKindDisbursement.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund'**
+  String get paymentKindDisbursement;
 
   /// No description provided for @mutationConflict.
   ///

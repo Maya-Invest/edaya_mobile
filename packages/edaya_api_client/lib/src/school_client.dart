@@ -77,6 +77,14 @@ class SchoolClient {
       options: body == null ? null : TransportRequestOptions(body: body),
     );
   }
+  Future<Map<String, dynamic>> getDownloadUrl({
+    required String attachmentId,
+  }) {
+    return _transport.request<Map<String, dynamic>>(
+      'GET',
+      schoolApiPath(['files', attachmentId, 'download-url']),
+    );
+  }
 }
 
 SchoolClient createSchoolClient(Transport transport) => SchoolClient(transport);

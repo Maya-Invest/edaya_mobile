@@ -66,6 +66,12 @@ void _guardianPortalSuite(GuardianPortalProfile profile) {
         expect(context.grants.schoolId, isNotEmpty);
       });
 
+      test('guardian scope includes linked students', () {
+        final scope = context.grants.guardianScope;
+        expect(scope, isNotNull);
+        expect(scope!.studentIds, containsAll(profile.expectedStudentIds));
+      });
+
       test('guardian links resolve linked students', () {
         expect(
           context.linkedStudentIds,

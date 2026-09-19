@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class SessionStorage extends AuthSessionStorage {
   static const _academicYearIdKey = 'teacher_academic_year_id';
-  static const _classFilterIdKey = 'teacher_class_filter_id';
+  static const _assignmentIdKey = 'teacher_assignment_id';
 
   Future<String?> readAcademicYearId() async {
     final prefs = await SharedPreferences.getInstance();
@@ -19,17 +19,17 @@ class SessionStorage extends AuthSessionStorage {
     await prefs.setString(_academicYearIdKey, yearId);
   }
 
-  Future<String?> readClassFilterId() async {
+  Future<String?> readAssignmentId() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_classFilterIdKey);
+    return prefs.getString(_assignmentIdKey);
   }
 
-  Future<void> writeClassFilterId(String? classGroupId) async {
+  Future<void> writeAssignmentId(String? assignmentId) async {
     final prefs = await SharedPreferences.getInstance();
-    if (classGroupId == null || classGroupId.isEmpty) {
-      await prefs.remove(_classFilterIdKey);
+    if (assignmentId == null || assignmentId.isEmpty) {
+      await prefs.remove(_assignmentIdKey);
       return;
     }
-    await prefs.setString(_classFilterIdKey, classGroupId);
+    await prefs.setString(_assignmentIdKey, assignmentId);
   }
 }

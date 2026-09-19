@@ -1,5 +1,7 @@
 import 'package:edaya_api_client/edaya_api_client.dart';
-import 'package:edaya_guardian/features/academic/models/grade_entry.dart';
+import 'package:edaya_guardian/features/scolarite/models/grade_entry.dart';
+import 'package:edaya_guardian/features/scolarite/models/report_card_summary.dart';
+import 'package:edaya_guardian/features/calendar/models/calendar_session.dart';
 import 'package:edaya_guardian/features/fees/models/payment_record.dart';
 import 'package:edaya_guardian/features/inbox/models/inbox_delivery.dart';
 import 'package:edaya_integration_tests/edaya_integration_tests.dart';
@@ -43,6 +45,8 @@ class GuardianProbeBundle {
     required this.firstGradedEntry,
     required this.firstPayment,
     required this.firstInboxDelivery,
+    required this.calendarSession,
+    required this.firstReportCardSummary,
   });
 
   final GuardianAcademicProbe academic;
@@ -57,12 +61,18 @@ class GuardianProbeBundle {
   final GradeEntry? firstGradedEntry;
   final PaymentRecord? firstPayment;
   final InboxDelivery? firstInboxDelivery;
+  final CalendarSession? calendarSession;
+  final ReportCardSummary? firstReportCardSummary;
 
   static Future<GuardianProbeBundle> load(
     GuardianWidgetTestHarness harness,
   ) async {
-    final client = harness.portalSession.schoolClient;
-    final profile = harness.profile;
+    if (harness.isGuest) {
+      throw StateError('GuardianProbeBundle.load requires an authenticated harness');
+    }
+
+    final client = harness.portalSession!.schoolClient;
+    final profile = harness.profile!;
 
     final academic = await loadGuardianAcademicData(
       client,
@@ -82,7 +92,7 @@ class GuardianProbeBundle {
     );
     final inbox = await loadGuardianInbox(
       client,
-      inboxSubjectId: harness.context.inboxSubjectId,
+      inboxSubjectId: harness.context!.inboxSubjectId,
     );
     final attendance = await loadGuardianAttendance(
       client,
@@ -100,6 +110,8 @@ class GuardianProbeBundle {
     final firstInboxDelivery = inbox.deliveries.isEmpty
         ? null
         : InboxDelivery.fromJson(inbox.deliveries.first);
+    final calendarSession = _loadCalendarSession(calendar.timetableEvents);
+    final firstReportCardSummary = _loadFirstReportCardSummary(academic);
 
     return GuardianProbeBundle(
       academic: academic,
@@ -114,6 +126,63 @@ class GuardianProbeBundle {
       firstGradedEntry: graded?.$2,
       firstPayment: firstPayment,
       firstInboxDelivery: firstInboxDelivery,
+      calendarSession: calendarSession,
+      firstReportCardSummary: firstReportCardSummary,
+    );
+  }
+
+  static CalendarSession? _loadCalendarSession(List<dynamic> events) {
+    for (final event in events) {
+      if (event is! Map<String, dynamic>) {
+        continue;
+      }
+      if (event['kind'] != 'lesson') {
+        continue;
+      }
+      final startsAtRaw = event['startsAt'] as String?;
+      final endsAtRaw = event['endsAt'] as String?;
+      if (startsAtRaw == null || endsAtRaw == null) {
+        continue;
+      }
+      final id = event['id'] as String? ??
+          event['lessonSessionId'] as String? ??
+          event['occurrenceId'] as String?;
+      if (id == null || id.isEmpty) {
+        continue;
+      }
+
+      return CalendarSession(
+        id: id,
+        title: event['title'] as String? ?? 'Lesson',
+        kind: 'lesson',
+        startsAt: DateTime.parse(startsAtRaw).toLocal(),
+        endsAt: DateTime.parse(endsAtRaw).toLocal(),
+        classSubjectId: event['classSubjectId'] as String?,
+        subjectLabel: event['subjectLabel'] as String? ?? event['title'] as String?,
+        status: event['status'] as String?,
+      );
+    }
+    return null;
+  }
+
+  static ReportCardSummary? _loadFirstReportCardSummary(
+    GuardianAcademicProbe academic,
+  ) {
+    if (academic.reportCards.isEmpty) {
+      return null;
+    }
+
+    final row = academic.reportCards.first;
+    final periodId = row['periodId'] as String? ?? '';
+    final periodName = academic.academicPeriods
+        .cast<Map<String, dynamic>>()
+        .where((period) => period['id'] == periodId)
+        .map((period) => period['name'] as String? ?? periodId)
+        .firstOrNull;
+
+    return ReportCardSummary.fromJson(
+      row,
+      periodName: periodName ?? periodId,
     );
   }
 
@@ -161,8 +230,7 @@ class GuardianProbeBundle {
       return null;
     }
     final startsAt = DateTime.parse(startsAtRaw).toLocal();
-    final title =
-        lessonSession['title'] as String? ??
+    final title = lessonSession['title'] as String? ??
         lessonSession['displayLabel'] as String? ??
         'Lesson';
 
@@ -176,13 +244,13 @@ class GuardianProbeBundle {
   static GuardianStudentSwitchProbe? _loadStudentSwitchProbe(
     GuardianWidgetTestHarness harness,
   ) {
-    if (harness.context.linkedStudents.length < 2) {
+    if (harness.context!.linkedStudents.length < 2) {
       return null;
     }
 
-    final alternate = harness.context.linkedStudents.firstWhere(
-      (row) => row['id'] != harness.profile.primaryStudentId,
-      orElse: () => harness.context.linkedStudents.last,
+    final alternate = harness.context!.linkedStudents.firstWhere(
+      (row) => row['id'] != harness.profile!.primaryStudentId,
+      orElse: () => harness.context!.linkedStudents.last,
     );
     final firstName = alternate['firstName'] as String? ?? '';
     final lastName = alternate['lastName'] as String? ?? '';
@@ -209,7 +277,8 @@ class GuardianProbeBundle {
         subject['id'] as String: subject['name'] as String? ?? '',
     };
     final classSubjectById = {
-      for (final row in academic.classSubjects) row['id'] as String: row,
+      for (final row in academic.classSubjects)
+        row['id'] as String: row,
     };
 
     for (final result in academic.assessmentResults) {
@@ -271,17 +340,18 @@ class GuardianProbeBundle {
     }
 
     final payment = fees.payments.first;
-    final currency = fees.summary['currency'] as String? ?? 'XOF';
-    final chargeLabel = fees.studentCharges.isEmpty
-        ? null
-        : fees.studentCharges.first['label'] as String?;
+    final chargeId =
+        payment['studentChargeId'] as String? ??
+        payment['chargeId'] as String? ??
+        payment['studentFeeId'] as String?;
+    final charge = fees.studentFees
+        .where((row) => row['id'] == chargeId)
+        .cast<Map<String, dynamic>?>()
+        .firstWhere((row) => row != null, orElse: () => null);
+    final feeLabel =
+        charge?['label'] as String? ??
+        (chargeId == null ? 'Fee' : fees.feeNamesById[chargeId] ?? chargeId);
 
-    return PaymentRecord.fromJson(
-      payment,
-      feeLabel: chargeLabel == null || chargeLabel.isEmpty
-          ? 'Receipt'
-          : chargeLabel,
-      currency: currency,
-    );
+    return PaymentRecord.fromJson(payment, feeLabel: feeLabel);
   }
 }

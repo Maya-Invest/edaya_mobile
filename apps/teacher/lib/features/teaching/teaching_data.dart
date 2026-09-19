@@ -1,7 +1,7 @@
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 
 import 'package:edaya_shared/edaya_shared.dart';
-import 'models/teaching_models.dart';
+import 'teaching_models.dart';
 
 DateTime? _parseDateTime(dynamic value) {
   if (value == null) {

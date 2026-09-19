@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
+import '../../design/components/components.dart';
 import '../context/student_context_controller.dart';
 
 class GuardianFamilyFeedbackController extends LevitController
@@ -26,9 +27,11 @@ class GuardianFamilyFeedbackController extends LevitController
     super.onInit();
     autoDispose(campaigns);
     autoDispose(errorMessage);
-    autoDispose(_studentContext.activeStudent.stream.listen((_) {
-      unawaited(loadCampaigns());
-    }));
+    autoDispose(
+      _studentContext.activeStudent.stream.listen((_) {
+        unawaited(loadCampaigns());
+      }),
+    );
     unawaited(loadCampaigns());
   }
 
@@ -51,7 +54,9 @@ class GuardianFamilyFeedbackController extends LevitController
     errorMessage('');
     await runTask(() async {
       try {
-        final items = await listGuardianFamilyFeedbackCampaigns(_schoolClient());
+        final items = await listGuardianFamilyFeedbackCampaigns(
+          _schoolClient(),
+        );
         final studentId = _studentContext.activeStudentId;
         campaigns(
           studentId == null
@@ -66,7 +71,8 @@ class GuardianFamilyFeedbackController extends LevitController
   }
 }
 
-class GuardianFamilyFeedbackPage extends LScopedView<GuardianFamilyFeedbackController> {
+class GuardianFamilyFeedbackPage
+    extends LScopedView<GuardianFamilyFeedbackController> {
   const GuardianFamilyFeedbackPage({super.key});
 
   @override
@@ -80,7 +86,10 @@ class GuardianFamilyFeedbackPage extends LScopedView<GuardianFamilyFeedbackContr
   }
 
   @override
-  Widget buildView(BuildContext context, GuardianFamilyFeedbackController controller) {
+  Widget buildView(
+    BuildContext context,
+    GuardianFamilyFeedbackController controller,
+  ) {
     return LWatch(
       () => DataState(
         status: controller.dataStatus,
@@ -102,15 +111,16 @@ class GuardianFamilyFeedbackPage extends LScopedView<GuardianFamilyFeedbackContr
                         : context.tr.familyFeedbackTitle,
                   ),
                   subtitle: Text(
-                    item.slotState == 'completed' || item.slotState == 'already_completed'
+                    item.slotState == 'completed' ||
+                            item.slotState == 'already_completed'
                         ? context.tr.familyFeedbackSlotCompleted
                         : item.slotState == 'open'
-                            ? context.tr.familyFeedbackSlotOpen
-                            : context.tr.familyFeedbackClosed,
+                        ? context.tr.familyFeedbackSlotOpen
+                        : context.tr.familyFeedbackClosed,
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push(
-                    '/academic/family-feedback/${item.campaignId}',
+                    '/inbox/avis/${item.campaignId}',
                     extra: item,
                   ),
                 ),
@@ -174,7 +184,8 @@ class GuardianFamilyFeedbackQuestionnaireController extends LevitController
     errorMessage('');
     await runTask(() async {
       try {
-        final locale = WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+        final locale =
+            WidgetsBinding.instance.platformDispatcher.locale.languageCode;
         questionnaire(
           await getGuardianFamilyFeedbackQuestionnaire(
             _schoolClient(),
@@ -223,7 +234,9 @@ class GuardianFamilyFeedbackQuestionnairePage
   final GuardianFamilyFeedbackQuestionnaireArgs questionnaireArgs;
 
   @override
-  GuardianFamilyFeedbackQuestionnaireController onConfigScope(LevitScope scope) {
+  GuardianFamilyFeedbackQuestionnaireController onConfigScope(
+    LevitScope scope,
+  ) {
     return scope.put(
       () => GuardianFamilyFeedbackQuestionnaireController(
         questionnaireArgs: questionnaireArgs,
@@ -237,8 +250,9 @@ class GuardianFamilyFeedbackQuestionnairePage
     BuildContext context,
     GuardianFamilyFeedbackQuestionnaireController controller,
   ) {
-    return Scaffold(
-      appBar: AppBar(title: Text(context.tr.familyFeedbackTitle)),
+    return PrototypeDetailScaffold(
+      fallbackRoute: '/inbox/avis',
+      title: context.tr.familyFeedbackTitle,
       body: LWatch(
         () => DataState(
           status: controller.dataStatus,
@@ -263,7 +277,9 @@ class _QuestionnaireBody extends StatelessWidget {
       if (data == null) {
         return const SizedBox.shrink();
       }
-      if (data.isCompleted || data.isAlreadyCompleted || controller.submitted.value) {
+      if (data.isCompleted ||
+          data.isAlreadyCompleted ||
+          controller.submitted.value) {
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -304,7 +320,10 @@ class _QuestionnaireBody extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           if (data.context != null) ...[
-            Text(data.context!.summary, style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              data.context!.summary,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             const SizedBox(height: 12),
           ],
           Text(instrument.intro),
@@ -323,12 +342,16 @@ class _QuestionnaireBody extends StatelessWidget {
                     label: Text(instrument.scaleLabels['$score'] ?? '$score'),
                     selected: controller.answers.value[item.id] == score,
                     onSelected: (_) {
-                      controller.answers({...controller.answers.value, item.id: score});
+                      controller.answers({
+                        ...controller.answers.value,
+                        item.id: score,
+                      });
                     },
                   ),
                 ChoiceChip(
                   label: Text(context.tr.familyFeedbackCannotAssess),
-                  selected: controller.answers.value[item.id] == 'cannot_assess',
+                  selected:
+                      controller.answers.value[item.id] == 'cannot_assess',
                   onSelected: (_) {
                     controller.answers({
                       ...controller.answers.value,
@@ -341,13 +364,16 @@ class _QuestionnaireBody extends StatelessWidget {
             const SizedBox(height: 16),
           ],
           TextField(
-            decoration: InputDecoration(labelText: context.tr.familyFeedbackComment),
+            decoration: InputDecoration(
+              labelText: context.tr.familyFeedbackComment,
+            ),
             maxLines: 4,
             onChanged: controller.comment.call,
           ),
           const SizedBox(height: 16),
           FilledButton(
-            onPressed: controller.answers.value.length == instrument.items.length
+            onPressed:
+                controller.answers.value.length == instrument.items.length
                 ? controller.submit
                 : null,
             child: Text(context.tr.familyFeedbackSubmit),

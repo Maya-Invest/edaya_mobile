@@ -26,20 +26,26 @@ class FeesSummaryCard extends StatelessWidget {
           children: [
             Text(l10n.summary, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
-            ResponsiveMetrics(
+            Row(
               children: [
-                _Metric(
-                  label: l10n.availableAmount,
-                  value: formatMoney(summary.available, summary.currency),
+                Expanded(
+                  child: _Metric(
+                    label: l10n.availableAmount,
+                    value: formatMoney(summary.available, summary.currency),
+                  ),
                 ),
-                _Metric(
-                  label: l10n.outstandingAmount,
-                  value: formatMoney(summary.outstanding, summary.currency),
+                Expanded(
+                  child: _Metric(
+                    label: l10n.outstandingAmount,
+                    value: formatMoney(summary.outstanding, summary.currency),
+                  ),
                 ),
-                _Metric(
-                  label: l10n.overdueAmount,
-                  value: formatMoney(summary.overdue, summary.currency),
-                  valueStyle: overdueStyle,
+                Expanded(
+                  child: _Metric(
+                    label: l10n.overdueAmount,
+                    value: formatMoney(summary.overdue, summary.currency),
+                    valueStyle: overdueStyle,
+                  ),
                 ),
               ],
             ),
@@ -51,7 +57,11 @@ class FeesSummaryCard extends StatelessWidget {
 }
 
 class _Metric extends StatelessWidget {
-  const _Metric({required this.label, required this.value, this.valueStyle});
+  const _Metric({
+    required this.label,
+    required this.value,
+    this.valueStyle,
+  });
 
   final String label;
   final String value;
@@ -64,14 +74,7 @@ class _Metric extends StatelessWidget {
       children: [
         Text(label, style: Theme.of(context).textTheme.labelSmall),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style:
-              valueStyle ??
-              Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
-        ),
+        Text(value, style: valueStyle ?? Theme.of(context).textTheme.titleMedium),
       ],
     );
   }

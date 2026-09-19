@@ -31,13 +31,13 @@ Map<String, dynamic> createAssessmentPayload({
   required String periodId,
   required String title,
   required double maxScore,
+  required DateTime assessmentDate,
   String kind = 'quiz',
   double coefficient = 1,
   DateTime? createdAt,
-  DateTime? assessmentDate,
+  DateTime? homeworkDueDate,
 }) {
   final now = createdAt ?? DateTime.now().toUtc();
-  final date = assessmentDate ?? now;
   final payload = <String, dynamic>{
     'id': id,
     'classGroupId': classGroupId,
@@ -52,9 +52,10 @@ Map<String, dynamic> createAssessmentPayload({
   };
 
   if (kind == 'homework') {
-    payload['dueAt'] = date.toIso8601String().substring(0, 10);
+    final due = homeworkDueDate ?? assessmentDate;
+    payload['dueAt'] = due.toIso8601String().substring(0, 10);
   } else {
-    payload.addAll(buildInClassAssessmentTiming(date));
+    payload.addAll(buildInClassAssessmentTiming(assessmentDate));
   }
 
   return payload;
