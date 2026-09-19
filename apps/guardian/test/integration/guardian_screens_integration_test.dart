@@ -213,9 +213,12 @@ void _mariamKoneSuite() {
 
       expect(find.byType(SummaryMetric), findsWidgets);
 
-      if (probes.fees.feeNamesById.isNotEmpty) {
-        final firstFeeName = probes.fees.feeNamesById.values.first;
-        expect(find.text(firstFeeName), findsWidgets);
+      if (probes.fees.studentCharges.isNotEmpty) {
+        final firstFeeName =
+            probes.fees.studentCharges.first['label'] as String?;
+        if (firstFeeName != null && firstFeeName.isNotEmpty) {
+          expect(find.text(firstFeeName), findsWidgets);
+        }
       }
     });
 

@@ -42,3 +42,5 @@ __MACOSX/
 **/macos/
 
 /release-apks/
+.tmp-home
+.tmp-pub-cache
