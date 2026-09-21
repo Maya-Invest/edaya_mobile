@@ -319,14 +319,15 @@ class MockStore extends ChangeNotifier {
       .where((event) => !event.isNonSchoolDay)
       .toList();
 
-  List<MockSession> get sessionsForSelectedDay {
-    final selected = selectedCalendarDate;
-    final sessions = _sessions
-        .where((session) => _isSameCalendarDay(session.date, selected))
+  List<MockSession> sessionsForDay(DateTime day) {
+    return _sessions
+        .where((session) => _isSameCalendarDay(session.date, day))
         .toList()
       ..sort((a, b) => a.startHour.compareTo(b.startHour));
-    return sessions;
   }
+
+  List<MockSession> get sessionsForSelectedDay =>
+      sessionsForDay(selectedCalendarDate);
 
   MockEvent? get noSchoolDayForSelectedDay {
     for (final event in eventsForSelectedDay) {

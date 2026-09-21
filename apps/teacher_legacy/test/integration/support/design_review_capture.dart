@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -36,7 +35,7 @@ Future<void> captureDesignReviewShot(
     image.dispose();
     throw StateError(
       'Unexpected PNG size ${image.width}x${image.height}, '
-      'expected ${expectedWidth}x${expectedHeight}',
+      'expected ${expectedWidth}x$expectedHeight',
     );
   }
 

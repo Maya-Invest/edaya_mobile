@@ -2,10 +2,14 @@ import 'dart:async';
 
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:edaya_auth/edaya_auth.dart';
+import 'package:edaya_guardian/features/auth/session_storage.dart';
+import 'package:edaya_guardian/features/context/academic_year_controller.dart';
+import 'package:edaya_guardian/features/context/student_context_controller.dart';
 import 'package:edaya_guardian/features/inbox/inbox_controller.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:levit_flutter/levit_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _Session implements AppSessionController {
   @override
@@ -62,6 +66,21 @@ Future<void> until(bool Function() ready) async {
   fail('Inbox operation did not finish');
 }
 
+StudentContextController _studentsFor(_Session session, _Transport transport) {
+  SharedPreferences.setMockInitialValues({});
+  final storage = SessionStorage();
+  return StudentContextController(
+    sessionStorage: storage,
+    session: session,
+    academicYear: AcademicYearController(
+      sessionStorage: storage,
+      session: session,
+      schoolClient: () => api.createSchoolClient(transport),
+    ),
+    schoolClient: () => api.createSchoolClient(transport),
+  );
+}
+
 void main() {
   test(
     'personal inbox sends the selected guardian and school with the login',
@@ -71,6 +90,7 @@ void main() {
       final controller = InboxController(
         session: session,
         schoolClient: () => api.createSchoolClient(transport),
+        studentContext: _studentsFor(session, transport),
       );
       controller.onInit();
       addTearDown(controller.onClose);
@@ -95,6 +115,7 @@ void main() {
       final controller = InboxController(
         session: session,
         schoolClient: () => api.createSchoolClient(transport),
+        studentContext: _studentsFor(session, transport),
       );
       controller.onInit();
       addTearDown(controller.onClose);
@@ -122,6 +143,7 @@ void main() {
     final controller = InboxController(
       session: session,
       schoolClient: () => api.createSchoolClient(transport),
+      studentContext: _studentsFor(session, transport),
     );
     controller.onInit();
     addTearDown(controller.onClose);

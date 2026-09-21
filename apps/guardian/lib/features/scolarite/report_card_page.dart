@@ -5,10 +5,103 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
+import '../../live/runtime.dart';
+import '../../mock/mock_store.dart';
+import '../context/store_bound_controller.dart';
 import 'report_card_controller.dart';
 
-class ReportCardDetailPage extends LScopedView<ReportCardController> {
+class ReportCardDetailPage extends StatelessWidget {
   const ReportCardDetailPage({super.key, required this.reportCardId});
+
+  final String reportCardId;
+
+  @override
+  Widget build(BuildContext context) {
+    if (prototypeIsLive(context)) {
+      return _LiveReportCardDetailPage(reportCardId: reportCardId);
+    }
+    return _MockReportCardDetailPage(reportCardId: reportCardId);
+  }
+}
+
+class _MockReportCardDetailPage extends LScopedView<StoreBoundController> {
+  const _MockReportCardDetailPage({required this.reportCardId});
+
+  final String reportCardId;
+
+  @override
+  StoreBoundController onConfigScope(LevitScope scope) {
+    return scope.put(() => StoreBoundController(scope.find<MockStore>()));
+  }
+
+  @override
+  Widget buildView(BuildContext context, StoreBoundController controller) {
+    controller.storeTick.value;
+    final card = controller.store.reportCardById(reportCardId);
+    if (card == null) {
+      return const PrototypeDetailScaffold(
+        fallbackRoute: '/scolarite/notes',
+        title: 'Bulletin',
+        body: EmptyState(title: 'Bulletin introuvable'),
+      );
+    }
+    final periodResults = controller.store.subjectResultsForPeriod(card.period);
+    return PrototypeDetailScaffold(
+      fallbackRoute: '/scolarite/notes',
+      title: card.period,
+      body: ListView(
+        padding: const EdgeInsets.all(PrototypeSpacing.md),
+        children: [
+          SurfaceCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Moyenne générale',
+                  style: Theme.of(context).textTheme.labelSmall,
+                ),
+                Text(
+                  card.average,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    color: PrototypeColors.primary,
+                  ),
+                ),
+                const SizedBox(height: PrototypeSpacing.md),
+                Text(
+                  'Appréciation',
+                  style: Theme.of(context).textTheme.labelSmall,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  card.summary,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: PrototypeSpacing.md),
+          const SectionHeader(title: 'Matières'),
+          for (final result in periodResults) ...[
+            ListRow(
+              title: result.subject,
+              trailing: Text(
+                result.averageLabel,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: PrototypeColors.primary,
+                ),
+              ),
+              subtitle: result.teacherComment,
+            ),
+            const SizedBox(height: PrototypeSpacing.xs),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _LiveReportCardDetailPage extends LScopedView<ReportCardController> {
+  const _LiveReportCardDetailPage({required this.reportCardId});
 
   final String reportCardId;
 

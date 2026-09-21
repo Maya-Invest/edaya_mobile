@@ -68,10 +68,7 @@ void registerGuardianDependencies(LevitScope scope) {
   scope.put<AppRouter>(
     () => AppRouter(
       session: scope.find<AppSessionController>(),
-      academicYear: scope.find<AcademicYearController>(),
-      studentContext: scope.find<StudentContextController>(),
       routerRefresh: scope.find<EdayaRouterRefresh>(),
-      pendingInvitation: scope.find<PendingInvitationStore>(),
     ),
     permanent: true,
   );
@@ -83,8 +80,10 @@ void registerGuardianDependencies(LevitScope scope) {
       session: scope.find<AppSessionController>(),
       pushNotifications: scope.find<PushNotificationService>(),
       beforeRestore: () => scope.find<PendingInvitationStore>().hydrate(),
-      initializeAuthenticatedContext: () =>
-          scope.find<AppRouter>().hydrateSessionContext(),
+      initializeAuthenticatedContext: () async {
+        await scope.find<AcademicYearController>().loadYears();
+        await scope.find<StudentContextController>().initializeFromSession();
+      },
     ),
     permanent: true,
   );

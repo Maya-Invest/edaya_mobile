@@ -68,7 +68,9 @@ class GuardianProbeBundle {
     GuardianWidgetTestHarness harness,
   ) async {
     if (harness.isGuest) {
-      throw StateError('GuardianProbeBundle.load requires an authenticated harness');
+      throw StateError(
+        'GuardianProbeBundle.load requires an authenticated harness',
+      );
     }
 
     final client = harness.portalSession!.schoolClient;
@@ -144,7 +146,8 @@ class GuardianProbeBundle {
       if (startsAtRaw == null || endsAtRaw == null) {
         continue;
       }
-      final id = event['id'] as String? ??
+      final id =
+          event['id'] as String? ??
           event['lessonSessionId'] as String? ??
           event['occurrenceId'] as String?;
       if (id == null || id.isEmpty) {
@@ -158,7 +161,8 @@ class GuardianProbeBundle {
         startsAt: DateTime.parse(startsAtRaw).toLocal(),
         endsAt: DateTime.parse(endsAtRaw).toLocal(),
         classSubjectId: event['classSubjectId'] as String?,
-        subjectLabel: event['subjectLabel'] as String? ?? event['title'] as String?,
+        subjectLabel:
+            event['subjectLabel'] as String? ?? event['title'] as String?,
         status: event['status'] as String?,
       );
     }
@@ -180,10 +184,7 @@ class GuardianProbeBundle {
         .map((period) => period['name'] as String? ?? periodId)
         .firstOrNull;
 
-    return ReportCardSummary.fromJson(
-      row,
-      periodName: periodName ?? periodId,
-    );
+    return ReportCardSummary.fromJson(row, periodName: periodName ?? periodId);
   }
 
   static Future<GuardianCalendarSessionProbe?> _loadSessionProbe(
@@ -230,7 +231,8 @@ class GuardianProbeBundle {
       return null;
     }
     final startsAt = DateTime.parse(startsAtRaw).toLocal();
-    final title = lessonSession['title'] as String? ??
+    final title =
+        lessonSession['title'] as String? ??
         lessonSession['displayLabel'] as String? ??
         'Lesson';
 
@@ -277,8 +279,7 @@ class GuardianProbeBundle {
         subject['id'] as String: subject['name'] as String? ?? '',
     };
     final classSubjectById = {
-      for (final row in academic.classSubjects)
-        row['id'] as String: row,
+      for (final row in academic.classSubjects) row['id'] as String: row,
     };
 
     for (final result in academic.assessmentResults) {
@@ -340,15 +341,15 @@ class GuardianProbeBundle {
     }
 
     final payment = fees.payments.first;
-    final studentFeeId = payment['studentFeeId'] as String?;
-    final studentFee = fees.studentFees
-        .where((row) => row['id'] == studentFeeId)
+    final chargeId =
+        payment['studentChargeId'] as String? ??
+        payment['chargeId'] as String? ??
+        payment['studentFeeId'] as String?;
+    final charge = fees.studentCharges
+        .where((row) => row['id'] == chargeId)
         .cast<Map<String, dynamic>?>()
         .firstWhere((row) => row != null, orElse: () => null);
-    final feeId = studentFee?['feeId'] as String?;
-    final feeLabel = feeId == null
-        ? 'Fee'
-        : fees.feeNamesById[feeId] ?? feeId;
+    final feeLabel = charge?['label'] as String? ?? chargeId ?? 'Fee';
 
     return PaymentRecord.fromJson(payment, feeLabel: feeLabel);
   }

@@ -97,45 +97,45 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
     await runTask(() async {
       try {
         final client = _schoolClient();
-        final studentFeeRows = await client.studentFees.list(
-          studentFeesForStudent(studentId),
+        final chargeRows = await client.studentCharges.list(
+          studentChargesForStudent(
+            studentId: studentId,
+            academicYearId: yearId,
+          ),
         );
-        final yearFees = studentFeeRows
-            .where((row) => row['academicYearId'] == yearId)
+        final yearFees = chargeRows
             .where((row) => row['status'] != 'cancelled')
             .toList();
 
-        final feeIds = yearFees
-            .map((row) => row['feeId'] as String?)
-            .whereType<String>()
-            .toSet()
-            .toList();
-        final feeNameById = await _loadFeeNames(client, feeIds);
+        var paymentRows = <Map<String, dynamic>>[];
+        try {
+          paymentRows = await client.payments.list({
+            'studentId': studentId,
+            'academicYearId': yearId,
+          });
+        } on Object {
+          paymentRows = const [];
+        }
 
-        final studentFeeIds = yearFees
-            .map((row) => row['id'] as String)
-            .toList();
-        final paymentRows = studentFeeIds.isEmpty
-            ? <Map<String, dynamic>>[]
-            : await client.payments.list(paymentsForStudentFees(studentFeeIds));
-
-        final paymentsByFeeId = <String, List<Map<String, dynamic>>>{};
+        final paymentsByChargeId = <String, List<Map<String, dynamic>>>{};
         for (final payment in paymentRows) {
           if (payment['status'] != 'recorded') {
             continue;
           }
-          final studentFeeId = payment['studentFeeId'] as String;
-          paymentsByFeeId.putIfAbsent(studentFeeId, () => []).add(payment);
+          final chargeId = _paymentChargeId(payment);
+          if (chargeId == null) {
+            continue;
+          }
+          paymentsByChargeId.putIfAbsent(chargeId, () => []).add(payment);
         }
 
         final lines =
             yearFees.map((row) {
               final id = row['id'] as String;
-              final feeId = row['feeId'] as String;
               return StudentFeeLine.fromJson(
                 row,
-                label: feeNameById[feeId] ?? systemL10n().schoolFee,
-                paymentCount: paymentsByFeeId[id]?.length ?? 0,
+                label: row['label'] as String? ?? systemL10n().schoolFee,
+                paymentCount: paymentsByChargeId[id]?.length ?? 0,
               );
             }).toList()..sort((a, b) {
               final aDate = a.dueDate;
@@ -154,18 +154,13 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
 
         final feeLabelById = {for (final line in lines) line.id: line.label};
         final parsedPayments =
-            paymentRows
-                .where((row) => row['status'] == 'recorded')
-                .map(
-                  (row) => PaymentRecord.fromJson(
-                    row,
-                    feeLabel:
-                        feeLabelById[row['studentFeeId'] as String] ??
-                        systemL10n().schoolFee,
-                  ),
-                )
-                .toList()
-              ..sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
+            paymentRows.where((row) => row['status'] == 'recorded').map((row) {
+              final chargeId = _paymentChargeId(row);
+              return PaymentRecord.fromJson(
+                row,
+                feeLabel: feeLabelById[chargeId] ?? systemL10n().schoolFee,
+              );
+            }).toList()..sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
 
         final currency = lines.isNotEmpty
             ? lines.first.currency
@@ -209,20 +204,10 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
     });
   }
 
-  Future<Map<String, String>> _loadFeeNames(
-    api.SchoolClient client,
-    List<String> feeIds,
-  ) async {
-    final names = <String, String>{};
-    for (final feeId in feeIds) {
-      try {
-        final fee = await client.fees.get(feeId);
-        names[feeId] = fee['name'] as String? ?? feeId;
-      } on Object {
-        names[feeId] = systemL10n().schoolFee;
-      }
-    }
-    return names;
+  String? _paymentChargeId(Map<String, dynamic> payment) {
+    return payment['studentChargeId'] as String? ??
+        payment['chargeId'] as String? ??
+        payment['studentFeeId'] as String?;
   }
 }
 

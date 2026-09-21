@@ -349,8 +349,7 @@ class GuardianProbeBundle {
         .where((row) => row['id'] == chargeId)
         .cast<Map<String, dynamic>?>()
         .firstWhere((row) => row != null, orElse: () => null);
-    final feeLabel =
-        charge?['label'] as String? ?? (chargeId == null ? 'Fee' : chargeId);
+    final feeLabel = charge?['label'] as String? ?? chargeId ?? 'Fee';
 
     return PaymentRecord.fromJson(payment, feeLabel: feeLabel);
   }

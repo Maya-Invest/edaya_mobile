@@ -37,10 +37,13 @@ class StudentFeeLine {
   }) {
     return StudentFeeLine(
       id: json['id'] as String,
-      feeId: json['feeId'] as String,
+      feeId:
+          json['feeId'] as String? ??
+          json['catalogServiceId'] as String? ??
+          json['id'] as String,
       label: label,
       expectedAmount: _moneyAmount(json['expectedAmount']),
-      paidAmount: _moneyAmount(json['paidAmount']),
+      paidAmount: _moneyAmount(json['paidAmount'] ?? json['allocatedAmount']),
       currency: json['currency'] as String? ?? 'EUR',
       status: parseStudentFeeStatus(json['status'] as String?),
       dueDate: parseApiDateTime(json['dueDate']),

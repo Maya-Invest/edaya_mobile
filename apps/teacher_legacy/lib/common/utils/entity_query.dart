@@ -17,6 +17,27 @@ EntityQuery teacherAssignmentsForTeacherAndYear({
   return {'teacherId': teacherId, 'academicYearId': academicYearId};
 }
 
+TeachingScope teachingScopeFromTeacherPortalScope(TeacherPortalScope? scope) {
+  if (scope == null) {
+    return const TeachingScope();
+  }
+
+  return TeachingScope(
+    classGroupIds: scope.homeroomClassGroupIds.toSet(),
+    classSubjectIds: scope.classSubjectIds.toSet(),
+  );
+}
+
+TeachingScope mergeTeachingScopes(
+  TeachingScope primary,
+  TeachingScope fallback,
+) {
+  if (primary.classGroupIds.isNotEmpty || primary.classSubjectIds.isNotEmpty) {
+    return primary;
+  }
+  return fallback;
+}
+
 TeachingScope teachingScopeFromTeacherAssignments(
   List<Map<String, dynamic>> assignments,
 ) {

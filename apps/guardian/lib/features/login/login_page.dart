@@ -7,11 +7,12 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
+import '../../live/runtime.dart';
 import '../../mock/mock_store.dart';
 
 /// Prototype-branded guardian login. Real auth via shared [LoginController];
-/// mock harnesses pass [mockStore] instead.
-class LoginPage extends LScopedView<LoginController> {
+/// mock harnesses sign in through [MockStore].
+class LoginPage extends StatelessWidget {
   const LoginPage({
     super.key,
     required this.defaultEmail,
@@ -22,6 +23,27 @@ class LoginPage extends LScopedView<LoginController> {
   final String defaultEmail;
   final Future<void> Function() onSignInSuccess;
   final MockStore? mockStore;
+
+  @override
+  Widget build(BuildContext context) {
+    if (prototypeIsLive(context)) {
+      return _LiveLoginPage(
+        defaultEmail: defaultEmail,
+        onSignInSuccess: onSignInSuccess,
+      );
+    }
+    return _MockLoginPage(defaultEmail: defaultEmail);
+  }
+}
+
+class _LiveLoginPage extends LScopedView<LoginController> {
+  const _LiveLoginPage({
+    required this.defaultEmail,
+    required this.onSignInSuccess,
+  });
+
+  final String defaultEmail;
+  final Future<void> Function() onSignInSuccess;
 
   @override
   LoginController onConfigScope(LevitScope scope) {
@@ -37,8 +59,35 @@ class LoginPage extends LScopedView<LoginController> {
 
   @override
   Widget buildView(BuildContext context, LoginController controller) {
-    final isMock = mockStore != null;
+    return _LoginChrome(
+      child: _OtpLogin(controller: controller),
+    );
+  }
+}
 
+class _MockLoginPage extends StatelessWidget {
+  const _MockLoginPage({required this.defaultEmail});
+
+  final String defaultEmail;
+
+  @override
+  Widget build(BuildContext context) {
+    return _LoginChrome(
+      child: _MockLogin(
+        defaultEmail: defaultEmail,
+        mockStore: context.levit.find<MockStore>(),
+      ),
+    );
+  }
+}
+
+class _LoginChrome extends StatelessWidget {
+  const _LoginChrome({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: PrototypeColors.background,
       body: SafeArea(
@@ -59,14 +108,7 @@ class LoginPage extends LScopedView<LoginController> {
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: PrototypeSpacing.xxl),
-                  SurfaceCard(
-                    child: isMock
-                        ? _MockLogin(
-                            defaultEmail: defaultEmail,
-                            mockStore: mockStore!,
-                          )
-                        : _OtpLogin(controller: controller),
-                  ),
+                  SurfaceCard(child: child),
                 ],
               ),
             ),

@@ -7,7 +7,10 @@ import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/session_category.dart';
 import '../../design/spacing.dart';
-import '../../mock/mock_store.dart' show HomeDayCategory;
+import '../../live/runtime.dart';
+import '../../mock/mock_mappers.dart';
+import '../../mock/mock_store.dart';
+import '../context/store_bound_controller.dart';
 import '../context/student_context_controller.dart';
 import 'models/logbook_entry.dart';
 import 'session_detail_controller.dart';
@@ -31,8 +34,207 @@ String _frenchAttendance(String? status) {
   };
 }
 
-class SessionDetailPage extends LScopedView<SessionDetailController> {
+class SessionDetailPage extends StatelessWidget {
   const SessionDetailPage({super.key, required this.sessionId});
+
+  final String sessionId;
+
+  @override
+  Widget build(BuildContext context) {
+    if (prototypeIsLive(context)) {
+      return _LiveSessionDetailPage(sessionId: sessionId);
+    }
+    return _MockSessionDetailPage(sessionId: sessionId);
+  }
+}
+
+class _MockSessionDetailPage extends LScopedView<StoreBoundController> {
+  const _MockSessionDetailPage({required this.sessionId});
+
+  final String sessionId;
+
+  @override
+  StoreBoundController onConfigScope(LevitScope scope) {
+    return scope.put(() => StoreBoundController(scope.find<MockStore>()));
+  }
+
+  @override
+  Widget buildView(BuildContext context, StoreBoundController controller) {
+    controller.storeTick.value;
+    final session = controller.store.sessionById(sessionId);
+    if (session == null) {
+      return const PrototypeDetailScaffold(
+        fallbackRoute: '/calendar',
+        title: 'Séance',
+        body: EmptyState(title: 'Séance introuvable'),
+      );
+    }
+
+    final category = session.category;
+    final textTheme = Theme.of(context).textTheme;
+    final logbook = controller.store.logbookForSession(sessionId);
+    final assessment = controller.store.assessmentForSession(sessionId);
+    final activity = controller.store.activityForSession(sessionId);
+
+    return PrototypeDetailScaffold(
+      fallbackRoute: '/calendar',
+      titleWidget: Row(
+        children: [
+          SessionCategoryIcon(category: category, size: 18, padding: 6),
+          const SizedBox(width: PrototypeSpacing.xs),
+          Expanded(
+            child: Text(session.subject, overflow: TextOverflow.ellipsis),
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(PrototypeSpacing.md),
+        children: [
+          SurfaceCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    StatusChip(
+                      label: category.label,
+                      tone: switch (category) {
+                        HomeDayCategory.lesson => SemanticTone.info,
+                        HomeDayCategory.activity => SemanticTone.neutral,
+                        HomeDayCategory.assessment => SemanticTone.warning,
+                      },
+                    ),
+                    const Spacer(),
+                    StatusChip(
+                      label: session.attendance,
+                      tone: switch (session.attendance) {
+                        'Absent' => SemanticTone.error,
+                        'Retard' => SemanticTone.warning,
+                        _ => SemanticTone.success,
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: PrototypeSpacing.sm),
+                Text('Horaire', style: textTheme.labelSmall),
+                Text(
+                  '${session.startHour.toString().padLeft(2, '0')}:00 – ${session.endHour.toString().padLeft(2, '0')}:00',
+                ),
+                if (session.room.isNotEmpty) ...[
+                  const SizedBox(height: PrototypeSpacing.xs),
+                  Text(session.room, style: textTheme.bodySmall),
+                ],
+                if (session.teacher.isNotEmpty) ...[
+                  const SizedBox(height: PrototypeSpacing.xs),
+                  Text(session.teacher, style: textTheme.bodySmall),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: PrototypeSpacing.md),
+          switch (category) {
+            HomeDayCategory.assessment => _MockAssessmentSection(
+              assessment: assessment,
+            ),
+            HomeDayCategory.activity => _MockActivitySection(activity: activity),
+            HomeDayCategory.lesson => _LessonSection(
+              logbook: logbook == null ? null : logbookEntryFromMock(logbook),
+            ),
+          },
+        ],
+      ),
+    );
+  }
+}
+
+class _MockAssessmentSection extends StatelessWidget {
+  const _MockAssessmentSection({required this.assessment});
+
+  final MockAssessmentDetail? assessment;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    if (assessment == null) {
+      return SurfaceCard(
+        child: Text(
+          'Aucun détail disponible pour cette évaluation.',
+          style: textTheme.bodyMedium,
+        ),
+      );
+    }
+    final score = assessment!.score;
+    final maxScore = assessment!.maxScore;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionHeader(title: 'Évaluation'),
+        SurfaceCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                assessment!.title,
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (assessment!.description.isNotEmpty) ...[
+                const SizedBox(height: PrototypeSpacing.sm),
+                Text(assessment!.description, style: textTheme.bodyMedium),
+              ],
+              if (assessment!.instructions.isNotEmpty) ...[
+                const SizedBox(height: PrototypeSpacing.sm),
+                Text('Consignes', style: textTheme.labelSmall),
+                Text(assessment!.instructions, style: textTheme.bodyMedium),
+              ],
+            ],
+          ),
+        ),
+        if (score != null && maxScore != null) ...[
+          const SizedBox(height: PrototypeSpacing.md),
+          const SectionHeader(title: 'Note de l\'élève'),
+          SurfaceCard(
+            child: Text(
+              '${score.toStringAsFixed(0)}/${maxScore.toStringAsFixed(0)}',
+              style: textTheme.titleLarge?.copyWith(
+                color: PrototypeColors.primary,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _MockActivitySection extends StatelessWidget {
+  const _MockActivitySection({required this.activity});
+
+  final MockActivityDetail? activity;
+
+  @override
+  Widget build(BuildContext context) {
+    final notes = activity?.staffComment;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionHeader(title: 'Commentaire de l\'équipe'),
+        SurfaceCard(
+          child: Text(
+            (notes == null || notes.isEmpty)
+                ? 'Aucun commentaire partagé pour cette activité.'
+                : notes,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _LiveSessionDetailPage extends LScopedView<SessionDetailController> {
+  const _LiveSessionDetailPage({required this.sessionId});
 
   final String sessionId;
 

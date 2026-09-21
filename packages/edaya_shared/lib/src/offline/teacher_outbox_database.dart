@@ -32,7 +32,7 @@ class TeacherOutboxDatabase extends _$TeacherOutboxDatabase {
   TeacherOutboxDatabase([QueryExecutor? executor])
     : super(executor ?? _openConnection());
 
-  TeacherOutboxDatabase.forTesting(QueryExecutor executor) : super(executor);
+  TeacherOutboxDatabase.forTesting(super.executor);
 
   @override
   int get schemaVersion => 1;

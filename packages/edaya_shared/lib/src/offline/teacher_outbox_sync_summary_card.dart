@@ -74,7 +74,7 @@ class TeacherOutboxSyncSummaryCard extends StatelessWidget {
             ] else
               Row(
                 children: [
-                  SyncIndicator(
+                  const SyncIndicator(
                     status: EdayaSyncStatus.synced,
                     compact: true,
                   ),

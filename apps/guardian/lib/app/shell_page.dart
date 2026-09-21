@@ -6,6 +6,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../design/colors.dart';
 import '../design/components/components.dart';
 import '../design/spacing.dart';
+import '../di/prototype_module.dart';
 import '../features/account/account_controller.dart';
 import '../features/calendar/calendar_page.dart';
 import '../features/context/academic_year_controller.dart';
@@ -16,6 +17,8 @@ import '../features/inbox/inbox_page.dart';
 import '../features/my_students/guardian_students_controller.dart';
 import '../features/my_students/linked_student.dart';
 import '../features/scolarite/results_page.dart';
+import '../live/runtime.dart';
+import '../mock/mock_store.dart';
 import 'shell_controller.dart';
 import 'shell_tabs.dart';
 
@@ -62,12 +65,14 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
 
   @override
   PrototypeShellController onConfigScope(LevitScope scope) {
-    scope.put(
-      () => AccountController(
-        session: scope.find<AppSessionController>(),
-        studentContext: scope.find<StudentContextController>(),
-      ),
-    );
+    if (prototypeRuntimeIsLive(scope)) {
+      scope.put(
+        () => AccountController(
+          session: scope.find<AppSessionController>(),
+          studentContext: scope.find<StudentContextController>(),
+        ),
+      );
+    }
     return scope.put(() => PrototypeShellController());
   }
 
@@ -79,9 +84,13 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
     final hubPath = controller.lastHubPath;
     final overlay = !GuardianShellTabs.isHub(path);
 
-    final header = _ShellHeaderCards(
-      onSelectStudent: () => _showApiContextSheet(context),
-    );
+    final header = prototypeIsLive(context)
+        ? _ShellHeaderCards(
+            onSelectStudent: () => _showApiContextSheet(context),
+          )
+        : _MockShellHeaderCards(
+            onSelectStudent: () => _showMockContextSheet(context),
+          );
 
     return GuardianShellScope(
       hubPath: hubPath,
@@ -174,6 +183,16 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
     );
   }
 
+  void _showMockContextSheet(BuildContext context) {
+    showLevitModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return const _MockContextSheetBody();
+      },
+    );
+  }
+
   void _showApiContextSheet(BuildContext context) {
     showLevitModalBottomSheet<void>(
       context: context,
@@ -192,6 +211,141 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
           child: const _ApiContextSheetBody(),
         );
       },
+    );
+  }
+}
+
+class _MockShellHeaderCards extends StatelessWidget {
+  const _MockShellHeaderCards({required this.onSelectStudent});
+
+  final VoidCallback onSelectStudent;
+
+  @override
+  Widget build(BuildContext context) {
+    final bridge = context.levit.find<MockGuardianContextBridge>();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        PrototypeSpacing.md,
+        PrototypeSpacing.sm,
+        PrototypeSpacing.md,
+        PrototypeSpacing.sm,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: LWatch(() {
+              bridge.storeTick.value;
+              final store = bridge.store;
+              final student = store.activeStudent;
+              return StudentContextCard(
+                studentName: student.fullName,
+                studentInitials: student.initials,
+                classLabel: student.classLabel,
+                schoolName: store.activeSchool.name,
+                schoolYear: store.selectedYear,
+                photoUrl: student.photoUrl,
+                onSelectStudent: onSelectStudent,
+              );
+            }),
+          ),
+          const SizedBox(width: PrototypeSpacing.sm),
+          LWatch(() {
+            bridge.storeTick.value;
+            return ParentAccountCard(
+              initials: bridge.store.guardianInitials,
+              onTap: () => context.push('/account'),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+class _MockContextSheetBody extends StatelessWidget {
+  const _MockContextSheetBody();
+
+  @override
+  Widget build(BuildContext context) {
+    final store = context.levit.find<MockStore>();
+    final bridge = context.levit.find<MockGuardianContextBridge>();
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: PrototypeSpacing.md,
+          right: PrototypeSpacing.md,
+          top: PrototypeSpacing.md,
+          bottom: MediaQuery.viewInsetsOf(context).bottom + PrototypeSpacing.md,
+        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * 0.75,
+          ),
+          child: LWatch(() {
+            bridge.storeTick.value;
+            final groups = store.studentsBySchool;
+            return SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Mes enfants',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: PrototypeSpacing.md),
+                  for (var i = 0; i < groups.length; i++) ...[
+                    if (i > 0) const Divider(height: PrototypeSpacing.lg),
+                    _MockSchoolChildrenGroup(group: groups[i], store: store),
+                  ],
+                ],
+              ),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+}
+
+class _MockSchoolChildrenGroup extends StatelessWidget {
+  const _MockSchoolChildrenGroup({required this.group, required this.store});
+
+  final SchoolStudentGroup group;
+  final MockStore store;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SchoolGroupHeader(
+          schoolName: group.school.name,
+          selectedYear: store.selectedYearForSchool(group.school.id),
+          years: store.schoolYearsFor(group.school.id),
+          onYearSelected: (year) =>
+              store.selectYearForSchool(group.school.id, year),
+        ),
+        for (final student in group.students)
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: PersonAvatar(
+              initials: student.initials,
+              photoUrl: student.photoUrl,
+              radius: 20,
+            ),
+            title: Text(student.fullName),
+            subtitle: Text(student.classLabel),
+            trailing: store.activeStudentId == student.id
+                ? Icon(Icons.check_circle, color: PrototypeColors.primary)
+                : null,
+            onTap: () {
+              store.selectStudent(student.id);
+              Navigator.pop(context);
+            },
+          ),
+      ],
     );
   }
 }

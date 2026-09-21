@@ -58,7 +58,7 @@ class AccountSheetBody extends StatelessWidget {
                 context.push('/account/profile');
               },
             ),
-            if (childProfileTile != null) childProfileTile!,
+            ?childProfileTile,
             ListTile(
               leading: const Icon(Icons.settings_outlined),
               title: Text(context.tr.settingsTitle),
@@ -80,7 +80,7 @@ class AccountSheetBody extends StatelessWidget {
                 },
               ),
             ],
-            if (beforeSignOut != null) beforeSignOut!,
+            ?beforeSignOut,
             const SizedBox(height: 24),
             LWatch(
               () => OutlinedButton.icon(

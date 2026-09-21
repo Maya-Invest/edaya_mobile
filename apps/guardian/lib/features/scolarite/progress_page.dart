@@ -6,13 +6,107 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart' show PrototypeRadii, PrototypeSpacing;
+import '../../live/runtime.dart';
+import '../../mock/mock_store.dart' hide SubjectProgressSummary;
 import '../context/academic_year_controller.dart';
+import '../context/store_bound_controller.dart';
 import '../context/student_context_controller.dart';
 import 'progress_controller.dart';
 import 'results_controller.dart';
 
-class ProgressOverviewPage extends LScopedView<ProgressController> {
+class ProgressOverviewPage extends StatelessWidget {
   const ProgressOverviewPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (prototypeIsLive(context)) {
+      return const _LiveProgressOverviewPage();
+    }
+    return const _MockProgressOverviewPage();
+  }
+}
+
+class _MockProgressOverviewPage extends LScopedView<StoreBoundController> {
+  const _MockProgressOverviewPage();
+
+  @override
+  StoreBoundController onConfigScope(LevitScope scope) {
+    return scope.put(() => StoreBoundController(scope.find<MockStore>()));
+  }
+
+  @override
+  Widget buildView(BuildContext context, StoreBoundController controller) {
+    controller.storeTick.value;
+    final store = controller.store;
+    final summaries = store.subjectProgressSummaries
+        .where((s) => s.hasProgramme)
+        .toList();
+    return PrototypeDetailScaffold(
+      fallbackRoute: '/scolarite/notes',
+      title: 'Avancement du programme',
+      body: ListView(
+        padding: const EdgeInsets.all(PrototypeSpacing.md),
+        children: [
+          SurfaceCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${(store.overallProgramProgress * 100).round()} % du programme couvert',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: PrototypeSpacing.xs),
+                PrototypeProgressBar(value: store.overallProgramProgress),
+                const SizedBox(height: PrototypeSpacing.xs),
+                Text(
+                  'Moyenne indicative sur les matières suivies.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: PrototypeColors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: PrototypeSpacing.xl),
+          for (var i = 0; i < summaries.length; i++) ...[
+            if (i > 0) const SizedBox(height: PrototypeSpacing.xl),
+            _SubjectProgressSectionHeader(
+              summary: SubjectProgressSummary(
+                subject: summaries[i].subject,
+                classSubjectId: summaries[i].subject,
+                progress: summaries[i].progress,
+                status: summaries[i].status,
+                topicCount: summaries[i].topicCount,
+              ),
+              expanded: true,
+              onOpenLogbook: () => context.push(
+                '/scolarite/subject/${MockStore.subjectRouteParam(summaries[i].subject)}/cahier',
+              ),
+              onToggle: () {},
+            ),
+            for (final topic in store.topicsForSubject(summaries[i].subject)) ...[
+              const SizedBox(height: PrototypeSpacing.xs),
+              ListRow(
+                title: topic.title,
+                subtitle: topic.status,
+                trailing: Text(
+                  '${(topic.progress * 100).round()} %',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: PrototypeColors.primary,
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: PrototypeSpacing.sm),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _LiveProgressOverviewPage extends LScopedView<ProgressController> {
+  const _LiveProgressOverviewPage();
 
   @override
   ProgressController onConfigScope(LevitScope scope) {

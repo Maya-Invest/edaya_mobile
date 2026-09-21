@@ -5,6 +5,7 @@ import 'package:edaya_guardian/features/auth/session_storage.dart';
 import 'package:edaya_guardian/features/context/academic_year_controller.dart';
 import 'package:edaya_guardian/features/context/student_context_controller.dart';
 import 'package:edaya_guardian/features/my_students/linked_student.dart';
+import 'package:edaya_guardian/live/prototype_runtime.dart';
 import 'package:edaya_integration_tests/edaya_integration_tests.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_shared/src/features/settings/app_settings_models.dart';
@@ -207,6 +208,10 @@ class GuardianWidgetTestHarness {
       permanent: true,
     );
     scope.put<EdayaRouterRefresh>(() => EdayaRouterRefresh(), permanent: true);
+    scope.put<PrototypeRuntime>(
+      () => const PrototypeRuntime(live: true),
+      permanent: true,
+    );
     scope.put<AppSettingsController>(
       () => AppSettingsController(),
       permanent: true,

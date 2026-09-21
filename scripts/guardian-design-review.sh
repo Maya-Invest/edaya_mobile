@@ -6,7 +6,7 @@ cd "$ROOT/apps/guardian"
 
 LOCALE="${EDAYA_DESIGN_REVIEW_LOCALE:-fr}"
 echo "Design review locale: $LOCALE (set EDAYA_DESIGN_REVIEW_LOCALE to change)"
-echo "Using mock auth harness for chrome screenshots (feature screens load via SchoolClient when authenticated against API)."
+echo "Using mock fixtures for design-review screenshots (no SchoolClient)."
 
 if pgrep -x flutter_tester >/dev/null 2>&1; then
   echo "error: flutter_tester is already running." >&2

@@ -194,7 +194,7 @@ sealed class GrantScope {
     switch (json['kind']) {
       case 'school':
         _fields(json, {'kind'});
-        return SchoolGrantScope();
+        return const SchoolGrantScope();
       case 'all':
         _fields(json, {'kind', 'grain'});
         return AllGrantScope(grain: GrantGrain.parse(json['grain'] as String));

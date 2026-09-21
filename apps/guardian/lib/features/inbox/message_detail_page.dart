@@ -6,13 +6,91 @@ import '../../app/formatters.dart';
 import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
+import '../../live/runtime.dart';
+import '../../mock/mock_store.dart';
+import '../context/store_bound_controller.dart';
 import 'inbox_controller.dart';
 import 'message_detail_controller.dart';
 import 'models/inbox_delivery.dart';
 
-class MessageDetailPage extends LScopedView<MessageDetailController> {
+class MessageDetailPage extends StatelessWidget {
   const MessageDetailPage({
     super.key,
+    required this.messageId,
+    this.initialDelivery,
+  });
+
+  final String messageId;
+  final InboxDelivery? initialDelivery;
+
+  @override
+  Widget build(BuildContext context) {
+    if (prototypeIsLive(context)) {
+      return _LiveMessageDetailPage(
+        messageId: messageId,
+        initialDelivery: initialDelivery,
+      );
+    }
+    return _MockMessageDetailPage(messageId: messageId);
+  }
+}
+
+class _MockMessageDetailPage extends LScopedView<StoreBoundController> {
+  const _MockMessageDetailPage({required this.messageId});
+
+  final String messageId;
+
+  @override
+  StoreBoundController onConfigScope(LevitScope scope) {
+    return scope.put(() => StoreBoundController(scope.find<MockStore>()));
+  }
+
+  @override
+  Widget buildView(BuildContext context, StoreBoundController controller) {
+    controller.storeTick.value;
+    final message = controller.store.messageById(messageId);
+    if (message == null) {
+      return const PrototypeDetailScaffold(
+        fallbackRoute: '/inbox',
+        title: 'Message',
+        body: EmptyState(title: 'Message introuvable'),
+      );
+    }
+    return PrototypeDetailScaffold(
+      fallbackRoute: '/inbox',
+      title: 'Message',
+      body: ListView(
+        padding: const EdgeInsets.all(PrototypeSpacing.md),
+        children: [
+          SurfaceCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  message.title,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: PrototypeSpacing.sm),
+                StatusChip(
+                  label: formatDate(message.sentAt),
+                  tone: SemanticTone.neutral,
+                ),
+                const SizedBox(height: PrototypeSpacing.md),
+                Text(
+                  message.body,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LiveMessageDetailPage extends LScopedView<MessageDetailController> {
+  const _LiveMessageDetailPage({
     required this.messageId,
     this.initialDelivery,
   });

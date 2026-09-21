@@ -2,6 +2,7 @@
   // ignore folders
   "ignorePaths": [
     "**/dist/**",
+    "**/.gitignore",
     "**/node_modules/**",
     "**/build/**",
     "**/coverage/**",

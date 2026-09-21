@@ -30,20 +30,31 @@ import '../mock/mock_store.dart';
 import 'shell_page.dart';
 
 GoRouter createRouter({
-  required AppSessionController session,
-  required StudentContextController studentContext,
-  required AcademicYearController academicYear,
-  required PendingInvitationStore pendingInvitation,
   required Listenable routerRefresh,
+  AppSessionController? session,
+  StudentContextController? studentContext,
+  AcademicYearController? academicYear,
+  PendingInvitationStore? pendingInvitation,
   MockStore? mockStore,
 }) {
   Future<void> completePostAuthNavigation([BuildContext? context]) async {
-    await academicYear.loadYears();
-    await studentContext.initializeFromSession();
+    final liveSession = session;
+    final liveStudentContext = studentContext;
+    final liveAcademicYear = academicYear;
+    if (liveSession == null ||
+        liveStudentContext == null ||
+        liveAcademicYear == null) {
+      if (context != null && context.mounted) {
+        context.go(guardianHomeRoute);
+      }
+      return;
+    }
+    await liveAcademicYear.loadYears();
+    await liveStudentContext.initializeFromSession();
     if (context != null && context.mounted) {
       final next = resolveGuardianPostAuthHome(
-        hasSchoolSession: session.hasSchoolSession,
-        hasLinkedStudents: studentContext.hasLinkedStudents,
+        hasSchoolSession: liveSession.hasSchoolSession,
+        hasLinkedStudents: liveStudentContext.hasLinkedStudents,
       );
       context.go(next);
     }
@@ -63,23 +74,32 @@ GoRouter createRouter({
         return null;
       }
 
+      final liveSession = session;
+      final liveStudentContext = studentContext;
+      final livePending = pendingInvitation;
+      if (liveSession == null ||
+          liveStudentContext == null ||
+          livePending == null) {
+        return guardianLoginRoute;
+      }
+
       final incoming = parseInvitationDeepLink(state.uri);
       if (incoming != null) {
-        pendingInvitation.remember(incoming.token);
+        livePending.remember(incoming.token);
       } else {
         final routeToken = state.pathParameters['token'];
         if (routeToken != null && routeToken.trim().isNotEmpty) {
-          pendingInvitation.remember(routeToken);
+          livePending.remember(routeToken);
         }
       }
 
       return resolveGuardianAuthRedirect(
-        isAuthenticated: session.isAuthenticated,
+        isAuthenticated: liveSession.isAuthenticated,
         matchedLocation: state.matchedLocation,
-        pendingInvitationToken: pendingInvitation.token,
-        hasSchoolSession: session.hasSchoolSession,
-        linkedStudentsResolved: studentContext.linkedStudentsResolved.value,
-        hasLinkedStudents: studentContext.hasLinkedStudents,
+        pendingInvitationToken: livePending.token,
+        hasSchoolSession: liveSession.hasSchoolSession,
+        linkedStudentsResolved: liveStudentContext.linkedStudentsResolved.value,
+        hasLinkedStudents: liveStudentContext.hasLinkedStudents,
       );
     },
     routes: [
@@ -90,7 +110,7 @@ GoRouter createRouter({
             mockStore: mockStore,
             defaultEmail: ApiConfig.devGuardianEmail,
             onSignInSuccess: () async {
-              final pending = pendingInvitation.token;
+              final pending = pendingInvitation?.token;
               if (pending != null) {
                 if (context.mounted) {
                   context.go(invitationRoutePath(pending));
@@ -116,7 +136,7 @@ GoRouter createRouter({
         path: guardianWaitingRoute,
         builder: (context, state) => WaitingForStudentsPage(
           onCheckAgain: () async {
-            await session.refreshGrants();
+            await session?.refreshGrants();
             if (context.mounted) {
               await completePostAuthNavigation(context);
             }
@@ -238,11 +258,18 @@ GoRouter createRouter({
                     builder: (context, state) {
                       final campaignId = state.pathParameters['campaignId']!;
                       final extra = state.extra;
-                      final studentId = extra is GuardianFamilyFeedbackCampaign
-                          ? extra.studentId
-                          : context.levit
-                                .find<StudentContextController>()
-                                .activeStudentId;
+                      String? studentId;
+                      if (extra is GuardianFamilyFeedbackCampaign) {
+                        studentId = extra.studentId;
+                      } else {
+                        try {
+                          studentId = context.levit
+                              .find<StudentContextController>()
+                              .activeStudentId;
+                        } on Object {
+                          studentId = null;
+                        }
+                      }
                       if (studentId == null || studentId.isEmpty) {
                         return const RouteErrorPage(
                           message: 'Élève introuvable pour cet avis.',

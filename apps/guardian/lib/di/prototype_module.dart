@@ -8,82 +8,135 @@ import '../app/router.dart';
 import '../features/auth/session_storage.dart';
 import '../features/context/academic_year_controller.dart';
 import '../features/context/student_context_controller.dart';
+import '../features/push/noop_push_notification_service.dart';
+import '../live/prototype_runtime.dart';
 import '../mock/mock_store.dart';
 import '../navigation/notification_navigation.dart';
 
-/// Registers API dependencies. Optional [store] enables mock auth redirects for
-/// widget / design-review harnesses (feature screens still use SchoolClient).
-void registerPrototypeDependencies(LevitScope scope, {MockStore? store}) {
-  EdayaRootScope.bind(scope, appName: systemL10n().appTitleGuardian);
-  final cookieJar = CookieJar();
+Future<void> initializeGuardianAuthenticatedContext(LevitScope scope) async {
+  await scope.find<AcademicYearController>().loadYears();
+  await scope.find<StudentContextController>().initializeFromSession();
+}
 
-  if (store != null) {
-    scope.put<MockStore>(() => store, permanent: true);
-  }
-
-  scope.put<SessionStorage>(() => SessionStorage(), permanent: true);
-  scope.put<PendingInvitationStore>(
-    () => PendingInvitationStore(),
+/// Registers production API dependencies when [live] is true. Widget and
+/// design-review harnesses pass a [store] and keep [live] false so feature
+/// screens read mock fixtures instead of SchoolClient.
+void registerPrototypeDependencies(
+  LevitScope scope, {
+  MockStore? store,
+  bool? live,
+}) {
+  final isLive = live ?? store == null;
+  scope.put<PrototypeRuntime>(
+    () => PrototypeRuntime(live: isLive),
     permanent: true,
   );
   scope.put<EdayaRouterRefresh>(() => EdayaRouterRefresh(), permanent: true);
-  registerEdayaDependencies(scope, cookieJar: cookieJar);
-  registerSchoolClientFactory(
-    scope,
-    getAcademicYearId: () =>
-        scope.find<AcademicYearController>().selectedYearId.value,
-    getActorKind: () => 'guardian',
-    getActorId: () => scope.find<AppSessionController>().actorIdHeader,
-    getSchoolId: () => scope.find<AppSessionController>().schoolIdHeader,
-  );
-  scope.put<PushNotificationService>(
-    () => store != null
-        ? const _NoOpPushNotificationService()
-        : FcmPushNotificationService(
-            schoolClientFactory: scope.find<SchoolClientFactory>(),
-            config: PushNotificationConfigs.guardian,
-            onNotificationOpened: handleGuardianNotificationOpened,
-          ),
-    permanent: true,
-  );
-  scope.put<AppSessionController>(
-    () => AppSessionController(
-      authClient: scope.find<AuthClient>(),
-      sessionStorage: scope.find<SessionStorage>(),
-      pushNotifications: scope.find<PushNotificationService>(),
-      routerRefresh: scope.find<EdayaRouterRefresh>(),
-      validateGrants: (_) => null,
-      unauthorizedProfileMessage: () => systemL10n().signedInNoGuardianProfile,
-      resolveActorKind: () => 'guardian',
-      allowUnlinkedIdentity: () => true,
-    ),
-    permanent: true,
-  );
-  scope.put<AcademicYearController>(
-    () => AcademicYearController(
-      sessionStorage: scope.find<SessionStorage>(),
-      session: scope.find<AppSessionController>(),
-      schoolClient: scope.find<SchoolClientFactory>(),
-    ),
-    permanent: true,
-  );
-  scope.put<StudentContextController>(
-    () => StudentContextController(
-      sessionStorage: scope.find<SessionStorage>(),
-      session: scope.find<AppSessionController>(),
-      academicYear: scope.find<AcademicYearController>(),
-      schoolClient: scope.find<SchoolClientFactory>(),
-    ),
-    permanent: true,
-  );
+
+  final mockStore = store;
+  if (mockStore != null) {
+    scope.put<MockStore>(() => mockStore, permanent: true);
+    scope.put<MockGuardianContextBridge>(
+      () => MockGuardianContextBridge(store: mockStore),
+      permanent: true,
+    );
+  }
+
+  if (isLive) {
+    EdayaRootScope.bind(scope, appName: systemL10n().appTitleGuardian);
+    final cookieJar = CookieJar();
+    scope.put<SessionStorage>(() => SessionStorage(), permanent: true);
+    scope.put<PendingInvitationStore>(
+      () => PendingInvitationStore(),
+      permanent: true,
+    );
+    registerEdayaDependencies(scope, cookieJar: cookieJar);
+    registerSchoolClientFactory(
+      scope,
+      getAcademicYearId: () =>
+          scope.find<AcademicYearController>().selectedYearId.value,
+      getActorKind: () => 'guardian',
+      getActorId: () => scope.find<AppSessionController>().actorIdHeader,
+      getSchoolId: () => scope.find<AppSessionController>().schoolIdHeader,
+    );
+    scope.put<PushNotificationService>(
+      () => FcmPushNotificationService(
+        schoolClientFactory: scope.find<SchoolClientFactory>(),
+        config: PushNotificationConfigs.guardian,
+        onNotificationOpened: handleGuardianNotificationOpened,
+      ),
+      permanent: true,
+    );
+    scope.put<AppSessionController>(
+      () => AppSessionController(
+        authClient: scope.find<AuthClient>(),
+        sessionStorage: scope.find<SessionStorage>(),
+        pushNotifications: scope.find<PushNotificationService>(),
+        routerRefresh: scope.find<EdayaRouterRefresh>(),
+        validateGrants: (_) => null,
+        unauthorizedProfileMessage: () =>
+            systemL10n().signedInNoGuardianProfile,
+        resolveActorKind: () => 'guardian',
+        allowUnlinkedIdentity: () => true,
+      ),
+      permanent: true,
+    );
+    scope.put<AcademicYearController>(
+      () => AcademicYearController(
+        sessionStorage: scope.find<SessionStorage>(),
+        session: scope.find<AppSessionController>(),
+        schoolClient: scope.find<SchoolClientFactory>(),
+      ),
+      permanent: true,
+    );
+    scope.put<StudentContextController>(
+      () => StudentContextController(
+        sessionStorage: scope.find<SessionStorage>(),
+        session: scope.find<AppSessionController>(),
+        academicYear: scope.find<AcademicYearController>(),
+        schoolClient: scope.find<SchoolClientFactory>(),
+      ),
+      permanent: true,
+    );
+    scope.put<AppBootstrapController>(
+      () => AppBootstrapController(
+        authClient: scope.find<AuthClient>(),
+        sessionStorage: scope.find<SessionStorage>(),
+        session: scope.find<AppSessionController>(),
+        pushNotifications: scope.find<PushNotificationService>(),
+        beforeRestore: () => scope.find<PendingInvitationStore>().hydrate(),
+        initializeAuthenticatedContext: () =>
+            initializeGuardianAuthenticatedContext(scope),
+      ),
+      permanent: true,
+    );
+  } else {
+    scope.put<AppSettingsController>(
+      () => AppSettingsController(),
+      permanent: true,
+    );
+    scope.put<PendingInvitationStore>(
+      () => PendingInvitationStore(),
+      permanent: true,
+    );
+    scope.put<PushNotificationService>(
+      () => NoOpPushNotificationService(),
+      permanent: true,
+    );
+  }
+
+  if (mockStore != null) {
+    mockStore.addListener(() => scope.find<EdayaRouterRefresh>().refresh());
+  }
+
   scope.put<GoRouter>(
     () => createRouter(
-      session: scope.find<AppSessionController>(),
-      studentContext: scope.find<StudentContextController>(),
-      academicYear: scope.find<AcademicYearController>(),
+      session: isLive ? scope.find<AppSessionController>() : null,
+      studentContext: isLive ? scope.find<StudentContextController>() : null,
+      academicYear: isLive ? scope.find<AcademicYearController>() : null,
       pendingInvitation: scope.find<PendingInvitationStore>(),
       routerRefresh: scope.find<EdayaRouterRefresh>(),
-      mockStore: store,
+      mockStore: isLive ? null : mockStore,
     ),
     permanent: true,
   );
@@ -91,43 +144,23 @@ void registerPrototypeDependencies(LevitScope scope, {MockStore? store}) {
     () => PrototypeAppRouter(scope.find<GoRouter>()),
     permanent: true,
   );
-  if (store == null) {
-    scope.put<AppBootstrapController>(
-      () => AppBootstrapController(
-        authClient: scope.find<AuthClient>(),
-        sessionStorage: scope.find<SessionStorage>(),
-        session: scope.find<AppSessionController>(),
-        pushNotifications: scope.find<PushNotificationService>(),
-        beforeRestore: () =>
-            scope.find<PendingInvitationStore>().hydrate(),
-        initializeAuthenticatedContext: () async {
-          await scope.find<AcademicYearController>().loadYears();
-          await scope.find<StudentContextController>().initializeFromSession();
-        },
-      ),
-      permanent: true,
-    );
-  }
-
-  if (store != null) {
-    store.addListener(() => scope.find<EdayaRouterRefresh>().refresh());
-  }
 }
 
-class _NoOpPushNotificationService implements PushNotificationService {
-  const _NoOpPushNotificationService();
+/// Adapts [MockStore] for shell chrome rebuilds in mock tests.
+class MockGuardianContextBridge extends LevitController {
+  MockGuardianContextBridge({required MockStore store}) : _store = store;
+
+  final MockStore _store;
+  final storeTick = LxVar(0);
+
+  MockStore get store => _store;
 
   @override
-  Future<void> initialize() async {}
-
-  @override
-  Future<void> registerForAuthenticatedUser() async {}
-
-  @override
-  Future<void> unregister() async {}
-
-  @override
-  Future<void> consumePendingNavigation() async {}
+  void onInit() {
+    super.onInit();
+    autoDispose(storeTick);
+    _store.addListener(() => storeTick.value++);
+  }
 }
 
 class PrototypeAppRouter implements EdayaAppRouter {

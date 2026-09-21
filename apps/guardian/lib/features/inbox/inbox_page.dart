@@ -8,12 +8,132 @@ import '../../app/shell_tabs.dart';
 import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
+import '../../live/runtime.dart';
+import '../../mock/mock_store.dart';
+import '../context/store_bound_controller.dart';
 import '../context/student_context_controller.dart';
 import 'inbox_controller.dart';
 import 'inbox_routes.dart';
 
-class InboxPage extends LScopedView<InboxController> {
+class InboxPage extends StatelessWidget {
   const InboxPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (prototypeIsLive(context)) {
+      return const _LiveInboxPage();
+    }
+    return const _MockInboxPage();
+  }
+}
+
+class _MockInboxPage extends LScopedView<StoreBoundController> {
+  const _MockInboxPage();
+
+  @override
+  StoreBoundController onConfigScope(LevitScope scope) {
+    return scope.put(() => StoreBoundController(scope.find<MockStore>()));
+  }
+
+  @override
+  Widget buildView(BuildContext context, StoreBoundController controller) {
+    controller.storeTick.value;
+    final store = controller.store;
+    final path = GoRouterState.of(context).uri.path;
+    final hubPath = GuardianShellScope.maybeOf(context)?.hubPath ?? path;
+    final inboxPath = path.startsWith('/inbox') ? path : hubPath;
+    final showingAvis = inboxPath.startsWith('/inbox/avis');
+    final selectedId =
+        GoRouterState.of(context).pathParameters['id'] ??
+        GoRouterState.of(context).pathParameters['campaignId'];
+    final messages = store.messages;
+
+    return AdaptiveContent(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: SegmentedButton<bool>(
+              showSelectedIcon: false,
+              expandedInsets: EdgeInsets.zero,
+              segments: const [
+                ButtonSegment(value: false, label: Text('Messages')),
+                ButtonSegment(value: true, label: Text('Avis')),
+              ],
+              selected: {showingAvis},
+              onSelectionChanged: (value) {
+                context.go(value.first ? '/inbox/avis' : '/inbox');
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Text(
+              showingAvis
+                  ? '0 ouvert(s)'
+                  : '${store.unreadCount} non lu(s)',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          Expanded(
+            child: showingAvis
+                ? EmptyState(title: context.tr.familyFeedbackEmpty)
+                : messages.isEmpty
+                ? const EmptyState(title: 'Aucun message')
+                : ListView.separated(
+                    padding: const EdgeInsets.all(PrototypeSpacing.md),
+                    itemCount: messages.length,
+                    separatorBuilder: (_, _) =>
+                        const SizedBox(height: PrototypeSpacing.xs),
+                    itemBuilder: (context, i) {
+                      final m = messages[i];
+                      final selected = selectedId == m.id;
+                      return ListRow(
+                        title: m.title,
+                        subtitle: m.body.length > 80
+                            ? '${m.body.substring(0, 80)}…'
+                            : m.body,
+                        unread: !m.read,
+                        selected: selected,
+                        badge: m.read
+                            ? 'Lu · ${formatDate(m.sentAt)}'
+                            : 'Nouveau',
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: m.read
+                                ? const Color(0xFFF1F5F9)
+                                : PrototypeColors.primaryContainer,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            Icons.mail_outline,
+                            size: 20,
+                            color: m.read
+                                ? PrototypeColors.onSurfaceVariant
+                                : PrototypeColors.primary,
+                          ),
+                        ),
+                        onTap: () => context.push(inboxMessagePath(m.id)),
+                        trailing: Icon(
+                          Icons.chevron_right,
+                          color: selected
+                              ? PrototypeColors.primary
+                              : PrototypeColors.onSurfaceVariant,
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LiveInboxPage extends LScopedView<InboxController> {
+  const _LiveInboxPage();
 
   @override
   InboxController onConfigScope(LevitScope scope) {

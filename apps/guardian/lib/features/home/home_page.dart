@@ -8,14 +8,170 @@ import '../../app/formatters.dart';
 import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
-import '../../mock/mock_store.dart' show TimetableDaySummary;
+import '../../live/runtime.dart';
+import '../../mock/mock_mappers.dart';
+import '../../mock/mock_store.dart' show MockStore, TimetableDaySummary;
 import '../context/academic_year_controller.dart';
+import '../context/store_bound_controller.dart';
 import '../context/student_context_controller.dart';
 import '../fees/models/fee_formatting.dart' as fees;
 import 'home_controller.dart';
 
-class HomePage extends LScopedView<HomeController> {
+class HomePage extends StatelessWidget {
   const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (prototypeIsLive(context)) {
+      return const _LiveHomePage();
+    }
+    return const _MockHomePage();
+  }
+}
+
+class _MockHomePage extends LScopedView<StoreBoundController> {
+  const _MockHomePage();
+
+  @override
+  StoreBoundController onConfigScope(LevitScope scope) {
+    return scope.put(() => StoreBoundController(scope.find<MockStore>()));
+  }
+
+  @override
+  Widget buildView(BuildContext context, StoreBoundController controller) {
+    controller.storeTick.value;
+    final store = controller.store;
+    final reportCard = store.currentPeriodReportCard;
+    final attentionCards = <Widget>[
+      if (store.overdueFeeCount > 0)
+        AttentionCard(
+          tone: AttentionTone.important,
+          title: 'Frais en retard',
+          subtitle:
+              '${store.overdueFeeCount} ligne(s) · Solde ${formatMoney(store.feeBalance, 'EUR')}',
+          icon: Icons.payments_outlined,
+          onTap: () => context.go('/fees'),
+        ),
+      if (reportCard != null)
+        AttentionCard(
+          tone: AttentionTone.normal,
+          title: 'Bulletin disponible',
+          subtitle: '${reportCard.period} · Moyenne ${reportCard.average}',
+          icon: Icons.menu_book_outlined,
+          onTap: () => context.push('/report-card/${reportCard.id}'),
+        ),
+      if (store.unreadCount > 0)
+        AttentionCard(
+          tone: AttentionTone.message,
+          title: 'Nouveaux messages',
+          subtitle: '${store.unreadCount} non lu(s)',
+          icon: Icons.mail_outline,
+          onTap: () => context.go('/inbox'),
+        ),
+    ];
+
+    return AdaptiveContent(
+      child: ListView(
+        padding: const EdgeInsets.all(PrototypeSpacing.md),
+        children: [
+          Text(
+            formatFullDate(DateTime.now()),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: PrototypeSpacing.xl),
+          _AttentionBand(cards: attentionCards),
+          const SizedBox(height: PrototypeSpacing.xl),
+          _HomeDaySection(
+            title: 'Aujourd\'hui',
+            plan: _planForOffset(store, 0),
+            onOpenCalendar: () {
+              store.selectCalendarDayOffset(0);
+              context.go('/calendar');
+            },
+          ),
+          const SizedBox(height: PrototypeSpacing.xl),
+          _HomeDaySection(
+            title: 'Demain',
+            plan: _planForOffset(store, 1),
+            onOpenCalendar: () {
+              store.selectCalendarDayOffset(1);
+              context.go('/calendar');
+            },
+          ),
+          const SizedBox(height: PrototypeSpacing.xl),
+          const SectionHeader(title: 'Finances'),
+          for (final alert in store.homeFinanceAlerts) ...[
+            ListRow(
+              title: alert.label,
+              subtitle: 'Échéance ${formatDate(alert.dueDate)}',
+              badge: alert.isOverdue ? 'En retard' : 'À venir',
+              badgeTone: alert.isOverdue
+                  ? SemanticTone.error
+                  : SemanticTone.neutral,
+              onTap: () => context.go('/fees'),
+              trailing: Text(
+                formatMoney(alert.amount, alert.currency),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: alert.isOverdue ? PrototypeColors.error : null,
+                ),
+              ),
+            ),
+            const SizedBox(height: PrototypeSpacing.xs),
+          ],
+          if (store.homeFinanceAlerts.isEmpty)
+            Text(
+              'Aucune échéance à surveiller',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          const SizedBox(height: PrototypeSpacing.xl),
+          SectionHeader(
+            title: 'Dernières notes',
+            action: 'Tout voir',
+            onAction: () => context.go('/scolarite/notes'),
+          ),
+          for (final grade in store.latestGrades) ...[
+            ListRow(
+              title: grade.title,
+              subtitle: '${grade.subject} · ${formatDate(grade.date)}',
+              trailing: Text(
+                '${grade.score.toInt()}/${grade.maxScore.toInt()}',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: PrototypeColors.primary,
+                ),
+              ),
+              onTap: () => context.push('/grade/${grade.id}'),
+            ),
+            const SizedBox(height: PrototypeSpacing.xs),
+          ],
+          if (store.latestGrades.isEmpty)
+            Text(
+              'Aucune note pour le moment',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+        ],
+      ),
+    );
+  }
+
+  HomeDayPlan _planForOffset(MockStore store, int offset) {
+    final noSchool = store.noSchoolDayForOffset(offset);
+    return HomeDayPlan(
+      dayOffset: offset,
+      sessions: store
+          .sessionsForDay(store.dateForDayOffset(offset))
+          .map(calendarSessionFromMock)
+          .toList(),
+      events: store
+          .schoolEventsForDayOffset(offset)
+          .map(schoolEventFromMock)
+          .toList(),
+      noSchoolDay: noSchool == null ? null : schoolEventFromMock(noSchool),
+    );
+  }
+}
+
+class _LiveHomePage extends LScopedView<HomeController> {
+  const _LiveHomePage();
 
   @override
   HomeController onConfigScope(LevitScope scope) {

@@ -36,7 +36,7 @@ Future<UploadedProfilePhoto> uploadProfilePhoto({
     'fileName': profilePhotoFileName,
     'mimeType': profilePhotoJpegMime,
     'sizeBytes': jpegBytes.length,
-    if (storedAttachmentId != null) 'attachmentId': storedAttachmentId,
+    'attachmentId': ?storedAttachmentId,
   });
 
   final attachmentId = intent['attachmentId'] as String;
