@@ -104,6 +104,70 @@ class $TeacherOutboxRowsTable extends TeacherOutboxRows
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _originMeta = const VerificationMeta('origin');
+  @override
+  late final GeneratedColumn<String> origin = GeneratedColumn<String>(
+    'origin',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _subjectIdMeta = const VerificationMeta(
+    'subjectId',
+  );
+  @override
+  late final GeneratedColumn<String> subjectId = GeneratedColumn<String>(
+    'subject_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _actorKindMeta = const VerificationMeta(
+    'actorKind',
+  );
+  @override
+  late final GeneratedColumn<String> actorKind = GeneratedColumn<String>(
+    'actor_kind',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _actorIdMeta = const VerificationMeta(
+    'actorId',
+  );
+  @override
+  late final GeneratedColumn<String> actorId = GeneratedColumn<String>(
+    'actor_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _schoolIdMeta = const VerificationMeta(
+    'schoolId',
+  );
+  @override
+  late final GeneratedColumn<String> schoolId = GeneratedColumn<String>(
+    'school_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _academicYearIdMeta = const VerificationMeta(
+    'academicYearId',
+  );
+  @override
+  late final GeneratedColumn<String> academicYearId = GeneratedColumn<String>(
+    'academic_year_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -115,6 +179,12 @@ class $TeacherOutboxRowsTable extends TeacherOutboxRows
     lastError,
     createdAt,
     updatedAt,
+    origin,
+    subjectId,
+    actorKind,
+    actorId,
+    schoolId,
+    academicYearId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -202,6 +272,45 @@ class $TeacherOutboxRowsTable extends TeacherOutboxRows
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (data.containsKey('origin')) {
+      context.handle(
+        _originMeta,
+        origin.isAcceptableOrUnknown(data['origin']!, _originMeta),
+      );
+    }
+    if (data.containsKey('subject_id')) {
+      context.handle(
+        _subjectIdMeta,
+        subjectId.isAcceptableOrUnknown(data['subject_id']!, _subjectIdMeta),
+      );
+    }
+    if (data.containsKey('actor_kind')) {
+      context.handle(
+        _actorKindMeta,
+        actorKind.isAcceptableOrUnknown(data['actor_kind']!, _actorKindMeta),
+      );
+    }
+    if (data.containsKey('actor_id')) {
+      context.handle(
+        _actorIdMeta,
+        actorId.isAcceptableOrUnknown(data['actor_id']!, _actorIdMeta),
+      );
+    }
+    if (data.containsKey('school_id')) {
+      context.handle(
+        _schoolIdMeta,
+        schoolId.isAcceptableOrUnknown(data['school_id']!, _schoolIdMeta),
+      );
+    }
+    if (data.containsKey('academic_year_id')) {
+      context.handle(
+        _academicYearIdMeta,
+        academicYearId.isAcceptableOrUnknown(
+          data['academic_year_id']!,
+          _academicYearIdMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -247,6 +356,30 @@ class $TeacherOutboxRowsTable extends TeacherOutboxRows
         DriftSqlType.int,
         data['${effectivePrefix}updated_at'],
       )!,
+      origin: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}origin'],
+      ),
+      subjectId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}subject_id'],
+      ),
+      actorKind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}actor_kind'],
+      ),
+      actorId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}actor_id'],
+      ),
+      schoolId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}school_id'],
+      ),
+      academicYearId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}academic_year_id'],
+      ),
     );
   }
 
@@ -267,6 +400,12 @@ class TeacherOutboxRow extends DataClass
   final String? lastError;
   final int createdAt;
   final int updatedAt;
+  final String? origin;
+  final String? subjectId;
+  final String? actorKind;
+  final String? actorId;
+  final String? schoolId;
+  final String? academicYearId;
   const TeacherOutboxRow({
     required this.id,
     required this.kind,
@@ -277,6 +416,12 @@ class TeacherOutboxRow extends DataClass
     this.lastError,
     required this.createdAt,
     required this.updatedAt,
+    this.origin,
+    this.subjectId,
+    this.actorKind,
+    this.actorId,
+    this.schoolId,
+    this.academicYearId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -292,6 +437,24 @@ class TeacherOutboxRow extends DataClass
     }
     map['created_at'] = Variable<int>(createdAt);
     map['updated_at'] = Variable<int>(updatedAt);
+    if (!nullToAbsent || origin != null) {
+      map['origin'] = Variable<String>(origin);
+    }
+    if (!nullToAbsent || subjectId != null) {
+      map['subject_id'] = Variable<String>(subjectId);
+    }
+    if (!nullToAbsent || actorKind != null) {
+      map['actor_kind'] = Variable<String>(actorKind);
+    }
+    if (!nullToAbsent || actorId != null) {
+      map['actor_id'] = Variable<String>(actorId);
+    }
+    if (!nullToAbsent || schoolId != null) {
+      map['school_id'] = Variable<String>(schoolId);
+    }
+    if (!nullToAbsent || academicYearId != null) {
+      map['academic_year_id'] = Variable<String>(academicYearId);
+    }
     return map;
   }
 
@@ -308,6 +471,24 @@ class TeacherOutboxRow extends DataClass
           : Value(lastError),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      origin: origin == null && nullToAbsent
+          ? const Value.absent()
+          : Value(origin),
+      subjectId: subjectId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(subjectId),
+      actorKind: actorKind == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actorKind),
+      actorId: actorId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actorId),
+      schoolId: schoolId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(schoolId),
+      academicYearId: academicYearId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(academicYearId),
     );
   }
 
@@ -326,6 +507,12 @@ class TeacherOutboxRow extends DataClass
       lastError: serializer.fromJson<String?>(json['lastError']),
       createdAt: serializer.fromJson<int>(json['createdAt']),
       updatedAt: serializer.fromJson<int>(json['updatedAt']),
+      origin: serializer.fromJson<String?>(json['origin']),
+      subjectId: serializer.fromJson<String?>(json['subjectId']),
+      actorKind: serializer.fromJson<String?>(json['actorKind']),
+      actorId: serializer.fromJson<String?>(json['actorId']),
+      schoolId: serializer.fromJson<String?>(json['schoolId']),
+      academicYearId: serializer.fromJson<String?>(json['academicYearId']),
     );
   }
   @override
@@ -341,6 +528,12 @@ class TeacherOutboxRow extends DataClass
       'lastError': serializer.toJson<String?>(lastError),
       'createdAt': serializer.toJson<int>(createdAt),
       'updatedAt': serializer.toJson<int>(updatedAt),
+      'origin': serializer.toJson<String?>(origin),
+      'subjectId': serializer.toJson<String?>(subjectId),
+      'actorKind': serializer.toJson<String?>(actorKind),
+      'actorId': serializer.toJson<String?>(actorId),
+      'schoolId': serializer.toJson<String?>(schoolId),
+      'academicYearId': serializer.toJson<String?>(academicYearId),
     };
   }
 
@@ -354,6 +547,12 @@ class TeacherOutboxRow extends DataClass
     Value<String?> lastError = const Value.absent(),
     int? createdAt,
     int? updatedAt,
+    Value<String?> origin = const Value.absent(),
+    Value<String?> subjectId = const Value.absent(),
+    Value<String?> actorKind = const Value.absent(),
+    Value<String?> actorId = const Value.absent(),
+    Value<String?> schoolId = const Value.absent(),
+    Value<String?> academicYearId = const Value.absent(),
   }) => TeacherOutboxRow(
     id: id ?? this.id,
     kind: kind ?? this.kind,
@@ -364,6 +563,14 @@ class TeacherOutboxRow extends DataClass
     lastError: lastError.present ? lastError.value : this.lastError,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    origin: origin.present ? origin.value : this.origin,
+    subjectId: subjectId.present ? subjectId.value : this.subjectId,
+    actorKind: actorKind.present ? actorKind.value : this.actorKind,
+    actorId: actorId.present ? actorId.value : this.actorId,
+    schoolId: schoolId.present ? schoolId.value : this.schoolId,
+    academicYearId: academicYearId.present
+        ? academicYearId.value
+        : this.academicYearId,
   );
   TeacherOutboxRow copyWithCompanion(TeacherOutboxRowsCompanion data) {
     return TeacherOutboxRow(
@@ -382,6 +589,14 @@ class TeacherOutboxRow extends DataClass
       lastError: data.lastError.present ? data.lastError.value : this.lastError,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      origin: data.origin.present ? data.origin.value : this.origin,
+      subjectId: data.subjectId.present ? data.subjectId.value : this.subjectId,
+      actorKind: data.actorKind.present ? data.actorKind.value : this.actorKind,
+      actorId: data.actorId.present ? data.actorId.value : this.actorId,
+      schoolId: data.schoolId.present ? data.schoolId.value : this.schoolId,
+      academicYearId: data.academicYearId.present
+          ? data.academicYearId.value
+          : this.academicYearId,
     );
   }
 
@@ -396,7 +611,13 @@ class TeacherOutboxRow extends DataClass
           ..write('attemptCount: $attemptCount, ')
           ..write('lastError: $lastError, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('origin: $origin, ')
+          ..write('subjectId: $subjectId, ')
+          ..write('actorKind: $actorKind, ')
+          ..write('actorId: $actorId, ')
+          ..write('schoolId: $schoolId, ')
+          ..write('academicYearId: $academicYearId')
           ..write(')'))
         .toString();
   }
@@ -412,6 +633,12 @@ class TeacherOutboxRow extends DataClass
     lastError,
     createdAt,
     updatedAt,
+    origin,
+    subjectId,
+    actorKind,
+    actorId,
+    schoolId,
+    academicYearId,
   );
   @override
   bool operator ==(Object other) =>
@@ -425,7 +652,13 @@ class TeacherOutboxRow extends DataClass
           other.attemptCount == this.attemptCount &&
           other.lastError == this.lastError &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.origin == this.origin &&
+          other.subjectId == this.subjectId &&
+          other.actorKind == this.actorKind &&
+          other.actorId == this.actorId &&
+          other.schoolId == this.schoolId &&
+          other.academicYearId == this.academicYearId);
 }
 
 class TeacherOutboxRowsCompanion extends UpdateCompanion<TeacherOutboxRow> {
@@ -438,6 +671,12 @@ class TeacherOutboxRowsCompanion extends UpdateCompanion<TeacherOutboxRow> {
   final Value<String?> lastError;
   final Value<int> createdAt;
   final Value<int> updatedAt;
+  final Value<String?> origin;
+  final Value<String?> subjectId;
+  final Value<String?> actorKind;
+  final Value<String?> actorId;
+  final Value<String?> schoolId;
+  final Value<String?> academicYearId;
   final Value<int> rowid;
   const TeacherOutboxRowsCompanion({
     this.id = const Value.absent(),
@@ -449,6 +688,12 @@ class TeacherOutboxRowsCompanion extends UpdateCompanion<TeacherOutboxRow> {
     this.lastError = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.origin = const Value.absent(),
+    this.subjectId = const Value.absent(),
+    this.actorKind = const Value.absent(),
+    this.actorId = const Value.absent(),
+    this.schoolId = const Value.absent(),
+    this.academicYearId = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   TeacherOutboxRowsCompanion.insert({
@@ -461,6 +706,12 @@ class TeacherOutboxRowsCompanion extends UpdateCompanion<TeacherOutboxRow> {
     this.lastError = const Value.absent(),
     required int createdAt,
     required int updatedAt,
+    this.origin = const Value.absent(),
+    this.subjectId = const Value.absent(),
+    this.actorKind = const Value.absent(),
+    this.actorId = const Value.absent(),
+    this.schoolId = const Value.absent(),
+    this.academicYearId = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        kind = Value(kind),
@@ -479,6 +730,12 @@ class TeacherOutboxRowsCompanion extends UpdateCompanion<TeacherOutboxRow> {
     Expression<String>? lastError,
     Expression<int>? createdAt,
     Expression<int>? updatedAt,
+    Expression<String>? origin,
+    Expression<String>? subjectId,
+    Expression<String>? actorKind,
+    Expression<String>? actorId,
+    Expression<String>? schoolId,
+    Expression<String>? academicYearId,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -491,6 +748,12 @@ class TeacherOutboxRowsCompanion extends UpdateCompanion<TeacherOutboxRow> {
       if (lastError != null) 'last_error': lastError,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (origin != null) 'origin': origin,
+      if (subjectId != null) 'subject_id': subjectId,
+      if (actorKind != null) 'actor_kind': actorKind,
+      if (actorId != null) 'actor_id': actorId,
+      if (schoolId != null) 'school_id': schoolId,
+      if (academicYearId != null) 'academic_year_id': academicYearId,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -505,6 +768,12 @@ class TeacherOutboxRowsCompanion extends UpdateCompanion<TeacherOutboxRow> {
     Value<String?>? lastError,
     Value<int>? createdAt,
     Value<int>? updatedAt,
+    Value<String?>? origin,
+    Value<String?>? subjectId,
+    Value<String?>? actorKind,
+    Value<String?>? actorId,
+    Value<String?>? schoolId,
+    Value<String?>? academicYearId,
     Value<int>? rowid,
   }) {
     return TeacherOutboxRowsCompanion(
@@ -517,6 +786,12 @@ class TeacherOutboxRowsCompanion extends UpdateCompanion<TeacherOutboxRow> {
       lastError: lastError ?? this.lastError,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      origin: origin ?? this.origin,
+      subjectId: subjectId ?? this.subjectId,
+      actorKind: actorKind ?? this.actorKind,
+      actorId: actorId ?? this.actorId,
+      schoolId: schoolId ?? this.schoolId,
+      academicYearId: academicYearId ?? this.academicYearId,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -551,6 +826,24 @@ class TeacherOutboxRowsCompanion extends UpdateCompanion<TeacherOutboxRow> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<int>(updatedAt.value);
     }
+    if (origin.present) {
+      map['origin'] = Variable<String>(origin.value);
+    }
+    if (subjectId.present) {
+      map['subject_id'] = Variable<String>(subjectId.value);
+    }
+    if (actorKind.present) {
+      map['actor_kind'] = Variable<String>(actorKind.value);
+    }
+    if (actorId.present) {
+      map['actor_id'] = Variable<String>(actorId.value);
+    }
+    if (schoolId.present) {
+      map['school_id'] = Variable<String>(schoolId.value);
+    }
+    if (academicYearId.present) {
+      map['academic_year_id'] = Variable<String>(academicYearId.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -569,6 +862,12 @@ class TeacherOutboxRowsCompanion extends UpdateCompanion<TeacherOutboxRow> {
           ..write('lastError: $lastError, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('origin: $origin, ')
+          ..write('subjectId: $subjectId, ')
+          ..write('actorKind: $actorKind, ')
+          ..write('actorId: $actorId, ')
+          ..write('schoolId: $schoolId, ')
+          ..write('academicYearId: $academicYearId, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -599,6 +898,12 @@ typedef $$TeacherOutboxRowsTableCreateCompanionBuilder =
       Value<String?> lastError,
       required int createdAt,
       required int updatedAt,
+      Value<String?> origin,
+      Value<String?> subjectId,
+      Value<String?> actorKind,
+      Value<String?> actorId,
+      Value<String?> schoolId,
+      Value<String?> academicYearId,
       Value<int> rowid,
     });
 typedef $$TeacherOutboxRowsTableUpdateCompanionBuilder =
@@ -612,6 +917,12 @@ typedef $$TeacherOutboxRowsTableUpdateCompanionBuilder =
       Value<String?> lastError,
       Value<int> createdAt,
       Value<int> updatedAt,
+      Value<String?> origin,
+      Value<String?> subjectId,
+      Value<String?> actorKind,
+      Value<String?> actorId,
+      Value<String?> schoolId,
+      Value<String?> academicYearId,
       Value<int> rowid,
     });
 
@@ -666,6 +977,36 @@ class $$TeacherOutboxRowsTableFilterComposer
 
   ColumnFilters<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get origin => $composableBuilder(
+    column: $table.origin,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get subjectId => $composableBuilder(
+    column: $table.subjectId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get actorKind => $composableBuilder(
+    column: $table.actorKind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get actorId => $composableBuilder(
+    column: $table.actorId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get schoolId => $composableBuilder(
+    column: $table.schoolId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get academicYearId => $composableBuilder(
+    column: $table.academicYearId,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -723,6 +1064,36 @@ class $$TeacherOutboxRowsTableOrderingComposer
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get origin => $composableBuilder(
+    column: $table.origin,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get subjectId => $composableBuilder(
+    column: $table.subjectId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get actorKind => $composableBuilder(
+    column: $table.actorKind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get actorId => $composableBuilder(
+    column: $table.actorId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get schoolId => $composableBuilder(
+    column: $table.schoolId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get academicYearId => $composableBuilder(
+    column: $table.academicYearId,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$TeacherOutboxRowsTableAnnotationComposer
@@ -766,6 +1137,26 @@ class $$TeacherOutboxRowsTableAnnotationComposer
 
   GeneratedColumn<int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get origin =>
+      $composableBuilder(column: $table.origin, builder: (column) => column);
+
+  GeneratedColumn<String> get subjectId =>
+      $composableBuilder(column: $table.subjectId, builder: (column) => column);
+
+  GeneratedColumn<String> get actorKind =>
+      $composableBuilder(column: $table.actorKind, builder: (column) => column);
+
+  GeneratedColumn<String> get actorId =>
+      $composableBuilder(column: $table.actorId, builder: (column) => column);
+
+  GeneratedColumn<String> get schoolId =>
+      $composableBuilder(column: $table.schoolId, builder: (column) => column);
+
+  GeneratedColumn<String> get academicYearId => $composableBuilder(
+    column: $table.academicYearId,
+    builder: (column) => column,
+  );
 }
 
 class $$TeacherOutboxRowsTableTableManager
@@ -817,6 +1208,12 @@ class $$TeacherOutboxRowsTableTableManager
                 Value<String?> lastError = const Value.absent(),
                 Value<int> createdAt = const Value.absent(),
                 Value<int> updatedAt = const Value.absent(),
+                Value<String?> origin = const Value.absent(),
+                Value<String?> subjectId = const Value.absent(),
+                Value<String?> actorKind = const Value.absent(),
+                Value<String?> actorId = const Value.absent(),
+                Value<String?> schoolId = const Value.absent(),
+                Value<String?> academicYearId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TeacherOutboxRowsCompanion(
                 id: id,
@@ -828,6 +1225,12 @@ class $$TeacherOutboxRowsTableTableManager
                 lastError: lastError,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                origin: origin,
+                subjectId: subjectId,
+                actorKind: actorKind,
+                actorId: actorId,
+                schoolId: schoolId,
+                academicYearId: academicYearId,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -841,6 +1244,12 @@ class $$TeacherOutboxRowsTableTableManager
                 Value<String?> lastError = const Value.absent(),
                 required int createdAt,
                 required int updatedAt,
+                Value<String?> origin = const Value.absent(),
+                Value<String?> subjectId = const Value.absent(),
+                Value<String?> actorKind = const Value.absent(),
+                Value<String?> actorId = const Value.absent(),
+                Value<String?> schoolId = const Value.absent(),
+                Value<String?> academicYearId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TeacherOutboxRowsCompanion.insert(
                 id: id,
@@ -852,6 +1261,12 @@ class $$TeacherOutboxRowsTableTableManager
                 lastError: lastError,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                origin: origin,
+                subjectId: subjectId,
+                actorKind: actorKind,
+                actorId: actorId,
+                schoolId: schoolId,
+                academicYearId: academicYearId,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

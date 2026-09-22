@@ -352,26 +352,43 @@ class LiveReportCardCommentController extends LevitController
       return false;
     }
     saveMessage('');
+    _outboxStore.bindContext(
+      teacherOutboxContextForSession(session: _session),
+    );
+    final resultId = result['id'] as String? ?? '';
+    final homeroomComment = commentsBySectionId['__homeroom__'];
+    final sectionComments = <Map<String, dynamic>>[
+      for (final entry in commentsBySectionId.entries)
+        if (entry.key != '__homeroom__')
+          {
+            'sectionId': entry.key,
+            'comment': entry.value.trim().isEmpty ? null : entry.value.trim(),
+          },
+    ];
+    final payload = <String, dynamic>{
+      if (homeroomComment != null)
+        'homeroom': {
+          'id': resultId,
+          'teacherComment': homeroomComment,
+        },
+      if (sectionComments.isNotEmpty)
+        'sections': {
+          'id': resultId,
+          'sections': sectionComments,
+        },
+    };
+    final sectionId = homeroomComment != null && sectionComments.isEmpty
+        ? '__homeroom__'
+        : (sectionComments.isEmpty
+              ? '__homeroom__'
+              : sectionComments.first['sectionId'] as String);
     try {
       final client = _schoolClient();
-      final homeroomOnly =
-          commentsBySectionId.keys.length == 1 &&
-          commentsBySectionId.containsKey('__homeroom__');
-      if (homeroomOnly) {
-        await client.runCommand('write-homeroom-report-comment', {
-          'id': result['id'],
-          'teacherComment': commentsBySectionId['__homeroom__'] ?? '',
-        });
-      } else {
-        await client.results.save(
-          applyReportCardCommentUpdates(
-            result,
-            commentsBySectionId: commentsBySectionId,
-          ),
-        );
-      }
-      final resultId = result['id'] as String?;
-      if (resultId != null) {
+      await _sendReportComments(client, payload);
+      await _outboxStore.removeByIdempotencyKey(
+        teacherCommentIdempotencyKey(resultId: resultId, sectionId: sectionId),
+      );
+      if (resultId.isNotEmpty) {
         await ReportCardCommentDraftStorage.clear(
           resultId: resultId,
           studentId: studentId,
@@ -379,27 +396,11 @@ class LiveReportCardCommentController extends LevitController
       }
       return true;
     } on Object catch (error) {
-      final homeroomOnly =
-          commentsBySectionId.keys.length == 1 &&
-          commentsBySectionId.containsKey('__homeroom__');
-      final resultId = result['id'] as String? ?? '';
-      final sectionId = homeroomOnly
-          ? '__homeroom__'
-          : commentsBySectionId.keys.first;
-      final payload = homeroomOnly
-          ? {
-              'command': 'write-homeroom-report-comment',
-              'body': {
-                'id': result['id'],
-                'teacherComment': commentsBySectionId['__homeroom__'] ?? '',
-              },
-            }
-          : {
-              'resultPayload': applyReportCardCommentUpdates(
-                result,
-                commentsBySectionId: commentsBySectionId,
-              ),
-            };
+      final retryable = isRetryableTeacherWriteFailure(error);
+      if (!retryable) {
+        saveMessage(systemL10n().couldNotSaveMark('$error'));
+        return false;
+      }
       await _outboxStore.enqueue(
         buildTeacherOutboxEntry(
           id: 'comment-$resultId-$sectionId',
@@ -415,5 +416,19 @@ class LiveReportCardCommentController extends LevitController
       saveMessage(systemL10n().attendanceSavedLocally);
       return true;
     }
+  }
+}
+
+Future<void> _sendReportComments(
+  SchoolClient client,
+  Map<String, dynamic> payload,
+) async {
+  final homeroom = payload['homeroom'];
+  if (homeroom is Map<String, dynamic>) {
+    await client.runCommand('write-homeroom-report-comment', homeroom);
+  }
+  final sections = payload['sections'];
+  if (sections is Map<String, dynamic>) {
+    await client.runCommand('write-report-card-section-comments', sections);
   }
 }

@@ -4,6 +4,7 @@ export 'teacher_outbox_database.dart';
 export 'teacher_outbox_models.dart';
 export 'teacher_outbox_store_shared_prefs.dart';
 export 'teacher_outbox_sync.dart';
+export 'teacher_write_failure.dart';
 export 'teacher_outbox_sync_summary_card.dart';
 
 import 'package:flutter/foundation.dart';

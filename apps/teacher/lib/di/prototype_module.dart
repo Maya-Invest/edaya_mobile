@@ -177,6 +177,10 @@ void registerPrototypeDependencies(
       () => TeacherOutboxController(
         outboxStore: scope.find<TeacherOutboxStore>(),
         schoolClient: scope.find<SchoolClientFactory>(),
+        context: () => teacherOutboxContextForSession(
+          session: scope.find<AppSessionController>(),
+          academicYearId: scope.find<AcademicYearController>().selectedYearId.value,
+        ),
       ),
       permanent: true,
     );
@@ -216,6 +220,8 @@ void registerPrototypeDependencies(
         }
         return store.isAuthenticated;
       },
+      needsProfileSelection: () =>
+          live && scope.find<AppSessionController>().needsProfileSelection,
       isBootstrapping: () {
         if (!live || !includeBootstrap) {
           return false;

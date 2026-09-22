@@ -127,11 +127,12 @@ void main() {
       transport.pending[0].complete([delivery('a')]);
       await until(() => !controller.isBusy.value);
       expect(controller.deliveries.value.map((row) => row.id), ['b']);
+      final beforeSignOut = transport.pending.length;
       final third = controller.loadInbox();
-      await until(() => transport.pending.length == 3);
+      await until(() => transport.pending.length > beforeSignOut);
       session.user(null);
       await until(() => controller.deliveries.value.isEmpty);
-      transport.pending[2].complete([delivery('b')]);
+      transport.pending.last.complete([delivery('b')]);
       await third;
       expect(controller.deliveries.value, isEmpty);
     },

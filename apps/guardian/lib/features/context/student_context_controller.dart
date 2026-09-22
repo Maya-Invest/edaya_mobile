@@ -35,7 +35,7 @@ class StudentContextController extends LevitController
   final isLoading = LxVar(false);
   final errorMessage = LxVar('');
 
-  Future<void>? _pendingReload;
+  int _reloadGeneration = 0;
 
   String? get activeStudentId => activeStudent.value?.id;
 
@@ -131,14 +131,15 @@ class StudentContextController extends LevitController
   }
 
   Future<void> reloadContext() {
-    _pendingReload ??= _reloadContext().whenComplete(() {
-      _pendingReload = null;
-    });
-    return _pendingReload!;
+    final generation = ++_reloadGeneration;
+    return _reloadContext(generation);
   }
 
-  Future<void> _reloadContext() async {
+  Future<void> _reloadContext(int generation) async {
     final studentId = await _sessionStorage.readActiveStudentId();
+    if (generation != _reloadGeneration) {
+      return;
+    }
     if (studentId == null) {
       _clearContext();
       return;
@@ -147,14 +148,29 @@ class StudentContextController extends LevitController
     errorMessage('');
 
     await runTask(() async {
+      if (generation != _reloadGeneration) {
+        return;
+      }
       isLoading(true);
       try {
         final schoolClient = _schoolClient();
         final studentJson = await schoolClient.students.get(studentId);
+        if (generation != _reloadGeneration) {
+          return;
+        }
         final student = LinkedStudent.fromJson(studentJson);
+        if (student.id != studentId) {
+          return;
+        }
         activeStudent(student);
         schoolName(await _loadSchoolName(schoolClient, student.schoolId));
+        if (generation != _reloadGeneration) {
+          return;
+        }
         await _academicYear.applyStoredYearForSchool(student.schoolId);
+        if (generation != _reloadGeneration) {
+          return;
+        }
         final resolvedYearId = _academicYear.selectedYearId.value;
 
         if (resolvedYearId == null) {
@@ -170,6 +186,9 @@ class StudentContextController extends LevitController
           yearId: resolvedYearId,
         );
       } on api.ApiError catch (error) {
+        if (generation != _reloadGeneration) {
+          return;
+        }
         errorMessage(systemL10n().couldNotLoadStudentContext(error.toString()));
         activeStudent(null);
         classGroupId(null);
@@ -177,6 +196,9 @@ class StudentContextController extends LevitController
         schoolName(null);
         isEnrolled(false);
       } on Object catch (error) {
+        if (generation != _reloadGeneration) {
+          return;
+        }
         errorMessage(systemL10n().couldNotLoadStudentContext(error.toString()));
         activeStudent(null);
         classGroupId(null);
@@ -184,7 +206,9 @@ class StudentContextController extends LevitController
         schoolName(null);
         isEnrolled(false);
       } finally {
-        isLoading(false);
+        if (generation == _reloadGeneration) {
+          isLoading(false);
+        }
       }
     });
   }

@@ -27,6 +27,7 @@ class LiveCalendarController extends LevitController
   final weekStart = LxVar(startOfWeek(defaultCalendarDay()));
   final selectedDay = LxVar(defaultCalendarDay());
   final sessions = LxVar<List<TeacherSession>>(const []);
+  final todaySessions = LxVar<List<TeacherSession>>(const []);
   final attendanceCompletionBySessionId =
       LxVar<Map<String, SessionAttendanceCompletion>>({});
   final logbookCompleteBySessionId = LxVar<Map<String, bool>>({});
@@ -38,6 +39,7 @@ class LiveCalendarController extends LevitController
     autoDispose(weekStart);
     autoDispose(selectedDay);
     autoDispose(sessions);
+    autoDispose(todaySessions);
     autoDispose(attendanceCompletionBySessionId);
     autoDispose(logbookCompleteBySessionId);
     autoDispose(errorMessage);
@@ -58,7 +60,9 @@ class LiveCalendarController extends LevitController
   }
 
   CalendarSessionFocus get todayFocus => resolveCalendarSessionFocus(
-    sessions: sessions.value,
+    sessions: todaySessions.value.isNotEmpty
+        ? todaySessions.value
+        : sessions.value,
     now: DateTime.now(),
   );
 
@@ -88,7 +92,7 @@ class LiveCalendarController extends LevitController
     }).toList();
   }
   TeacherSession? sessionById(String id) {
-    for (final session in sessions.value) {
+    for (final session in [...todaySessions.value, ...sessions.value]) {
       if (session.id == id) {
         return session;
       }
@@ -157,6 +161,7 @@ class LiveCalendarController extends LevitController
 
         parsedSessions.sort((a, b) => a.startsAt.compareTo(b.startsAt));
         sessions(parsedSessions);
+        todaySessions(await _loadTeacherToday(client, classLabelById));
         await _loadTodayAttendanceCompletion(parsedSessions);
         await _loadTodayLogbookCompletion(parsedSessions);
       } on api.ApiError catch (error) {
@@ -243,5 +248,49 @@ class LiveCalendarController extends LevitController
       }
     }
     logbookCompleteBySessionId(completeBySessionId);
+  }
+
+  Future<List<TeacherSession>> _loadTeacherToday(
+    api.SchoolClient client,
+    Map<String, String> classLabelById,
+  ) async {
+    final teacherId = _teacherContext.teacherId.value;
+    if (teacherId == null) {
+      return const [];
+    }
+    final now = DateTime.now();
+    final day =
+        '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    try {
+      final response = await client.runQuery('get-teacher-timetable', {
+        'teacherId': teacherId,
+        'startDate': day,
+        'endDate': day,
+      });
+      final events = response['events'];
+      if (events is! List) {
+        return const [];
+      }
+      return [
+        for (final raw in events)
+          if (raw is Map)
+            TeacherSession(
+              id: raw['id'] as String,
+              title: raw['title'] as String? ?? raw['id'] as String,
+              kind: raw['kind'] as String? ?? 'lesson',
+              startsAt: DateTime.parse(raw['startsAt'] as String),
+              endsAt: DateTime.parse(raw['endsAt'] as String),
+              classGroupId: raw['classGroupId'] as String,
+              classLabel:
+                  classLabelById[raw['classGroupId']] ??
+                  raw['classGroupId'] as String,
+              subjectLabel: raw['subjectLabel'] as String? ?? '',
+              classSubjectId: raw['classSubjectId'] as String?,
+              status: raw['status'] as String?,
+            ),
+      ];
+    } on Object {
+      return const [];
+    }
   }
 }

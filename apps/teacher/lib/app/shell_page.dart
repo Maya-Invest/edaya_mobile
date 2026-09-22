@@ -200,7 +200,7 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
 
         if (!useRail) {
           return Scaffold(
-            backgroundColor: PrototypeColors.background,
+            backgroundColor: Theme.of(context).colorScheme.surface,
             appBar: showNav
                 ? PrototypeAppBar(
                     onProfileTap: () => context.go('/account'),
@@ -239,12 +239,12 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
         }
 
         return Scaffold(
-          backgroundColor: PrototypeColors.background,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           body: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               NavigationRail(
-                backgroundColor: PrototypeColors.background,
+                backgroundColor: Theme.of(context).colorScheme.surface,
                 selectedIndex: index,
                 onDestinationSelected: (i) => context.go(_tabs[i]),
                 labelType: NavigationRailLabelType.all,

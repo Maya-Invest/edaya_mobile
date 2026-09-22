@@ -8,6 +8,7 @@ import '../../live/runtime.dart';
 import '../../mock/mock_store.dart';
 import '../calendar/live_calendar_controller.dart';
 import '../context/academic_year_controller.dart';
+import '../context/teacher_context_controller.dart';
 import '../context/store_bound_controller.dart';
 import 'live_session_controller.dart';
 
@@ -22,6 +23,12 @@ LiveSessionController putLiveSessionController(
       academicYear: scope.find<AcademicYearController>(),
       schoolClient: scope.find<SchoolClientFactory>(),
       outboxStore: scope.find<TeacherOutboxStore>(),
+      teacherContext: scope.find<TeacherContextController>(),
+      schoolId: () => scope.find<AppSessionController>().grants.value?.schoolId,
+      outboxContext: () => teacherOutboxContextForSession(
+        session: scope.find<AppSessionController>(),
+        academicYearId: scope.find<AcademicYearController>().selectedYearId.value,
+      ),
     ),
   );
 }

@@ -403,7 +403,9 @@ class LiveEvaluationsController extends LevitController
 
   Future<String?> completeEvaluation(LiveEvaluationSummary evaluation) async {
     try {
-      await _schoolClient().completeAssessment({'id': evaluation.id});
+      await _schoolClient().completeAssessment({
+        'assessmentId': evaluation.id,
+      });
       await loadEvaluations();
       return null;
     } on Object catch (error) {

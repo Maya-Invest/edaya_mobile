@@ -22,26 +22,29 @@ abstract final class PrototypeColors {
 enum SemanticTone { neutral, info, success, warning, error }
 
 extension SemanticToneColors on SemanticTone {
-  (Color bg, Color fg) resolve(ColorScheme scheme) => switch (this) {
-    SemanticTone.neutral => (
-      EdayaTokens.lightMuted,
-      PrototypeColors.onSurfaceVariant,
-    ),
-    SemanticTone.info => (
-      PrototypeColors.primaryContainer,
-      PrototypeColors.primary,
-    ),
-    SemanticTone.success => (
-      PrototypeColors.primaryContainer,
-      PrototypeColors.onBackground,
-    ),
-    SemanticTone.warning => (
-      PrototypeColors.accentContainer,
-      EdayaTokens.lightHighlight,
-    ),
-    SemanticTone.error => (
-      PrototypeColors.errorContainer,
-      PrototypeColors.onErrorContainer,
-    ),
-  };
+  (Color bg, Color fg) resolve(ColorScheme scheme) {
+    final dark = scheme.brightness == Brightness.dark;
+    return switch (this) {
+      SemanticTone.neutral => (
+        dark ? EdayaTokens.darkMuted : EdayaTokens.lightMuted,
+        dark ? EdayaTokens.darkMutedForeground : PrototypeColors.onSurfaceVariant,
+      ),
+      SemanticTone.info => (
+        dark ? EdayaTokens.darkPrimaryContainer : PrototypeColors.primaryContainer,
+        dark ? EdayaTokens.darkPrimary : PrototypeColors.primary,
+      ),
+      SemanticTone.success => (
+        dark ? EdayaTokens.darkSuccessSoft : PrototypeColors.primaryContainer,
+        dark ? EdayaTokens.darkSuccess : PrototypeColors.onBackground,
+      ),
+      SemanticTone.warning => (
+        dark ? EdayaTokens.darkHighlightSoft : PrototypeColors.accentContainer,
+        dark ? EdayaTokens.darkHighlight : EdayaTokens.lightHighlight,
+      ),
+      SemanticTone.error => (
+        dark ? EdayaTokens.darkDestructiveSoft : PrototypeColors.errorContainer,
+        dark ? EdayaTokens.darkDestructive : PrototypeColors.onErrorContainer,
+      ),
+    };
+  }
 }

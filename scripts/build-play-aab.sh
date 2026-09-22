@@ -2,8 +2,12 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-AUTH_URL="${EDAYA_AUTH_URL:-https://staging.identity.api.edayaplus.com}"
-API_URL="${EDAYA_API_URL:-https://staging.school.api.edayaplus.com}"
+if [[ -z "${EDAYA_AUTH_URL:-}" || -z "${EDAYA_API_URL:-}" ]]; then
+  echo "Set EDAYA_AUTH_URL and EDAYA_API_URL before building a distributable app." >&2
+  exit 1
+fi
+AUTH_URL="$EDAYA_AUTH_URL"
+API_URL="$EDAYA_API_URL"
 APPS=(guardian teacher)
 
 if [[ $# -gt 0 ]]; then

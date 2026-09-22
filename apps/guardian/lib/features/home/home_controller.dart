@@ -71,6 +71,7 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
   final SchoolClientFactory _schoolClient;
 
   final overdueFeeCount = LxVar(0);
+  final loadWarnings = LxVar<Set<String>>(const {});
   final feeBalance = LxVar(0);
   final feeCurrency = LxVar('XOF');
   final unreadCount = LxVar(0);
@@ -89,6 +90,7 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
   void onInit() {
     super.onInit();
     autoDispose(overdueFeeCount);
+    autoDispose(loadWarnings);
     autoDispose(feeBalance);
     autoDispose(feeCurrency);
     autoDispose(unreadCount);
@@ -155,6 +157,7 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
       feeBalance(
         lines.fold<int>(0, (sum, line) => sum + line.remainingObligation),
       );
+      _clearWarn('fees');
       if (lines.isNotEmpty) {
         feeCurrency(lines.first.currency);
       }
@@ -182,10 +185,19 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
           ..sort((a, b) => a.dueDate.compareTo(b.dueDate)),
       );
     } on Object {
-      overdueFeeCount(0);
-      feeBalance(0);
-      financeAlerts(const []);
+      _warn('fees');
     }
+  }
+
+  void _warn(String key) {
+    loadWarnings({...loadWarnings.value, key});
+  }
+
+  void _clearWarn(String key) {
+    if (!loadWarnings.value.contains(key)) {
+      return;
+    }
+    loadWarnings({...loadWarnings.value}..remove(key));
   }
 
   Future<void> _loadInbox() async {
@@ -199,8 +211,9 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
         deliveriesForSubject(subjectId),
       );
       unreadCount(rows.where((row) => row['status'] != 'read').length);
+      _clearWarn('inbox');
     } on Object {
-      unreadCount(0);
+      _warn('inbox');
     }
   }
 

@@ -16,6 +16,12 @@ class DriftTeacherOutboxStore implements TeacherOutboxStore {
 
   final TeacherOutboxDatabase _database;
   Future<void>? _migration;
+  TeacherOutboxContext? _context;
+
+  @override
+  void bindContext(TeacherOutboxContext? context) {
+    _context = context;
+  }
 
   Future<void> _ensureReady() {
     return _migration ??= _migrateFromSharedPrefsIfNeeded();
@@ -24,7 +30,7 @@ class DriftTeacherOutboxStore implements TeacherOutboxStore {
   @override
   Future<void> enqueue(TeacherOutboxEntry entry) async {
     await _ensureReady();
-    await _upsertEntry(entry);
+    await _upsertEntry(stampTeacherOutboxContext(entry, _context));
   }
 
   Future<void> _upsertEntry(TeacherOutboxEntry entry) async {
@@ -50,6 +56,7 @@ class DriftTeacherOutboxStore implements TeacherOutboxStore {
   @override
   Future<List<TeacherOutboxEntry>> listPending() async {
     await _ensureReady();
+    await _recoverSyncing();
     final rows = await (_database.select(_database.teacherOutboxRows)
           ..where(
             (row) => row.state.isIn([
@@ -60,7 +67,21 @@ class DriftTeacherOutboxStore implements TeacherOutboxStore {
           )
           ..orderBy([(row) => OrderingTerm.asc(row.createdAt)]))
         .get();
-    return rows.map(_fromRow).toList();
+    return rows
+        .map(_fromRow)
+        .where((entry) => teacherOutboxEntryMatchesContext(entry, _context))
+        .toList();
+  }
+
+  Future<void> _recoverSyncing() async {
+    await (_database.update(_database.teacherOutboxRows)
+          ..where((row) => row.state.equals(TeacherOutboxState.syncing.name)))
+        .write(
+          TeacherOutboxRowsCompanion(
+            state: Value(TeacherOutboxState.pending.name),
+            updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+          ),
+        );
   }
 
   @override
@@ -74,6 +95,30 @@ class DriftTeacherOutboxStore implements TeacherOutboxStore {
     await (_database.delete(
       _database.teacherOutboxRows,
     )..where((row) => row.id.equals(id))).go();
+  }
+
+  @override
+  Future<void> removeByIdempotencyKey(String idempotencyKey) async {
+    await _ensureReady();
+    await (_database.delete(
+      _database.teacherOutboxRows,
+    )..where((row) => row.idempotencyKey.equals(idempotencyKey))).go();
+  }
+
+  @override
+  Future<void> discardBoundContext() async {
+    final context = _context;
+    if (context == null) {
+      return;
+    }
+    await _ensureReady();
+    final rows = await _database.select(_database.teacherOutboxRows).get();
+    for (final row in rows) {
+      final entry = _fromRow(row);
+      if (teacherOutboxEntryMatchesContext(entry, context)) {
+        await remove(entry.id);
+      }
+    }
   }
 
   @override
@@ -119,6 +164,12 @@ class DriftTeacherOutboxStore implements TeacherOutboxStore {
       lastError: Value(entry.lastError),
       createdAt: Value(entry.createdAt.millisecondsSinceEpoch),
       updatedAt: Value(entry.updatedAt.millisecondsSinceEpoch),
+      origin: Value(entry.context?.origin),
+      subjectId: Value(entry.context?.subjectId),
+      actorKind: Value(entry.context?.actorKind),
+      actorId: Value(entry.context?.actorId),
+      schoolId: Value(entry.context?.schoolId),
+      academicYearId: Value(entry.context?.academicYearId),
     );
   }
 
@@ -133,6 +184,30 @@ class DriftTeacherOutboxStore implements TeacherOutboxStore {
       lastError: row.lastError,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
+      context: _contextFromRow(row),
+    );
+  }
+
+  TeacherOutboxContext? _contextFromRow(TeacherOutboxRow row) {
+    final origin = row.origin;
+    final subjectId = row.subjectId;
+    final actorKind = row.actorKind;
+    final actorId = row.actorId;
+    final schoolId = row.schoolId;
+    if (origin == null ||
+        subjectId == null ||
+        actorKind == null ||
+        actorId == null ||
+        schoolId == null) {
+      return null;
+    }
+    return TeacherOutboxContext(
+      origin: origin,
+      subjectId: subjectId,
+      actorKind: actorKind,
+      actorId: actorId,
+      schoolId: schoolId,
+      academicYearId: row.academicYearId,
     );
   }
 }

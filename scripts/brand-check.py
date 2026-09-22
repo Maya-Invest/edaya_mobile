@@ -14,7 +14,7 @@ DESIGN = ROOT / ('design-system' if WEB else 'packages/edaya_shared/design-syste
 SOURCES = [ROOT / 'apps/webapp/src'] if WEB else [ROOT / 'apps/guardian/lib', ROOT / 'apps/teacher/lib', ROOT / 'packages/edaya_shared/lib']
 ASSETS = [ROOT / 'apps/webapp/static/brand', ROOT / 'apps/webapp/static/fonts', ROOT / 'apps/webapp/src/lib/assets/favicon.svg'] if WEB else [ROOT / 'packages/edaya_shared/assets', DESIGN / 'logos', ROOT / 'branding/icons']
 ASSETS += [ROOT / f'apps/{app}/{part}' for app in ('guardian','teacher') for part in ('android/app/src/main/res','ios/Runner/Assets.xcassets','web/icons','web/favicon.png')] if not WEB else []
-LITERAL = re.compile(r'Colors\.[A-Za-z]+(?:\.shade\d+)?|#[0-9a-fA-F]{3,8}\b|0x[0-9a-fA-F]{8}\b|(?:bg|text|border|ring|fill|stroke)-(?:red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone)-\d{2,3}\b|(?:rgba?|hsla?)\(\s*\d|(?:text|rounded(?:-[a-z]+)?|shadow|duration|gap|[mp][xytrbl]?)-\[[^\]]+\]|(?:fontSize|letterSpacing|elevation):\s*-?\d+(?:\.\d+)?|BorderRadius\.circular\(\s*\d+(?:\.\d+)?')
+LITERAL = re.compile(r'(?<![\w])Colors\.[A-Za-z]+(?:\.shade\d+)?|#[0-9a-fA-F]{3,8}\b|0x[0-9a-fA-F]{8}\b|(?:bg|text|border|ring|fill|stroke)-(?:red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone)-\d{2,3}\b|(?:rgba?|hsla?)\(\s*\d|(?:text|rounded(?:-[a-z]+)?|shadow|duration|gap|[mp][xytrbl]?)-\[[^\]]+\]|(?:fontSize|letterSpacing|elevation):\s*-?\d+(?:\.\d+)?|BorderRadius\.circular\(\s*\d+(?:\.\d+)?')
 
 
 def visual_literals():

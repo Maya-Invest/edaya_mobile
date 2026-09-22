@@ -12,6 +12,12 @@ class SharedPrefsTeacherOutboxStore implements TeacherOutboxStore {
   SharedPrefsTeacherOutboxStore({this.storageKey = teacherOutboxSharedPrefsStorageKey});
 
   final String storageKey;
+  TeacherOutboxContext? _context;
+
+  @override
+  void bindContext(TeacherOutboxContext? context) {
+    _context = context;
+  }
 
   Future<List<TeacherOutboxEntry>> _readAll() async {
     final prefs = await SharedPreferences.getInstance();
@@ -43,6 +49,7 @@ class SharedPrefsTeacherOutboxStore implements TeacherOutboxStore {
 
   @override
   Future<void> enqueue(TeacherOutboxEntry entry) async {
+    entry = stampTeacherOutboxContext(entry, _context);
     final entries = await _readAll();
     final existingIndex = entries.indexWhere(
       (candidate) => candidate.idempotencyKey == entry.idempotencyKey,
@@ -61,9 +68,42 @@ class SharedPrefsTeacherOutboxStore implements TeacherOutboxStore {
 
   @override
   Future<List<TeacherOutboxEntry>> listPending() async {
-    final entries = await _readAll();
-    return entries.where(_isPendingState).toList()
+    final recovered = await _recoverSyncing();
+    return recovered
+        .where(
+          (entry) =>
+              teacherOutboxEntryIsReplayable(entry) &&
+              teacherOutboxEntryMatchesContext(entry, _context),
+        )
+        .toList()
       ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+  }
+
+  Future<List<TeacherOutboxEntry>> _recoverSyncing() async {
+    final entries = await _readAll();
+    var changed = false;
+    final recovered = entries.map((entry) {
+      if (entry.state != TeacherOutboxState.syncing) {
+        return entry;
+      }
+      changed = true;
+      return entry.copyWith(
+        state: TeacherOutboxState.pending,
+        updatedAt: DateTime.now(),
+      );
+    }).toList();
+    if (changed) {
+      await _writeAll(recovered);
+    }
+    return recovered;
+  }
+
+  Future<void> _writeAll(List<TeacherOutboxEntry> entries) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      storageKey,
+      jsonEncode(entries.map((entry) => entry.toJson()).toList()),
+    );
   }
 
   @override
@@ -75,11 +115,27 @@ class SharedPrefsTeacherOutboxStore implements TeacherOutboxStore {
   Future<void> remove(String id) async {
     final entries = await _readAll();
     entries.removeWhere((entry) => entry.id == id);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      storageKey,
-      jsonEncode(entries.map((entry) => entry.toJson()).toList()),
+    await _writeAll(entries);
+  }
+
+  @override
+  Future<void> removeByIdempotencyKey(String idempotencyKey) async {
+    final entries = await _readAll();
+    entries.removeWhere((entry) => entry.idempotencyKey == idempotencyKey);
+    await _writeAll(entries);
+  }
+
+  @override
+  Future<void> discardBoundContext() async {
+    final context = _context;
+    if (context == null) {
+      return;
+    }
+    final entries = await _readAll();
+    entries.removeWhere(
+      (entry) => teacherOutboxEntryMatchesContext(entry, context),
     );
+    await _writeAll(entries);
   }
 
   @override
@@ -95,8 +151,3 @@ class SharedPrefsTeacherOutboxStore implements TeacherOutboxStore {
   }
 }
 
-bool _isPendingState(TeacherOutboxEntry entry) {
-  return entry.state == TeacherOutboxState.pending ||
-      entry.state == TeacherOutboxState.savedLocally ||
-      entry.state == TeacherOutboxState.failed;
-}

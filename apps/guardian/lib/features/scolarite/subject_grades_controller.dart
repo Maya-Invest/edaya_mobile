@@ -107,15 +107,16 @@ class SubjectGradesController extends LevitController
         });
         grades(entries);
 
-        var totalWeight = 0.0;
-        var weightedSum = 0.0;
-        for (final entry in entries) {
-          final score = entry.score;
-          if (score == null) continue;
-          totalWeight += entry.coefficient;
-          weightedSum += score * entry.coefficient;
-        }
-        average(totalWeight == 0 ? null : weightedSum / totalWeight);
+        average(
+          normalizedAverageOutOf20([
+            for (final entry in entries)
+              (
+                score: entry.score,
+                maxScore: entry.maxScore,
+                coefficient: entry.coefficient,
+              ),
+          ]),
+        );
       } on api.ApiError catch (error) {
         errorMessage(systemL10n().couldNotLoadAcademicData(error.toString()));
       } on Object catch (error) {

@@ -291,22 +291,36 @@ void registerEdayaFcmBackgroundHandler() {
 }
 
 /// Handles FCM messages while the app is terminated or in the background.
+///
+/// Android starts this in a fresh isolate, so callers must pass compile-time
+/// Firebase options and channel settings instead of main-isolate globals.
+@pragma('vm:entry-point')
+Future<void> handleEdayaFcmBackgroundMessage(
+  RemoteMessage message, {
+  required FirebaseOptions firebaseOptions,
+  required PushNotificationConfig notificationConfig,
+}) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(options: firebaseOptions);
+  }
+  await _ensureBackgroundLocalNotifications(notificationConfig);
+  await displayEdayaPushNotification(message, notificationConfig);
+}
+
+/// Handles FCM messages while the app is terminated or in the background.
 @pragma('vm:entry-point')
 Future<void> edayaFcmBackgroundHandler(RemoteMessage message) async {
-  WidgetsFlutterBinding.ensureInitialized();
-
   final options = _fcmBackgroundFirebaseOptions;
-  if (options != null && Firebase.apps.isEmpty) {
-    await Firebase.initializeApp(options: options);
-  }
-
   final config = _fcmBackgroundConfig;
-  if (config == null) {
+  if (options == null || config == null) {
     return;
   }
-
-  await _ensureBackgroundLocalNotifications(config);
-  await displayEdayaPushNotification(message, config);
+  await handleEdayaFcmBackgroundMessage(
+    message,
+    firebaseOptions: options,
+    notificationConfig: config,
+  );
 }
 
 // --- FCM implementation ------------------------------------------------------

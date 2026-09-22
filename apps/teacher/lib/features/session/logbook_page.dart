@@ -10,6 +10,7 @@ import '../../mock/mock_store.dart';
 import '../context/store_bound_controller.dart';
 import 'attendance_page.dart';
 import 'live_session_controller.dart';
+import 'session_logbook_logic.dart';
 
 class LogbookPage extends StatelessWidget {
   const LogbookPage({super.key, required this.sessionId});
@@ -121,6 +122,9 @@ class _LiveLogbookPage extends LScopedView<LiveSessionController> {
         initialFamilySummary: controller.familySummary.value,
         initialProgress: controller.progressPercent.value,
         minProgress: controller.minProgress,
+        chapters: controller.subjectMatters.value,
+        selectedChapterId: controller.selectedMatterId.value,
+        onChapterSelected: controller.selectMatter,
         onChanged: (content, objectives, homework, familySummary, progress) {
           unawaited(
             controller.persistDraft(
@@ -173,6 +177,9 @@ class LogbookForm extends StatefulWidget {
     required this.minProgress,
     required this.onSave,
     this.onChanged,
+    this.chapters = const [],
+    this.selectedChapterId,
+    this.onChapterSelected,
   });
 
   final String sessionId;
@@ -183,6 +190,9 @@ class LogbookForm extends StatefulWidget {
   final String initialFamilySummary;
   final int initialProgress;
   final int minProgress;
+  final List<SessionSubjectMatterOption> chapters;
+  final String? selectedChapterId;
+  final ValueChanged<String>? onChapterSelected;
   final Future<void> Function(String, String, String, String, int) onSave;
   final void Function(String, String, String, String, int)? onChanged;
 
@@ -252,6 +262,22 @@ class _LogbookFormState extends State<LogbookForm> {
       body: ListView(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
+          if (widget.chapters.length > 1)
+            DropdownButtonFormField<String>(
+              initialValue: widget.selectedChapterId ?? widget.chapters.first.id,
+              decoration: const InputDecoration(labelText: 'Chapitre'),
+              items: [
+                for (final chapter in widget.chapters)
+                  DropdownMenuItem(value: chapter.id, child: Text(chapter.name)),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  widget.onChapterSelected?.call(value);
+                }
+              },
+            ),
+          if (widget.chapters.length > 1)
+            const SizedBox(height: PrototypeSpacing.md),
           TextField(
             controller: _content,
             maxLines: 3,

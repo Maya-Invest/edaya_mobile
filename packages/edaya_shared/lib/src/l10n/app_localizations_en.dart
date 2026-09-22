@@ -1779,4 +1779,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyFeedbackSlotCompleted => 'Completed';
+
+  @override
+  String get teacherTaskFamilyFeedback => 'Family feedback';
+
+  @override
+  String get teacherTaskAttendance => 'Attendance to record';
+
+  @override
+  String get teacherTaskLogbook => 'Lesson log';
+
+  @override
+  String get teacherTaskMarks => 'Marks to enter';
+
+  @override
+  String get chooseSchool => 'Choose a school';
+
+  @override
+  String get teacherTaskReportComments => 'Report comments';
 }

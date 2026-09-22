@@ -36,3 +36,4 @@ if ((${#changed[@]} > 0)); then
 fi
 
 echo "Generated API client bindings are up to date."
+bash "$repo_root/scripts/check-mobile-contract.sh"

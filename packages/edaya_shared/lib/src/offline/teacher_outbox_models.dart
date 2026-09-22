@@ -7,6 +7,56 @@ enum TeacherOutboxState {
   synced,
   failed,
   conflict,
+  rejected,
+}
+
+class TeacherOutboxContext {
+  const TeacherOutboxContext({
+    required this.origin,
+    required this.subjectId,
+    required this.actorKind,
+    required this.actorId,
+    required this.schoolId,
+    this.academicYearId,
+  });
+
+  final String origin;
+  final String subjectId;
+  final String actorKind;
+  final String actorId;
+  final String schoolId;
+  final String? academicYearId;
+
+  bool matches(TeacherOutboxContext other) {
+    return origin == other.origin &&
+        subjectId == other.subjectId &&
+        actorKind == other.actorKind &&
+        actorId == other.actorId &&
+        schoolId == other.schoolId &&
+        academicYearId == other.academicYearId;
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'origin': origin,
+      'subjectId': subjectId,
+      'actorKind': actorKind,
+      'actorId': actorId,
+      'schoolId': schoolId,
+      'academicYearId': academicYearId,
+    };
+  }
+
+  factory TeacherOutboxContext.fromJson(Map<String, dynamic> json) {
+    return TeacherOutboxContext(
+      origin: json['origin'] as String? ?? '',
+      subjectId: json['subjectId'] as String? ?? '',
+      actorKind: json['actorKind'] as String? ?? '',
+      actorId: json['actorId'] as String? ?? '',
+      schoolId: json['schoolId'] as String? ?? '',
+      academicYearId: json['academicYearId'] as String?,
+    );
+  }
 }
 
 class TeacherOutboxEntry {
@@ -20,6 +70,7 @@ class TeacherOutboxEntry {
     this.lastError,
     required this.createdAt,
     required this.updatedAt,
+    this.context,
   });
 
   final String id;
@@ -31,12 +82,14 @@ class TeacherOutboxEntry {
   final String? lastError;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final TeacherOutboxContext? context;
 
   TeacherOutboxEntry copyWith({
     TeacherOutboxState? state,
     int? attemptCount,
     String? lastError,
     DateTime? updatedAt,
+    TeacherOutboxContext? context,
   }) {
     return TeacherOutboxEntry(
       id: id,
@@ -48,6 +101,7 @@ class TeacherOutboxEntry {
       lastError: lastError ?? this.lastError,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      context: context ?? this.context,
     );
   }
 
@@ -62,6 +116,7 @@ class TeacherOutboxEntry {
       'lastError': lastError,
       'createdAt': createdAt.toUtc().toIso8601String(),
       'updatedAt': updatedAt.toUtc().toIso8601String(),
+      if (context != null) 'context': context!.toJson(),
     };
   }
 
@@ -80,6 +135,11 @@ class TeacherOutboxEntry {
       updatedAt:
           DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
           DateTime.now(),
+      context: json['context'] is Map
+          ? TeacherOutboxContext.fromJson(
+              (json['context'] as Map).cast<String, dynamic>(),
+            )
+          : null,
     );
   }
 }
@@ -110,6 +170,36 @@ class TeacherOutboxSummary {
   }
 }
 
+bool teacherOutboxEntryIsReplayable(TeacherOutboxEntry entry) {
+  return entry.state == TeacherOutboxState.pending ||
+      entry.state == TeacherOutboxState.savedLocally ||
+      entry.state == TeacherOutboxState.failed;
+}
+
+bool teacherOutboxEntryMatchesContext(
+  TeacherOutboxEntry entry,
+  TeacherOutboxContext? context,
+) {
+  if (context == null) {
+    return entry.context == null;
+  }
+  final entryContext = entry.context;
+  if (entryContext == null) {
+    return false;
+  }
+  return entryContext.matches(context);
+}
+
+TeacherOutboxEntry stampTeacherOutboxContext(
+  TeacherOutboxEntry entry,
+  TeacherOutboxContext? context,
+) {
+  if (entry.context != null || context == null) {
+    return entry;
+  }
+  return entry.copyWith(context: context);
+}
+
 abstract class TeacherOutboxStore {
   Future<void> enqueue(TeacherOutboxEntry entry);
 
@@ -118,6 +208,12 @@ abstract class TeacherOutboxStore {
   Future<void> upsert(TeacherOutboxEntry entry);
 
   Future<void> remove(String id);
+
+  Future<void> removeByIdempotencyKey(String idempotencyKey);
+
+  void bindContext(TeacherOutboxContext? context);
+
+  Future<void> discardBoundContext();
 
   Future<int> pendingCount();
 

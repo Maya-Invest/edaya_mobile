@@ -62,11 +62,13 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
     required TeacherContextController teacherContext,
     required SchoolClientFactory schoolClient,
     TeacherOutboxStore? outboxStore,
+    TeacherOutboxContext? Function()? outboxContext,
   }) : _evaluations = evaluations,
        _academicYear = academicYear,
        _teacherContext = teacherContext,
        _schoolClient = schoolClient,
-       _outboxStore = outboxStore ?? openTeacherOutboxStore();
+       _outboxStore = outboxStore ?? openTeacherOutboxStore(),
+       _outboxContext = outboxContext;
 
   final String evaluationId;
   final LiveEvaluationsController _evaluations;
@@ -74,6 +76,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
   final TeacherContextController _teacherContext;
   final SchoolClientFactory _schoolClient;
   final TeacherOutboxStore _outboxStore;
+  final TeacherOutboxContext? Function()? _outboxContext;
 
   final evaluation = LxVar<LiveEvaluationSummary?>(null);
   final students = LxVar<List<LiveMarkRow>>(const []);
@@ -116,7 +119,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
       }
       try {
         final client = _schoolClient();
-        final enrollmentRows = await client.enrollments.list(
+        final enrollmentRows = await client.enrollments.listAll(
           activeEnrollmentsForClass(
             summary.classGroupId,
             academicYearId: _academicYear.selectedYearId.value,
@@ -128,8 +131,8 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
             .toList();
         final studentRows = studentIds.isEmpty
             ? <Map<String, dynamic>>[]
-            : await client.students.list(entitiesByIds(studentIds));
-        final results = await client.assessmentResults.list(
+            : await client.students.listAll(entitiesByIds(studentIds));
+        final results = await client.assessmentResults.listAll(
           resultsForAssessments([summary.id]),
         );
         final lockedStudentIds = await _publishedReportCardStudentIds(
@@ -137,6 +140,10 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
           classGroupId: summary.classGroupId,
           periodId: summary.periodId,
         );
+        if (lockedStudentIds == null) {
+          errorMessage(systemL10n().couldNotLoadMarks(''));
+          return;
+        }
         final scoreByStudent = {
           for (final row in results)
             if (row['studentId'] is String) row['studentId'] as String: row,
@@ -169,10 +176,10 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
 
   Future<void> saveScore(String studentId, double? score) async {
     final summary = evaluation.value;
-    if (summary == null || score == null) {
+    if (summary == null) {
       return;
     }
-    if (score < 0 || score > summary.maxScore) {
+    if (score != null && (score < 0 || score > summary.maxScore)) {
       saveMessage(systemL10n().maxScoreMustBePositive);
       return;
     }
@@ -193,12 +200,17 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
       return;
     }
     saveMessage('');
+    _outboxStore.bindContext(_outboxContext?.call());
     final resultId = row.resultId ?? 'ar-${summary.id}-$studentId';
     _patchRow(
       studentId,
       resultId: resultId,
       score: score,
       syncState: MarkSyncState.pending,
+    );
+    final idempotencyKey = teacherMarkIdempotencyKey(
+      assessmentId: summary.id,
+      studentId: studentId,
     );
     try {
       await _schoolClient().recordAssessmentResult(
@@ -209,6 +221,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
           resultId: resultId,
         ),
       );
+      await _outboxStore.removeByIdempotencyKey(idempotencyKey);
       _patchRow(
         studentId,
         resultId: resultId,
@@ -220,14 +233,12 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
         students.value.where((item) => item.score != null).length,
       );
     } on Object catch (error) {
+      final retryable = isRetryableTeacherWriteFailure(error);
       await _outboxStore.enqueue(
         buildTeacherOutboxEntry(
           id: resultId,
           kind: TeacherOutboxKind.mark,
-          idempotencyKey: teacherMarkIdempotencyKey(
-            assessmentId: summary.id,
-            studentId: studentId,
-          ),
+          idempotencyKey: idempotencyKey,
           payload: markOutboxPayload(
             assessmentId: summary.id,
             studentId: studentId,
@@ -235,15 +246,22 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
             resultId: resultId,
           ),
           lastError: '$error',
+          state: retryable
+              ? TeacherOutboxState.pending
+              : TeacherOutboxState.rejected,
         ),
       );
       _patchRow(
         studentId,
         resultId: resultId,
         score: score,
-        syncState: MarkSyncState.pending,
+        syncState: retryable ? MarkSyncState.pending : MarkSyncState.failed,
       );
-      saveMessage(systemL10n().attendanceSavedLocally);
+      saveMessage(
+        retryable
+            ? systemL10n().attendanceSavedLocally
+            : systemL10n().couldNotSaveMark('$error'),
+      );
     }
   }
 
@@ -261,7 +279,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
       if (row.marksLocked || row.score == null) {
         continue;
       }
-      _patchRow(row.studentId, score: null, syncState: MarkSyncState.synced);
+      await saveScore(row.studentId, null);
     }
   }
 
@@ -284,7 +302,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
     ]);
   }
 
-  Future<Set<String>> _publishedReportCardStudentIds(
+  Future<Set<String>?> _publishedReportCardStudentIds(
     api.SchoolClient client, {
     required String classGroupId,
     required String periodId,
@@ -298,7 +316,8 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
           .whereType<String>()
           .toSet();
     } on Object {
-      return const {};
+      errorMessage(systemL10n().couldNotLoadMarks(''));
+      return null;
     }
   }
 }

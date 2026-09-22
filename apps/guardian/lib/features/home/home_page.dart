@@ -190,6 +190,13 @@ class _LiveHomePage extends LScopedView<HomeController> {
     final reportCard = controller.latestBulletin.value;
 
     final attentionCards = <Widget>[
+      if (controller.loadWarnings.value.isNotEmpty)
+        AttentionCard(
+          tone: AttentionTone.important,
+          title: 'Information indisponible',
+          subtitle: 'Certaines données n’ont pas pu être chargées.',
+          icon: Icons.cloud_off_outlined,
+        ),
       if (controller.overdueFeeCount.value > 0)
         AttentionCard(
           tone: AttentionTone.important,

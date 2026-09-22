@@ -2,24 +2,42 @@ import 'teacher_outbox_models.dart';
 
 class InMemoryTeacherOutboxStore implements TeacherOutboxStore {
   final Map<String, TeacherOutboxEntry> _entriesByIdempotencyKey = {};
+  TeacherOutboxContext? _context;
+
+  @override
+  void bindContext(TeacherOutboxContext? context) {
+    _context = context;
+  }
 
   @override
   Future<void> enqueue(TeacherOutboxEntry entry) async {
-    _entriesByIdempotencyKey[entry.idempotencyKey] = entry;
+    final stamped = stampTeacherOutboxContext(entry, _context);
+    _entriesByIdempotencyKey[stamped.idempotencyKey] = stamped;
   }
 
   @override
   Future<List<TeacherOutboxEntry>> listPending() async {
+    _recoverSyncing();
     final pending = _entriesByIdempotencyKey.values
         .where(
           (entry) =>
-              entry.state == TeacherOutboxState.pending ||
-              entry.state == TeacherOutboxState.savedLocally ||
-              entry.state == TeacherOutboxState.failed,
+              teacherOutboxEntryIsReplayable(entry) &&
+              teacherOutboxEntryMatchesContext(entry, _context),
         )
         .toList()
       ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
     return pending;
+  }
+
+  void _recoverSyncing() {
+    for (final entry in _entriesByIdempotencyKey.values.toList()) {
+      if (entry.state == TeacherOutboxState.syncing) {
+        _entriesByIdempotencyKey[entry.idempotencyKey] = entry.copyWith(
+          state: TeacherOutboxState.pending,
+          updatedAt: DateTime.now(),
+        );
+      }
+    }
   }
 
   @override
@@ -30,6 +48,22 @@ class InMemoryTeacherOutboxStore implements TeacherOutboxStore {
   @override
   Future<void> remove(String id) async {
     _entriesByIdempotencyKey.removeWhere((_, entry) => entry.id == id);
+  }
+
+  @override
+  Future<void> removeByIdempotencyKey(String idempotencyKey) async {
+    _entriesByIdempotencyKey.remove(idempotencyKey);
+  }
+
+  @override
+  Future<void> discardBoundContext() async {
+    final context = _context;
+    if (context == null) {
+      return;
+    }
+    _entriesByIdempotencyKey.removeWhere(
+      (_, entry) => teacherOutboxEntryMatchesContext(entry, context),
+    );
   }
 
   @override

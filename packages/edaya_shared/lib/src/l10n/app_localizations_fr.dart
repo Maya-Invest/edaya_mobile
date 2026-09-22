@@ -1800,4 +1800,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get familyFeedbackSlotCompleted => 'Terminée';
+
+  @override
+  String get teacherTaskFamilyFeedback => 'Avis des familles';
+
+  @override
+  String get teacherTaskAttendance => 'Présences à saisir';
+
+  @override
+  String get teacherTaskLogbook => 'Cahier de texte';
+
+  @override
+  String get teacherTaskMarks => 'Notes à saisir';
+
+  @override
+  String get chooseSchool => 'Choisir un établissement';
+
+  @override
+  String get teacherTaskReportComments => 'Commentaires de bulletin';
 }

@@ -3085,6 +3085,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Completed'**
   String get familyFeedbackSlotCompleted;
+
+  /// No description provided for @teacherTaskFamilyFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Family feedback'**
+  String get teacherTaskFamilyFeedback;
+
+  /// No description provided for @teacherTaskAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance to record'**
+  String get teacherTaskAttendance;
+
+  /// No description provided for @teacherTaskLogbook.
+  ///
+  /// In en, this message translates to:
+  /// **'Lesson log'**
+  String get teacherTaskLogbook;
+
+  /// No description provided for @teacherTaskMarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Marks to enter'**
+  String get teacherTaskMarks;
+
+  /// No description provided for @chooseSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a school'**
+  String get chooseSchool;
+
+  /// No description provided for @teacherTaskReportComments.
+  ///
+  /// In en, this message translates to:
+  /// **'Report comments'**
+  String get teacherTaskReportComments;
 }
 
 class _AppLocalizationsDelegate

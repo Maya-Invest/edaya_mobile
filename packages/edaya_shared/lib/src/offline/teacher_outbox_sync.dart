@@ -47,10 +47,41 @@ Future<void> _syncLogbookEntry(
 
     switch (action) {
       case 'create':
-        await client.recordLessonSessionProgress(opPayload);
+        await _recordOrUpdateLessonProgress(client, opPayload);
       case 'update':
         await client.classSubjectProgress.save(opPayload);
     }
+  }
+}
+
+Future<void> _recordOrUpdateLessonProgress(
+  SchoolClient client,
+  Map<String, dynamic> payload,
+) async {
+  try {
+    await client.recordLessonSessionProgress(payload);
+  } on Object catch (error) {
+    if (!'$error'.contains('DUPLICATE_PROGRESS')) {
+      rethrow;
+    }
+    final rows = await client.classSubjectProgress.list({
+      'lessonSessionId': payload['lessonSessionId'],
+      'classSubjectMatterId': payload['classSubjectMatterId'],
+    });
+    if (rows.isEmpty) {
+      rethrow;
+    }
+    final existing = rows.first;
+    final existingPercentage = existing['completedPercentage'];
+    if (existingPercentage == payload['completedPercentage']) {
+      return;
+    }
+    await client.classSubjectProgress.save({
+      ...existing,
+      'completedPercentage': payload['completedPercentage'],
+      if (payload['notes'] != null) 'notes': payload['notes'],
+      'recordedAt': payload['recordedAt'],
+    });
   }
 }
 
@@ -58,6 +89,21 @@ Future<void> _syncCommentEntry(
   SchoolClient client,
   Map<String, dynamic> payload,
 ) async {
+  final homeroom = payload['homeroom'];
+  if (homeroom is Map) {
+    await client.runCommand(
+      'write-homeroom-report-comment',
+      homeroom.cast<String, dynamic>(),
+    );
+  }
+  final sections = payload['sections'];
+  if (sections is Map) {
+    await client.runCommand(
+      'write-report-card-section-comments',
+      sections.cast<String, dynamic>(),
+    );
+  }
+
   final command = payload['command'] as String?;
   if (command == 'write-homeroom-report-comment') {
     final body = payload['body'];
@@ -66,10 +112,21 @@ Future<void> _syncCommentEntry(
     }
     return;
   }
+  if (command == 'write-report-card-section-comments') {
+    final body = payload['body'];
+    if (body is Map<String, dynamic>) {
+      await client.runCommand(
+        'write-report-card-section-comments',
+        body.cast<String, dynamic>(),
+      );
+    }
+    return;
+  }
 
-  final resultPayload = payload['resultPayload'];
-  if (resultPayload is Map<String, dynamic>) {
-    await client.results.save(resultPayload);
+  if (payload['resultPayload'] != null) {
+    throw StateError(
+      'Generic report-card result saves are not a supported offline command',
+    );
   }
 }
 
@@ -93,6 +150,7 @@ TeacherOutboxEntry buildTeacherOutboxEntry({
   required String idempotencyKey,
   required Map<String, dynamic> payload,
   String? lastError,
+  TeacherOutboxState state = TeacherOutboxState.pending,
 }) {
   final now = DateTime.now();
   return TeacherOutboxEntry(
@@ -100,7 +158,7 @@ TeacherOutboxEntry buildTeacherOutboxEntry({
     kind: kind,
     idempotencyKey: idempotencyKey,
     payload: payload,
-    state: TeacherOutboxState.pending,
+    state: state,
     attemptCount: lastError == null ? 0 : 1,
     lastError: lastError,
     createdAt: now,
@@ -121,7 +179,7 @@ Map<String, dynamic> logbookOutboxPayload({
 Map<String, dynamic> markOutboxPayload({
   required String assessmentId,
   required String studentId,
-  required double score,
+  required double? score,
   String? resultId,
 }) {
   return assessmentResultPayload(

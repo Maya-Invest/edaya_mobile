@@ -21,6 +21,8 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
   final SchoolClientFactory _schoolClient;
   final StudentContextController _studentContext;
 
+  int _generation = 0;
+
   final deliveries = LxVar<List<InboxDelivery>>(const []);
   final campaigns = LxVar<List<GuardianFamilyFeedbackCampaign>>(const []);
   final errorMessage = LxVar('');
@@ -33,6 +35,7 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
     autoDispose(errorMessage);
 
     autoDispose(_session.user.stream.listen((_) => unawaited(loadInbox())));
+    autoDispose(_session.grants.stream.listen((_) => unawaited(loadInbox())));
     autoDispose(
       _studentContext.activeStudent.stream.listen((_) => unawaited(loadInbox())),
     );
@@ -66,20 +69,43 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
     );
   }
 
-  Future<void> loadInbox() async {
+  String? _inboxKey() {
     final subjectId = _session.user.value?.id;
-    if (subjectId == null) {
+    final grants = _session.grants.value;
+    if (subjectId == null || grants == null || grants.kind != 'guardian') {
+      return null;
+    }
+    return '$subjectId|${grants.kind}|${grants.actorId}|${grants.schoolId}';
+  }
+
+  Future<void> loadInbox() async {
+    final generation = ++_generation;
+    final key = _inboxKey();
+    if (key == null) {
       deliveries(const []);
+      campaigns(const []);
       errorMessage('');
       return;
     }
+    final grants = _session.grants.value!;
+    final subjectId = _session.user.value!.id;
 
     errorMessage('');
-    await runTask(() async {
-      try {
-        final rows = await _schoolClient().messageDeliveries.list(
-          deliveriesForSubject(subjectId),
-        );
+    final rowsFuture = _schoolClient().messageDeliveries.list(
+      deliveriesForGuardian(
+        subjectId: subjectId,
+        guardianId: grants.actorId,
+        schoolId: grants.schoolId,
+      ),
+    );
+    if (generation != _generation || key != _inboxKey()) {
+      return;
+    }
+    try {
+        final rows = await rowsFuture;
+        if (generation != _generation || key != _inboxKey()) {
+          return;
+        }
         final parsed = rows.map(InboxDelivery.fromJson).toList()
           ..sort((a, b) {
             final aTime = a.sortDate?.millisecondsSinceEpoch ?? 0;
@@ -91,6 +117,9 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
           final items = await listGuardianFamilyFeedbackCampaigns(
             _schoolClient(),
           );
+          if (generation != _generation || key != _inboxKey()) {
+            return;
+          }
           final studentId = _studentContext.activeStudentId;
           campaigns(
             studentId == null
@@ -98,15 +127,24 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
                 : items.where((item) => item.studentId == studentId).toList(),
           );
         } on Object {
-          campaigns(const []);
+          if (generation == _generation && key == _inboxKey()) {
+            campaigns(const []);
+          }
         }
       } on api.ApiError catch (error) {
+        if (generation != _generation || key != _inboxKey()) {
+          return;
+        }
         errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
         deliveries(const []);
+        campaigns(const []);
       } on Object catch (error) {
+        if (generation != _generation || key != _inboxKey()) {
+          return;
+        }
         errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
         deliveries(const []);
+        campaigns(const []);
       }
-    });
   }
 }

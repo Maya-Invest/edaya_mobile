@@ -1,3 +1,5 @@
+import 'package:edaya_shared/edaya_shared.dart'
+    hide AccountProfilePage, LoginPage, SettingsPage;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -20,6 +22,7 @@ GoRouter createRouter({
   required Listenable routerRefresh,
   required bool Function() isAuthenticated,
   bool Function()? isBootstrapping,
+  bool Function()? needsProfileSelection,
 }) {
   return GoRouter(
     initialLocation: '/login',
@@ -30,12 +33,22 @@ GoRouter createRouter({
       }
       final loggedIn = isAuthenticated();
       final onLogin = state.matchedLocation == '/login';
+      final choosingProfile = needsProfileSelection?.call() ?? false;
       if (!loggedIn && !onLogin) return '/login';
+      if (loggedIn && choosingProfile && state.matchedLocation != '/profiles') {
+        return '/profiles';
+      }
       if (loggedIn && onLogin) return '/home';
       return null;
     },
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
+      GoRoute(
+        path: '/profiles',
+        builder: (context, state) => ProfilePickerPage(
+          onSelected: () => context.go('/home'),
+        ),
+      ),
       ShellRoute(
         builder: (context, state, child) => PrototypeShell(child: child),
         routes: [

@@ -337,16 +337,14 @@ class ResultsController extends LevitController with LevitReactiveTasksMixin {
   }
 
   double? _weightedAverage(Iterable<GradeEntry> entries) {
-    var totalWeight = 0.0;
-    var weightedSum = 0.0;
-    for (final entry in entries) {
-      final score = entry.score;
-      if (score == null) continue;
-      totalWeight += entry.coefficient;
-      weightedSum += score * entry.coefficient;
-    }
-    if (totalWeight == 0) return null;
-    return weightedSum / totalWeight;
+    return normalizedAverageOutOf20([
+      for (final entry in entries)
+        (
+          score: entry.score,
+          maxScore: entry.maxScore,
+          coefficient: entry.coefficient,
+        ),
+    ]);
   }
 
   List<ReportCardSummary> _dedupeReportCardsByPeriod(

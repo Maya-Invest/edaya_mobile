@@ -1180,5 +1180,11 @@
   "familyFeedbackInsufficient": "Insufficient responses",
   "familyFeedbackThemes": "Themes",
   "familyFeedbackSlotOpen": "Open",
-  "familyFeedbackSlotCompleted": "Completed"
+  "familyFeedbackSlotCompleted": "Completed",
+  "teacherTaskFamilyFeedback": "Family feedback",
+  "teacherTaskAttendance": "Attendance to record",
+  "teacherTaskLogbook": "Lesson log",
+  "teacherTaskMarks": "Marks to enter",
+  "chooseSchool": "Choose a school",
+  "teacherTaskReportComments": "Report comments"
 }

@@ -10,6 +10,7 @@ import '../../mock/mock_store.dart';
 import '../calendar/live_calendar_controller.dart';
 import '../calendar/teacher_session.dart';
 import '../context/academic_year_controller.dart';
+import '../context/teacher_context_controller.dart';
 import 'session_logbook_draft_storage.dart';
 import 'session_logbook_logic.dart';
 
@@ -61,16 +62,25 @@ class LiveSessionController extends LevitController
     required AcademicYearController academicYear,
     required SchoolClientFactory schoolClient,
     TeacherOutboxStore? outboxStore,
+    TeacherContextController? teacherContext,
+    String? Function()? schoolId,
+    TeacherOutboxContext? Function()? outboxContext,
   }) : _calendar = calendar,
        _academicYear = academicYear,
        _schoolClient = schoolClient,
-       _outboxStore = outboxStore ?? openTeacherOutboxStore();
+       _outboxStore = outboxStore ?? openTeacherOutboxStore(),
+       _teacherContext = teacherContext,
+       _schoolId = schoolId,
+       _outboxContext = outboxContext;
 
   final String sessionId;
   final LiveCalendarController _calendar;
   final AcademicYearController _academicYear;
   final SchoolClientFactory _schoolClient;
   final TeacherOutboxStore _outboxStore;
+  final TeacherContextController? _teacherContext;
+  final String? Function()? _schoolId;
+  final TeacherOutboxContext? Function()? _outboxContext;
 
   final session = LxVar<TeacherSession?>(null);
   final students = LxVar<List<LiveSessionStudent>>(const []);
@@ -94,6 +104,7 @@ class LiveSessionController extends LevitController
     autoDispose(homework);
     autoDispose(familySummary);
     autoDispose(progressPercent);
+    autoDispose(selectedMatterId);
     autoDispose(subjectMatters);
     autoDispose(errorMessage);
     autoDispose(saveMessage);
@@ -107,7 +118,21 @@ class LiveSessionController extends LevitController
     unawaited(load());
   }
 
-  bool get supportsAttendanceRecording => session.value?.kind == 'lesson';
+  bool get supportsAttendanceRecording {
+    final current = session.value;
+    if (current == null || current.kind != 'lesson') {
+      return false;
+    }
+    final context = _teacherContext;
+    if (context == null) {
+      return true;
+    }
+    final subjectId = current.classSubjectId;
+    if (subjectId == null) {
+      return false;
+    }
+    return context.taughtClassSubjectIds.value.contains(subjectId);
+  }
 
   bool get supportsLogbook => session.value?.kind == 'lesson';
 
@@ -136,12 +161,39 @@ class LiveSessionController extends LevitController
     ).isComplete;
   }
 
-  int get minProgress {
+  SessionSubjectMatterOption? get _selectedMatter {
     final matters = subjectMatters.value;
     if (matters.isEmpty) {
+      return null;
+    }
+    final selected = selectedMatterId.value;
+    if (selected == null) {
+      return matters.first;
+    }
+    for (final matter in matters) {
+      if (matter.id == selected) {
+        return matter;
+      }
+    }
+    return matters.first;
+  }
+
+  final selectedMatterId = LxVar<String?>(null);
+
+  int get minProgress {
+    final matter = _selectedMatter;
+    if (matter == null) {
       return 0;
     }
-    return minMatterProgressPercentage(matters.first);
+    return minMatterProgressPercentage(matter);
+  }
+
+  void selectMatter(String matterId) {
+    selectedMatterId(matterId);
+    final matter = _selectedMatter;
+    if (matter != null) {
+      progressPercent(minMatterProgressPercentage(matter));
+    }
   }
 
   Future<void> load() async {
@@ -155,13 +207,17 @@ class LiveSessionController extends LevitController
       }
       session(current);
       if (current == null) {
+        current = await _loadSessionById();
+        session(current);
+      }
+      if (current == null) {
         students(const []);
         return;
       }
 
       try {
         final client = _schoolClient();
-        final enrollmentRows = await client.enrollments.list(
+        final enrollmentRows = await client.enrollments.listAll(
           activeEnrollmentsForClass(
             current.classGroupId,
             academicYearId: _academicYear.selectedYearId.value,
@@ -173,7 +229,7 @@ class LiveSessionController extends LevitController
             .toList();
         final studentRows = studentIds.isEmpty
             ? <Map<String, dynamic>>[]
-            : await client.students.list(entitiesByIds(studentIds));
+            : await client.students.listAll(entitiesByIds(studentIds));
         final attendanceRows = await listAttendanceForOccurrence(
           client.attendance,
           kind: current.kind,
@@ -265,6 +321,7 @@ class LiveSessionController extends LevitController
       return;
     }
     saveMessage('');
+    _outboxStore.bindContext(_outboxContext?.call());
     final attendanceId = row.attendanceId ?? '${row.studentId}-${current.id}';
     final createdAt = DateTime.now().toUtc().toIso8601String();
     final payload = attendanceRecordPayload(
@@ -289,6 +346,10 @@ class LiveSessionController extends LevitController
       );
       unawaited(_calendar.loadCalendarData());
     } on Object catch (error) {
+      if (!isRetryableTeacherWriteFailure(error)) {
+        saveMessage(systemL10n().couldNotSaveMark('$error'));
+        return;
+      }
       await _enqueueAttendanceFailure(
         row: row,
         status: status,
@@ -342,8 +403,8 @@ class LiveSessionController extends LevitController
       familySummary: familySummaryText,
     );
     final progressEntries = <LogbookProgressDraft>[];
-    if (subjectMatters.value.isNotEmpty) {
-      final matter = subjectMatters.value.first;
+    final matter = _selectedMatter;
+    if (matter != null) {
       final minimum = minMatterProgressPercentage(matter);
       if (progress < minimum) {
         saveMessage(systemL10n().progressMustNotDecrease(minimum));
@@ -358,49 +419,38 @@ class LiveSessionController extends LevitController
     }
 
     saveMessage('');
+    _outboxStore.bindContext(_outboxContext?.call());
     final encodedNote = encodeStructuredSessionNote(structured);
     final matterById = {
       for (final matter in subjectMatters.value) matter.id: matter,
     };
     final recordedAt = DateTime.now();
-    final progressOps = <Map<String, dynamic>>[];
+    final schoolId = _schoolId?.call();
+    final progressOps = progressOperationsForLogbook(
+      sessionId: current.id,
+      entries: progressEntries,
+      matterById: matterById,
+      recordedAt: recordedAt,
+    );
+    final offlineNote = offlineLessonSessionPayload(
+      session: current,
+      schoolId: schoolId,
+      sessionNote: encodedNote,
+    );
     final client = _schoolClient();
 
     try {
-      final lessonSession = await client.lessonSessions.get(current.id);
-      final notePayload = lessonSessionNotePayload(
-        lessonSession: lessonSession,
-        sessionNote: encodedNote,
-        displayLabelFallback: current.title,
-      );
-      for (final entry in progressEntries) {
-        final matter = matterById[entry.matterId]!;
-        final existing = matter.sessionProgress;
-        if (isProgressCreate(existing)) {
-          progressOps.add({
-            'action': 'create',
-            'payload': recordLessonProgressPayload(
-              id: newProgressId(current.id),
-              classSubjectMatterId: matter.id,
-              lessonSessionId: current.id,
-              completedPercentage: entry.completedPercentage,
-              notes: entry.notes,
-              recordedAt: recordedAt,
-            ),
-          });
-        } else {
-          final progressRow = await client.classSubjectProgress.get(
-            existing!.id,
-          );
-          progressOps.add({
-            'action': 'update',
-            'payload': updateProgressPayload(
-              existing: progressRow,
-              completedPercentage: entry.completedPercentage,
-              notes: entry.notes,
-              recordedAt: recordedAt,
-            ),
-          });
+      var notePayload = offlineNote;
+      try {
+        final lessonSession = await client.lessonSessions.get(current.id);
+        notePayload = lessonSessionNotePayload(
+          lessonSession: lessonSession,
+          sessionNote: encodedNote,
+          displayLabelFallback: current.title,
+        );
+      } on Object {
+        if (!_offlineLessonPayloadIsComplete(offlineNote)) {
+          rethrow;
         }
       }
 
@@ -420,12 +470,20 @@ class LiveSessionController extends LevitController
       homework(homeworkText);
       familySummary(familySummaryText);
       progressPercent(progress);
-      await SessionLogbookDraftStorage.clear(current.id);
+      await SessionLogbookDraftStorage.clear(
+        current.id,
+        context: _outboxContext?.call(),
+      );
       unawaited(_calendar.loadCalendarData());
       return true;
     } on Object catch (error) {
+      if (!isRetryableTeacherWriteFailure(error) ||
+          !_offlineLessonPayloadIsComplete(offlineNote)) {
+        saveMessage(systemL10n().couldNotSaveMark('$error'));
+        return false;
+      }
       return _enqueueLogbookFailure(
-        encodedNote: encodedNote,
+        notePayload: offlineNote,
         progressOps: progressOps,
         error: '$error',
         contentText: contentText,
@@ -452,21 +510,22 @@ class LiveSessionController extends LevitController
         homework: homeworkText,
         familySummary: familySummaryText,
         progressEntries: [
-          if (subjectMatters.value.isNotEmpty)
+          if (_selectedMatter != null)
             SessionLogbookDraftProgressEntry(
-              matterId: subjectMatters.value.first.id,
+              matterId: _selectedMatter!.id,
               completedPercentage: progress,
               notes: '',
-              isEditingExisting:
-                  subjectMatters.value.first.hasSessionProgress,
+              isEditingExisting: _selectedMatter!.hasSessionProgress,
             ),
         ],
         updatedAt: DateTime.now(),
       ),
+      context: _outboxContext?.call(),
     );
   }
 
   Future<int> syncPendingOutbox() async {
+    _outboxStore.bindContext(_outboxContext?.call());
     final pending = await _outboxStore.listPending();
     var syncedCount = 0;
     final client = _schoolClient();
@@ -494,7 +553,9 @@ class LiveSessionController extends LevitController
       } on Object catch (error) {
         await _outboxStore.upsert(
           entry.copyWith(
-            state: TeacherOutboxState.failed,
+            state: isRetryableTeacherWriteFailure(error)
+                ? TeacherOutboxState.failed
+                : TeacherOutboxState.rejected,
             attemptCount: entry.attemptCount + 1,
             lastError: '$error',
             updatedAt: DateTime.now(),
@@ -512,15 +573,19 @@ class LiveSessionController extends LevitController
     objectives(decoded.objectives.join('\n'));
     homework(decoded.homework ?? '');
     familySummary(decoded.familySummary ?? '');
-    if (subjectMatters.value.isNotEmpty) {
-      progressPercent(minMatterProgressPercentage(subjectMatters.value.first));
+    final matter = _selectedMatter;
+    if (matter != null) {
+      progressPercent(minMatterProgressPercentage(matter));
     } else {
       progressPercent(0);
     }
   }
 
   Future<void> _restoreDraft() async {
-    final draft = await SessionLogbookDraftStorage.load(sessionId);
+    final draft = await SessionLogbookDraftStorage.load(
+      sessionId,
+      context: _outboxContext?.call(),
+    );
     if (draft == null) {
       return;
     }
@@ -618,7 +683,7 @@ class LiveSessionController extends LevitController
   }
 
   Future<bool> _enqueueLogbookFailure({
-    required String encodedNote,
+    required Map<String, dynamic> notePayload,
     required List<Map<String, dynamic>> progressOps,
     required String error,
     required String contentText,
@@ -631,11 +696,6 @@ class LiveSessionController extends LevitController
     if (current == null) {
       return false;
     }
-    final notePayload = {
-      'id': current.id,
-      'sessionNote': normalizeSessionNote(encodedNote),
-      'displayLabel': current.title,
-    };
     await _outboxStore.enqueue(
       buildTeacherOutboxEntry(
         id: 'logbook-${current.id}-${DateTime.now().millisecondsSinceEpoch}',
@@ -663,6 +723,31 @@ class LiveSessionController extends LevitController
     return true;
   }
 
+  Future<TeacherSession?> _loadSessionById() async {
+    try {
+      final lesson = await _schoolClient().lessonSessions.get(sessionId);
+      final startsAt = DateTime.tryParse('${lesson['startsAt']}');
+      final endsAt = DateTime.tryParse('${lesson['endsAt']}');
+      if (startsAt == null || endsAt == null) {
+        return null;
+      }
+      return TeacherSession(
+        id: lesson['id'] as String? ?? sessionId,
+        title: lesson['displayLabel'] as String? ?? sessionId,
+        kind: 'lesson',
+        startsAt: startsAt,
+        endsAt: endsAt,
+        classGroupId: lesson['classGroupId'] as String? ?? '',
+        classLabel: lesson['classGroupId'] as String? ?? '',
+        subjectLabel: '',
+        classSubjectId: lesson['classSubjectId'] as String?,
+        status: lesson['status'] as String?,
+      );
+    } on Object {
+      return null;
+    }
+  }
+
   AttendanceStatus? _statusFromApi(String? value) {
     return switch (value) {
       'present' => AttendanceStatus.present,
@@ -672,4 +757,80 @@ class LiveSessionController extends LevitController
       _ => null,
     };
   }
+}
+
+Map<String, dynamic> offlineLessonSessionPayload({
+  required TeacherSession session,
+  required String? schoolId,
+  required String sessionNote,
+}) {
+  return {
+    'id': session.id,
+    if (schoolId != null && schoolId.isNotEmpty) 'schoolId': schoolId,
+    'classGroupId': session.classGroupId,
+    if (session.classSubjectId != null) 'classSubjectId': session.classSubjectId,
+    'startsAt': session.startsAt.toUtc().toIso8601String(),
+    'endsAt': session.endsAt.toUtc().toIso8601String(),
+    'displayLabel': session.title,
+    'sessionNote': normalizeSessionNote(sessionNote),
+  };
+}
+
+bool _offlineLessonPayloadIsComplete(Map<String, dynamic> note) {
+  for (final key in const [
+    'schoolId',
+    'classGroupId',
+    'classSubjectId',
+    'startsAt',
+    'endsAt',
+  ]) {
+    final value = note[key];
+    if (value == null || (value is String && value.isEmpty)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+List<Map<String, dynamic>> progressOperationsForLogbook({
+  required String sessionId,
+  required List<LogbookProgressDraft> entries,
+  required Map<String, SessionSubjectMatterOption> matterById,
+  required DateTime recordedAt,
+}) {
+  final operations = <Map<String, dynamic>>[];
+  for (final entry in entries) {
+    final matter = matterById[entry.matterId];
+    if (matter == null) {
+      continue;
+    }
+    final existing = matter.sessionProgress;
+    if (isProgressCreate(existing)) {
+      operations.add({
+        'action': 'create',
+        'payload': recordLessonProgressPayload(
+          id: newProgressId(sessionId),
+          classSubjectMatterId: matter.id,
+          lessonSessionId: sessionId,
+          completedPercentage: entry.completedPercentage,
+          notes: entry.notes,
+          recordedAt: recordedAt,
+        ),
+      });
+      continue;
+    }
+    operations.add({
+      'action': 'update',
+      'payload': {
+        'id': existing!.id,
+        'classSubjectMatterId': matter.id,
+        'lessonSessionId': sessionId,
+        'completedPercentage': entry.completedPercentage,
+        'recordedAt': recordedAt.toUtc().toIso8601String(),
+        if (entry.notes != null && entry.notes!.trim().isNotEmpty)
+          'notes': entry.notes,
+      },
+    });
+  }
+  return operations;
 }

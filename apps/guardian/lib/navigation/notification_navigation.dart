@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/context/student_context_controller.dart';
 import '../features/inbox/inbox_routes.dart';
 
 /// Routes the user after they open a push notification in the guardian app.
@@ -16,8 +19,20 @@ void handleGuardianNotificationOpened(RemoteMessage message) {
   }
 
   final router = EdayaRootScope.find<GoRouter>();
+  final studentId = message.data['studentId'];
+  if (studentId != null && studentId.isNotEmpty) {
+    final students = EdayaRootScope.find<StudentContextController>();
+    unawaited(students.selectStudent(studentId));
+  }
 
-  if (link.path == '/inbox/message' || link.path.startsWith('/inbox/message')) {
+  final path = link.path == '/child-profile' ? '/child' : link.path;
+  const supported = {'/child', '/inbox', '/fees', '/calendar', '/scolarite'};
+  if (!supported.contains(path) && !path.startsWith('/inbox')) {
+    router.go('/inbox');
+    return;
+  }
+
+  if (path == '/inbox/message' || path.startsWith('/inbox/message')) {
     final deliveryId = link.deliveryId;
     if (deliveryId == null || deliveryId.isEmpty) {
       router.go('/inbox');
@@ -27,5 +42,5 @@ void handleGuardianNotificationOpened(RemoteMessage message) {
     return;
   }
 
-  router.go(link.path);
+  router.go(path);
 }

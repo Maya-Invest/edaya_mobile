@@ -104,7 +104,7 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
         final financeQuery = {'studentId': studentId, 'academicYearId': yearId};
         final results = await Future.wait([
           client.getStudentFinanceSummary(financeQuery),
-          client.studentCharges.list(
+          client.studentCharges.listAll(
             studentChargesForStudent(
               studentId: studentId,
               academicYearId: yearId,
@@ -196,6 +196,7 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
       charges.value.fold<int>(0, (sum, line) => sum + line.allocatedAmount);
 
   int get totalBalance =>
+      summary.value?.outstanding ??
       charges.value.fold<int>(0, (sum, line) => sum + line.remainingObligation);
 
   Future<DocumentJobResult> downloadStatement({required String? schoolId}) {

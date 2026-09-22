@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../calendar/live_calendar_controller.dart';
@@ -51,7 +52,7 @@ class LiveHomeController extends LevitController {
         AccueilTask(
           id: 'ff-${item.campaignId}',
           kind: 'feedback',
-          title: 'Avis des familles',
+          title: systemL10n().teacherTaskFamilyFeedback,
           subtitle:
               '${item.completedSlotCount}/${item.eligibleSlotCount} réponses',
           route: '/home/avis/${item.campaignId}',
@@ -64,7 +65,7 @@ class LiveHomeController extends LevitController {
         AccueilTask(
           id: 'att-${session.id}',
           kind: 'attendance',
-          title: 'Présences à saisir',
+          title: systemL10n().teacherTaskAttendance,
           subtitle: '${session.classLabel} · ${session.subjectLabel}',
           route: '/session/${session.id}/attendance',
           priority: 2,
@@ -76,7 +77,7 @@ class LiveHomeController extends LevitController {
         AccueilTask(
           id: 'log-${session.id}',
           kind: 'logbook',
-          title: 'Cahier de texte',
+          title: systemL10n().teacherTaskLogbook,
           subtitle: '${session.classLabel} · ${session.subjectLabel}',
           route: '/session/${session.id}/logbook',
           priority: 3,
@@ -88,7 +89,7 @@ class LiveHomeController extends LevitController {
         AccueilTask(
           id: 'marks-${evaluation.id}',
           kind: 'marks',
-          title: 'Notes à saisir',
+          title: systemL10n().teacherTaskMarks,
           subtitle:
               '${evaluation.title} · ${evaluation.gradedCount}/${evaluation.totalStudents}',
           route: '/evaluations/${evaluation.id}/marks',
@@ -101,7 +102,7 @@ class LiveHomeController extends LevitController {
         AccueilTask(
           id: 'rc-${bulletin.classGroupId}-${bulletin.periodId}',
           kind: 'bulletin',
-          title: 'Commentaires de bulletin',
+          title: systemL10n().teacherTaskReportComments,
           subtitle:
               '${bulletin.classLabel} · ${bulletin.pendingComments} en attente',
           route:

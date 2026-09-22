@@ -72,6 +72,7 @@ String? resolveGuardianAuthRedirect({
   bool hasSchoolSession = false,
   bool linkedStudentsResolved = false,
   bool hasLinkedStudents = false,
+  bool needsProfileSelection = false,
 }) {
   final isInviteRoute = matchedLocation.startsWith('/invite');
   final isLoginRoute = matchedLocation == guardianLoginRoute;
@@ -90,6 +91,10 @@ String? resolveGuardianAuthRedirect({
       pendingInvitationToken.isNotEmpty &&
       !isInviteRoute) {
     return invitationRoutePath(pendingInvitationToken);
+  }
+
+  if (needsProfileSelection && matchedLocation != '/profiles') {
+    return '/profiles';
   }
 
   final readyForHome = guardianHasLinkedChildren(

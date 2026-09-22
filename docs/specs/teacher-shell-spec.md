@@ -108,8 +108,8 @@ The full family-feedback archive stays under Évaluations (`/evaluations/avis`),
 
 ### Brand app bar
 
-- Centered wordmark **`edaya`** (Nunito brand style).
-- Canvas background matching the app scaffold (`#F0F7FF`); no elevation tint.
+- Authenticated chrome uses the supplied EDAYA logo artwork. Do not reconstruct a typed `edaya` wordmark.
+- Canvas background follows the active theme surface.
 - No automatic back leading on primary shell destinations.
 
 ### Teacher context visibility

@@ -1,4 +1,5 @@
 import 'package:edaya_shared/edaya_shared.dart' hide LoginPage;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -100,6 +101,7 @@ GoRouter createRouter({
         hasSchoolSession: liveSession.hasSchoolSession,
         linkedStudentsResolved: liveStudentContext.linkedStudentsResolved.value,
         hasLinkedStudents: liveStudentContext.hasLinkedStudents,
+        needsProfileSelection: liveSession.needsProfileSelection,
       );
     },
     routes: [
@@ -108,7 +110,7 @@ GoRouter createRouter({
         builder: (context, state) {
           return LoginPage(
             mockStore: mockStore,
-            defaultEmail: ApiConfig.devGuardianEmail,
+            defaultEmail: kDebugMode ? ApiConfig.devGuardianEmail : '',
             onSignInSuccess: () async {
               final pending = pendingInvitation?.token;
               if (pending != null) {
@@ -121,6 +123,12 @@ GoRouter createRouter({
             },
           );
         },
+      ),
+      GoRoute(
+        path: '/profiles',
+        builder: (context, state) => ProfilePickerPage(
+          onSelected: () => completePostAuthNavigation(context),
+        ),
       ),
       GoRoute(
         path: '/invite/:token',

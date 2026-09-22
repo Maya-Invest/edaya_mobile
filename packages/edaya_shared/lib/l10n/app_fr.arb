@@ -497,5 +497,11 @@
   "familyFeedbackInsufficient": "Réponses insuffisantes",
   "familyFeedbackThemes": "Thèmes",
   "familyFeedbackSlotOpen": "Ouverte",
-  "familyFeedbackSlotCompleted": "Terminée"
+  "familyFeedbackSlotCompleted": "Terminée",
+  "teacherTaskFamilyFeedback": "Avis des familles",
+  "teacherTaskAttendance": "Présences à saisir",
+  "teacherTaskLogbook": "Cahier de texte",
+  "teacherTaskMarks": "Notes à saisir",
+  "chooseSchool": "Choisir un établissement",
+  "teacherTaskReportComments": "Commentaires de bulletin"
 }

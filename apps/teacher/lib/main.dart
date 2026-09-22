@@ -5,8 +5,19 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'app/prototype_app_root.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 import 'firebase_options.dart';
 import 'mock/mock_store.dart';
+
+@pragma('vm:entry-point')
+Future<void> teacherFcmBackgroundHandler(RemoteMessage message) {
+  return handleEdayaFcmBackgroundMessage(
+    message,
+    firebaseOptions: DefaultFirebaseOptions.currentPlatform,
+    notificationConfig: PushNotificationConfigs.teacher,
+  );
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,7 +25,7 @@ Future<void> main() async {
     firebaseOptions: DefaultFirebaseOptions.currentPlatform,
     notificationConfig: PushNotificationConfigs.teacher,
   );
-  registerEdayaFcmBackgroundHandler();
+  FirebaseMessaging.onBackgroundMessage(teacherFcmBackgroundHandler);
   ApiBaseUrlConfig.configure(
     appDefaultUrl: ApiBaseUrlConfig.stagingUrl,
     appDefaultAuthUrl: ApiBaseUrlConfig.stagingAuthUrl,

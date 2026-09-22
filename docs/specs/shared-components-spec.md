@@ -13,7 +13,7 @@ Normative for the current Guardian and Teacher apps. Extend these components bef
 | AccountSheetBody / AccountProfileHeader | shared common/account widgets | Existing account/profile actions and semantics |
 | ModalBottomSheetPage | shared `lib/src/common/models/` | Existing modal navigation, safe area and dismissal behavior |
 | LoginPage | shared `lib/src/features/auth/` | Email OTP only (email → code); logo and form hierarchy; existing session callbacks |
-| GuardianAppBar / TeacherAppBar | app `features/app_shell/widgets/` | Student/class/year context before decoration; current actions retained |
+| GuardianAppBar / TeacherAppBar | app `design/components/` (`PrototypeAppBar`) | Student/class/year context before decoration; current actions retained |
 | SessionTile / TeacherSessionTile | app calendar widgets | Current title, subject, class, kind and time; same detail navigation |
 | FeesSummaryCard / GradeSummaryCards | Guardian feature widgets | All totals and labels retained; responsive numeric presentation |
 | InboxDeliveryTile | Guardian inbox widgets | Unread status, date, title and body with existing message route |

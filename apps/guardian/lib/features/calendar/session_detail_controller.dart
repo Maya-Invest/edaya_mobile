@@ -263,7 +263,9 @@ class SessionDetailController extends LevitController
     return LogbookEntry(
       id: primaryProgress?['id'] as String? ?? resolved.id,
       chapter: chapter,
-      content: sessionNote ?? primaryProgress?['notes'] as String? ?? '',
+      content: decodeStructuredSessionNote(sessionNote).guardianText.isNotEmpty
+          ? decodeStructuredSessionNote(sessionNote).guardianText
+          : primaryProgress?['notes'] as String? ?? '',
       objectives: primaryProgress?['notes'] != null
           ? [primaryProgress!['notes'] as String]
           : const [],

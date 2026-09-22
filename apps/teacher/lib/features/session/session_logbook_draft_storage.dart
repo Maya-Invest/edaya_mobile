@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SessionLogbookDraft {
@@ -90,11 +91,19 @@ class SessionLogbookDraftProgressEntry {
 abstract final class SessionLogbookDraftStorage {
   SessionLogbookDraftStorage._();
 
-  static String _key(String sessionId) => 'teacher_logbook_draft_$sessionId';
+  static String _key(String sessionId, TeacherOutboxContext? context) {
+    final scope = context == null
+        ? 'unscoped'
+        : '${context.origin}|${context.subjectId}|${context.actorId}|${context.schoolId}|${context.academicYearId ?? ''}';
+    return 'teacher_logbook_draft_${scope}_$sessionId';
+  }
 
-  static Future<SessionLogbookDraft?> load(String sessionId) async {
+  static Future<SessionLogbookDraft?> load(
+    String sessionId, {
+    TeacherOutboxContext? context,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_key(sessionId));
+    final raw = prefs.getString(_key(sessionId, context));
     if (raw == null || raw.isEmpty) {
       return null;
     }
@@ -110,13 +119,20 @@ abstract final class SessionLogbookDraftStorage {
     }
   }
 
-  static Future<void> save(String sessionId, SessionLogbookDraft draft) async {
+  static Future<void> save(
+    String sessionId,
+    SessionLogbookDraft draft, {
+    TeacherOutboxContext? context,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_key(sessionId), jsonEncode(draft.toJson()));
+    await prefs.setString(_key(sessionId, context), jsonEncode(draft.toJson()));
   }
 
-  static Future<void> clear(String sessionId) async {
+  static Future<void> clear(
+    String sessionId, {
+    TeacherOutboxContext? context,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_key(sessionId));
+    await prefs.remove(_key(sessionId, context));
   }
 }

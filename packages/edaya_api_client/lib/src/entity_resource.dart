@@ -16,6 +16,34 @@ class EntityResource {
   final Transport _transport;
   final String publicName;
 
+  /// Pages with `$limit`/`$offset` until a short page. Throws if the result
+  /// would be silently truncated past [maxRows].
+  Future<List<Map<String, dynamic>>> listAll([
+    EntityQuery? query,
+    int pageSize = 100,
+    int maxRows = 5000,
+  ]) async {
+    final rows = <Map<String, dynamic>>[];
+    var offset = 0;
+    while (true) {
+      final page = await list({
+        ...?query,
+        r'$limit': pageSize,
+        r'$offset': offset,
+      });
+      rows.addAll(page);
+      if (page.length < pageSize) {
+        return rows;
+      }
+      offset += page.length;
+      if (offset >= maxRows) {
+        throw StateError(
+          'Entity list for $publicName exceeded $maxRows rows',
+        );
+      }
+    }
+  }
+
   Future<List<Map<String, dynamic>>> list([EntityQuery? query]) async {
     final result = await _transport.request<Object?>(
       'POST',

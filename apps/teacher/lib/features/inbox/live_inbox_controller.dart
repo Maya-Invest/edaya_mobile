@@ -18,6 +18,8 @@ class LiveInboxController extends LevitController
   final AppSessionController _session;
   final SchoolClientFactory _schoolClient;
 
+  int _generation = 0;
+
   final deliveries = LxVar<List<InboxDelivery>>(const []);
   final errorMessage = LxVar('');
 
@@ -27,6 +29,7 @@ class LiveInboxController extends LevitController
     autoDispose(deliveries);
     autoDispose(errorMessage);
     autoDispose(_session.user.stream.listen((_) => unawaited(loadInbox())));
+    autoDispose(_session.grants.stream.listen((_) => unawaited(loadInbox())));
     unawaited(loadInbox());
   }
 
@@ -62,20 +65,42 @@ class LiveInboxController extends LevitController
     );
   }
 
-  Future<void> loadInbox() async {
+  String? _inboxKey() {
     final subjectId = _session.user.value?.id;
-    if (subjectId == null) {
+    final grants = _session.grants.value;
+    if (subjectId == null || grants == null || grants.kind != 'teacher') {
+      return null;
+    }
+    return '$subjectId|${grants.kind}|${grants.actorId}|${grants.schoolId}';
+  }
+
+  Future<void> loadInbox() async {
+    final generation = ++_generation;
+    final key = _inboxKey();
+    if (key == null) {
       deliveries(const []);
       errorMessage('');
       return;
     }
+    final grants = _session.grants.value!;
+    final subjectId = _session.user.value!.id;
 
     errorMessage('');
-    await runTask(() async {
-      try {
-        final rows = await _schoolClient().messageDeliveries.list(
-          deliveriesForSubject(subjectId),
-        );
+    final rowsFuture = _schoolClient().messageDeliveries.list(
+      deliveriesForTeacher(
+        subjectId: subjectId,
+        teacherId: grants.actorId,
+        schoolId: grants.schoolId,
+      ),
+    );
+    if (generation != _generation || key != _inboxKey()) {
+      return;
+    }
+    try {
+        final rows = await rowsFuture;
+        if (generation != _generation || key != _inboxKey()) {
+          return;
+        }
         final parsed = rows.map(InboxDelivery.fromJson).toList()
           ..sort((a, b) {
             final aTime = a.sortDate?.millisecondsSinceEpoch ?? 0;
@@ -84,12 +109,17 @@ class LiveInboxController extends LevitController
           });
         deliveries(parsed);
       } on api.ApiError catch (error) {
+        if (generation != _generation || key != _inboxKey()) {
+          return;
+        }
         errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
         deliveries(const []);
       } on Object catch (error) {
+        if (generation != _generation || key != _inboxKey()) {
+          return;
+        }
         errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
         deliveries(const []);
       }
-    });
   }
 }

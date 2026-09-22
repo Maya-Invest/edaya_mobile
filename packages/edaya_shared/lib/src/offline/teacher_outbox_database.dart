@@ -23,6 +23,18 @@ class TeacherOutboxRows extends Table {
 
   IntColumn get updatedAt => integer()();
 
+  TextColumn get origin => text().nullable()();
+
+  TextColumn get subjectId => text().nullable()();
+
+  TextColumn get actorKind => text().nullable()();
+
+  TextColumn get actorId => text().nullable()();
+
+  TextColumn get schoolId => text().nullable()();
+
+  TextColumn get academicYearId => text().nullable()();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
@@ -35,7 +47,36 @@ class TeacherOutboxDatabase extends _$TeacherOutboxDatabase {
   TeacherOutboxDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (migrator) => migrator.createAll(),
+      onUpgrade: (migrator, from, to) async {
+        if (from < 2) {
+          await migrator.addColumn(teacherOutboxRows, teacherOutboxRows.origin);
+          await migrator.addColumn(
+            teacherOutboxRows,
+            teacherOutboxRows.subjectId,
+          );
+          await migrator.addColumn(
+            teacherOutboxRows,
+            teacherOutboxRows.actorKind,
+          );
+          await migrator.addColumn(teacherOutboxRows, teacherOutboxRows.actorId);
+          await migrator.addColumn(
+            teacherOutboxRows,
+            teacherOutboxRows.schoolId,
+          );
+          await migrator.addColumn(
+            teacherOutboxRows,
+            teacherOutboxRows.academicYearId,
+          );
+        }
+      },
+    );
+  }
 
   static QueryExecutor _openConnection() {
     return driftDatabase(

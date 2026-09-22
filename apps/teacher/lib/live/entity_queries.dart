@@ -100,6 +100,19 @@ EntityQuery deliveriesForSubject(String subjectId) {
   return {'subjectId': subjectId};
 }
 
+EntityQuery deliveriesForTeacher({
+  required String subjectId,
+  required String teacherId,
+  required String schoolId,
+}) {
+  return {
+    'subjectId': subjectId,
+    'recipientKind': 'teacher',
+    'recipientId': teacherId,
+    'schoolId': schoolId,
+  };
+}
+
 String academicPeriodLabel(Map<String, dynamic> period) {
   return period['name'] as String? ?? period['id'] as String;
 }

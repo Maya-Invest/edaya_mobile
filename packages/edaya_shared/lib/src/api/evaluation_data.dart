@@ -1,7 +1,7 @@
 Map<String, dynamic> assessmentResultPayload({
   required String assessmentId,
   required String studentId,
-  required double score,
+  required double? score,
   String? resultId,
   DateTime? createdAt,
 }) {

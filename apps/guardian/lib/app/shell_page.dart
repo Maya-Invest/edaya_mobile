@@ -122,7 +122,7 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
           final Widget shell;
           if (!useRail) {
             shell = Scaffold(
-              backgroundColor: PrototypeColors.background,
+              backgroundColor: Theme.of(context).colorScheme.surface,
               body: SafeArea(bottom: false, child: hubBody),
               bottomNavigationBar: NavigationBar(
                 selectedIndex: tabIndex,
@@ -133,12 +133,12 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
             );
           } else {
             shell = Scaffold(
-              backgroundColor: PrototypeColors.background,
+              backgroundColor: Theme.of(context).colorScheme.surface,
               body: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   NavigationRail(
-                    backgroundColor: PrototypeColors.background,
+                    backgroundColor: Theme.of(context).colorScheme.surface,
                     selectedIndex: tabIndex,
                     onDestinationSelected: (i) =>
                         context.go(GuardianShellTabs.hubPathForIndex(i)),
@@ -172,7 +172,7 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
               Offstage(child: shell),
               Positioned.fill(
                 child: Material(
-                  color: PrototypeColors.background,
+                  color: Theme.of(context).colorScheme.surface,
                   child: child,
                 ),
               ),

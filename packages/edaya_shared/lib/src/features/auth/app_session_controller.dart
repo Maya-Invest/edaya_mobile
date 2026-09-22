@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
@@ -49,9 +50,13 @@ class AppSessionController extends LevitController {
 
   String? _academicYearIdHeader;
   String? _actorKindHeader;
+  String? _pinnedActorId;
+  String? _pinnedSchoolId;
+  String? _pinnedActorKind;
 
   final user = LxVar<AuthUser?>(null);
   final grants = LxVar<api.EffectiveGrantsResponse?>(null);
+  final availableProfiles = LxVar<List<SchoolAuthorizationProfile>>(const []);
   String? get actorIdHeader => grants.value?.actorId;
   String? get schoolIdHeader => grants.value?.schoolId;
   final isBootstrapping = LxVar(true);
@@ -63,11 +68,15 @@ class AppSessionController extends LevitController {
 
   bool get hasSchoolSession => grants.value != null;
 
+  bool get needsProfileSelection =>
+      grants.value == null && availableProfiles.value.length > 1;
+
   @override
   void onInit() {
     super.onInit();
     autoDispose(user);
     autoDispose(grants);
+    autoDispose(availableProfiles);
     autoDispose(isBootstrapping);
     autoDispose(isSigningOut);
   }
@@ -169,9 +178,34 @@ class AppSessionController extends LevitController {
     _routerRefresh.refresh();
   }
 
+  Future<String?> selectProfile(SchoolAuthorizationProfile profile) async {
+    final signedInUser = user.value;
+    if (signedInUser == null) {
+      return _unauthorizedProfileMessage();
+    }
+    _pinnedActorId = profile.actorId;
+    _pinnedSchoolId = profile.schoolId;
+    _pinnedActorKind = profile.kind;
+    grants(null);
+    await _persistPinnedProfile();
+    final error = await _loadSchoolSession(signedInUser);
+    if (error == null && grants.value != null) {
+      await _pushNotifications.registerForAuthenticatedUser();
+      _routerRefresh.refresh();
+    }
+    return error;
+  }
+
   Future<String?> _loadSchoolSession(AuthUser signedInUser) async {
     final schoolClient = await _createSchoolClient();
     try {
+      await _resolveProfile(schoolClient);
+      if (needsProfileSelection) {
+        user(signedInUser);
+        grants(null);
+        _routerRefresh.refresh();
+        return null;
+      }
       final effectiveGrants = await schoolClient.effectiveGrants();
       final validationError = _validateGrants(effectiveGrants);
       if (validationError != null) {
@@ -195,24 +229,109 @@ class AppSessionController extends LevitController {
     if (_resolveAcademicYearId != null) {
       _academicYearIdHeader = await _resolveAcademicYearId();
     }
-    _actorKindHeader = _resolveActorKind?.call();
+    _actorKindHeader = _pinnedActorKind ?? _resolveActorKind?.call();
     return createEdayaSchoolClient(
       _authClient,
       getAcademicYearId: () => _academicYearIdHeader,
       getActorKind: () => _actorKindHeader,
-      getActorId: () => grants.value?.actorId,
-      getSchoolId: () => grants.value?.schoolId,
+      getActorId: () => _pinnedActorId ?? grants.value?.actorId,
+      getSchoolId: () => _pinnedSchoolId ?? grants.value?.schoolId,
     );
+  }
+
+  Future<void> _resolveProfile(api.SchoolClient schoolClient) async {
+    final rows = await schoolClient.authorizationProfiles();
+    final profiles = [
+      for (final row in rows)
+        SchoolAuthorizationProfile(
+          kind: row['kind'] as String? ?? '',
+          actorId: row['actorId'] as String? ?? '',
+          schoolId: row['schoolId'] as String? ?? '',
+          schoolName: row['schoolName'] as String? ?? '',
+          schoolShortName: row['schoolShortName'] as String? ?? '',
+        ),
+    ].where((profile) => profile.actorId.isNotEmpty && profile.schoolId.isNotEmpty);
+    final expectedKind = _resolveActorKind?.call();
+    final matches = [
+      for (final profile in profiles)
+        if (expectedKind == null || profile.kind == expectedKind) profile,
+    ];
+    availableProfiles(matches);
+    await _restorePinnedProfile();
+    final pinned = matches.where(
+      (profile) =>
+          profile.actorId == _pinnedActorId &&
+          profile.schoolId == _pinnedSchoolId,
+    );
+    if (pinned.length == 1) {
+      _pinnedActorKind = pinned.single.kind;
+      return;
+    }
+    _pinnedActorId = null;
+    _pinnedSchoolId = null;
+    _pinnedActorKind = null;
+    if (matches.length == 1) {
+      _pinnedActorId = matches.single.actorId;
+      _pinnedSchoolId = matches.single.schoolId;
+      _pinnedActorKind = matches.single.kind;
+      await _persistPinnedProfile();
+    }
+  }
+
+  Future<void> _restorePinnedProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    _pinnedActorId ??= prefs.getString('edaya_selected_actor_id');
+    _pinnedSchoolId ??= prefs.getString('edaya_selected_school_id');
+    _pinnedActorKind ??= prefs.getString('edaya_selected_actor_kind');
+  }
+
+  Future<void> _persistPinnedProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (_pinnedActorId == null || _pinnedSchoolId == null) {
+      await prefs.remove('edaya_selected_actor_id');
+      await prefs.remove('edaya_selected_school_id');
+      await prefs.remove('edaya_selected_actor_kind');
+      return;
+    }
+    await prefs.setString('edaya_selected_actor_id', _pinnedActorId!);
+    await prefs.setString('edaya_selected_school_id', _pinnedSchoolId!);
+    await prefs.setString('edaya_selected_actor_kind', _pinnedActorKind ?? '');
   }
 
   Future<void> _clearLocalSession({bool persistCookies = true}) async {
     user(null);
     grants(null);
+    availableProfiles(const []);
+    _pinnedActorId = null;
+    _pinnedSchoolId = null;
+    _pinnedActorKind = null;
     _academicYearIdHeader = null;
     _actorKindHeader = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('edaya_selected_actor_id');
+    await prefs.remove('edaya_selected_school_id');
+    await prefs.remove('edaya_selected_actor_kind');
     if (persistCookies) {
       await _sessionStorage.clearCookies();
       _authClient.clearCredentials();
     }
   }
+}
+
+class SchoolAuthorizationProfile {
+  const SchoolAuthorizationProfile({
+    required this.kind,
+    required this.actorId,
+    required this.schoolId,
+    required this.schoolName,
+    required this.schoolShortName,
+  });
+
+  final String kind;
+  final String actorId;
+  final String schoolId;
+  final String schoolName;
+  final String schoolShortName;
+
+  String get label => schoolShortName.isEmpty ? schoolName : schoolShortName;
 }

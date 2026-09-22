@@ -42,6 +42,21 @@ class SchoolClient {
     );
   }
 
+  Future<List<Map<String, dynamic>>> authorizationProfiles() async {
+    final response = await _transport.request<Map<String, dynamic>>(
+      'GET',
+      schoolApiPath(['authorization', 'profiles']),
+    );
+    final rows = response['profiles'];
+    if (rows is! List) {
+      return const [];
+    }
+    return [
+      for (final row in rows)
+        if (row is Map) Map<String, dynamic>.from(row),
+    ];
+  }
+
   Future<EffectiveGrantsResponse> effectiveGrants() async {
     final response = await _transport.request<Map<String, dynamic>>(
       'GET',

@@ -485,7 +485,12 @@ class _LiveEvaluationsPage extends LView<LiveEvaluationsController> {
                       } else if (value == 'duplicate') {
                         await controller.duplicateEvaluation(e);
                       } else if (value == 'complete') {
-                        await controller.completeEvaluation(e);
+                        final error = await controller.completeEvaluation(e);
+                        if (error != null && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(error)),
+                          );
+                        }
                       }
                     },
                     itemBuilder: (context) => const [
@@ -564,6 +569,13 @@ class _LiveMarksEntryPage extends LScopedView<LiveMarksController> {
         teacherContext: scope.find<TeacherContextController>(),
         schoolClient: scope.find<SchoolClientFactory>(),
         outboxStore: scope.find<TeacherOutboxStore>(),
+        outboxContext: () => teacherOutboxContextForSession(
+          session: scope.find<AppSessionController>(),
+          academicYearId: scope
+              .find<AcademicYearController>()
+              .selectedYearId
+              .value,
+        ),
       ),
     );
   }

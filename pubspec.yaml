@@ -45,26 +45,26 @@ melos:
       run: cd apps/guardian && flutter run --dart-define=AUTH_URL=http://10.0.2.2:9900 --dart-define=API_URL=http://10.0.2.2:9999
       description: Run guardian app against local API (Android emulator).
     run:guardian:legacy:local:
-      run: cd apps/guardian_legacy && flutter run --dart-define=API_URL=http://10.0.2.2:9999
-      description: Run archived guardian IA against local API.
+      run: echo "guardian_legacy is not a current app" && exit 1
+      description: Removed legacy guardian app. Do not run.
     run:teacher:local:
       run: cd apps/teacher && flutter run --dart-define=AUTH_URL=http://10.0.2.2:9900 --dart-define=API_URL=http://10.0.2.2:9999
       description: Run teacher app against local Identity and school API (Android emulator).
     run:teacher:legacy:local:
-      run: cd apps/teacher_legacy && flutter run --dart-define=API_URL=http://localhost:9999
-      description: Run archived teacher IA against local API (localhost).
+      run: echo "teacher_legacy is not a current app" && exit 1
+      description: Removed legacy teacher app. Do not run.
     run:guardian:staging:
       run: cd apps/guardian && flutter run
       description: Run guardian app (default staging API).
     run:guardian:legacy:staging:
-      run: cd apps/guardian_legacy && flutter run
-      description: Run archived guardian IA (default staging API).
+      run: echo "guardian_legacy is not a current app" && exit 1
+      description: Removed legacy guardian app. Do not run.
     run:teacher:staging:
       run: cd apps/teacher && flutter run
       description: Run teacher app (default staging API).
     run:teacher:legacy:staging:
-      run: cd apps/teacher_legacy && flutter run
-      description: Run archived teacher IA (default staging API).
+      run: echo "teacher_legacy is not a current app" && exit 1
+      description: Removed legacy teacher app. Do not run.
     brand:check:
       run: python3 scripts/brand-check.py
       description: Verify EDAYA tokens, assets, contrast and visual literals.
