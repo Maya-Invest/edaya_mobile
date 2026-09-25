@@ -19,6 +19,13 @@ void main() {
       throwsFormatException,
     );
     expect(
+      StudentChargeLine.fromJson({
+        'id': 'charge',
+        'expectedAmount': {'amount': 1200, 'currency': 'XOF'},
+      }).currency,
+      'XOF',
+    );
+    expect(
       FeesSummary.fromJson({
         'currency': 'EUR',
         'available': 25,
@@ -47,6 +54,18 @@ void main() {
         currency: 'USD',
       ).currency,
       'USD',
+    );
+    expect(
+      PaymentRecord.fromJson(
+        {
+          'id': 'payment',
+          'amount': {'amount': 1200, 'currency': 'XOF'},
+          'paymentDate': '2026-09-24',
+        },
+        feeLabel: 'Tuition',
+        currency: 'XOF',
+      ).currency,
+      'XOF',
     );
   });
   test('configured currencies retain their actual minor-unit precision', () {

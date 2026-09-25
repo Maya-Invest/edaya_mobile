@@ -21,7 +21,11 @@ class PaymentRecord {
     required String feeLabel,
     String? currency,
   }) {
-    final recordCurrency = requireFinanceCurrency(json['currency']);
+    final amount = json['amount'];
+    final embeddedCurrency = amount is Map ? amount['currency'] : null;
+    final recordCurrency = requireFinanceCurrency(
+      json['currency'] ?? embeddedCurrency ?? currency,
+    );
     if (currency != null && currency != recordCurrency) {
       throw const FormatException(
         'Payment currency does not match the school currency',

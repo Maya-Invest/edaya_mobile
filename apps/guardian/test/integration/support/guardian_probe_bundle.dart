@@ -351,6 +351,10 @@ class GuardianProbeBundle {
         .firstWhere((row) => row != null, orElse: () => null);
     final feeLabel = charge?['label'] as String? ?? chargeId ?? 'Fee';
 
-    return PaymentRecord.fromJson(payment, feeLabel: feeLabel);
+    return PaymentRecord.fromJson(
+      payment,
+      feeLabel: feeLabel,
+      currency: fees.summary['currency'] as String?,
+    );
   }
 }

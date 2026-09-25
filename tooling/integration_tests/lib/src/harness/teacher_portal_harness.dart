@@ -549,7 +549,9 @@ Future<void> probeTeacherEvaluationWrites(
     'studentId': studentId,
     'assessmentId': asmId,
     'score': 12,
-    'createdAt': now.toIso8601String(),
+    'designation': 'scored',
+    'requestId': 'it-$asmId',
+    'expectedRevision': 0,
   });
 
   final results = await client.assessmentResults.list(

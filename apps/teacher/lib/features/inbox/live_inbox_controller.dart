@@ -19,6 +19,7 @@ class LiveInboxController extends LevitController
   final SchoolClientFactory _schoolClient;
 
   int _generation = 0;
+  bool _closed = false;
 
   final deliveries = LxVar<List<InboxDelivery>>(const []);
   final errorMessage = LxVar('');
@@ -31,6 +32,13 @@ class LiveInboxController extends LevitController
     autoDispose(_session.user.stream.listen((_) => unawaited(loadInbox())));
     autoDispose(_session.grants.stream.listen((_) => unawaited(loadInbox())));
     unawaited(loadInbox());
+  }
+
+  @override
+  void onClose() {
+    _closed = true;
+    _generation++;
+    super.onClose();
   }
 
   DataStatus get dataStatus {
@@ -75,9 +83,15 @@ class LiveInboxController extends LevitController
   }
 
   Future<void> loadInbox() async {
+    if (_closed) {
+      return;
+    }
     final generation = ++_generation;
     final key = _inboxKey();
     if (key == null) {
+      if (_closed) {
+        return;
+      }
       deliveries(const []);
       errorMessage('');
       return;
@@ -98,7 +112,7 @@ class LiveInboxController extends LevitController
     }
     try {
         final rows = await rowsFuture;
-        if (generation != _generation || key != _inboxKey()) {
+        if (_closed || generation != _generation || key != _inboxKey()) {
           return;
         }
         final parsed = rows.map(InboxDelivery.fromJson).toList()
@@ -109,13 +123,13 @@ class LiveInboxController extends LevitController
           });
         deliveries(parsed);
       } on api.ApiError catch (error) {
-        if (generation != _generation || key != _inboxKey()) {
+        if (_closed || generation != _generation || key != _inboxKey()) {
           return;
         }
         errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
         deliveries(const []);
       } on Object catch (error) {
-        if (generation != _generation || key != _inboxKey()) {
+        if (_closed || generation != _generation || key != _inboxKey()) {
           return;
         }
         errorMessage(systemL10n().couldNotLoadInbox(error.toString()));

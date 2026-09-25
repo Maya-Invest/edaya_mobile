@@ -63,7 +63,9 @@ class StudentChargeLine {
     Map<String, dynamic> json, {
     int settlementCount = 0,
   }) {
-    final currency = requireFinanceCurrency(json['currency']);
+    final expected = json['expectedAmount'];
+    final embeddedCurrency = expected is Map ? expected['currency'] : null;
+    final currency = requireFinanceCurrency(json['currency'] ?? embeddedCurrency);
     final installmentRows = json['installments'];
     return StudentChargeLine(
       id: json['id'] as String,
