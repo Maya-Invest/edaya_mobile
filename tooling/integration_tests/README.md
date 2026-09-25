@@ -87,6 +87,6 @@ cd apps/teacher && EDAYA_INTEGRATION_TESTS=1 flutter test test/integration --tag
 
 Unit/widget runs (`melos run test`) exclude `@Tags(['integration'])` tests so CI verify does not require a running API.
 
-When adding a new portal feature API surface, add a matching integration probe **and** a focused unit test for any non-trivial client-side merge/invalidation logic. When the feature has meaningful UI, add a guardian or teacher widget integration test that asserts the page renders seeded API data.
+When adding a new portal feature API surface, add a matching integration probe **and** a focused unit test for any non-trivial client-side merge/invalidation logic. When the feature has meaningful UI, add a guardian or teacher widget integration test that asserts the page renders seeded API data. A second guardian profile locks linked-student scope only. Page mounts belong to smoke, not a live route file.
 
 Widget boot tests are not required when smoke already covers that screen. Keep a unit test when it locks a branch the integration probe cannot see (parse/reject, offline conflict, deeplink). A constant or boolean gate already covered by a nearby auth or client test does not need its own file.

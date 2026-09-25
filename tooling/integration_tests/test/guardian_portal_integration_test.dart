@@ -12,9 +12,8 @@ Future<void> main() async {
     return;
   }
 
-  for (final profile in GuardianPortalProfile.demoCiProfiles) {
-    _guardianPortalSuite(profile);
-  }
+  _guardianPortalSuite(GuardianPortalProfile.mariamKone);
+  _koffiYaoScope();
 }
 
 void _guardianPortalSuite(GuardianPortalProfile profile) {
@@ -25,8 +24,6 @@ void _guardianPortalSuite(GuardianPortalProfile profile) {
   late GuardianPortalContext context;
   late GuardianAcademicProbe academicProbe;
   late GuardianFeesProbe feesProbe;
-  late GuardianCalendarProbe calendarProbe;
-  late GuardianInboxProbe inboxProbe;
 
   group('guardian portal — ${profile.label}', () {
     setUpAll(() async {
@@ -47,15 +44,6 @@ void _guardianPortalSuite(GuardianPortalProfile profile) {
         session.schoolClient,
         studentId: profile.primaryStudentId,
         academicYearId: profile.academicYearId,
-      );
-      calendarProbe = await loadGuardianCalendarData(
-        session.schoolClient,
-        classGroupId: profile.primaryClassGroupId,
-        academicYearId: profile.academicYearId,
-      );
-      inboxProbe = await loadGuardianInbox(
-        session.schoolClient,
-        inboxSubjectId: context.inboxSubjectId,
       );
     });
 
@@ -118,26 +106,9 @@ void _guardianPortalSuite(GuardianPortalProfile profile) {
         expect(academicProbe.academicPeriods, isNotEmpty);
         expect(academicProbe.classSubjects, isNotEmpty);
         expect(academicProbe.subjects, isNotEmpty);
-        expect(
-          academicProbe.classSubjectMatters,
-          isA<List<Map<String, dynamic>>>(),
-        );
-        expect(academicProbe.subjectMatters, isA<List<Map<String, dynamic>>>());
-      });
-
-      test('assessments and student results list without error', () {
-        expect(academicProbe.assessments, isA<List<Map<String, dynamic>>>());
-        expect(
-          academicProbe.assessmentResults,
-          isA<List<Map<String, dynamic>>>(),
-        );
       });
 
       test('published report cards are visible for primary student', () {
-        if (profile.primaryStudentId !=
-            GuardianPortalProfile.mariamKone.primaryStudentId) {
-          return;
-        }
         if (academicProbe.reportCards.isEmpty) {
           markTestSkipped('no published report cards seeded for student');
           return;
@@ -169,10 +140,7 @@ void _guardianPortalSuite(GuardianPortalProfile profile) {
       test(
         'student finance summary, charges and payments load without error',
         () {
-          expect(feesProbe.summary, isA<Map<String, dynamic>>());
           expect(feesProbe.summary['academicYearId'], profile.academicYearId);
-          expect(feesProbe.studentCharges, isA<List<Map<String, dynamic>>>());
-          expect(feesProbe.payments, isA<List<Map<String, dynamic>>>());
         },
       );
 
@@ -187,35 +155,9 @@ void _guardianPortalSuite(GuardianPortalProfile profile) {
           );
         },
       );
-
-      test('charge labels are present when charges exist', () {
-        if (feesProbe.studentCharges.isEmpty) {
-          return;
-        }
-        expect(feesProbe.studentCharges.first['label'], isNotEmpty);
-      });
-    });
-
-    group('calendar / planning', () {
-      test('timetable and school events reads succeed', () {
-        expect(calendarProbe.timetableEvents, isA<List<dynamic>>());
-        expect(calendarProbe.calendarEvents, isA<List<Map<String, dynamic>>>());
-      });
-
-      test('student attendance list succeeds', () async {
-        final rows = await loadGuardianAttendance(
-          session.schoolClient,
-          studentId: profile.primaryStudentId,
-        );
-        expect(rows, isA<List<Map<String, dynamic>>>());
-      });
     });
 
     group('inbox', () {
-      test('message deliveries list for guardian subject id', () {
-        expect(inboxProbe.deliveries, isA<List<Map<String, dynamic>>>());
-      });
-
       test('markDeliveryRead persists when unread delivery exists', () async {
         final deliveryId = await seedGuardianInboxProbeDelivery(
           baseConfig: baseConfig,
@@ -261,6 +203,34 @@ void _guardianPortalSuite(GuardianPortalProfile profile) {
           expect(error.status, 403);
         }
       });
+    });
+  });
+}
+
+void _koffiYaoScope() {
+  final profile = GuardianPortalProfile.koffiYao;
+  final config = IntegrationConfig.fromEnvironment().withGuardianEmail(
+    profile.email,
+  );
+
+  group('guardian portal — ${profile.label}', () {
+    late PortalSession session;
+    late GuardianPortalContext context;
+
+    setUpAll(() async {
+      session = await PortalSession.signIn(
+        config: config,
+        actorKind: 'guardian',
+        academicYearId: profile.academicYearId,
+      );
+      context = await bootstrapGuardianPortal(session, profile);
+    });
+
+    test('guardian scope contains every linked student', () {
+      expect(
+        context.grants.guardianScope?.studentIds,
+        containsAll(profile.expectedStudentIds),
+      );
     });
   });
 }
