@@ -9,7 +9,9 @@ const teacherOutboxMigratedToDriftKey = 'teacher_outbox_migrated_to_drift_v1';
 
 /// Legacy SharedPreferences store kept for one-time migration into Drift.
 class SharedPrefsTeacherOutboxStore implements TeacherOutboxStore {
-  SharedPrefsTeacherOutboxStore({this.storageKey = teacherOutboxSharedPrefsStorageKey});
+  SharedPrefsTeacherOutboxStore({
+    this.storageKey = teacherOutboxSharedPrefsStorageKey,
+  });
 
   final String storageKey;
   TeacherOutboxContext? _context;
@@ -34,7 +36,8 @@ class SharedPrefsTeacherOutboxStore implements TeacherOutboxStore {
       return decoded
           .whereType<Map>()
           .map(
-            (entry) => TeacherOutboxEntry.fromJson(entry.cast<String, dynamic>()),
+            (entry) =>
+                TeacherOutboxEntry.fromJson(entry.cast<String, dynamic>()),
           )
           .toList();
     } on Object {
@@ -72,7 +75,7 @@ class SharedPrefsTeacherOutboxStore implements TeacherOutboxStore {
     return recovered
         .where(
           (entry) =>
-              teacherOutboxEntryIsReplayable(entry) &&
+              entry.state != TeacherOutboxState.synced &&
               teacherOutboxEntryMatchesContext(entry, _context),
         )
         .toList()
@@ -150,4 +153,3 @@ class SharedPrefsTeacherOutboxStore implements TeacherOutboxStore {
     return TeacherOutboxSummary.fromEntries(pending);
   }
 }
-

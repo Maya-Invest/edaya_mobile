@@ -130,20 +130,6 @@ Future<void> _syncCommentEntry(
   }
 }
 
-String teacherMarkIdempotencyKey({
-  required String assessmentId,
-  required String studentId,
-}) {
-  return 'mark:$assessmentId:$studentId';
-}
-
-String teacherCommentIdempotencyKey({
-  required String resultId,
-  required String sectionId,
-}) {
-  return 'comment:$resultId:$sectionId';
-}
-
 TeacherOutboxEntry buildTeacherOutboxEntry({
   required String id,
   required TeacherOutboxKind kind,
@@ -170,10 +156,7 @@ Map<String, dynamic> logbookOutboxPayload({
   required Map<String, dynamic> notePayload,
   required List<Map<String, dynamic>> progressOps,
 }) {
-  return {
-    'notePayload': notePayload,
-    'progressOps': progressOps,
-  };
+  return {'notePayload': notePayload, 'progressOps': progressOps};
 }
 
 Map<String, dynamic> markOutboxPayload({
@@ -181,11 +164,45 @@ Map<String, dynamic> markOutboxPayload({
   required String studentId,
   required double? score,
   String? resultId,
+  required String requestId,
+  required int expectedRevision,
 }) {
   return assessmentResultPayload(
     assessmentId: assessmentId,
     studentId: studentId,
     score: score,
     resultId: resultId,
+    requestId: requestId,
+    expectedRevision: expectedRevision,
   );
+}
+
+/// Commands belonging to one logical report-comment edit, in replay order.
+List<Map<String, dynamic>> reportCommentCommandBodies(
+  TeacherOutboxEntry entry,
+) {
+  if (entry.kind != TeacherOutboxKind.comment) return const [];
+  return [
+    for (final key in const ['homeroom', 'sections', 'body'])
+      if (entry.payload[key] is Map)
+        Map<String, dynamic>.from(entry.payload[key] as Map),
+  ];
+}
+
+int reportCommentNextVersion(
+  int serverVersion,
+  String resultId,
+  Iterable<TeacherOutboxEntry> entries,
+) {
+  var version = serverVersion;
+  for (final entry in entries) {
+    for (final body in reportCommentCommandBodies(entry)) {
+      if (body['id'] != resultId) continue;
+      final expected = body['expectedVersion'];
+      if (expected is num && expected.toInt() >= version) {
+        version = expected.toInt() + 1;
+      }
+    }
+  }
+  return version;
 }

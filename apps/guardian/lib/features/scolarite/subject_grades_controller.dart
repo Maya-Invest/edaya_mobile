@@ -49,7 +49,7 @@ class SubjectGradesController extends LevitController
     if (value == null) return '—';
     final formatted = value % 1 == 0
         ? value.toInt().toString()
-        : value.toStringAsFixed(1).replaceAll('.', ',');
+        : value.toStringAsFixed(2).replaceAll('.', ',');
     return '$formatted / 20';
   }
 
@@ -68,9 +68,7 @@ class SubjectGradesController extends LevitController
           await client.academicPeriods.list(academicYearScope(yearId)),
         );
         final period = periodRows.where((p) => p['id'] == periodId).firstOrNull;
-        periodLabel(
-          period == null ? periodId : academicPeriodLabel(period),
-        );
+        periodLabel(period == null ? periodId : academicPeriodLabel(period));
 
         final sources = await fetchStudentGradeSources(
           client: client,

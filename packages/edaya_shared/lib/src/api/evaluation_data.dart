@@ -1,8 +1,18 @@
+import 'dart:math';
+
+String newSchoolRequestId() => List.generate(
+  24,
+  (_) => Random.secure().nextInt(256).toRadixString(16).padLeft(2, '0'),
+).join();
+
 Map<String, dynamic> assessmentResultPayload({
   required String assessmentId,
   required String studentId,
   required double? score,
   String? resultId,
+  required String requestId,
+  required int expectedRevision,
+  String? designation,
   DateTime? createdAt,
 }) {
   final resolvedId = resultId ?? 'ar-$assessmentId-$studentId';
@@ -10,7 +20,11 @@ Map<String, dynamic> assessmentResultPayload({
     'id': resolvedId,
     'studentId': studentId,
     'assessmentId': assessmentId,
-    'score': score,
+    'score': ?score,
+    if (designation != null || score != null)
+      'designation': designation ?? 'scored',
+    'requestId': requestId,
+    'expectedRevision': expectedRevision,
     'createdAt': (createdAt ?? DateTime.now().toUtc()).toIso8601String(),
   };
 }

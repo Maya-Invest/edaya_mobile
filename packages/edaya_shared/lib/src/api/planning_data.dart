@@ -118,11 +118,45 @@ String _teacherNameFromEvent(
   return _teacherName(teacherAssignments, teachersById, match, fallback);
 }
 
+/// Teacher-scoped projection already supplies authorized events and display labels.
+Future<List<TimetableOccurrence>> fetchTeacherTimetableOccurrences(
+  SchoolClient client,
+  String teacherId, {
+  required PlanningDateRange range,
+}) async {
+  final timetable = await client.getTeacherTimetable({
+    'teacherId': teacherId,
+    'startDate': range.startDate,
+    'endDate': range.endDate,
+  });
+  final events = (timetable['events'] as List? ?? const []).cast<Map>();
+  return events.map((event) {
+    final startsAt = parseApiDateTime(event['startsAt']);
+    final endsAt = parseApiDateTime(event['endsAt']);
+    if (startsAt == null || endsAt == null) {
+      throw const FormatException('Timetable event has invalid dates');
+    }
+    return TimetableOccurrence(
+      id: event['id'] as String,
+      kind: event['kind'] as String,
+      title: event['title'] as String,
+      subjectLabel: (event['subjectLabel'] ?? event['title']) as String,
+      startsAt: startsAt,
+      endsAt: endsAt,
+      classGroupId: event['classGroupId'] as String,
+      classSubjectId: event['classSubjectId'] as String?,
+      status: event['status'] as String?,
+      teacherName: event['teacherName'] as String?,
+    );
+  }).toList();
+}
+
 Future<List<TimetableOccurrence>> fetchClassTimetableOccurrences(
   SchoolClient client,
   String classGroupId, {
   PlanningDateRange? range,
   String unassignedTeacherLabel = '—',
+
   /// Portal actors (guardian, teacher) cannot read staff workspace entities
   /// used only to enrich labels and teacher names. Skip those HTTP calls and
   /// rely on timetable event titles instead.

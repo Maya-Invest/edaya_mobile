@@ -9,9 +9,7 @@ void main() {
   });
 
   test('SharedPrefsTeacherOutboxStore dedupes by idempotency key', () async {
-    final store = SharedPrefsTeacherOutboxStore(
-      storageKey: 'test_outbox',
-    );
+    final store = SharedPrefsTeacherOutboxStore(storageKey: 'test_outbox');
     final now = DateTime(2026, 4, 1, 9);
 
     await store.enqueue(

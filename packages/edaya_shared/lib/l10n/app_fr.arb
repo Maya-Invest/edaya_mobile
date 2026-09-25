@@ -503,5 +503,15 @@
   "teacherTaskLogbook": "Cahier de texte",
   "teacherTaskMarks": "Notes à saisir",
   "chooseSchool": "Choisir un établissement",
-  "teacherTaskReportComments": "Commentaires de bulletin"
+  "teacherTaskReportComments": "Commentaires de bulletin",
+  "outboxConflictTitle": "Modifications à vérifier",
+  "outboxDiscardEdit": "Abandonner cette modification locale",
+  "outboxDiscardConfirm": "Seule cette modification locale sera supprimée. Le dossier enregistré reste inchangé. Vérifiez la version actuelle avant de saisir une nouvelle modification.",
+  "marksAbsent": "Absent",
+  "marksExempt": "Dispensé",
+  "marksDesignation": "Désignation de la note",
+  "marksSubmit": "Soumettre pour validation",
+  "marksSubmitted": "Notes soumises pour validation.",
+  "marksResolveConflicts": "Résolvez les conflits avant de soumettre.",
+  "marksInvalidNumber": "Saisissez une note numérique valide."
 }

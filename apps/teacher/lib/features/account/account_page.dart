@@ -185,6 +185,8 @@ class SettingsPage extends LScopedView<SettingsController> {
             LWatch(
               () => TeacherOutboxSyncSummaryCard(
                 summary: outbox!.summary.value,
+                conflicts: outbox.conflicts.value,
+                onDiscardConflict: outbox.discardConflict,
                 isSyncing: outbox.isBusy.value,
                 onSyncNow: () => unawaited(outbox!.syncPending()),
               ),
@@ -281,6 +283,8 @@ class _LiveAccountPage extends StatelessWidget {
             const SizedBox(height: PrototypeSpacing.md),
             TeacherOutboxSyncSummaryCard(
               summary: outbox.summary.value,
+              conflicts: outbox.conflicts.value,
+              onDiscardConflict: outbox.discardConflict,
               isSyncing: outbox.isBusy.value,
               onSyncNow: () => unawaited(outbox.syncPending()),
             ),

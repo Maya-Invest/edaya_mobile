@@ -1186,5 +1186,15 @@
   "teacherTaskLogbook": "Lesson log",
   "teacherTaskMarks": "Marks to enter",
   "chooseSchool": "Choose a school",
-  "teacherTaskReportComments": "Report comments"
+  "teacherTaskReportComments": "Report comments",
+  "outboxConflictTitle": "Changes needing review",
+  "outboxDiscardEdit": "Discard this local edit",
+  "outboxDiscardConfirm": "This removes only the selected local edit. The server record is unchanged. Review the current record before entering a new edit.",
+  "marksAbsent": "Absent",
+  "marksExempt": "Exempt",
+  "marksDesignation": "Mark designation",
+  "marksSubmit": "Submit for approval",
+  "marksSubmitted": "Marks submitted for approval.",
+  "marksResolveConflicts": "Resolve pending conflicts before submitting.",
+  "marksInvalidNumber": "Enter a valid numeric mark."
 }

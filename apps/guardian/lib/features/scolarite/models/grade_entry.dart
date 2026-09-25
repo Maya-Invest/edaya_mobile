@@ -12,6 +12,7 @@ class GradeEntry {
     required this.coefficient,
     this.date,
     this.score,
+    this.designation,
     this.notes,
   });
 
@@ -42,6 +43,7 @@ class GradeEntry {
       periodName: periodName,
       date: date,
       score: score,
+      designation: result['designation'] as String?,
       maxScore: (assessment['maxScore'] as num?)?.toDouble() ?? 20,
       coefficient: (assessment['coefficient'] as num?)?.toDouble() ?? 1,
       notes: result['notes'] as String?,
@@ -56,11 +58,23 @@ class GradeEntry {
   final String periodName;
   final DateTime? date;
   final double? score;
+  final String? designation;
   final double maxScore;
   final double coefficient;
   final String? notes;
 
   bool get hasScore => score != null;
+  String get scoreLabel {
+    final value = score;
+    if (value != null) {
+      return '${value.toStringAsFixed(2)} / ${maxScore.toStringAsFixed(2)}';
+    }
+    return switch (designation) {
+      'absent' => systemL10n().marksAbsent,
+      'exempt' => systemL10n().marksExempt,
+      _ => '—',
+    };
+  }
 }
 
 class SubjectGradeGroup {

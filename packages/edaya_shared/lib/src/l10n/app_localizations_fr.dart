@@ -1818,4 +1818,36 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get teacherTaskReportComments => 'Commentaires de bulletin';
+
+  @override
+  String get outboxConflictTitle => 'Modifications à vérifier';
+
+  @override
+  String get outboxDiscardEdit => 'Abandonner cette modification locale';
+
+  @override
+  String get outboxDiscardConfirm =>
+      'Seule cette modification locale sera supprimée. Le dossier enregistré reste inchangé. Vérifiez la version actuelle avant de saisir une nouvelle modification.';
+
+  @override
+  String get marksAbsent => 'Absent';
+
+  @override
+  String get marksExempt => 'Dispensé';
+
+  @override
+  String get marksDesignation => 'Désignation de la note';
+
+  @override
+  String get marksSubmit => 'Soumettre pour validation';
+
+  @override
+  String get marksSubmitted => 'Notes soumises pour validation.';
+
+  @override
+  String get marksResolveConflicts =>
+      'Résolvez les conflits avant de soumettre.';
+
+  @override
+  String get marksInvalidNumber => 'Saisissez une note numérique valide.';
 }

@@ -21,11 +21,17 @@ class PaymentRecord {
     required String feeLabel,
     String? currency,
   }) {
+    final recordCurrency = requireFinanceCurrency(json['currency']);
+    if (currency != null && currency != recordCurrency) {
+      throw const FormatException(
+        'Payment currency does not match the school currency',
+      );
+    }
     return PaymentRecord(
       id: json['id'] as String,
       feeLabel: feeLabel,
       amount: parseMinorUnits(json['amount']),
-      currency: currency ?? json['currency'] as String? ?? 'XOF',
+      currency: recordCurrency,
       paymentDate: parseApiDateTime(json['paymentDate']) ?? DateTime.now(),
       method: json['method'] as String? ?? 'other',
       status: json['status'] as String? ?? 'recorded',
@@ -60,7 +66,7 @@ class FeesSummary {
       available: parseMinorUnits(json['available']),
       outstanding: parseMinorUnits(json['outstanding']),
       overdue: parseMinorUnits(json['overdue']),
-      currency: json['currency'] as String? ?? 'XOF',
+      currency: requireFinanceCurrency(json['currency']),
     );
   }
 

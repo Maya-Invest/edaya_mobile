@@ -62,7 +62,8 @@ class AccountProfileController extends LevitController
 
   String? get actorId => _session.grants.value?.actorId;
 
-  bool get showsPhoneField => profileKind == 'guardian';
+  bool get showsPhoneField =>
+      profileKind == 'guardian' || profileKind == 'teacher';
 
   String? get loginEmail => _session.user.value?.email;
 

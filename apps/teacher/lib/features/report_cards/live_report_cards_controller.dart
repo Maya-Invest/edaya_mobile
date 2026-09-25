@@ -352,10 +352,25 @@ class LiveReportCardCommentController extends LevitController
       return false;
     }
     saveMessage('');
-    _outboxStore.bindContext(
-      teacherOutboxContextForSession(session: _session),
-    );
+    _outboxStore.bindContext(teacherOutboxContextForSession(session: _session));
     final resultId = result['id'] as String? ?? '';
+    final requestId = newSchoolRequestId();
+    final queued = (await _outboxStore.listPending())
+        .where(
+          (entry) => reportCommentCommandBodies(
+            entry,
+          ).any((body) => body['id'] == resultId),
+        )
+        .toList();
+    if (queued.any((entry) => !teacherOutboxEntryIsReplayable(entry))) {
+      saveMessage(systemL10n().mutationConflict);
+      return false;
+    }
+    final version = reportCommentNextVersion(
+      (result['version'] as num).toInt(),
+      resultId,
+      queued,
+    );
     final homeroomComment = commentsBySectionId['__homeroom__'];
     final sectionComments = <Map<String, dynamic>>[
       for (final entry in commentsBySectionId.entries)
@@ -370,51 +385,56 @@ class LiveReportCardCommentController extends LevitController
         'homeroom': {
           'id': resultId,
           'teacherComment': homeroomComment,
+          'requestId': '$requestId:homeroom',
+          'expectedVersion': version,
         },
       if (sectionComments.isNotEmpty)
         'sections': {
           'id': resultId,
           'sections': sectionComments,
+          'requestId': '$requestId:sections',
+          'expectedVersion': version + (homeroomComment == null ? 0 : 1),
         },
     };
-    final sectionId = homeroomComment != null && sectionComments.isEmpty
-        ? '__homeroom__'
-        : (sectionComments.isEmpty
-              ? '__homeroom__'
-              : sectionComments.first['sectionId'] as String);
     try {
       final client = _schoolClient();
+      if (queued.isNotEmpty) throw Exception('offline pending report comments');
       await _sendReportComments(client, payload);
-      await _outboxStore.removeByIdempotencyKey(
-        teacherCommentIdempotencyKey(resultId: resultId, sectionId: sectionId),
-      );
+      await _outboxStore.removeByIdempotencyKey(requestId);
       if (resultId.isNotEmpty) {
         await ReportCardCommentDraftStorage.clear(
           resultId: resultId,
           studentId: studentId,
         );
       }
+      _resultRow = {
+        ...result,
+        'version':
+            version +
+            (homeroomComment == null ? 0 : 1) +
+            (sectionComments.isEmpty ? 0 : 1),
+      };
       return true;
     } on Object catch (error) {
       final retryable = isRetryableTeacherWriteFailure(error);
-      if (!retryable) {
-        saveMessage(systemL10n().couldNotSaveMark('$error'));
-        return false;
-      }
       await _outboxStore.enqueue(
         buildTeacherOutboxEntry(
-          id: 'comment-$resultId-$sectionId',
+          id: requestId,
           kind: TeacherOutboxKind.comment,
-          idempotencyKey: teacherCommentIdempotencyKey(
-            resultId: resultId,
-            sectionId: sectionId,
-          ),
+          idempotencyKey: requestId,
           payload: payload,
           lastError: '$error',
+          state: retryable
+              ? TeacherOutboxState.pending
+              : TeacherOutboxState.conflict,
         ),
       );
-      saveMessage(systemL10n().attendanceSavedLocally);
-      return true;
+      saveMessage(
+        retryable
+            ? systemL10n().attendanceSavedLocally
+            : 'Conflit de version : rechargez le bulletin et réconciliez votre commentaire.',
+      );
+      return retryable;
     }
   }
 }

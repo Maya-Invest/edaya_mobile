@@ -1797,4 +1797,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teacherTaskReportComments => 'Report comments';
+
+  @override
+  String get outboxConflictTitle => 'Changes needing review';
+
+  @override
+  String get outboxDiscardEdit => 'Discard this local edit';
+
+  @override
+  String get outboxDiscardConfirm =>
+      'This removes only the selected local edit. The server record is unchanged. Review the current record before entering a new edit.';
+
+  @override
+  String get marksAbsent => 'Absent';
+
+  @override
+  String get marksExempt => 'Exempt';
+
+  @override
+  String get marksDesignation => 'Mark designation';
+
+  @override
+  String get marksSubmit => 'Submit for approval';
+
+  @override
+  String get marksSubmitted => 'Marks submitted for approval.';
+
+  @override
+  String get marksResolveConflicts =>
+      'Resolve pending conflicts before submitting.';
+
+  @override
+  String get marksInvalidNumber => 'Enter a valid numeric mark.';
 }

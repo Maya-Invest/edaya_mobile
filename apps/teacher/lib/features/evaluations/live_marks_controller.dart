@@ -4,7 +4,6 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../live/entity_queries.dart';
 import '../../live/runtime.dart';
 import '../context/academic_year_controller.dart';
 import '../context/teacher_context_controller.dart';
@@ -20,6 +19,7 @@ class LiveMarkRow {
     this.photoUrl,
     this.resultId,
     this.score,
+    this.designation,
     this.marksLocked = false,
     this.syncState = MarkSyncState.synced,
   });
@@ -30,6 +30,7 @@ class LiveMarkRow {
   final String? photoUrl;
   final String? resultId;
   final double? score;
+  final String? designation;
   final bool marksLocked;
   final MarkSyncState syncState;
 
@@ -38,6 +39,7 @@ class LiveMarkRow {
   LiveMarkRow copyWith({
     Object? resultId = _unset,
     Object? score = _unset,
+    Object? designation = _unset,
     bool? marksLocked,
     MarkSyncState? syncState,
   }) {
@@ -46,8 +48,13 @@ class LiveMarkRow {
       fullName: fullName,
       initials: initials,
       photoUrl: photoUrl,
-      resultId: identical(resultId, _unset) ? this.resultId : resultId as String?,
+      resultId: identical(resultId, _unset)
+          ? this.resultId
+          : resultId as String?,
       score: identical(score, _unset) ? this.score : score as double?,
+      designation: identical(designation, _unset)
+          ? this.designation
+          : designation as String?,
       marksLocked: marksLocked ?? this.marksLocked,
       syncState: syncState ?? this.syncState,
     );
@@ -64,7 +71,6 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
     TeacherOutboxStore? outboxStore,
     TeacherOutboxContext? Function()? outboxContext,
   }) : _evaluations = evaluations,
-       _academicYear = academicYear,
        _teacherContext = teacherContext,
        _schoolClient = schoolClient,
        _outboxStore = outboxStore ?? openTeacherOutboxStore(),
@@ -72,7 +78,6 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
 
   final String evaluationId;
   final LiveEvaluationsController _evaluations;
-  final AcademicYearController _academicYear;
   final TeacherContextController _teacherContext;
   final SchoolClientFactory _schoolClient;
   final TeacherOutboxStore _outboxStore;
@@ -83,6 +88,11 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
   final ungradedOnly = LxVar(false);
   final errorMessage = LxVar('');
   final saveMessage = LxVar('');
+  final marksStatus = LxVar('draft');
+  final returnReason = LxVar('');
+  final canSubmit = LxVar(false);
+  int _revision = 0;
+  bool _saving = false;
 
   @override
   void onInit() {
@@ -92,6 +102,9 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
     autoDispose(ungradedOnly);
     autoDispose(errorMessage);
     autoDispose(saveMessage);
+    autoDispose(marksStatus);
+    autoDispose(returnReason);
+    autoDispose(canSubmit);
     evaluation(_evaluations.evaluationById(evaluationId));
     unawaited(load());
   }
@@ -101,7 +114,14 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
     if (!ungradedOnly.value) {
       return rows;
     }
-    return rows.where((row) => row.score == null).toList();
+    return rows
+        .where(
+          (row) =>
+              row.score == null &&
+              row.designation != 'absent' &&
+              row.designation != 'exempt',
+        )
+        .toList();
   }
 
   Future<void> load() async {
@@ -119,31 +139,38 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
       }
       try {
         final client = _schoolClient();
-        final enrollmentRows = await client.enrollments.listAll(
-          activeEnrollmentsForClass(
-            summary.classGroupId,
-            academicYearId: _academicYear.selectedYearId.value,
-          ),
+        final review = await client.getAssessmentMarksReview({
+          'assessmentId': evaluationId,
+        });
+        final sheet = (review['assessment'] as Map).cast<String, dynamic>();
+        _revision = (sheet['marksRevision'] as num).toInt();
+        marksStatus(sheet['marksStatus'] as String);
+        canSubmit((review['allowedActions'] as Map)['submit'] == true);
+        final history =
+            ((sheet['marksReview'] as Map?)?['history'] as List?) ?? [];
+        returnReason(
+          history
+                      .whereType<Map>()
+                      .where((event) => event['action'] == 'return')
+                      .lastOrNull?['reason']
+                  as String? ??
+              '',
         );
-        final studentIds = enrollmentRows
-            .map((row) => row['studentId'] as String?)
-            .whereType<String>()
-            .toList();
-        final studentRows = studentIds.isEmpty
-            ? <Map<String, dynamic>>[]
-            : await client.students.listAll(entitiesByIds(studentIds));
-        final results = await client.assessmentResults.listAll(
-          resultsForAssessments([summary.id]),
-        );
-        final lockedStudentIds = await _publishedReportCardStudentIds(
-          client,
-          classGroupId: summary.classGroupId,
-          periodId: summary.periodId,
-        );
-        if (lockedStudentIds == null) {
-          errorMessage(systemL10n().couldNotLoadMarks(''));
-          return;
+        _outboxStore.bindContext(_outboxContext?.call());
+        final pending = await _outboxStore.listPending();
+        for (final entry in pending.where(
+          (row) =>
+              row.kind == TeacherOutboxKind.mark &&
+              row.payload['assessmentId'] == evaluationId,
+        )) {
+          final next =
+              ((entry.payload['expectedRevision'] as num?)?.toInt() ??
+                  _revision) +
+              1;
+          if (next > _revision) _revision = next;
         }
+        final studentRows = (review['students'] as List).cast<Map>();
+        final results = (review['results'] as List).cast<Map>();
         final scoreByStudent = {
           for (final row in results)
             if (row['studentId'] is String) row['studentId'] as String: row,
@@ -162,10 +189,26 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
             photoUrl: row['photoUrl'] as String?,
             resultId: result?['id'] as String?,
             score: (result?['score'] as num?)?.toDouble(),
-            marksLocked: lockedStudentIds.contains(studentId),
+            designation: result?['designation'] as String?,
+            marksLocked: marksStatus.value != 'draft',
           );
         }).toList()..sort((a, b) => a.fullName.compareTo(b.fullName));
         students(roster);
+        for (final entry in pending.where(
+          (row) =>
+              row.kind == TeacherOutboxKind.mark &&
+              row.payload['assessmentId'] == evaluationId,
+        )) {
+          _patchRow(
+            entry.payload['studentId'] as String,
+            resultId: entry.payload['id'] as String?,
+            score: (entry.payload['score'] as num?)?.toDouble(),
+            designation: entry.payload['designation'] as String?,
+            syncState: teacherOutboxEntryIsReplayable(entry)
+                ? MarkSyncState.pending
+                : MarkSyncState.failed,
+          );
+        }
       } on api.ApiError catch (error) {
         errorMessage(systemL10n().couldNotLoadMarks('$error'));
       } on Object catch (error) {
@@ -174,12 +217,18 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
     });
   }
 
-  Future<void> saveScore(String studentId, double? score) async {
+  Future<void> saveScore(
+    String studentId,
+    double? score, {
+    String? designation,
+  }) async {
+    if (_saving || marksStatus.value != 'draft') return;
     final summary = evaluation.value;
     if (summary == null) {
       return;
     }
-    if (score != null && (score < 0 || score > summary.maxScore)) {
+    if (score != null &&
+        (!score.isFinite || score < 0 || score > summary.maxScore)) {
       saveMessage(systemL10n().maxScoreMustBePositive);
       return;
     }
@@ -206,26 +255,37 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
       studentId,
       resultId: resultId,
       score: score,
+      designation: designation ?? (score != null ? 'scored' : null),
       syncState: MarkSyncState.pending,
     );
-    final idempotencyKey = teacherMarkIdempotencyKey(
+    final requestId = newSchoolRequestId();
+    final idempotencyKey = requestId;
+    final payload = assessmentResultPayload(
       assessmentId: summary.id,
       studentId: studentId,
+      score: score,
+      designation: designation,
+      resultId: resultId,
+      requestId: requestId,
+      expectedRevision: _revision,
     );
+    _saving = true;
     try {
-      await _schoolClient().recordAssessmentResult(
-        assessmentResultPayload(
-          assessmentId: summary.id,
-          studentId: studentId,
-          score: score,
-          resultId: resultId,
-        ),
-      );
+      if ((await _outboxStore.listPending()).any(
+        (entry) =>
+            entry.kind == TeacherOutboxKind.mark &&
+            entry.payload['assessmentId'] == evaluationId,
+      )) {
+        throw Exception('offline pending marks');
+      }
+      await _schoolClient().recordAssessmentResult(payload);
+      _revision++;
       await _outboxStore.removeByIdempotencyKey(idempotencyKey);
       _patchRow(
         studentId,
         resultId: resultId,
         score: score,
+        designation: designation ?? (score != null ? 'scored' : null),
         syncState: MarkSyncState.synced,
       );
       _evaluations.patchGradedCount(
@@ -234,27 +294,24 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
       );
     } on Object catch (error) {
       final retryable = isRetryableTeacherWriteFailure(error);
+      if (retryable) _revision++;
       await _outboxStore.enqueue(
         buildTeacherOutboxEntry(
-          id: resultId,
+          id: requestId,
           kind: TeacherOutboxKind.mark,
           idempotencyKey: idempotencyKey,
-          payload: markOutboxPayload(
-            assessmentId: summary.id,
-            studentId: studentId,
-            score: score,
-            resultId: resultId,
-          ),
+          payload: payload,
           lastError: '$error',
           state: retryable
               ? TeacherOutboxState.pending
-              : TeacherOutboxState.rejected,
+              : TeacherOutboxState.conflict,
         ),
       );
       _patchRow(
         studentId,
         resultId: resultId,
         score: score,
+        designation: designation ?? (score != null ? 'scored' : null),
         syncState: retryable ? MarkSyncState.pending : MarkSyncState.failed,
       );
       saveMessage(
@@ -262,12 +319,17 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
             ? systemL10n().attendanceSavedLocally
             : systemL10n().couldNotSaveMark('$error'),
       );
+    } finally {
+      _saving = false;
     }
   }
 
   Future<void> fillUngraded(double score) async {
     for (final row in students.value) {
-      if (row.score != null || row.marksLocked) {
+      if (row.score != null ||
+          row.designation == 'absent' ||
+          row.designation == 'exempt' ||
+          row.marksLocked) {
         continue;
       }
       await saveScore(row.studentId, score);
@@ -287,6 +349,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
     String studentId, {
     String? resultId,
     double? score,
+    String? designation,
     MarkSyncState? syncState,
   }) {
     students([
@@ -295,6 +358,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
           item.copyWith(
             resultId: resultId,
             score: score,
+            designation: designation,
             syncState: syncState,
           )
         else
@@ -302,22 +366,60 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
     ]);
   }
 
-  Future<Set<String>?> _publishedReportCardStudentIds(
-    api.SchoolClient client, {
-    required String classGroupId,
-    required String periodId,
-  }) async {
-    try {
-      final rows = await client.results.list(
-        publishedReportCardsForClassPeriod(classGroupId, periodId),
+  Future<void> saveScoreText(String studentId, String value) async {
+    final normalized = value.trim().replaceAll(',', '.');
+    final score = double.tryParse(normalized);
+    if (normalized.isNotEmpty && (score == null || !score.isFinite)) {
+      saveMessage(
+        systemL10n().couldNotSaveMark(systemL10n().marksInvalidNumber),
       );
-      return rows
-          .map((row) => row['studentId'] as String?)
-          .whereType<String>()
-          .toSet();
-    } on Object {
-      errorMessage(systemL10n().couldNotLoadMarks(''));
-      return null;
+      return;
+    }
+    await saveScore(studentId, score);
+  }
+
+  Future<void> submitMarks() async {
+    if (_saving || marksStatus.value != 'draft') return;
+    _saving = true;
+    try {
+      _outboxStore.bindContext(_outboxContext?.call());
+      final entries = await _outboxStore.listPending();
+      final client = _schoolClient();
+      for (final entry in entries.where(
+        (entry) =>
+            entry.kind == TeacherOutboxKind.mark &&
+            entry.payload['assessmentId'] == evaluationId,
+      )) {
+        if (!teacherOutboxEntryIsReplayable(entry)) {
+          throw StateError(systemL10n().marksResolveConflicts);
+        }
+        try {
+          await syncTeacherOutboxEntry(client, entry);
+          await _outboxStore.remove(entry.id);
+        } on Object catch (error) {
+          await _outboxStore.upsert(
+            entry.copyWith(
+              state: isRetryableTeacherWriteFailure(error)
+                  ? TeacherOutboxState.failed
+                  : TeacherOutboxState.conflict,
+              lastError: '$error',
+            ),
+          );
+          rethrow;
+        }
+      }
+      await load();
+      await client.submitAssessmentMarks({
+        'requestId': newSchoolRequestId(),
+        'assessmentId': evaluationId,
+        'expectedRevision': _revision,
+      });
+      await load();
+      saveMessage(systemL10n().marksSubmitted);
+    } on Object catch (error) {
+      saveMessage('Soumission impossible : $error');
+    } finally {
+      _saving = false;
     }
   }
 }

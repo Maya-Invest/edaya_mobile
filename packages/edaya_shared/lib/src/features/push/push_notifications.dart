@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../api/evaluation_data.dart';
 
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:firebase_core/firebase_core.dart';
@@ -39,10 +41,12 @@ void configureEdayaFcm({
 class PushNotificationConfig {
   const PushNotificationConfig({
     required this.androidChannelId,
+    this.appId = 'guardian',
     required this.androidChannelName,
     this.androidChannelDescription = '',
   });
 
+  final String appId;
   final String androidChannelId;
   final String androidChannelName;
   final String androidChannelDescription;
@@ -57,6 +61,7 @@ abstract final class PushNotificationConfigs {
   );
 
   static const teacher = PushNotificationConfig(
+    appId: 'teacher',
     androidChannelId: 'edaya_teacher_default',
     androidChannelName: 'Edaya Staff',
     androidChannelDescription: 'School updates and alerts for staff',
@@ -135,11 +140,15 @@ NotificationDeepLink? parseNotificationDeepLink(RemoteMessage message) {
     'academic' => NotificationDeepLink(path: '/academic', data: data),
     final type when type != null && type.startsWith('student_photo') =>
       NotificationDeepLink(path: '/child-profile', data: data),
-    final type when type != null &&
-        (type == 'family_feedback.opened' || type == 'family_feedback.reminder') =>
+    final type
+        when type != null &&
+            (type == 'family_feedback.opened' ||
+                type == 'family_feedback.reminder') =>
       NotificationDeepLink(path: '/academic/family-feedback', data: data),
-    'family_feedback.published' =>
-      NotificationDeepLink(path: '/teaching/family-feedback', data: data),
+    'family_feedback.published' => NotificationDeepLink(
+      path: '/teaching/family-feedback',
+      data: data,
+    ),
     _ => null,
   };
 }
@@ -418,7 +427,7 @@ class FcmPushNotificationService implements PushNotificationService {
       }
       await _registerToken(token);
       if (kDebugMode) {
-        debugPrint('FCM token: ${await FirebaseMessaging.instance.getToken()}');
+        debugPrint('Push registration initialized');
       }
     } on Object {
       // APNS token not available yet (common on iOS Simulator).
@@ -446,6 +455,8 @@ class FcmPushNotificationService implements PushNotificationService {
         try {
           await _schoolClientFactory().unregisterPushDevice({
             'provider': 'fcm',
+            'appId': _config.appId,
+            'installationId': await _installationId(),
           });
         } on Object {
           // Best-effort — local session is cleared regardless.
@@ -559,6 +570,16 @@ class FcmPushNotificationService implements PushNotificationService {
     onNotificationOpened?.call(message);
   }
 
+  Future<String> _installationId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'push.installation.${_config.appId}';
+    final existing = prefs.getString(key);
+    if (existing != null) return existing;
+    final id = newSchoolRequestId();
+    await prefs.setString(key, id);
+    return id;
+  }
+
   Future<void> _registerToken(String token) async {
     // Re-register for the current authenticated school even when Firebase
     // returns the same token after a session or school-context change.
@@ -566,6 +587,8 @@ class FcmPushNotificationService implements PushNotificationService {
       await _schoolClientFactory().registerPushDevice({
         'token': token,
         'provider': 'fcm',
+        'appId': _config.appId,
+        'installationId': await _installationId(),
       });
       _registeredToken = token;
     } on Object {

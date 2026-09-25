@@ -1,0 +1,26 @@
+{
+  "formatVersion": 1,
+  "schemaFingerprint": "47d301be4cc5a4dc973515ad85408faa656960c450f37131fc6bd863ccf24873",
+  "backendSourceRevision": "sha256:594d492e02617ca5661cc9bf438cad487dfdb3ce2bb7f4b75b5af7a157e58a4c",
+  "artifacts": {
+    "backend": {
+      "package/api-client/src/openapi.json": "47d301be4cc5a4dc973515ad85408faa656960c450f37131fc6bd863ccf24873",
+      "package/api-client/src/schema.d.ts": "90d4348c111ceef046c6f02b0fc02b7c768964eb9282fe1bd2a4f3d2ffa91c89",
+      "package/api-client/src/generated/client-bindings.ts": "4ac112550c58c86a4272f166446ef601cbd6fc91b8c91fefbd6bf5ddfa119520",
+      "package/api-client/src/generated/create-client.ts": "1d5f973e5fd641f51aebbb627fb2a1bdc74487e388d1dbacdf747ebfaff51952",
+      "tooling/repo/fixtures/openapi.json": "47d301be4cc5a4dc973515ad85408faa656960c450f37131fc6bd863ccf24873"
+    },
+    "web": {
+      "apps/webapp/node_modules/@maya-invest/edaya-api-client/src/openapi.json": "47d301be4cc5a4dc973515ad85408faa656960c450f37131fc6bd863ccf24873",
+      "apps/webapp/node_modules/@maya-invest/edaya-api-client/src/schema.d.ts": "90d4348c111ceef046c6f02b0fc02b7c768964eb9282fe1bd2a4f3d2ffa91c89",
+      "apps/webapp/node_modules/@maya-invest/edaya-api-client/src/generated/client-bindings.ts": "4ac112550c58c86a4272f166446ef601cbd6fc91b8c91fefbd6bf5ddfa119520",
+      "apps/webapp/node_modules/@maya-invest/edaya-api-client/src/generated/create-client.ts": "1d5f973e5fd641f51aebbb627fb2a1bdc74487e388d1dbacdf747ebfaff51952"
+    },
+    "mobile": {
+      "packages/edaya_api_client/spec/client-bindings.json": "c5480eec72379ba0958ac31636a30c05c97851bf94b51259313f76fe222cc6d5",
+      "packages/edaya_api_client/lib/src/generated/client_bindings.dart": "0faf46d32b443621042f8c0b2a4f58d965eda7f05bff3f05cc0482bffb690c91",
+      "packages/edaya_api_client/lib/src/generated/school_client_surface.dart": "9ea476e77909d3e031716f71285ba6fcdb7c9b1dea1c8c6d840a8dc1f5f62339"
+    }
+  },
+  "releaseId": "28b4b1c33a65c439a60a7416e1a00bfb9a87acb63777c6ae53b6d9db02494272"
+}

@@ -53,7 +53,10 @@ class _MockResultsPage extends LScopedView<StoreBoundController> {
                     color: PrototypeColors.primaryContainer,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.insights_outlined, color: Colors.blue),
+                  child: const Icon(
+                    Icons.insights_outlined,
+                    color: Colors.blue,
+                  ),
                 ),
                 const SizedBox(width: PrototypeSpacing.sm),
                 Expanded(
@@ -278,7 +281,7 @@ class _LiveResultsPage extends LScopedView<ResultsController> {
                         reportCard.overallAverage == null
                             ? '—'
                             : reportCard.overallAverage!
-                                  .toStringAsFixed(1)
+                                  .toStringAsFixed(2)
                                   .replaceAll('.', ','),
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: PrototypeColors.primary,

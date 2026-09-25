@@ -50,23 +50,28 @@ class DriftTeacherOutboxStore implements TeacherOutboxStore {
   }
 
   Future<void> _insertEntry(TeacherOutboxEntry entry) async {
-    await _database.into(_database.teacherOutboxRows).insert(_toCompanion(entry));
+    await _database
+        .into(_database.teacherOutboxRows)
+        .insert(_toCompanion(entry));
   }
 
   @override
   Future<List<TeacherOutboxEntry>> listPending() async {
     await _ensureReady();
     await _recoverSyncing();
-    final rows = await (_database.select(_database.teacherOutboxRows)
-          ..where(
-            (row) => row.state.isIn([
-              TeacherOutboxState.pending.name,
-              TeacherOutboxState.savedLocally.name,
-              TeacherOutboxState.failed.name,
-            ]),
-          )
-          ..orderBy([(row) => OrderingTerm.asc(row.createdAt)]))
-        .get();
+    final rows =
+        await (_database.select(_database.teacherOutboxRows)
+              ..where(
+                (row) => row.state.isIn([
+                  TeacherOutboxState.pending.name,
+                  TeacherOutboxState.savedLocally.name,
+                  TeacherOutboxState.failed.name,
+                  TeacherOutboxState.conflict.name,
+                  TeacherOutboxState.rejected.name,
+                ]),
+              )
+              ..orderBy([(row) => OrderingTerm.asc(row.createdAt)]))
+            .get();
     return rows
         .map(_fromRow)
         .where((entry) => teacherOutboxEntryMatchesContext(entry, _context))
@@ -74,14 +79,14 @@ class DriftTeacherOutboxStore implements TeacherOutboxStore {
   }
 
   Future<void> _recoverSyncing() async {
-    await (_database.update(_database.teacherOutboxRows)
-          ..where((row) => row.state.equals(TeacherOutboxState.syncing.name)))
-        .write(
-          TeacherOutboxRowsCompanion(
-            state: Value(TeacherOutboxState.pending.name),
-            updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
-          ),
-        );
+    await (_database.update(
+      _database.teacherOutboxRows,
+    )..where((row) => row.state.equals(TeacherOutboxState.syncing.name))).write(
+      TeacherOutboxRowsCompanion(
+        state: Value(TeacherOutboxState.pending.name),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
   }
 
   @override

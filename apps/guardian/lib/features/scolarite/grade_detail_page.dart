@@ -65,7 +65,7 @@ class _MockGradeDetailPage extends LScopedView<StoreBoundController> {
                 ),
                 const SizedBox(height: PrototypeSpacing.sm),
                 Text(
-                  '${grade.score!.toInt()} / ${grade.maxScore.toInt()}',
+                  grade.scoreLabel,
                   style: Theme.of(context).textTheme.displaySmall?.copyWith(
                     color: PrototypeColors.primary,
                   ),
@@ -144,9 +144,7 @@ class _LiveGradeDetailPage extends LScopedView<GradeDetailController> {
                 ),
                 const SizedBox(height: PrototypeSpacing.sm),
                 Text(
-                  grade.score == null
-                      ? '—'
-                      : '${grade.score!.toInt()} / ${grade.maxScore.toInt()}',
+                  grade.scoreLabel,
                   style: Theme.of(context).textTheme.displaySmall?.copyWith(
                     color: PrototypeColors.primary,
                   ),

@@ -1,6 +1,6 @@
 # Guardian prototype — design review pack
 
-Generated: 2026-09-20T21:31:57.640063Z
+Generated: 2026-09-24T21:19:22.137590Z
 Data: mock fixtures (no API)
 Locale: FR
 

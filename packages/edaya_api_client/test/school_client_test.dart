@@ -19,6 +19,29 @@ class RecordingTransport implements Transport {
 }
 
 void main() {
+  for (final pageSize in [50, 500]) {
+    test('loads ${pageSize + 1} rows through both consumer pages', () async {
+      final first = List.generate(
+        pageSize,
+        (id) => <String, dynamic>{'id': '$id'},
+      );
+      final transport = RecordingTransport([
+        first,
+        [
+          {'id': '$pageSize'},
+        ],
+      ]);
+      final client = createSchoolClient(transport);
+      final rows = await client.students.listAll({
+        'schoolId': 'school',
+      }, pageSize);
+      expect(rows.length, pageSize + 1);
+      expect(rows.last['id'], '$pageSize');
+      expect((transport.requests[1]['body'] as Map)[r'$offset'], pageSize);
+      expect((transport.requests[1]['body'] as Map)['schoolId'], 'school');
+    });
+  }
+
   test('uses generated entity paths and unwraps entity envelopes', () async {
     final transport = RecordingTransport([
       [

@@ -1,11 +1,7 @@
 part of 'mock_store.dart';
 
 class MockSchool {
-  const MockSchool({
-    required this.id,
-    required this.name,
-    required this.years,
-  });
+  const MockSchool({required this.id, required this.name, required this.years});
 
   final String id;
   final String name;
@@ -13,10 +9,7 @@ class MockSchool {
 }
 
 class SchoolStudentGroup {
-  const SchoolStudentGroup({
-    required this.school,
-    required this.students,
-  });
+  const SchoolStudentGroup({required this.school, required this.students});
 
   final MockSchool school;
   final List<MockStudent> students;
@@ -317,7 +310,7 @@ class MockSubjectPeriodResults {
     if (average == null) return '—';
     final formatted = average! % 1 == 0
         ? average!.toInt().toString()
-        : average!.toStringAsFixed(1).replaceAll('.', ',');
+        : average!.toStringAsFixed(2).replaceAll('.', ',');
     return '$formatted / ${maxScore.toInt()}';
   }
 
@@ -499,4 +492,3 @@ class TimetableDaySummary {
 
   bool get isEmpty => total == 0;
 }
-

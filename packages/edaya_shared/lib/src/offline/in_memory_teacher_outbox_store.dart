@@ -18,14 +18,15 @@ class InMemoryTeacherOutboxStore implements TeacherOutboxStore {
   @override
   Future<List<TeacherOutboxEntry>> listPending() async {
     _recoverSyncing();
-    final pending = _entriesByIdempotencyKey.values
-        .where(
-          (entry) =>
-              teacherOutboxEntryIsReplayable(entry) &&
-              teacherOutboxEntryMatchesContext(entry, _context),
-        )
-        .toList()
-      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    final pending =
+        _entriesByIdempotencyKey.values
+            .where(
+              (entry) =>
+                  entry.state != TeacherOutboxState.synced &&
+                  teacherOutboxEntryMatchesContext(entry, _context),
+            )
+            .toList()
+          ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
     return pending;
   }
 

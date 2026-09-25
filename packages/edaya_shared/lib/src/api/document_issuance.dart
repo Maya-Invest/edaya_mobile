@@ -115,9 +115,12 @@ String studentYearAccountSourceId({
   required String schoolId,
   required String studentId,
   required String academicYearId,
-  String currency = 'XOF',
+  required String currency,
 }) {
-  return 'sya:$schoolId:$studentId:$academicYearId:${currency.trim().isEmpty ? 'XOF' : currency.trim()}';
+  if (currency.trim().isEmpty) {
+    throw ArgumentError('School finance currency is required');
+  }
+  return 'sya:$schoolId:$studentId:$academicYearId:${currency.trim()}';
 }
 
 String attendanceSheetSourceId(String classGroupId, DateTime day) {

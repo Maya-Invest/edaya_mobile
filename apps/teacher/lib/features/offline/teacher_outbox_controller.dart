@@ -18,18 +18,38 @@ class TeacherOutboxController extends LevitController
   final SchoolClientFactory _schoolClient;
   final TeacherOutboxContext? Function()? _context;
 
+  final conflicts = LxVar<List<TeacherOutboxEntry>>(const []);
+
   final summary = LxVar(const TeacherOutboxSummary(pendingCount: 0));
 
   @override
   void onInit() {
     super.onInit();
     autoDispose(summary);
+    autoDispose(conflicts);
     unawaited(refreshSummary());
   }
 
   Future<void> refreshSummary() async {
     _outboxStore.bindContext(_context?.call());
     summary(await _outboxStore.summary());
+    conflicts(
+      (await _outboxStore.listPending())
+          .where((entry) => !teacherOutboxEntryIsReplayable(entry))
+          .toList(),
+    );
+  }
+
+  Future<void> discardConflict(String id) async {
+    _outboxStore.bindContext(_context?.call());
+    final entries = await _outboxStore.listPending();
+    if (!entries.any(
+      (entry) => entry.id == id && !teacherOutboxEntryIsReplayable(entry),
+    )) {
+      return;
+    }
+    await _outboxStore.remove(id);
+    await refreshSummary();
   }
 
   Future<void> discardPending() async {
@@ -55,6 +75,7 @@ class TeacherOutboxController extends LevitController
             !teacherOutboxEntryMatchesContext(entry, activeContext)) {
           continue;
         }
+        if (!teacherOutboxEntryIsReplayable(entry)) continue;
         final synced = await _syncEntry(client, entry);
         if (synced) {
           syncedCount++;
@@ -82,7 +103,7 @@ class TeacherOutboxController extends LevitController
         entry.copyWith(
           state: isRetryableTeacherWriteFailure(error)
               ? TeacherOutboxState.failed
-              : TeacherOutboxState.rejected,
+              : TeacherOutboxState.conflict,
           attemptCount: entry.attemptCount + 1,
           lastError: '$error',
           updatedAt: DateTime.now(),

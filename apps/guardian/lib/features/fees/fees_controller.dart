@@ -8,6 +8,7 @@ import '../../common/utils/entity_filters.dart';
 import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
 import 'models/payment_record.dart';
+import 'models/money_amount.dart';
 import 'models/student_charge_line.dart';
 
 class FeesController extends LevitController with LevitReactiveTasksMixin {
@@ -119,32 +120,18 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
         final accountId = financeSummary['accountId'] as String?;
         Map<String, dynamic> history = const {};
         if (accountId != null && accountId.isNotEmpty) {
-          try {
-            history = await client.getPaymentSettlementHistory({
-              'accountId': accountId,
-            });
-          } on Object {
-            history = const {};
-          }
+          history = await client.getPaymentSettlementHistory({
+            'accountId': accountId,
+          });
         }
 
         final allocationRows =
             (history['allocations'] as List?)?.whereType<Map>().toList() ??
             const [];
-        var paymentRows = ((history['payments'] as List?) ?? const [])
+        final paymentRows = ((history['payments'] as List?) ?? const [])
             .whereType<Map>()
             .map((row) => Map<String, dynamic>.from(row))
             .toList();
-        if (paymentRows.isEmpty) {
-          try {
-            paymentRows = await client.payments.list({
-              'studentId': studentId,
-              'academicYearId': yearId,
-            });
-          } on Object {
-            paymentRows = const [];
-          }
-        }
         final parsedCharges = chargeRows.map((row) {
           final id = row['id'] as String;
           return StudentChargeLine.fromJson(
@@ -156,11 +143,12 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
         final chargeLabelById = {
           for (final charge in parsedCharges) charge.id: charge.label,
         };
-        final currency =
-            financeSummary['currency'] as String? ??
-            (parsedCharges.isNotEmpty
-                ? parsedCharges.first.currency
-                : history['currency'] as String? ?? 'XOF');
+        final currency = requireFinanceCurrency(financeSummary['currency']);
+        if (parsedCharges.any((charge) => charge.currency != currency)) {
+          throw const FormatException(
+            'Charge currency does not match the school currency',
+          );
+        }
         final parsedPayments = paymentRows.map((json) {
           return PaymentRecord.fromJson(
             json,
@@ -202,9 +190,11 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
   Future<DocumentJobResult> downloadStatement({required String? schoolId}) {
     final studentId = _studentContext.activeStudentId;
     final yearId = _academicYear.selectedYearId.value;
-    final currency = summary.value?.currency ??
-        (charges.value.isNotEmpty ? charges.value.first.currency : 'XOF');
-    if (schoolId == null || studentId == null || yearId == null) {
+    final currency = summary.value?.currency;
+    if (schoolId == null ||
+        studentId == null ||
+        yearId == null ||
+        currency == null) {
       return Future.value(const DocumentJobResult.missing());
     }
     return downloadReadyIssuance(

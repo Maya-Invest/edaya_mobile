@@ -91,6 +91,7 @@ class LiveCalendarController extends LevitController
       return !(logbookCompleteBySessionId.value[session.id] ?? false);
     }).toList();
   }
+
   TeacherSession? sessionById(String id) {
     for (final session in [...todaySessions.value, ...sessions.value]) {
       if (session.id == id) {
@@ -134,29 +135,20 @@ class LiveCalendarController extends LevitController
         final range = planningDateRangeForWeek(weekStart.value);
         final parsedSessions = <TeacherSession>[];
 
-        for (final classGroupId in classGroupIds) {
-          final occurrences = await fetchClassTimetableOccurrences(
-            client,
-            classGroupId,
-            range: range,
-            unassignedTeacherLabel: systemL10n().teacherFallbackName,
-            enrichStaffWorkspace: false,
+        final occurrences = await fetchTeacherTimetableOccurrences(
+          client,
+          _teacherContext.teacherId.value!,
+          range: range,
+        );
+        for (final occurrence in occurrences) {
+          parsedSessions.add(
+            TeacherSession.fromOccurrence(
+              occurrence,
+              classLabel:
+                  classLabelById[occurrence.classGroupId] ??
+                  occurrence.classGroupId,
+            ),
           );
-          for (final occurrence in occurrences) {
-            if (!_teacherContext.canTeachSession(
-              sessionId: occurrence.id,
-              classGroupId: classGroupId,
-              classSubjectId: occurrence.classSubjectId,
-            )) {
-              continue;
-            }
-            parsedSessions.add(
-              TeacherSession.fromOccurrence(
-                occurrence,
-                classLabel: classLabelById[classGroupId] ?? classGroupId,
-              ),
-            );
-          }
         }
 
         parsedSessions.sort((a, b) => a.startsAt.compareTo(b.startsAt));
@@ -228,7 +220,9 @@ class LiveCalendarController extends LevitController
       now: now,
     );
     final endedLessons = focus.todaySessions
-        .where((session) => session.kind == 'lesson' && !session.endsAt.isAfter(now))
+        .where(
+          (session) => session.kind == 'lesson' && !session.endsAt.isAfter(now),
+        )
         .toList();
     if (endedLessons.isEmpty) {
       logbookCompleteBySessionId(const {});

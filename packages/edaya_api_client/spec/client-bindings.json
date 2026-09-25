@@ -156,6 +156,32 @@
       },
       "allowDirectSave": true
     },
+    "staffPermissionProfiles": {
+      "publicName": "staff-permission-profiles",
+      "schemaName": "StaffPermissionProfile",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": true,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": true
+      },
+      "allowDirectSave": false
+    },
+    "staffPermissionProfileBindings": {
+      "publicName": "staff-permission-profile-bindings",
+      "schemaName": "StaffPermissionProfileBinding",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
+      "allowDirectSave": false
+    },
     "attachments": {
       "publicName": "attachments",
       "schemaName": "Attachment",
@@ -393,6 +419,19 @@
     "subjects": {
       "publicName": "subjects",
       "schemaName": "Subject",
+      "publicOperations": {
+        "create": true,
+        "update": true,
+        "delete": true,
+        "batchCreate": true,
+        "batchUpdate": true,
+        "batchDelete": true
+      },
+      "allowDirectSave": true
+    },
+    "subjectCategories": {
+      "publicName": "subject-categories",
+      "schemaName": "SubjectCategory",
       "publicOperations": {
         "create": true,
         "update": true,
@@ -844,6 +883,11 @@
       "requestSchemaName": "RegisterStaffMemberCommand",
       "responseSchemaName": "StaffMember"
     },
+    "registerTeacher": {
+      "publicName": "register-teacher",
+      "requestSchemaName": "RegisterTeacherCommand",
+      "responseSchemaName": "Teacher"
+    },
     "updateStaffMemberStatus": {
       "publicName": "update-staff-member-status",
       "requestSchemaName": "UpdateStaffMemberStatusCommand",
@@ -853,6 +897,11 @@
       "publicName": "update-staff-member-profile",
       "requestSchemaName": "UpdateStaffMemberProfileCommand",
       "responseSchemaName": "StaffMember"
+    },
+    "updateTeacherSelfProfile": {
+      "publicName": "update-teacher-self-profile",
+      "requestSchemaName": "UpdateTeacherSelfProfileCommand",
+      "responseSchemaName": "Teacher"
     },
     "linkActorSubject": {
       "publicName": "link-actor-subject",
@@ -908,6 +957,26 @@
       "publicName": "assign-staff-permission",
       "requestSchemaName": "StaffPermissionAssignmentConfigCommand",
       "responseSchemaName": "StaffPermissionAssignment"
+    },
+    "configurePermissionProfile": {
+      "publicName": "configure-permission-profile",
+      "requestSchemaName": "ConfigurePermissionProfileCommand",
+      "responseSchemaName": "StaffPermissionProfile"
+    },
+    "applyStaffPermissionProfile": {
+      "publicName": "apply-staff-permission-profile",
+      "requestSchemaName": "ApplyStaffPermissionProfileCommand",
+      "responseSchemaName": "StaffPermissionProfileBinding"
+    },
+    "reorderStaffPermissionProfiles": {
+      "publicName": "reorder-staff-permission-profiles",
+      "requestSchemaName": "ReorderStaffPermissionProfilesCommand",
+      "responseSchemaName": "ReorderStaffPermissionProfilesResponse"
+    },
+    "removeStaffPermissionProfile": {
+      "publicName": "remove-staff-permission-profile",
+      "requestSchemaName": "RemoveStaffPermissionProfileCommand",
+      "responseSchemaName": "RemoveStaffPermissionProfileResponse"
     },
     "assignResourceToClass": {
       "publicName": "assign-resource-to-class",
@@ -1019,6 +1088,11 @@
       "requestSchemaName": "SubjectConfigCommand",
       "responseSchemaName": "Subject"
     },
+    "configureSubjectCategory": {
+      "publicName": "configure-subject-category",
+      "requestSchemaName": "SubjectCategoryConfigCommand",
+      "responseSchemaName": "SubjectCategory"
+    },
     "configureSubjectMatter": {
       "publicName": "configure-subject-matter",
       "requestSchemaName": "SubjectMatterConfigCommand",
@@ -1094,10 +1168,30 @@
       "requestSchemaName": "CreateAssessmentCommand",
       "responseSchemaName": "Assessment"
     },
+    "submitAssessmentMarks": {
+      "publicName": "submit-assessment-marks",
+      "requestSchemaName": "SubmitAssessmentMarksCommand",
+      "responseSchemaName": "Assessment"
+    },
+    "approveAssessmentMarks": {
+      "publicName": "approve-assessment-marks",
+      "requestSchemaName": "ApproveAssessmentMarksCommand",
+      "responseSchemaName": "Assessment"
+    },
+    "returnAssessmentMarks": {
+      "publicName": "return-assessment-marks",
+      "requestSchemaName": "ReturnAssessmentMarksCommand",
+      "responseSchemaName": "Assessment"
+    },
     "completeAssessment": {
       "publicName": "complete-assessment",
       "requestSchemaName": "CompleteAssessmentCommand",
       "responseSchemaName": "Assessment"
+    },
+    "recordAssessmentResults": {
+      "publicName": "record-assessment-results",
+      "requestSchemaName": "RecordAssessmentResultsCommand",
+      "responseSchemaName": "RecordAssessmentResultsResponse"
     },
     "recordAssessmentResult": {
       "publicName": "record-assessment-result",
@@ -1122,6 +1216,11 @@
     "writeHomeroomReportComment": {
       "publicName": "write-homeroom-report-comment",
       "requestSchemaName": "WriteHomeroomReportCommentCommand",
+      "responseSchemaName": "ReportCardResult"
+    },
+    "writeReportCardSectionComments": {
+      "publicName": "write-report-card-section-comments",
+      "requestSchemaName": "WriteReportCardSectionCommentsCommand",
       "responseSchemaName": "ReportCardResult"
     },
     "publishReportCardResult": {
@@ -1551,6 +1650,16 @@
     }
   },
   "queries": {
+    "getAssessmentMarksReview": {
+      "publicName": "get-assessment-marks-review",
+      "requestSchemaName": "GetAssessmentMarksReviewQuery",
+      "responseSchemaName": "AssessmentMarksReviewResponse"
+    },
+    "listAssessmentMarksReviews": {
+      "publicName": "list-assessment-marks-reviews",
+      "requestSchemaName": "ListAssessmentMarksReviewsQuery",
+      "responseSchemaName": "AssessmentMarksReviewsResponse"
+    },
     "getOverdueFeeCount": {
       "publicName": "get-overdue-fee-count",
       "requestSchemaName": "GetOverdueFeeCountQuery",
@@ -1575,6 +1684,11 @@
       "publicName": "get-class-group-timetable",
       "requestSchemaName": "GetClassGroupTimetableQuery",
       "responseSchemaName": "ClassGroupTimetableResponse"
+    },
+    "getTeacherTimetable": {
+      "publicName": "get-teacher-timetable",
+      "requestSchemaName": "GetTeacherTimetableQuery",
+      "responseSchemaName": "TeacherTimetableResponse"
     },
     "resolveTimetableSpace": {
       "publicName": "resolve-timetable-space",
@@ -1717,6 +1831,11 @@
       "method": "GET",
       "path": "authorization/effective-grants",
       "responseSchemaName": "EffectiveGrantsResponse"
+    },
+    "profiles": {
+      "method": "GET",
+      "path": "authorization/profiles",
+      "responseSchemaName": "AuthorizationProfilesResponse"
     },
     "permissionCatalog": {
       "method": "GET",

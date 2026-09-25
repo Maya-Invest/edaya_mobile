@@ -103,7 +103,7 @@ Future<void> saveAccountContactProfile(
       });
       return;
     case 'teacher':
-      await client.runCommand('update-teacher-self-profile', {
+      await client.updateTeacherSelfProfile({
         'firstName': firstName,
         'lastName': lastName,
         'email': email.isEmpty ? null : email,

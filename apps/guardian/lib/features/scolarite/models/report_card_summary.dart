@@ -41,32 +41,60 @@ class ReportCardSectionMark {
     required this.average,
     this.comment,
     this.subjects = const [],
+    this.groupComments = const [],
   });
 
   factory ReportCardSectionMark.fromJson(
     Map<String, dynamic> json, {
     Map<String, String> subjectNameByClassSubjectId = const {},
-    Set<String>? globalSeenClassSubjectIds,
   }) {
     return ReportCardSectionMark(
       name: json['name'] as String? ?? 'Section',
-      average: (json['average'] as num?)?.toDouble() ?? 0,
+      average: (json['average'] as num?)?.toDouble(),
       comment: json['comment'] as String?,
-      subjects: _collectSubjectMarks(
-        json['subResults'],
-        subjectNameByClassSubjectId,
-        globalSeenClassSubjectIds: globalSeenClassSubjectIds,
-      ),
+      groupComments: _collectGroupComments(json['subResults']),
+      subjects: json['sectionKind'] == 'subject'
+          ? [
+              ReportCardSubjectMark.fromJson(
+                json,
+                resolvedName:
+                    subjectNameByClassSubjectId[json['classSubjectId']],
+              ),
+            ]
+          : _collectSubjectMarks(
+              json['subResults'],
+              subjectNameByClassSubjectId,
+            ),
     );
+  }
+
+  static List<ReportCardGroupComment> _collectGroupComments(dynamic nodes) {
+    if (nodes is! List) return const [];
+    final comments = <ReportCardGroupComment>[];
+    for (final node in nodes) {
+      if (node is! Map<String, dynamic> || node['sectionKind'] != 'group') {
+        continue;
+      }
+      final comment = node['comment'] as String?;
+      if (comment != null && comment.trim().isNotEmpty) {
+        comments.add(
+          ReportCardGroupComment(
+            name: node['name'] as String? ?? 'Section',
+            comment: comment,
+          ),
+        );
+      }
+      comments.addAll(_collectGroupComments(node['subResults']));
+    }
+    return comments;
   }
 
   static List<ReportCardSubjectMark> _collectSubjectMarks(
     dynamic subResults,
-    Map<String, String> subjectNameByClassSubjectId, {
-    Set<String>? globalSeenClassSubjectIds,
-  }) {
+    Map<String, String> subjectNameByClassSubjectId,
+  ) {
     final subjects = <ReportCardSubjectMark>[];
-    final seenClassSubjectIds = globalSeenClassSubjectIds ?? <String>{};
+    final seenSectionIds = <String>{};
 
     void visit(dynamic nodes) {
       if (nodes is! List) {
@@ -80,7 +108,9 @@ class ReportCardSectionMark {
         if (kind == 'subject') {
           final classSubjectId = node['classSubjectId'] as String?;
           if (classSubjectId == null ||
-              !seenClassSubjectIds.add(classSubjectId)) {
+              !seenSectionIds.add(
+                node['sectionId'] as String? ?? classSubjectId,
+              )) {
             continue;
           }
           subjects.add(
@@ -100,9 +130,16 @@ class ReportCardSectionMark {
   }
 
   final String name;
-  final double average;
+  final double? average;
   final String? comment;
   final List<ReportCardSubjectMark> subjects;
+  final List<ReportCardGroupComment> groupComments;
+}
+
+class ReportCardGroupComment {
+  const ReportCardGroupComment({required this.name, required this.comment});
+  final String name;
+  final String comment;
 }
 
 class ReportCardSubjectMark {
@@ -122,14 +159,14 @@ class ReportCardSubjectMark {
           resolvedName ??
           json['name'] as String? ??
           systemL10n().subjectFallback,
-      average: (json['average'] as num?)?.toDouble() ?? 0,
+      average: (json['average'] as num?)?.toDouble(),
       rank: json['rank'] as int?,
       comment: json['comment'] as String?,
     );
   }
 
   final String name;
-  final double average;
+  final double? average;
   final int? rank;
   final String? comment;
 }
@@ -155,27 +192,26 @@ class ReportCardDetail {
     final sectionResults = json['sectionResults'];
     final sections = <ReportCardSectionMark>[];
     final seenSectionIds = <String>{};
-    final seenSectionNames = <String>{};
-    final globalSeenClassSubjectIds = <String>{};
     if (sectionResults is List) {
       for (final entry in sectionResults) {
-        if (entry is! Map<String, dynamic> || entry['sectionKind'] != 'group') {
+        if (entry is! Map<String, dynamic> ||
+            !const ['group', 'subject'].contains(entry['sectionKind'])) {
           continue;
         }
         final sectionId = entry['sectionId'] as String?;
         final sectionName = (entry['name'] as String? ?? '').trim();
         if (sectionId == null ||
             sectionName.isEmpty ||
-            !seenSectionIds.add(sectionId) ||
-            !seenSectionNames.add(sectionName)) {
+            !seenSectionIds.add(sectionId)) {
           continue;
         }
         final section = ReportCardSectionMark.fromJson(
           entry,
           subjectNameByClassSubjectId: subjectNameByClassSubjectId,
-          globalSeenClassSubjectIds: globalSeenClassSubjectIds,
         );
-        if (section.subjects.isEmpty) {
+        if (section.subjects.isEmpty &&
+            (section.comment?.trim().isEmpty ?? true) &&
+            section.groupComments.isEmpty) {
           continue;
         }
         sections.add(section);

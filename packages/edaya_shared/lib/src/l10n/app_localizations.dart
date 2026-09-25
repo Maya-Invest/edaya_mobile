@@ -3121,6 +3121,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Report comments'**
   String get teacherTaskReportComments;
+
+  /// No description provided for @outboxConflictTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes needing review'**
+  String get outboxConflictTitle;
+
+  /// No description provided for @outboxDiscardEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard this local edit'**
+  String get outboxDiscardEdit;
+
+  /// No description provided for @outboxDiscardConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes only the selected local edit. The server record is unchanged. Review the current record before entering a new edit.'**
+  String get outboxDiscardConfirm;
+
+  /// No description provided for @marksAbsent.
+  ///
+  /// In en, this message translates to:
+  /// **'Absent'**
+  String get marksAbsent;
+
+  /// No description provided for @marksExempt.
+  ///
+  /// In en, this message translates to:
+  /// **'Exempt'**
+  String get marksExempt;
+
+  /// No description provided for @marksDesignation.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark designation'**
+  String get marksDesignation;
+
+  /// No description provided for @marksSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit for approval'**
+  String get marksSubmit;
+
+  /// No description provided for @marksSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Marks submitted for approval.'**
+  String get marksSubmitted;
+
+  /// No description provided for @marksResolveConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolve pending conflicts before submitting.'**
+  String get marksResolveConflicts;
+
+  /// No description provided for @marksInvalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid numeric mark.'**
+  String get marksInvalidNumber;
 }
 
 class _AppLocalizationsDelegate

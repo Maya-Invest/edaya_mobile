@@ -24,6 +24,7 @@ dependencies:
   levit_flutter: ^0.0.9
   shared_preferences: ^2.5.5
   firebase_core: ^4.11.0
+  firebase_messaging: ^16.4.1
   url_launcher: ^6.3.2
 
 dev_dependencies:

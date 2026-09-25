@@ -134,7 +134,7 @@ class _MockHomePage extends LScopedView<StoreBoundController> {
               title: grade.title,
               subtitle: '${grade.subject} · ${formatDate(grade.date)}',
               trailing: Text(
-                '${grade.score.toInt()}/${grade.maxScore.toInt()}',
+                '${grade.score.toStringAsFixed(2)}/${grade.maxScore.toStringAsFixed(2)}',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: PrototypeColors.primary,
                 ),
@@ -250,7 +250,7 @@ class _LiveHomePage extends LScopedView<HomeController> {
           tone: AttentionTone.normal,
           title: 'Bulletin disponible',
           subtitle:
-              '${reportCard.periodName} · Moyenne ${reportCard.overallAverage == null ? '—' : reportCard.overallAverage!.toStringAsFixed(1).replaceAll('.', ',')}',
+              '${reportCard.periodName} · Moyenne ${reportCard.overallAverage == null ? '—' : reportCard.overallAverage!.toStringAsFixed(2).replaceAll('.', ',')}',
           icon: Icons.menu_book_outlined,
           onTap: () => context.push('/report-card/${reportCard.id}'),
         ),
@@ -320,9 +320,7 @@ class _LiveHomePage extends LScopedView<HomeController> {
               subtitle:
                   '${grade.subjectName} · ${grade.date == null ? grade.periodName : formatDate(grade.date!)}',
               trailing: Text(
-                grade.score == null
-                    ? '—'
-                    : '${grade.score!.toInt()}/${grade.maxScore.toInt()}',
+                grade.scoreLabel,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: PrototypeColors.primary,
                 ),

@@ -166,7 +166,7 @@ class _MockMarksEntryPage extends LScopedView<StoreBoundController> {
                         SizedBox(
                           width: 72,
                           child: TextFormField(
-                            initialValue: mark.score?.toStringAsFixed(0) ?? '',
+                            initialValue: mark.score?.toStringAsFixed(2) ?? '',
                             keyboardType: TextInputType.number,
                             decoration: const InputDecoration(
                               isDense: true,
@@ -250,7 +250,7 @@ class _MockReportCardRosterPage extends LScopedView<StoreBoundController> {
           return ListRow(
             title: row.studentName,
             subtitle:
-                'Moy. ${row.average.toStringAsFixed(1)} · Rang ${row.rank}',
+                'Moy. ${row.average.toStringAsFixed(2)} · Rang ${row.rank}',
             badge: pending ? 'Commentaire' : 'OK',
             badgeTone: pending ? SemanticTone.warning : SemanticTone.info,
             trailing: const Icon(Icons.chevron_right),
@@ -383,7 +383,7 @@ class _CommentFormState extends State<_CommentForm> {
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
           Text(
-            'Moyenne ${widget.row.average.toStringAsFixed(1)} · Rang ${widget.row.rank}',
+            'Moyenne ${widget.row.average.toStringAsFixed(2)} · Rang ${widget.row.rank}',
           ),
           const SizedBox(height: PrototypeSpacing.md),
           TextField(
@@ -487,9 +487,9 @@ class _LiveEvaluationsPage extends LView<LiveEvaluationsController> {
                       } else if (value == 'complete') {
                         final error = await controller.completeEvaluation(e);
                         if (error != null && context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(error)),
-                          );
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text(error)));
                         }
                       }
                     },
@@ -609,6 +609,14 @@ class _LiveMarksEntryPage extends LScopedView<LiveMarksController> {
               '${evaluation.classLabel} · ${evaluation.subjectLabel} · max ${evaluation.maxScore.toStringAsFixed(0)}',
               style: Theme.of(context).textTheme.bodySmall,
             ),
+            Text('Validation : ${controller.marksStatus.value}'),
+            if (controller.returnReason.value.isNotEmpty)
+              Text('Retour : ${controller.returnReason.value}'),
+            if (controller.marksStatus.value == 'draft')
+              FilledButton(
+                onPressed: controller.submitMarks,
+                child: const Text('Soumettre les notes'),
+              ),
             if (controller.saveMessage.value.isNotEmpty)
               Text(controller.saveMessage.value),
             SwitchListTile(
@@ -650,11 +658,40 @@ class _LiveMarksEntryPage extends LScopedView<LiveMarksController> {
                               : mark.fullName,
                         ),
                       ),
+                      PopupMenuButton<String>(
+                        enabled: !mark.marksLocked,
+                        tooltip: context.tr.marksDesignation,
+                        onSelected: (value) => controller.saveScore(
+                          mark.studentId,
+                          null,
+                          designation: value,
+                        ),
+                        itemBuilder: (_) => [
+                          PopupMenuItem(
+                            value: 'absent',
+                            child: Text(context.tr.marksAbsent),
+                          ),
+                          PopupMenuItem(
+                            value: 'exempt',
+                            child: Text(context.tr.marksExempt),
+                          ),
+                        ],
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Text(
+                            mark.designation == 'absent'
+                                ? context.tr.marksAbsent
+                                : mark.designation == 'exempt'
+                                ? context.tr.marksExempt
+                                : '⋮',
+                          ),
+                        ),
+                      ),
                       SizedBox(
                         width: 72,
                         child: TextFormField(
                           key: ValueKey('${mark.studentId}-${mark.score}'),
-                          initialValue: mark.score?.toStringAsFixed(0) ?? '',
+                          initialValue: mark.score?.toStringAsFixed(2) ?? '',
                           enabled: !mark.marksLocked,
                           keyboardType: TextInputType.number,
                           textInputAction: TextInputAction.next,
@@ -664,10 +701,7 @@ class _LiveMarksEntryPage extends LScopedView<LiveMarksController> {
                             hintText: '—',
                           ),
                           onFieldSubmitted: (value) {
-                            controller.saveScore(
-                              mark.studentId,
-                              double.tryParse(value),
-                            );
+                            controller.saveScoreText(mark.studentId, value);
                           },
                           onEditingComplete: () {},
                         ),
@@ -911,7 +945,7 @@ class _LiveReportCardRosterPage
                   return ListRow(
                     title: row.studentName,
                     subtitle: row.hasReportCard
-                        ? 'Moy. ${row.overallAverage?.toStringAsFixed(1) ?? '—'} · Rang ${row.rank ?? '—'}'
+                        ? 'Moy. ${row.overallAverage?.toStringAsFixed(2) ?? '—'} · Rang ${row.rank ?? '—'}'
                         : 'Bulletin non généré',
                     badge: row.hasComment ? 'OK' : 'Commentaire',
                     badgeTone: row.hasComment

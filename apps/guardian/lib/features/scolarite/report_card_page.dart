@@ -140,7 +140,7 @@ class _LiveReportCardDetailPage extends LScopedView<ReportCardController> {
 
     final averageLabel = card.overallAverage == null
         ? '—'
-        : card.overallAverage!.toStringAsFixed(1).replaceAll('.', ',');
+        : card.overallAverage!.toStringAsFixed(2).replaceAll('.', ',');
 
     final downloading =
         controller.downloadStatus.value == ReportCardPdfStatus.downloading;
@@ -221,6 +221,10 @@ class _LiveReportCardDetailPage extends LScopedView<ReportCardController> {
           for (final section in card.sections) ...[
             const SizedBox(height: PrototypeSpacing.md),
             SectionHeader(title: section.name),
+            if (section.comment?.trim().isNotEmpty ?? false)
+              Text(section.comment!),
+            for (final group in section.groupComments)
+              ListRow(title: group.name, subtitle: group.comment),
             for (final subject in section.subjects) ...[
               ListRow(
                 title: subject.name,
@@ -229,7 +233,10 @@ class _LiveReportCardDetailPage extends LScopedView<ReportCardController> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      subject.average.toStringAsFixed(1).replaceAll('.', ','),
+                      subject.average
+                              ?.toStringAsFixed(2)
+                              .replaceAll('.', ',') ??
+                          '—',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         color: PrototypeColors.primary,
                       ),

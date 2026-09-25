@@ -11,11 +11,15 @@ class TeacherOutboxSyncSummaryCard extends StatelessWidget {
     required this.summary,
     required this.isSyncing,
     this.onSyncNow,
+    this.conflicts = const [],
+    this.onDiscardConflict,
   });
 
   final TeacherOutboxSummary summary;
   final bool isSyncing;
   final VoidCallback? onSyncNow;
+  final List<TeacherOutboxEntry> conflicts;
+  final Future<void> Function(String id)? onDiscardConflict;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +36,65 @@ class TeacherOutboxSyncSummaryCard extends StatelessWidget {
               style: theme.textTheme.titleSmall,
             ),
             const SizedBox(height: 12),
+            if (conflicts.isNotEmpty) ...[
+              Text(
+                context.tr.outboxConflictTitle,
+                style: theme.textTheme.titleSmall,
+              ),
+              Text(context.tr.mutationConflict),
+              for (final entry in conflicts)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    '${entry.kind.name} · ${entry.payload['studentId'] ?? entry.payload['id'] ?? ''}',
+                  ),
+                  subtitle: Text(
+                    entry.kind == TeacherOutboxKind.mark
+                        ? '${entry.payload['designation'] ?? '—'} · ${entry.payload['score'] ?? '—'}'
+                        : _commentPreview(entry.payload),
+                  ),
+                  trailing: onDiscardConflict == null
+                      ? null
+                      : IconButton(
+                          icon: const Icon(Icons.delete_outline),
+                          tooltip: context.tr.outboxDiscardEdit,
+                          onPressed: isSyncing
+                              ? null
+                              : () async {
+                                  final discard = await showDialog<bool>(
+                                    context: context,
+                                    builder: (dialogContext) => AlertDialog(
+                                      title: Text(context.tr.outboxDiscardEdit),
+                                      content: Text(
+                                        context.tr.outboxDiscardConfirm,
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(
+                                            dialogContext,
+                                            false,
+                                          ),
+                                          child: Text(context.tr.cancel),
+                                        ),
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(
+                                            dialogContext,
+                                            true,
+                                          ),
+                                          child: Text(
+                                            context.tr.outboxDiscardEdit,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (discard == true) {
+                                    await onDiscardConflict!(entry.id);
+                                  }
+                                },
+                        ),
+                ),
+            ],
             if (summary.hasPending) ...[
               SyncIndicator(
                 status: isSyncing
@@ -92,4 +155,25 @@ class TeacherOutboxSyncSummaryCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String _commentPreview(Map<String, dynamic> payload) {
+  final texts = <String>[];
+  final homeroom = payload['homeroom'];
+  if (homeroom is Map && homeroom['teacherComment'] is String) {
+    texts.add(homeroom['teacherComment'] as String);
+  }
+  final sections = payload['sections'];
+  if (sections is Map && sections['sections'] is List) {
+    for (final section in sections['sections'] as List) {
+      if (section is Map && section['comment'] is String) {
+        texts.add(section['comment'] as String);
+      }
+    }
+  }
+  final body = payload['body'];
+  if (body is Map && body['teacherComment'] is String) {
+    texts.add(body['teacherComment'] as String);
+  }
+  return texts.join('\n');
 }

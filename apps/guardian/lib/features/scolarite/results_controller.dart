@@ -47,7 +47,7 @@ class SubjectPeriodResult {
     if (average == null) return '—';
     final formatted = average! % 1 == 0
         ? average!.toInt().toString()
-        : average!.toStringAsFixed(1).replaceAll('.', ',');
+        : average!.toStringAsFixed(2).replaceAll('.', ',');
     return '$formatted / ${maxScore.toInt()}';
   }
 
@@ -100,7 +100,9 @@ class ResultsController extends LevitController with LevitReactiveTasksMixin {
   }
 
   DataStatus get dataStatus {
-    if (isBusy.value && gradeGroups.value.isEmpty && reportCards.value.isEmpty) {
+    if (isBusy.value &&
+        gradeGroups.value.isEmpty &&
+        reportCards.value.isEmpty) {
       return DataStatus.loading;
     }
     if (errorMessage.value.isNotEmpty &&

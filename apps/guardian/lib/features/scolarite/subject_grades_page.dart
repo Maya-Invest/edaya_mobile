@@ -116,9 +116,7 @@ class _MockSubjectGradesPage extends LScopedView<StoreBoundController> {
                     ? grade.periodName
                     : formatDate(grade.date!),
                 trailing: Text(
-                  grade.score == null
-                      ? '—'
-                      : '${grade.score!.toInt()}/${grade.maxScore.toInt()}',
+                  grade.scoreLabel,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: PrototypeColors.primary,
                   ),
@@ -134,10 +132,7 @@ class _MockSubjectGradesPage extends LScopedView<StoreBoundController> {
 }
 
 class _LiveSubjectGradesPage extends LScopedView<SubjectGradesController> {
-  const _LiveSubjectGradesPage({
-    required this.periodId,
-    required this.subject,
-  });
+  const _LiveSubjectGradesPage({required this.periodId, required this.subject});
 
   final String periodId;
   final String subject;
@@ -226,9 +221,7 @@ class _LiveSubjectGradesPage extends LScopedView<SubjectGradesController> {
                     ? grade.periodName
                     : formatDate(grade.date!),
                 trailing: Text(
-                  grade.score == null
-                      ? '—'
-                      : '${grade.score!.toInt()}/${grade.maxScore.toInt()}',
+                  grade.scoreLabel,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: PrototypeColors.primary,
                   ),

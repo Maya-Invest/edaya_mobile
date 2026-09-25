@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 int parseMinorUnits(Object? value) {
   if (value is int) {
     return value;
@@ -11,15 +13,16 @@ int parseMinorUnits(Object? value) {
   return 0;
 }
 
-int currencyFractionDigits(String currency) {
-  switch (currency.toUpperCase()) {
-    case 'XOF':
-    case 'XAF':
-    case 'JPY':
-    case 'KRW':
-    case 'GNF':
-      return 0;
-    default:
-      return 2;
+String requireFinanceCurrency(Object? value) {
+  if (value is! String || !RegExp(r'^[A-Z]{3}$').hasMatch(value)) {
+    throw const FormatException('A financial record is missing its currency');
   }
+  return value;
+}
+
+int currencyFractionDigits(String currency) {
+  return NumberFormat.currency(
+        name: requireFinanceCurrency(currency),
+      ).decimalDigits ??
+      2;
 }

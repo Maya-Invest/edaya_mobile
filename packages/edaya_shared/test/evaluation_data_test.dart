@@ -5,12 +5,17 @@ void main() {
   test('assessmentResultPayload uses deterministic result id', () {
     expect(
       assessmentResultPayload(
+        requestId: 'edit-1',
+        expectedRevision: 0,
         assessmentId: 'asm-1',
         studentId: 'stu-1',
         score: 14.5,
         createdAt: DateTime.utc(2026, 4, 1, 12),
       ),
       {
+        'requestId': 'edit-1',
+        'expectedRevision': 0,
+        'designation': 'scored',
         'id': 'ar-asm-1-stu-1',
         'studentId': 'stu-1',
         'assessmentId': 'asm-1',
