@@ -1842,7 +1842,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get marksSubmit => 'Soumettre pour validation';
 
   @override
-  String get marksSubmitted => 'Notes soumises pour validation.';
+  String get marksSubmitted => 'Notes soumises et visibles aux familles.';
 
   @override
   String get marksResolveConflicts =>
@@ -1850,4 +1850,52 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get marksInvalidNumber => 'Saisissez une note numérique valide.';
+
+  @override
+  String get marksRequestCorrection => 'Demander une correction';
+
+  @override
+  String get marksCorrectionRequested =>
+      'Correction demandée. Les notes officielles restent inchangées.';
+
+  @override
+  String get marksCorrectionHint =>
+      'Les notes officielles restent inchangées jusqu’à la validation du personnel.';
+
+  @override
+  String get marksCorrectionReason => 'Motif de la correction';
+
+  @override
+  String get marksCorrectionConfirm =>
+      'Toutes les modifications proposées ont été vérifiées.';
+
+  @override
+  String get marksCorrectionPending => 'Correction en attente';
+
+  @override
+  String get marksCorrectionApproved => 'Correction approuvée';
+
+  @override
+  String get marksCorrectionRejected => 'Correction rejetée';
+
+  @override
+  String get marksCorrectionWithdrawn => 'Correction retirée';
+
+  @override
+  String get marksWithdrawCorrection => 'Retirer la demande';
+
+  @override
+  String get marksComment => 'Commentaire de note';
+
+  @override
+  String get marksPublishedLock => 'Verrouillée par un bulletin publié';
+
+  @override
+  String get marksOfficial => 'Soumises · notes officielles';
+
+  @override
+  String get marksOriginal => 'Valeur initiale';
+
+  @override
+  String get marksProposed => 'Valeur proposée';
 }

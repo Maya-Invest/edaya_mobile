@@ -1173,15 +1173,25 @@
       "requestSchemaName": "SubmitAssessmentMarksCommand",
       "responseSchemaName": "Assessment"
     },
-    "approveAssessmentMarks": {
-      "publicName": "approve-assessment-marks",
-      "requestSchemaName": "ApproveAssessmentMarksCommand",
-      "responseSchemaName": "Assessment"
+    "requestAssessmentMarksCorrection": {
+      "publicName": "request-assessment-marks-correction",
+      "requestSchemaName": "RequestAssessmentMarksCorrectionCommand",
+      "responseSchemaName": "AssessmentMarksCorrectionResponse"
     },
-    "returnAssessmentMarks": {
-      "publicName": "return-assessment-marks",
-      "requestSchemaName": "ReturnAssessmentMarksCommand",
-      "responseSchemaName": "Assessment"
+    "approveAssessmentMarksCorrection": {
+      "publicName": "approve-assessment-marks-correction",
+      "requestSchemaName": "ApproveAssessmentMarksCorrectionCommand",
+      "responseSchemaName": "AssessmentMarksCorrectionResponse"
+    },
+    "rejectAssessmentMarksCorrection": {
+      "publicName": "reject-assessment-marks-correction",
+      "requestSchemaName": "RejectAssessmentMarksCorrectionCommand",
+      "responseSchemaName": "AssessmentMarksCorrectionResponse"
+    },
+    "withdrawAssessmentMarksCorrection": {
+      "publicName": "withdraw-assessment-marks-correction",
+      "requestSchemaName": "WithdrawAssessmentMarksCorrectionCommand",
+      "responseSchemaName": "AssessmentMarksCorrectionResponse"
     },
     "completeAssessment": {
       "publicName": "complete-assessment",

@@ -23,3 +23,7 @@ Normative for the current Guardian and Teacher apps. Extend these components bef
 Icon-only actions need localized semantic labels. Existing sheet and dialog close buttons use `MaterialLocalizations.of(context).closeButtonTooltip`; actions with another meaning, such as removing an item, retain their own specific label. Do not change callbacks or dismissal results to add a label.
 
 Cover approved variants and default/selected/disabled/busy/error/empty states in current galleries. Add shared presentation only for demonstrated reuse; single-feature needs stay local. Record visual exceptions with rationale, affected components, owner, lifetime, alternatives and responsive/contrast evidence. Changes update tokens, specification, registry and current captures together.
+
+## Marks correction surfaces
+
+Submitted marks remain read-only in the teacher grading list. MarksCorrectionsPanel shows official versus proposed values and terminal review reasons, and opens a scoped batch proposal dialog. Published source marks cannot be selected. Correction requests and withdrawal run online only; author identity and scope are enforced by the backend. Draft outbox conflicts remain visible and must not replace submitted official values on screen.

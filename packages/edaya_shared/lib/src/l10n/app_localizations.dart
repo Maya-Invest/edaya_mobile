@@ -3167,7 +3167,7 @@ abstract class AppLocalizations {
   /// No description provided for @marksSubmitted.
   ///
   /// In en, this message translates to:
-  /// **'Marks submitted for approval.'**
+  /// **'Marks submitted and visible to families.'**
   String get marksSubmitted;
 
   /// No description provided for @marksResolveConflicts.
@@ -3181,6 +3181,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a valid numeric mark.'**
   String get marksInvalidNumber;
+
+  /// No description provided for @marksRequestCorrection.
+  ///
+  /// In en, this message translates to:
+  /// **'Request correction'**
+  String get marksRequestCorrection;
+
+  /// No description provided for @marksCorrectionRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction requested. Official marks are unchanged.'**
+  String get marksCorrectionRequested;
+
+  /// No description provided for @marksCorrectionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Official marks stay unchanged until staff approval.'**
+  String get marksCorrectionHint;
+
+  /// No description provided for @marksCorrectionReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason for correction'**
+  String get marksCorrectionReason;
+
+  /// No description provided for @marksCorrectionConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'I have checked all proposed changes.'**
+  String get marksCorrectionConfirm;
+
+  /// No description provided for @marksCorrectionPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending correction'**
+  String get marksCorrectionPending;
+
+  /// No description provided for @marksCorrectionApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved correction'**
+  String get marksCorrectionApproved;
+
+  /// No description provided for @marksCorrectionRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected correction'**
+  String get marksCorrectionRejected;
+
+  /// No description provided for @marksCorrectionWithdrawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawn correction'**
+  String get marksCorrectionWithdrawn;
+
+  /// No description provided for @marksWithdrawCorrection.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw request'**
+  String get marksWithdrawCorrection;
+
+  /// No description provided for @marksComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark comment'**
+  String get marksComment;
+
+  /// No description provided for @marksPublishedLock.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked by a published report'**
+  String get marksPublishedLock;
+
+  /// No description provided for @marksOfficial.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted · official marks'**
+  String get marksOfficial;
+
+  /// No description provided for @marksOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Original'**
+  String get marksOriginal;
+
+  /// No description provided for @marksProposed.
+  ///
+  /// In en, this message translates to:
+  /// **'Proposed'**
+  String get marksProposed;
 }
 
 class _AppLocalizationsDelegate

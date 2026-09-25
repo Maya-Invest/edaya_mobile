@@ -351,11 +351,17 @@ extension GeneratedSchoolClientCommands on SchoolClient {
   Future<Map<String, dynamic>> submitAssessmentMarks(Map<String, dynamic> payload) =>
       runCommand("submit-assessment-marks", payload);
 
-  Future<Map<String, dynamic>> approveAssessmentMarks(Map<String, dynamic> payload) =>
-      runCommand("approve-assessment-marks", payload);
+  Future<Map<String, dynamic>> requestAssessmentMarksCorrection(Map<String, dynamic> payload) =>
+      runCommand("request-assessment-marks-correction", payload);
 
-  Future<Map<String, dynamic>> returnAssessmentMarks(Map<String, dynamic> payload) =>
-      runCommand("return-assessment-marks", payload);
+  Future<Map<String, dynamic>> approveAssessmentMarksCorrection(Map<String, dynamic> payload) =>
+      runCommand("approve-assessment-marks-correction", payload);
+
+  Future<Map<String, dynamic>> rejectAssessmentMarksCorrection(Map<String, dynamic> payload) =>
+      runCommand("reject-assessment-marks-correction", payload);
+
+  Future<Map<String, dynamic>> withdrawAssessmentMarksCorrection(Map<String, dynamic> payload) =>
+      runCommand("withdraw-assessment-marks-correction", payload);
 
   Future<Map<String, dynamic>> completeAssessment(Map<String, dynamic> payload) =>
       runCommand("complete-assessment", payload);

@@ -17,6 +17,7 @@ import '../report_cards/live_report_cards_controller.dart';
 import '../report_cards/report_card_comment_logic.dart';
 import 'live_evaluations_controller.dart';
 import 'live_marks_controller.dart';
+import 'marks_corrections_panel.dart';
 
 class EvaluationsPage extends StatelessWidget {
   const EvaluationsPage({super.key});
@@ -609,9 +610,12 @@ class _LiveMarksEntryPage extends LScopedView<LiveMarksController> {
               '${evaluation.classLabel} · ${evaluation.subjectLabel} · max ${evaluation.maxScore.toStringAsFixed(0)}',
               style: Theme.of(context).textTheme.bodySmall,
             ),
-            Text('Validation : ${controller.marksStatus.value}'),
-            if (controller.returnReason.value.isNotEmpty)
-              Text('Retour : ${controller.returnReason.value}'),
+            Text(
+              controller.marksStatus.value == 'submitted'
+                  ? context.tr.marksOfficial
+                  : 'Brouillon',
+            ),
+            MarksCorrectionsPanel(controller: controller),
             if (controller.marksStatus.value == 'draft')
               FilledButton(
                 onPressed: controller.submitMarks,
@@ -653,8 +657,8 @@ class _LiveMarksEntryPage extends LScopedView<LiveMarksController> {
                       const SizedBox(width: PrototypeSpacing.sm),
                       Expanded(
                         child: Text(
-                          mark.marksLocked
-                              ? '${mark.fullName} · verrouillé'
+                          mark.published
+                              ? '${mark.fullName} · ${context.tr.marksPublishedLock}'
                               : mark.fullName,
                         ),
                       ),

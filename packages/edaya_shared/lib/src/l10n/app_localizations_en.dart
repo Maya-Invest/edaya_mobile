@@ -1821,7 +1821,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get marksSubmit => 'Submit for approval';
 
   @override
-  String get marksSubmitted => 'Marks submitted for approval.';
+  String get marksSubmitted => 'Marks submitted and visible to families.';
 
   @override
   String get marksResolveConflicts =>
@@ -1829,4 +1829,51 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get marksInvalidNumber => 'Enter a valid numeric mark.';
+
+  @override
+  String get marksRequestCorrection => 'Request correction';
+
+  @override
+  String get marksCorrectionRequested =>
+      'Correction requested. Official marks are unchanged.';
+
+  @override
+  String get marksCorrectionHint =>
+      'Official marks stay unchanged until staff approval.';
+
+  @override
+  String get marksCorrectionReason => 'Reason for correction';
+
+  @override
+  String get marksCorrectionConfirm => 'I have checked all proposed changes.';
+
+  @override
+  String get marksCorrectionPending => 'Pending correction';
+
+  @override
+  String get marksCorrectionApproved => 'Approved correction';
+
+  @override
+  String get marksCorrectionRejected => 'Rejected correction';
+
+  @override
+  String get marksCorrectionWithdrawn => 'Withdrawn correction';
+
+  @override
+  String get marksWithdrawCorrection => 'Withdraw request';
+
+  @override
+  String get marksComment => 'Mark comment';
+
+  @override
+  String get marksPublishedLock => 'Locked by a published report';
+
+  @override
+  String get marksOfficial => 'Submitted · official marks';
+
+  @override
+  String get marksOriginal => 'Original';
+
+  @override
+  String get marksProposed => 'Proposed';
 }

@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:edaya_shared/edaya_shared.dart';
@@ -21,6 +23,8 @@ class LiveMarkRow {
     this.score,
     this.designation,
     this.marksLocked = false,
+    this.published = false,
+    this.notes,
     this.syncState = MarkSyncState.synced,
   });
 
@@ -32,6 +36,8 @@ class LiveMarkRow {
   final double? score;
   final String? designation;
   final bool marksLocked;
+  final bool published;
+  final String? notes;
   final MarkSyncState syncState;
 
   static const Object _unset = Object();
@@ -56,6 +62,8 @@ class LiveMarkRow {
           ? this.designation
           : designation as String?,
       marksLocked: marksLocked ?? this.marksLocked,
+      published: published,
+      notes: notes,
       syncState: syncState ?? this.syncState,
     );
   }
@@ -89,7 +97,8 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
   final errorMessage = LxVar('');
   final saveMessage = LxVar('');
   final marksStatus = LxVar('draft');
-  final returnReason = LxVar('');
+  final canRequestCorrection = LxVar(false);
+  final corrections = LxVar<List<Map<String, dynamic>>>(const []);
   final canSubmit = LxVar(false);
   int _revision = 0;
   bool _saving = false;
@@ -103,7 +112,8 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
     autoDispose(errorMessage);
     autoDispose(saveMessage);
     autoDispose(marksStatus);
-    autoDispose(returnReason);
+    autoDispose(canRequestCorrection);
+    autoDispose(corrections);
     autoDispose(canSubmit);
     evaluation(_evaluations.evaluationById(evaluationId));
     unawaited(load());
@@ -146,16 +156,17 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
         _revision = (sheet['marksRevision'] as num).toInt();
         marksStatus(sheet['marksStatus'] as String);
         canSubmit((review['allowedActions'] as Map)['submit'] == true);
-        final history =
-            ((sheet['marksReview'] as Map?)?['history'] as List?) ?? [];
-        returnReason(
-          history
-                      .whereType<Map>()
-                      .where((event) => event['action'] == 'return')
-                      .lastOrNull?['reason']
-                  as String? ??
-              '',
+        canRequestCorrection(
+          (review['allowedActions'] as Map)['requestCorrection'] == true,
         );
+        corrections(
+          (review['corrections'] as List? ?? [])
+              .map((row) => (row as Map).cast<String, dynamic>())
+              .toList(),
+        );
+        final published = (review['publishedResultIds'] as List? ?? [])
+            .cast<String>()
+            .toSet();
         _outboxStore.bindContext(_outboxContext?.call());
         final pending = await _outboxStore.listPending();
         for (final entry in pending.where(
@@ -167,7 +178,9 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
               ((entry.payload['expectedRevision'] as num?)?.toInt() ??
                   _revision) +
               1;
-          if (next > _revision) _revision = next;
+          if (marksStatus.value == 'draft' && next > _revision) {
+            _revision = next;
+          }
         }
         final studentRows = (review['students'] as List).cast<Map>();
         final results = (review['results'] as List).cast<Map>();
@@ -191,6 +204,8 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
             score: (result?['score'] as num?)?.toDouble(),
             designation: result?['designation'] as String?,
             marksLocked: marksStatus.value != 'draft',
+            published: published.contains(result?['id']),
+            notes: result?['notes'] as String?,
           );
         }).toList()..sort((a, b) => a.fullName.compareTo(b.fullName));
         students(roster);
@@ -199,6 +214,16 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
               row.kind == TeacherOutboxKind.mark &&
               row.payload['assessmentId'] == evaluationId,
         )) {
+          if (marksStatus.value != 'draft') {
+            await _outboxStore.upsert(
+              entry.copyWith(
+                state: TeacherOutboxState.conflict,
+                lastError: systemL10n().marksResolveConflicts,
+              ),
+            );
+            saveMessage(systemL10n().marksResolveConflicts);
+            continue;
+          }
           _patchRow(
             entry.payload['studentId'] as String,
             resultId: entry.payload['id'] as String?,
@@ -378,6 +403,87 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
     await saveScore(studentId, score);
   }
 
+  Future<Map<String, dynamic>> _onlineCommand(
+    String command,
+    Map<String, dynamic> payload,
+    Future<Map<String, dynamic>> Function(Map<String, dynamic>) send,
+  ) async {
+    final context = _outboxContext?.call()?.toJson();
+    final key =
+        'marks-online:${base64Url.encode(utf8.encode(jsonEncode([context, evaluationId, command, payload])))}';
+    final prefs = await SharedPreferences.getInstance();
+    final requestId = prefs.getString(key) ?? newSchoolRequestId();
+    await prefs.setString(key, requestId);
+    try {
+      final result = await send({...payload, 'requestId': requestId});
+      await prefs.remove(key);
+      return result;
+    } on Object catch (error) {
+      if (!isRetryableTeacherWriteFailure(error)) await prefs.remove(key);
+      rethrow;
+    }
+  }
+
+  Future<bool> requestCorrection(
+    List<Map<String, dynamic>> changes,
+    String reason,
+  ) async {
+    if (_saving ||
+        !canRequestCorrection.value ||
+        reason.trim().isEmpty ||
+        changes.isEmpty) {
+      return false;
+    }
+    for (final change in changes) {
+      final proposed = change['proposed'] as Map;
+      final score = proposed['score'] as num?;
+      if (proposed['designation'] == 'scored' &&
+          (score == null ||
+              !score.isFinite ||
+              score < 0 ||
+              score > (evaluation.value?.maxScore ?? 0))) {
+        saveMessage(systemL10n().marksInvalidNumber);
+        return false;
+      }
+    }
+    _saving = true;
+    try {
+      await _onlineCommand('request', {
+        'assessmentId': evaluationId,
+        'expectedRevision': _revision,
+        'reason': reason.trim(),
+        'changes': changes,
+      }, _schoolClient().requestAssessmentMarksCorrection);
+      await load();
+      saveMessage(systemL10n().marksCorrectionRequested);
+      return true;
+    } on Object catch (error) {
+      saveMessage(systemL10n().couldNotSaveMark('$error'));
+      return false;
+    } finally {
+      _saving = false;
+    }
+  }
+
+  Future<void> withdrawCorrection(Map<String, dynamic> correction) async {
+    if (_saving ||
+        (correction['allowedActions'] as Map?)?['withdraw'] != true) {
+      return;
+    }
+    _saving = true;
+    try {
+      await _onlineCommand('withdraw', {
+        'correctionId': correction['id'],
+        'expectedVersion': correction['version'],
+      }, _schoolClient().withdrawAssessmentMarksCorrection);
+      await load();
+    } on Object catch (error) {
+      saveMessage(systemL10n().couldNotSaveMark('$error'));
+    } finally {
+      _saving = false;
+    }
+  }
+
   Future<void> submitMarks() async {
     if (_saving || marksStatus.value != 'draft') return;
     _saving = true;
@@ -409,11 +515,10 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
         }
       }
       await load();
-      await client.submitAssessmentMarks({
-        'requestId': newSchoolRequestId(),
+      await _onlineCommand('submit', {
         'assessmentId': evaluationId,
         'expectedRevision': _revision,
-      });
+      }, client.submitAssessmentMarks);
       await load();
       saveMessage(systemL10n().marksSubmitted);
     } on Object catch (error) {
