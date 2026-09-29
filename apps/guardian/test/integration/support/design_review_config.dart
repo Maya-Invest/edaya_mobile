@@ -7,7 +7,10 @@ import 'dart:io';
 String designReviewLocaleSlug() {
   final raw =
       Platform.environment['EDAYA_DESIGN_REVIEW_LOCALE'] ??
-      const String.fromEnvironment('EDAYA_DESIGN_REVIEW_LOCALE', defaultValue: 'fr');
+      const String.fromEnvironment(
+        'EDAYA_DESIGN_REVIEW_LOCALE',
+        defaultValue: 'fr',
+      );
 
   return switch (raw.toLowerCase()) {
     'en' => 'en',

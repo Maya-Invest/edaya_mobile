@@ -3271,6 +3271,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Proposed'**
   String get marksProposed;
+
+  /// No description provided for @deliveryChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Send my code by'**
+  String get deliveryChannel;
+
+  /// No description provided for @phoneCountryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number with country code (+225…)'**
+  String get phoneCountryHint;
+
+  /// No description provided for @authenticatorSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Add this secret to your authenticator app, then enter its code.'**
+  String get authenticatorSetup;
+
+  /// No description provided for @authenticatorCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Authenticator code'**
+  String get authenticatorCode;
+
+  /// No description provided for @recoveryCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery code'**
+  String get recoveryCode;
+
+  /// No description provided for @useRecoveryCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a recovery code'**
+  String get useRecoveryCode;
+
+  /// No description provided for @saveRecoveryCodes.
+  ///
+  /// In en, this message translates to:
+  /// **'Save these recovery codes securely. They are shown only once.'**
+  String get saveRecoveryCodes;
+
+  /// No description provided for @savedRecoveryCodes.
+  ///
+  /// In en, this message translates to:
+  /// **'I have saved my codes'**
+  String get savedRecoveryCodes;
+
+  /// No description provided for @accountSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Account security'**
+  String get accountSecurity;
+
+  /// No description provided for @recentSignInHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in again before changing login identifiers or your authenticator.'**
+  String get recentSignInHint;
+
+  /// No description provided for @linkIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Link another login identifier'**
+  String get linkIdentifier;
+
+  /// No description provided for @unlinkIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink and sign out'**
+  String get unlinkIdentifier;
+
+  /// No description provided for @enableAuthenticator.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up authenticator'**
+  String get enableAuthenticator;
+
+  /// No description provided for @recoveryEligible.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow this identifier for account recovery'**
+  String get recoveryEligible;
 }
 
 class _AppLocalizationsDelegate

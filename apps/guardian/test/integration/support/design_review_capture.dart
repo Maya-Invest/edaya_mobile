@@ -52,10 +52,7 @@ Future<void> captureDesignReviewShot(
 
     // Async file I/O can deadlock after [WidgetTester.runAsync]; sync write is safe.
     outputFile.parent.createSync(recursive: true);
-    outputFile.writeAsBytesSync(
-      byteData!.buffer.asUint8List(),
-      flush: true,
-    );
+    outputFile.writeAsBytesSync(byteData!.buffer.asUint8List(), flush: true);
   } finally {
     image.dispose();
   }

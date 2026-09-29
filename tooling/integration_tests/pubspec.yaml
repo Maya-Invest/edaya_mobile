@@ -12,6 +12,7 @@ dependencies:
   edaya_auth:
     path: ../../packages/edaya_auth
   http: ^1.6.0
+  crypto: ^3.0.7
 
 dev_dependencies:
   lints: ^6.0.0

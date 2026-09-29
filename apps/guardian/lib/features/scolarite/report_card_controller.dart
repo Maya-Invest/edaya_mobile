@@ -43,16 +43,11 @@ class ReportCardController extends LevitController
         var periodName =
             row['periodId'] as String? ?? systemL10n().periodFallback;
         final periodId = row['periodId'] as String?;
-        final yearId = row['academicYearId'] as String?;
-        if (periodId != null && yearId != null) {
+        if (periodId != null) {
           try {
-            final periods = await client.academicPeriods.list(
-              academicYearScope(yearId),
-            );
-            final period = periods.where((p) => p['id'] == periodId).firstOrNull;
-            if (period != null) {
-              periodName = academicPeriodLabel(period);
-            }
+            // Report-card results identify their period, but do not carry a year.
+            final period = await client.academicPeriods.get(periodId);
+            periodName = academicPeriodLabel(period);
           } on Object {
             // fallback
           }

@@ -8,7 +8,7 @@ TOKEN="${IDENTITY_CHECKOUT_TOKEN:-}"
 
 if [ -z "$TOKEN" ]; then
 	echo "IDENTITY_CHECKOUT_TOKEN is required to read private sibling repos." >&2
-	echo "Create a PAT with contents:read on ${OWNER}/edaya_identity and ${OWNER}/edaya_backend," >&2
+	echo "Create a PAT with contents:read on ${OWNER}/edaya_backend," >&2
 	echo "then add it as the IDENTITY_CHECKOUT_TOKEN repo secret." >&2
 	exit 1
 fi
@@ -28,5 +28,4 @@ assert_branch() {
 	exit 1
 }
 
-assert_branch edaya_identity
 assert_branch edaya_backend

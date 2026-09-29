@@ -7,20 +7,37 @@ import 'package:http/testing.dart';
 
 void main() {
   test(
-    'signInWithEmailOtp stores signed renewal credentials and returns user',
+    'OTP delivery reports network failure without creating a challenge',
+    () async {
+      final client = AuthClient(
+        baseUrl: 'http://localhost:9900',
+        client: MockClient((_) async {
+          throw http.ClientException('offline');
+        }),
+      );
+      final result = await client.sendOtp(value: 'person@example.com');
+      expect(result.isSuccess, isFalse);
+      expect(result.error?.code, 'NETWORK_ERROR');
+      expect(client.pendingChallenge, isNull);
+      expect(client.renewalCredential, isNull);
+    },
+  );
+  test(
+    'signInWithEmailOtp stores opaque Account renewal credentials and returns user',
     () async {
       final client = AuthClient(
         baseUrl: 'http://localhost:9999',
         client: MockClient((request) async {
-          expect(request.url.path, '/auth/edaya/native/sign-in/email-otp');
+          expect(request.url.path, '/auth/edaya/otp/verify');
           expect(jsonDecode(request.body), {
-            'email': 'teacher@school.edu',
-            'otp': '246810',
+            'challenge': 'primary-challenge',
+            'code': '246810',
           });
 
           return http.Response(
             jsonEncode({
-              'renewalCredential': 'signed.synthetic-proof',
+              'state': 'complete',
+              'token': 'opaque-synthetic-proof',
               'user': {
                 'id': 'user-1',
                 'email': 'teacher@school.edu',
@@ -28,14 +45,12 @@ void main() {
               },
             }),
             200,
-            headers: {
-              'set-cookie':
-                  'better-auth.session_token=abc123; Path=/; HttpOnly',
-            },
+            headers: {'set-cookie': 'edaya_session=abc123; Path=/; HttpOnly'},
           );
         }),
       );
 
+      client.pendingChallenge = 'primary-challenge';
       final result = await client.signInWithEmailOtp(
         email: 'teacher@school.edu',
         otp: '246810',
@@ -44,7 +59,7 @@ void main() {
       expect(result.isSuccess, isTrue);
       expect(result.data?.email, 'teacher@school.edu');
       expect(client.cookieHeader, isNull);
-      expect(client.renewalCredential, 'signed.synthetic-proof');
+      expect(client.renewalCredential, 'opaque-synthetic-proof');
     },
   );
 
@@ -99,12 +114,13 @@ void main() {
     final client = AuthClient(
       baseUrl: 'http://localhost:9999',
       client: MockClient((request) async {
-        expect(request.url.path, '/auth/email-otp/send-verification-otp');
+        expect(request.url.path, '/auth/edaya/otp/start');
         expect(jsonDecode(request.body), {
-          'email': 'parent@school.edu',
-          'type': 'sign-in',
+          'kind': 'email',
+          'value': 'parent@school.edu',
+          'channel': 'email',
         });
-        return http.Response('{}', 200);
+        return http.Response(jsonEncode({'challenge': 'primary'}), 200);
       }),
     );
 

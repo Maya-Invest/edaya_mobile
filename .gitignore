@@ -44,3 +44,5 @@ __MACOSX/
 /release-apks/
 .tmp-home
 .tmp-pub-cache
+/.integration-results/
+**/__pycache__/

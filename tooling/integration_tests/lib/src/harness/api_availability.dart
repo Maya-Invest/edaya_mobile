@@ -17,16 +17,23 @@ Future<String?> resolveIntegrationSkipReason() async {
   final client = http.Client();
 
   try {
-    await client
-        .get(Uri.parse('${config.authUrl}/auth/get-session'))
+    final response = await client
+        .get(Uri.parse('${config.authUrl}/auth/edaya/methods'))
         .timeout(_probeTimeout);
+    if (response.statusCode != 200) {
+      throw StateError(
+        'Identity fixture readiness failed: HTTP ${response.statusCode}',
+      );
+    }
     return null;
   } on SocketException {
-    return 'Identity not reachable at ${config.authUrl}';
+    throw StateError('Identity fixture not reachable at ${config.authUrl}');
   } on HttpException {
-    return 'Identity not reachable at ${config.authUrl}';
+    throw StateError('Identity fixture not reachable at ${config.authUrl}');
   } on TimeoutException {
-    return 'Identity not reachable at ${config.authUrl} (timed out)';
+    throw StateError(
+      'Identity fixture not reachable at ${config.authUrl} (timed out)',
+    );
   } finally {
     client.close();
   }

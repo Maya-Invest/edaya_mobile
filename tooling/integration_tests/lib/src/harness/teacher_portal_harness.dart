@@ -365,7 +365,9 @@ Future<String?> resolveLessonSessionIdForClass(
     return fromTimetable;
   }
   return findMaterializedLessonSessionId(
-    client, classGroupId, classSubjectId: classSubjectId,
+    client,
+    classGroupId,
+    classSubjectId: classSubjectId,
   );
 }
 
@@ -540,9 +542,21 @@ Future<void> probeTeacherEvaluationWrites(
   if (enrollments.isEmpty) {
     throw StateError('expected enrollments for $classGroupId');
   }
-  // Demo-ci seeds published report cards for all but the last-ranked student per
-  // class; grade writes fail with 409 when the bulletin is published.
-  final studentId = enrollments.last['studentId'] as String;
+  final published = await client.results.list({
+    'classGroupId': classGroupId,
+    'periodId': periodId,
+    'status': 'published',
+  });
+  final lockedStudents = published.map((row) => row['studentId']).toSet();
+  final eligible = enrollments.where(
+    (row) => !lockedStudents.contains(row['studentId']),
+  );
+  if (eligible.isEmpty) {
+    throw StateError(
+      'Required grading fixture: no unpublished student in $classGroupId/$periodId',
+    );
+  }
+  final studentId = eligible.first['studentId'] as String;
 
   await client.recordAssessmentResult({
     'id': 'ar-$asmId-$studentId',

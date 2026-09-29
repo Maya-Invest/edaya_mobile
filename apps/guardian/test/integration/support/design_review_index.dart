@@ -41,7 +41,8 @@ void writeDesignReviewPack({
 
   final cards = shots
       .map(
-        (shot) => '''
+        (shot) =>
+            '''
     <figure>
       <img src="${shot.relativePath}" alt="${_escapeHtml(shot.title)}" loading="lazy" />
       <figcaption>

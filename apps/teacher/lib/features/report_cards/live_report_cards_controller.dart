@@ -284,10 +284,10 @@ class LiveReportCardCommentController extends LevitController
         if (!reportCardCommentsEditable(result)) {
           isReadOnly(true);
         }
-        final grants = _session.grants.value;
-        final homeroomClassGroupIds =
-            grants?.teacherScope?.homeroomClassGroupIds.toSet() ??
-            _teacherContext.assignedClassGroupIds.value;
+        final homeroomClassGroupIds = _teacherContext.assignments.value
+            .where((assignment) => assignment.isHomeroom)
+            .map((assignment) => assignment.classGroupId)
+            .toSet();
         final editableFields = extractWritableReportCardCommentFields(
           result: result,
           classGroupId: classGroupId,

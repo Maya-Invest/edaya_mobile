@@ -3,6 +3,7 @@ library;
 
 import 'package:edaya_guardian/app/shell_page.dart';
 import 'package:edaya_guardian/design/components/list_row.dart';
+import 'package:edaya_guardian/design/components/student_context_card.dart';
 import 'package:edaya_guardian/design/components/summary_metric.dart';
 import 'package:edaya_guardian/features/calendar/calendar_page.dart';
 import 'package:edaya_guardian/features/calendar/session_detail_page.dart';
@@ -47,96 +48,315 @@ Future<void> main() async {
 void _mariamKoneSuite() {
   late GuardianWidgetTestHarness harness;
   late GuardianProbeBundle probes;
+  late PortalSession readSession;
 
   setUpAll(() async {
     harness = await GuardianWidgetTestHarness.create();
     probes = await GuardianProbeBundle.load(harness);
+    readSession = harness.portalSession!;
+  });
+
+  setUp(() async {
+    harness = await GuardianWidgetTestHarness.create(
+      authenticatedSession: readSession,
+    );
   });
 
   group('shell', () {
-    testWidgets('PrototypeShell shows bottom navigation and home tab', (
-      tester,
-    ) async {
-      await pumpGuardianShellUntil<HomePage>(tester, harness);
+    testWidgets(
+      '[guardian.prototypeshell-shows-bottom-navigation-and-home-tab] PrototypeShell shows bottom navigation and home tab',
+      (tester) async {
+        await pumpGuardianShellUntil<HomePage>(tester, harness);
 
-      expectGuardianShellChrome();
-      expect(find.byType(HomePage), findsOneWidget);
-    });
+        expectGuardianShellChrome();
+        expect(find.byType(HomePage), findsOneWidget);
+      },
+    );
 
-    testWidgets('PrototypeShell navigates to agenda tab', (tester) async {
-      await openCalendarTab(tester, harness);
-      expect(find.byType(CalendarPage), findsOneWidget);
-    });
+    testWidgets(
+      '[guardian.prototypeshell-navigates-to-agenda-tab] PrototypeShell navigates to agenda tab',
+      (tester) async {
+        await openCalendarTab(tester, harness);
+        expect(find.byType(CalendarPage), findsOneWidget);
+      },
+    );
 
-    testWidgets('PrototypeShell navigates to scolarité tab', (tester) async {
-      await openScolariteTab(tester, harness);
-      tester.takeException();
-      expect(find.byType(ResultsPage), findsOneWidget);
-    });
+    testWidgets(
+      '[guardian.prototypeshell-navigates-to-scolarit-tab] PrototypeShell navigates to scolarité tab',
+      (tester) async {
+        await openScolariteTab(tester, harness);
+        expect(find.byType(ResultsPage), findsOneWidget);
+      },
+    );
 
-    testWidgets('PrototypeShell navigates to fees tab', (tester) async {
-      await openFeesTab(tester, harness);
-      expect(find.byType(FeesPage), findsOneWidget);
-      expect(find.text('Résumé'), findsWidgets);
-    });
+    testWidgets(
+      '[guardian.prototypeshell-navigates-to-fees-tab] PrototypeShell navigates to fees tab',
+      (tester) async {
+        await openFeesTab(tester, harness);
+        expect(find.byType(FeesPage), findsOneWidget);
+        await pumpUntilFound(tester, find.text('Résumé'));
+        expect(find.text('Résumé'), findsWidgets);
+      },
+    );
 
-    testWidgets('PrototypeShell navigates to inbox tab', (tester) async {
-      await openInboxTab(tester, harness);
-      expect(find.byType(InboxPage), findsOneWidget);
-    });
+    testWidgets(
+      '[guardian.prototypeshell-navigates-to-inbox-tab] PrototypeShell navigates to inbox tab',
+      (tester) async {
+        await openInboxTab(tester, harness);
+        expect(find.byType(InboxPage), findsOneWidget);
+      },
+    );
   });
 
   group('calendar', () {
-    testWidgets('CalendarPage shows week controls and seeded sessions', (
-      tester,
-    ) async {
-      await openCalendarTab(tester, harness);
-      await pumpUntilFound(tester, find.byTooltip('Semaine suivante'));
+    testWidgets(
+      '[guardian.calendarpage-shows-week-controls-and-seeded-sessions] CalendarPage shows week controls and seeded sessions',
+      (tester) async {
+        await openCalendarTab(tester, harness);
+        await pumpUntilFound(tester, find.byTooltip('Semaine suivante'));
 
-      expect(probes.sessionProbe, isNotNull);
+        expect(probes.sessionProbe, isNotNull);
 
-      await pumpUntilCalendarHasSessions(
-        tester,
-        preferDay: probes.sessionProbe?.sessionDay,
-      );
-      expect(find.byType(ListRow), findsWidgets);
-    });
+        await pumpUntilCalendarHasSessions(
+          tester,
+          preferDay: probes.sessionProbe?.sessionDay,
+        );
+        expect(find.byType(ListRow), findsWidgets);
+      },
+    );
 
-    testWidgets('session row opens session detail page', (tester) async {
-      final session = probes.sessionProbe;
-      expect(session, isNotNull);
+    testWidgets(
+      '[guardian.session-row-opens-session-detail-page] session row opens session detail page',
+      (tester) async {
+        final session = probes.sessionProbe;
+        expect(session, isNotNull);
 
-      await openCalendarTab(tester, harness);
-      await pumpUntilCalendarHasSessions(
-        tester,
-        preferDay: session!.sessionDay,
-      );
+        await openCalendarTab(tester, harness);
+        await pumpUntilCalendarHasSessions(
+          tester,
+          preferDay: session!.sessionDay,
+        );
 
-      await tapSessionRow(tester);
-      await tester.pump();
-      await pumpUntilFound(tester, find.byType(SessionDetailPage));
-      await pumpUntilFound(tester, find.text('Horaire'));
-      expect(find.text('Séance introuvable'), findsNothing);
-    });
+        await tapSessionRow(tester);
+        await tester.pump();
+        await pumpUntilFound(tester, find.byType(SessionDetailPage));
+        await pumpUntilFound(tester, find.text('Horaire'));
+        expect(find.text('Séance introuvable'), findsNothing);
+      },
+    );
 
-    testWidgets('AttendanceListPage loads student attendance records', (
-      tester,
-    ) async {
-      await openAttendancePage(tester, harness);
+    testWidgets(
+      '[guardian.attendancelistpage-loads-student-attendance-records] AttendanceListPage loads student attendance records',
+      (tester) async {
+        await openAttendancePage(tester, harness);
 
-      expect(find.text('Présences'), findsWidgets);
+        expect(find.text('Présences'), findsWidgets);
 
-      if (probes.attendance.isNotEmpty) {
+        expect(
+          probes.attendance,
+          isNotEmpty,
+          reason: 'Required attendance fixture',
+        );
         await pumpUntilFound(tester, find.byType(ListRow));
         expect(find.byType(ListRow), findsWidgets);
-      } else {
-        expect(find.text('Aucune présence enregistrée'), findsOneWidget);
-      }
-    });
+      },
+    );
   });
 
   group('student switch', () {
-    testWidgets('context sheet switches active linked student', (tester) async {
+    testWidgets(
+      '[guardian.context-sheet-switches-active-linked-student] context sheet switches active linked student',
+      (tester) async {
+        final switchProbe = probes.studentSwitchProbe;
+        expect(switchProbe, isNotNull);
+
+        await openCalendarTab(tester, harness);
+        await openStudentContextSheet(tester);
+
+        await tapAlternateStudent(tester, switchProbe!);
+
+        await expectSwitchedStudent(tester, harness, switchProbe);
+      },
+    );
+  });
+
+  group('scolarité', () {
+    testWidgets(
+      '[guardian.resultspage-shows-programme-progress-from-live-api] ResultsPage shows programme progress from live API',
+      (tester) async {
+        expect(probes.academic.classSubjects, isNotEmpty);
+
+        await openScolariteTab(tester, harness);
+
+        await pumpUntilFound(
+          tester,
+          find.text('Avancement du programme'),
+          timeout: const Duration(seconds: 45),
+        );
+        expect(find.text('Avancement du programme'), findsWidgets);
+      },
+    );
+
+    testWidgets(
+      '[guardian.grade-detail-page-shows-assessed-title-from-live-api] grade detail page shows assessed title from live API',
+      (tester) async {
+        final entry = probes.firstGradedEntry;
+        expect(
+          entry,
+          isNotNull,
+          reason: 'The fixture must contain a published grade',
+        );
+
+        await pumpGuardianRoute(
+          tester,
+          harness,
+          location: '/grade/${entry!.id}',
+        );
+        await pumpUntilFound(tester, find.byType(GradeDetailPage));
+        await pumpUntilFound(tester, find.text(entry.title));
+        expect(find.text(entry.title), findsWidgets);
+      },
+    );
+
+    testWidgets(
+      '[guardian.resultspage-lists-published-report-cards-when-present] ResultsPage lists published report cards when present',
+      (tester) async {
+        await openScolariteTab(tester, harness);
+
+        expect(
+          probes.academic.reportCards,
+          isNotEmpty,
+          reason: 'The fixture must contain a published report card',
+        );
+
+        await pumpUntilFound(tester, find.text('Bulletin'));
+        expect(find.text('Bulletin'), findsWidgets);
+      },
+    );
+  });
+
+  group('fees', () {
+    testWidgets(
+      '[guardian.feespage-loads-billed-fees-from-the-live-api] FeesPage loads billed fees from the live API',
+      (tester) async {
+        await openFeesTab(tester, harness);
+        await pumpUntilFound(tester, find.text('Résumé'));
+
+        expect(find.byType(SummaryMetric), findsWidgets);
+
+        expect(
+          probes.fees.studentCharges,
+          isNotEmpty,
+          reason: 'Required billing fixture',
+        );
+        final firstFeeName =
+            probes.fees.studentCharges.first['label'] as String;
+        expect(firstFeeName, isNotEmpty);
+        await pumpUntilFound(tester, find.text(firstFeeName));
+        expect(find.text(firstFeeName), findsWidgets);
+      },
+    );
+
+    testWidgets(
+      '[guardian.payment-detail-page-shows-fee-label-from-live-api] payment detail page shows fee label from live API',
+      (tester) async {
+        final payment = probes.firstPayment;
+        expect(payment, isNotNull);
+
+        await pumpGuardianRoute(
+          tester,
+          harness,
+          location: '/fees/payment/${payment!.id}',
+        );
+        await pumpUntilFound(tester, find.byType(PaymentDetailPage));
+        await pumpUntilFound(tester, find.text('Montant'));
+        expect(find.text('Frais'), findsWidgets);
+      },
+    );
+  });
+
+  group('inbox', () {
+    testWidgets(
+      '[guardian.inboxpage-lists-guardian-message-deliveries] InboxPage lists guardian message deliveries',
+      (tester) async {
+        await openInboxTab(tester, harness);
+
+        expect(
+          probes.inbox.deliveries,
+          isNotEmpty,
+          reason: 'Required inbox fixture',
+        );
+        await pumpUntilFound(tester, find.byType(ListRow));
+        final tileCount = find.byType(ListRow).evaluate().length;
+        expect(tileCount, greaterThan(0));
+        expect(tileCount, lessThanOrEqualTo(probes.inbox.deliveries.length));
+      },
+    );
+
+    testWidgets(
+      '[guardian.message-detail-page-shows-delivery-title-from-live-api] message detail page shows delivery title from live API',
+      (tester) async {
+        final delivery = probes.firstInboxDelivery;
+        expect(delivery, isNotNull);
+
+        await pumpGuardianRoute(
+          tester,
+          harness,
+          location: inboxMessagePath(delivery!.id),
+        );
+        await pumpUntilFound(tester, find.byType(MessageDetailPage));
+        expect(
+          find.textContaining(delivery.title.split(' ').first),
+          findsWidgets,
+        );
+      },
+    );
+  });
+}
+
+void _koffiYaoSuite() {
+  late GuardianWidgetTestHarness harness;
+  late GuardianProbeBundle probes;
+  late PortalSession readSession;
+
+  setUpAll(() async {
+    harness = await GuardianWidgetTestHarness.create(
+      profile: GuardianPortalProfile.koffiYao,
+    );
+    probes = await GuardianProbeBundle.load(harness);
+    readSession = harness.portalSession!;
+  });
+
+  setUp(() async {
+    harness = await GuardianWidgetTestHarness.create(
+      profile: GuardianPortalProfile.koffiYao,
+      authenticatedSession: readSession,
+    );
+  });
+
+  testWidgets(
+    '[guardian.multi-child-shell-loads-home-for-primary-student] multi-child shell loads home for primary student',
+    (tester) async {
+      await pumpGuardianShellUntil<HomePage>(tester, harness);
+
+      expect(find.byType(PrototypeShell), findsOneWidget);
+      expect(find.byType(HomePage), findsOneWidget);
+      expect(harness.context!.linkedStudents.length, greaterThan(1));
+    },
+  );
+
+  testWidgets(
+    '[guardian.multi-child-calendar-shows-week-controls] multi-child calendar shows week controls',
+    (tester) async {
+      await openCalendarTab(tester, harness);
+      await pumpUntilFound(tester, find.byTooltip('Semaine suivante'));
+      expect(find.byTooltip('Semaine suivante'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    '[guardian.multi-child-guardian-switches-linked-student] multi-child guardian switches linked student',
+    (tester) async {
       final switchProbe = probes.studentSwitchProbe;
       expect(switchProbe, isNotNull);
 
@@ -144,192 +364,43 @@ void _mariamKoneSuite() {
       await openStudentContextSheet(tester);
 
       await tapAlternateStudent(tester, switchProbe!);
+      await expectSwitchedStudent(tester, harness, switchProbe);
+    },
+  );
 
-      final deadline = DateTime.now().add(const Duration(seconds: 15));
-      while (DateTime.now().isBefore(deadline)) {
-        await tester.pump(const Duration(milliseconds: 200));
-        final activeId = harness.scope
-            .find<StudentContextController>()
-            .activeStudent
-            .value
-            ?.id;
-        if (activeId == switchProbe.alternateStudentId) {
-          expect(activeId, switchProbe.alternateStudentId);
-          return;
-        }
-      }
-
-      fail('Timed out waiting for active student switch');
-    });
-  });
-
-  group('scolarité', () {
-    testWidgets('ResultsPage shows programme progress from live API', (
-      tester,
-    ) async {
-      expect(probes.academic.classSubjects, isNotEmpty);
-
-      await openScolariteTab(tester, harness);
-      tester.takeException();
-
-      await pumpUntilFound(
-        tester,
-        find.text('Avancement du programme'),
-        timeout: const Duration(seconds: 45),
-      );
-      expect(find.text('Avancement du programme'), findsWidgets);
-    });
-
-    testWidgets('grade detail page shows assessed title from live API', (
-      tester,
-    ) async {
-      final entry = probes.firstGradedEntry;
-      if (entry == null) {
-        return;
-      }
-
-      await pumpGuardianRoute(tester, harness, location: '/grade/${entry.id}');
-      await pumpUntilFound(tester, find.byType(GradeDetailPage));
-      expect(find.textContaining(entry.title.split(' ').first), findsWidgets);
-    });
-
-    testWidgets('ResultsPage lists published report cards when present', (
-      tester,
-    ) async {
-      await openScolariteTab(tester, harness);
-      tester.takeException();
-
-      if (probes.academic.reportCards.isEmpty) {
-        return;
-      }
-
-      await pumpUntilFound(tester, find.text('Bulletin'));
-      expect(find.text('Bulletin'), findsWidgets);
-    });
-  });
-
-  group('fees', () {
-    testWidgets('FeesPage loads billed fees from the live API', (tester) async {
+  testWidgets(
+    '[guardian.multi-child-fees-page-renders-summary] multi-child fees page renders summary',
+    (tester) async {
       await openFeesTab(tester, harness);
+      await pumpUntilFound(tester, find.byType(FeesPage));
+      expect(find.byType(FeesPage), findsOneWidget);
       await pumpUntilFound(tester, find.text('Résumé'));
-
-      expect(find.byType(SummaryMetric), findsWidgets);
-
-      if (probes.fees.studentCharges.isNotEmpty) {
-        final firstFeeName =
-            probes.fees.studentCharges.first['label'] as String?;
-        if (firstFeeName != null && firstFeeName.isNotEmpty) {
-          expect(find.text(firstFeeName), findsWidgets);
-        }
-      }
-    });
-
-    testWidgets('payment detail page shows fee label from live API', (
-      tester,
-    ) async {
-      final payment = probes.firstPayment;
-      expect(payment, isNotNull);
-
-      await pumpGuardianRoute(
-        tester,
-        harness,
-        location: '/fees/payment/${payment!.id}',
-      );
-      await pumpUntilFound(tester, find.byType(PaymentDetailPage));
-      await pumpUntilFound(tester, find.text('Montant'));
-      expect(find.text('Frais'), findsWidgets);
-    });
-  });
-
-  group('inbox', () {
-    testWidgets('InboxPage lists guardian message deliveries', (tester) async {
-      await openInboxTab(tester, harness);
-
-      if (probes.inbox.deliveries.isEmpty) {
-        expect(
-          find.text('Aucun message dans votre boîte de réception.'),
-          findsOneWidget,
-        );
-        return;
-      }
-
-      await pumpUntilFound(tester, find.byType(ListRow));
-      final tileCount = find.byType(ListRow).evaluate().length;
-      expect(tileCount, greaterThan(0));
-      expect(tileCount, lessThanOrEqualTo(probes.inbox.deliveries.length));
-    });
-
-    testWidgets('message detail page shows delivery title from live API', (
-      tester,
-    ) async {
-      final delivery = probes.firstInboxDelivery;
-      expect(delivery, isNotNull);
-
-      await pumpGuardianRoute(
-        tester,
-        harness,
-        location: inboxMessagePath(delivery!.id),
-      );
-      await pumpUntilFound(tester, find.byType(MessageDetailPage));
-      expect(
-        find.textContaining(delivery.title.split(' ').first),
-        findsWidgets,
-      );
-    });
-  });
+      expect(find.text('Résumé'), findsWidgets);
+    },
+  );
 }
 
-void _koffiYaoSuite() {
-  late GuardianWidgetTestHarness harness;
-  late GuardianProbeBundle probes;
-
-  setUpAll(() async {
-    harness = await GuardianWidgetTestHarness.create(
-      profile: GuardianPortalProfile.koffiYao,
-    );
-    probes = await GuardianProbeBundle.load(harness);
-  });
-
-  testWidgets('multi-child shell loads home for primary student', (
-    tester,
-  ) async {
-    await pumpGuardianShellUntil<HomePage>(tester, harness);
-
-    expect(find.byType(PrototypeShell), findsOneWidget);
-    expect(find.byType(HomePage), findsOneWidget);
-    expect(harness.context!.linkedStudents.length, greaterThan(1));
-  });
-
-  testWidgets('multi-child calendar shows week controls', (tester) async {
-    await openCalendarTab(tester, harness);
-    await pumpUntilFound(tester, find.byTooltip('Semaine suivante'));
-    expect(find.byTooltip('Semaine suivante'), findsOneWidget);
-  });
-
-  testWidgets('multi-child guardian switches linked student', (tester) async {
-    final switchProbe = probes.studentSwitchProbe;
-    expect(switchProbe, isNotNull);
-
-    await openCalendarTab(tester, harness);
-    await openStudentContextSheet(tester);
-
-    await tapAlternateStudent(tester, switchProbe!);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 800));
-
-    final activeId = harness.scope
-        .find<StudentContextController>()
-        .activeStudent
-        .value
-        ?.id;
-    expect(activeId, switchProbe.alternateStudentId);
-  });
-
-  testWidgets('multi-child fees page renders summary', (tester) async {
-    await openFeesTab(tester, harness);
-    await pumpUntilFound(tester, find.byType(FeesPage));
-    tester.takeException();
-    expect(find.byType(FeesPage), findsOneWidget);
-    expect(find.text('Résumé'), findsWidgets);
-  });
+Future<void> expectSwitchedStudent(
+  WidgetTester tester,
+  GuardianWidgetTestHarness harness,
+  GuardianStudentSwitchProbe probe,
+) async {
+  final card = find.byWidgetPredicate(
+    (widget) =>
+        widget is StudentContextCard &&
+        widget.studentName == probe.alternateStudentName,
+  );
+  await pumpUntilFound(tester, card);
+  expect(
+    harness.scope.find<StudentContextController>().activeStudentId,
+    probe.alternateStudentId,
+  );
+  expect(
+    find.descendant(of: card, matching: find.text(probe.alternateStudentName)),
+    findsOneWidget,
+  );
+  final alternate = harness.context!.linkedStudents.firstWhere(
+    (row) => row['id'] == probe.alternateStudentId,
+  );
+  expect(alternate['id'], isNot(harness.profile!.primaryStudentId));
 }

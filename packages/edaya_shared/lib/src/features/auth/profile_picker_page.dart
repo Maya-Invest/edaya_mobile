@@ -28,9 +28,9 @@ class ProfilePickerPage extends StatelessWidget {
                     return;
                   }
                   if (error != null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(error)),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(error)));
                     return;
                   }
                   onSelected();

@@ -38,6 +38,7 @@ export 'src/features/auth/profile_picker_page.dart';
 export 'src/features/auth/auth_session_storage.dart';
 export 'src/features/auth/login_controller.dart';
 export 'src/features/auth/login_page.dart';
+export 'src/features/auth/passwordless_login_form.dart';
 export 'src/features/invite/invitation_deep_link.dart';
 export 'src/features/invite/pending_invitation_store.dart';
 export 'src/features/profile_photo/profile_photo_config.dart';

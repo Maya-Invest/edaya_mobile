@@ -1,11 +1,10 @@
 import 'package:edaya_auth/edaya_auth.dart';
-import 'package:edaya_guardian/app/router.dart';
+import 'package:edaya_guardian/di/prototype_module.dart';
 import 'package:edaya_guardian/design/theme.dart';
 import 'package:edaya_guardian/features/auth/session_storage.dart';
 import 'package:edaya_guardian/features/context/academic_year_controller.dart';
 import 'package:edaya_guardian/features/context/student_context_controller.dart';
 import 'package:edaya_guardian/features/my_students/linked_student.dart';
-import 'package:edaya_guardian/live/prototype_runtime.dart';
 import 'package:edaya_integration_tests/edaya_integration_tests.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_shared/src/features/settings/app_settings_models.dart';
@@ -14,6 +13,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Wires the guardian app to a live [PortalSession] for widget tests.
 class GuardianWidgetTestHarness {
@@ -54,8 +54,10 @@ class GuardianWidgetTestHarness {
   static Future<GuardianWidgetTestHarness> create({
     GuardianPortalProfile profile = GuardianPortalProfile.mariamKone,
     LanguagePreference language = LanguagePreference.fr,
+    PortalSession? authenticatedSession,
   }) async {
     SharedPreferences.setMockInitialValues({});
+    FlutterSecureStorage.setMockInitialValues({});
 
     final baseConfig = IntegrationConfig.fromEnvironment();
     final config = baseConfig.withGuardianEmail(profile.email);
@@ -67,11 +69,13 @@ class GuardianWidgetTestHarness {
     await ApiBaseUrlConfig.saveOverride(config.baseUrl);
     await AppSettingsController.preload();
 
-    final portalSession = await PortalSession.signIn(
-      config: config,
-      actorKind: 'guardian',
-      academicYearId: profile.academicYearId,
-    );
+    final portalSession =
+        authenticatedSession ??
+        await PortalSession.signIn(
+          config: config,
+          actorKind: 'guardian',
+          academicYearId: profile.academicYearId,
+        );
     final portalContext = await bootstrapGuardianPortal(portalSession, profile);
 
     return GuardianWidgetTestHarness._(
@@ -87,6 +91,7 @@ class GuardianWidgetTestHarness {
     LanguagePreference language = LanguagePreference.fr,
   }) async {
     SharedPreferences.setMockInitialValues({});
+    FlutterSecureStorage.setMockInitialValues({});
 
     final config = IntegrationConfig.fromEnvironment();
     ApiBaseUrlConfig.configure(
@@ -187,97 +192,18 @@ class GuardianWidgetTestHarness {
   }
 
   void registerDependencies(LevitScope scope) {
-    EdayaRootScope.bind(scope, appName: 'Guardian integration test');
-
-    scope.put<SessionStorage>(() => SessionStorage(), permanent: true);
-
-    if (isGuest) {
-      scope.put<CookieJar>(() => CookieJar(), permanent: true);
-      scope.put<AuthClient>(() => _guestAuthClient!, permanent: true);
-    } else {
-      final portalSession = this.portalSession!;
-      scope.put<CookieJar>(
-        () => portalSession.authClient.cookieJar,
-        permanent: true,
-      );
-      scope.put<AuthClient>(() => portalSession.authClient, permanent: true);
-    }
-
-    scope.put<PushNotificationService>(
-      () => const _NoOpPushNotificationService(),
-      permanent: true,
-    );
-    scope.put<EdayaRouterRefresh>(() => EdayaRouterRefresh(), permanent: true);
-    scope.put<PrototypeRuntime>(
-      () => const PrototypeRuntime(live: true),
-      permanent: true,
-    );
-    scope.put<AppSettingsController>(
-      () => AppSettingsController(),
-      permanent: true,
-    );
-
-    registerSchoolClientFactory(
+    registerPrototypeDependencies(
       scope,
-      getAcademicYearId: () =>
-          scope.find<AcademicYearController>().selectedYearId.value,
-      getActorKind: () => 'guardian',
-      getActorId: () => scope.find<AppSessionController>().actorIdHeader,
-      getSchoolId: () => scope.find<AppSessionController>().schoolIdHeader,
-    );
-
-    scope.put<AppSessionController>(
-      () => AppSessionController(
-        authClient: scope.find<AuthClient>(),
-        sessionStorage: scope.find<SessionStorage>(),
-        pushNotifications: scope.find<PushNotificationService>(),
-        routerRefresh: scope.find<EdayaRouterRefresh>(),
-        validateGrants: (_) => null,
-        unauthorizedProfileMessage: () =>
-            systemL10n().signedInNoGuardianProfile,
-        resolveActorKind: () => 'guardian',
-      ),
-      permanent: true,
-    );
-    scope.put<AcademicYearController>(
-      () => AcademicYearController(
-        sessionStorage: scope.find<SessionStorage>(),
-        session: scope.find<AppSessionController>(),
-        schoolClient: scope.find<SchoolClientFactory>(),
-      ),
-      permanent: true,
-    );
-    scope.put<StudentContextController>(
-      () => StudentContextController(
-        sessionStorage: scope.find<SessionStorage>(),
-        session: scope.find<AppSessionController>(),
-        academicYear: scope.find<AcademicYearController>(),
-        schoolClient: scope.find<SchoolClientFactory>(),
-      ),
-      permanent: true,
-    );
-    scope.put<PendingInvitationStore>(
-      () => PendingInvitationStore(),
-      permanent: true,
-    );
-    scope.put<GoRouter>(
-      () => createRouter(
-        session: scope.find<AppSessionController>(),
-        studentContext: scope.find<StudentContextController>(),
-        academicYear: scope.find<AcademicYearController>(),
-        pendingInvitation: scope.find<PendingInvitationStore>(),
-        routerRefresh: scope.find<EdayaRouterRefresh>(),
-      ),
-      permanent: true,
+      live: true,
+      authClient: _guestAuthClient ?? portalSession!.authClient,
+      pushNotifications: const _NoOpPushNotificationService(),
+      includeBootstrap: false,
     );
   }
 
   Locale get appLocale => language.locale ?? const Locale('fr');
 
-  static Widget materialApp({
-    required Widget home,
-    Locale? locale,
-  }) {
+  static Widget materialApp({required Widget home, Locale? locale}) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: PrototypeTheme.light,

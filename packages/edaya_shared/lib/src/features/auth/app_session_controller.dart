@@ -241,16 +241,20 @@ class AppSessionController extends LevitController {
 
   Future<void> _resolveProfile(api.SchoolClient schoolClient) async {
     final rows = await schoolClient.authorizationProfiles();
-    final profiles = [
-      for (final row in rows)
-        SchoolAuthorizationProfile(
-          kind: row['kind'] as String? ?? '',
-          actorId: row['actorId'] as String? ?? '',
-          schoolId: row['schoolId'] as String? ?? '',
-          schoolName: row['schoolName'] as String? ?? '',
-          schoolShortName: row['schoolShortName'] as String? ?? '',
-        ),
-    ].where((profile) => profile.actorId.isNotEmpty && profile.schoolId.isNotEmpty);
+    final profiles =
+        [
+          for (final row in rows)
+            SchoolAuthorizationProfile(
+              kind: row['kind'] as String? ?? '',
+              actorId: row['actorId'] as String? ?? '',
+              schoolId: row['schoolId'] as String? ?? '',
+              schoolName: row['schoolName'] as String? ?? '',
+              schoolShortName: row['schoolShortName'] as String? ?? '',
+            ),
+        ].where(
+          (profile) =>
+              profile.actorId.isNotEmpty && profile.schoolId.isNotEmpty,
+        );
     final expectedKind = _resolveActorKind?.call();
     final matches = [
       for (final profile in profiles)

@@ -162,6 +162,7 @@ class _CorrectionFormState extends State<_CorrectionForm> {
               ),
               if (draft.selected) ...[
                 DropdownButtonFormField<String>(
+                  isExpanded: true,
                   initialValue: draft.designation,
                   decoration: InputDecoration(
                     labelText: context.tr.marksDesignation,

@@ -1,3 +1,4 @@
+import '../auth/account_security_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -70,6 +71,15 @@ class _ProfileForm extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
       children: [
+        ListTile(
+          title: Text(context.tr.accountSecurity),
+          leading: const Icon(Icons.security),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const AccountSecurityPage(),
+            ),
+          ),
+        ),
         Center(
           child: Tooltip(
             message: context.tr.profilePhotoCropTitle,

@@ -528,5 +528,19 @@
   "marksPublishedLock": "Verrouillée par un bulletin publié",
   "marksOfficial": "Soumises · notes officielles",
   "marksOriginal": "Valeur initiale",
-  "marksProposed": "Valeur proposée"
+  "marksProposed": "Valeur proposée",
+  "deliveryChannel": "Recevoir mon code par",
+  "phoneCountryHint": "Téléphone avec indicatif (+225…)",
+  "authenticatorSetup": "Ajoutez cette clé à votre application d’authentification, puis saisissez son code.",
+  "authenticatorCode": "Code de l’application",
+  "recoveryCode": "Code de récupération",
+  "useRecoveryCode": "Utiliser un code de récupération",
+  "saveRecoveryCodes": "Conservez ces codes en lieu sûr. Ils ne seront affichés qu’une fois.",
+  "savedRecoveryCodes": "J’ai conservé mes codes",
+  "accountSecurity": "Sécurité du compte",
+  "recentSignInHint": "Reconnectez-vous avant de modifier vos identifiants ou votre application d’authentification.",
+  "linkIdentifier": "Associer un autre identifiant",
+  "unlinkIdentifier": "Dissocier et se déconnecter",
+  "enableAuthenticator": "Configurer l’application",
+  "recoveryEligible": "Autoriser cet identifiant pour récupérer le compte"
 }

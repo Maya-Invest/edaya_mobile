@@ -61,6 +61,13 @@ class TeacherContextController extends LevitController
   final assignedClassGroupIds = LxVar<Set<String>>({});
   final isLoading = LxVar(false);
   final errorMessage = LxVar('');
+  bool _closed = false;
+
+  @override
+  void onClose() {
+    _closed = true;
+    super.onClose();
+  }
 
   @override
   void onInit() {
@@ -124,13 +131,14 @@ class TeacherContextController extends LevitController
 
   Future<void> _reloadOnAcademicYearChange() async {
     await _session.refreshGrants();
-    await reloadContext();
+    if (!_closed) await reloadContext();
   }
 
   Future<void> initializeFromSession() async {
     final persisted = await _sessionStorage.readAssignmentId();
+    if (_closed) return;
     activeAssignmentId(persisted);
-    await reloadContext();
+    if (!_closed) await reloadContext();
   }
 
   Future<void> selectAssignment(String assignmentId) async {
@@ -139,6 +147,7 @@ class TeacherContextController extends LevitController
   }
 
   Future<void> reloadContext() async {
+    if (_closed) return;
     final grants = _session.grants.value;
     if (grants == null || grants.kind != 'teacher') {
       _clearContext();
@@ -167,6 +176,7 @@ class TeacherContextController extends LevitController
         final client = _schoolClient();
         try {
           final teacher = await client.teachers.get(resolvedTeacherId);
+          if (_closed) return;
           final firstName = teacher['firstName'] as String? ?? '';
           final lastName = teacher['lastName'] as String? ?? '';
           final fullName = '$firstName $lastName'.trim();
@@ -178,6 +188,7 @@ class TeacherContextController extends LevitController
           );
           teacherPhotoUrl(teacher['photoUrl'] as String?);
         } on Object {
+          if (_closed) return;
           teacherName(
             _session.user.value?.name ?? systemL10n().teacherFallbackName,
           );
@@ -188,24 +199,25 @@ class TeacherContextController extends LevitController
         if (schoolId != null && schoolId.isNotEmpty) {
           try {
             final school = await client.schools.get(schoolId);
+            if (_closed) return;
             schoolName(school['name'] as String? ?? schoolId);
           } on Object {
+            if (_closed) return;
             schoolName(schoolId);
           }
         }
 
-        final scopeFromGrants = teachingScopeFromTeacherPortalScope(
-          grants.teacherScope,
-        );
         final assignmentRows = await client.teacherAssignments.list(
           teacherAssignmentsForTeacherAndYear(
             teacherId: resolvedTeacherId,
             academicYearId: yearId,
           ),
         );
-        final teachingScope = mergeTeachingScopes(
-          scopeFromGrants,
-          teachingScopeFromTeacherAssignments(assignmentRows),
+        if (_closed) return;
+        // Read grants also include subject teachers' classes. Only actual
+        // homeroom assignments may produce a homeroom context option.
+        final teachingScope = teachingScopeFromTeacherAssignments(
+          assignmentRows,
         );
 
         final classGroupIds = teachingScope.classGroupIds;
@@ -218,6 +230,7 @@ class TeacherContextController extends LevitController
             : await client.classSubjects.list(
                 entitiesByIds(taughtSubjectIds.toList()),
               );
+        if (_closed) return;
         final subjectIds = classSubjectRows
             .map((row) => row['subjectId'] as String?)
             .whereType<String>()
@@ -226,6 +239,7 @@ class TeacherContextController extends LevitController
         final subjectRows = subjectIds.isEmpty
             ? <Map<String, dynamic>>[]
             : await client.subjects.list(entitiesByIds(subjectIds));
+        if (_closed) return;
         final subjectNameById = {
           for (final subject in subjectRows)
             subject['id'] as String:
@@ -247,6 +261,7 @@ class TeacherContextController extends LevitController
           }
         }
 
+        if (_closed) return;
         final classes = [
           for (final entry in classLabelById.entries)
             AssignedClass(id: entry.key, label: entry.value),
@@ -300,11 +315,15 @@ class TeacherContextController extends LevitController
           await selectAssignment(options.first.id);
         }
       } on api.ApiError catch (error) {
-        errorMessage(systemL10n().couldNotLoadTeachingContext('$error'));
+        if (!_closed) {
+          errorMessage(systemL10n().couldNotLoadTeachingContext('$error'));
+        }
       } on Object catch (error) {
-        errorMessage(systemL10n().couldNotLoadTeachingContext('$error'));
+        if (!_closed) {
+          errorMessage(systemL10n().couldNotLoadTeachingContext('$error'));
+        }
       } finally {
-        isLoading(false);
+        if (!_closed) isLoading(false);
       }
     });
   }
@@ -326,6 +345,7 @@ class TeacherContextController extends LevitController
   }
 
   void _clearContext() {
+    if (_closed) return;
     teacherId(null);
     teacherName(null);
     teacherPhotoUrl(null);

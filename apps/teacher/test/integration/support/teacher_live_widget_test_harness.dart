@@ -8,6 +8,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:edaya_teacher/design/theme.dart';
 import 'package:edaya_teacher/di/prototype_module.dart';
 import 'package:edaya_teacher/features/auth/session_storage.dart';
@@ -50,8 +51,10 @@ class TeacherLiveWidgetTestHarness {
   static Future<TeacherLiveWidgetTestHarness> create({
     TeacherPortalProfile profile = TeacherPortalProfile.subjectTeacher,
     LanguagePreference language = LanguagePreference.fr,
+    PortalSession? authenticatedSession,
   }) async {
     SharedPreferences.setMockInitialValues({});
+    FlutterSecureStorage.setMockInitialValues({});
 
     final baseConfig = IntegrationConfig.fromEnvironment();
     final config = baseConfig.withTeacherEmail(profile.email);
@@ -63,11 +66,13 @@ class TeacherLiveWidgetTestHarness {
     await ApiBaseUrlConfig.saveOverride(config.baseUrl);
     await AppSettingsController.preload();
 
-    final portalSession = await PortalSession.signIn(
-      config: config,
-      actorKind: 'teacher',
-      academicYearId: profile.academicYearId,
-    );
+    final portalSession =
+        authenticatedSession ??
+        await PortalSession.signIn(
+          config: config,
+          actorKind: 'teacher',
+          academicYearId: profile.academicYearId,
+        );
     final portalContext = await bootstrapTeacherPortal(portalSession, profile);
     final authSession = await portalSession.authClient.getSession();
     final authUserId = authSession.data?.user.id ?? '';
@@ -91,7 +96,7 @@ class TeacherLiveWidgetTestHarness {
 
   Widget buildRouterApp({String? initialRoute}) {
     return LScope(
-      name: 'teacher-live-integration',
+      name: 'teacher-live-integration-${identityHashCode(this)}',
       dependencyFactory: (scope) {
         _scope = scope;
         registerPrototypeDependencies(
@@ -133,26 +138,23 @@ class TeacherLiveWidgetTestHarness {
     academicYear.years(context.academicYears);
     academicYear.selectedYearId(profile.academicYearId);
 
-    final assignedClasses =
-        context.assignedClassGroups
-            .map(
-              (classGroup) => AssignedClass(
-                id: classGroup['id'] as String,
-                label:
-                    classGroup['name'] as String? ?? classGroup['id'] as String,
-              ),
-            )
-            .toList()
-          ..sort((a, b) => a.label.compareTo(b.label));
-
-    teacherContext.teacherId(context.grants.actorId);
-    teacherContext.teacherName(teacherDisplayName);
-    teacherContext.teacherPhotoUrl(null);
-    teacherContext.assignedClasses(assignedClasses);
-    teacherContext.taughtClassSubjectIds(context.teachingScope.classSubjectIds);
-    teacherContext.assignedClassGroupIds(context.teachingScope.classGroupIds);
-    teacherContext.isLoading(false);
-    teacherContext.errorMessage('');
+    await teacherContext.initializeFromSession();
+    final primary = teacherContext.assignments.value
+        .where(
+          (assignment) =>
+              assignment.classGroupId == profile.primaryClassGroupId &&
+              assignment.classSubjectId ==
+                  profile.expectedClassSubjectIds.first,
+        )
+        .firstOrNull;
+    if (primary != null) await teacherContext.selectAssignment(primary.id);
+    if (teacherContext.errorMessage.value.isNotEmpty ||
+        teacherContext.assignments.value.isEmpty) {
+      throw StateError(
+        'Teacher fixture bootstrap failed: '
+        '${teacherContext.errorMessage.value}; no usable assignments',
+      );
+    }
   }
 
   Locale get appLocale => language.locale ?? const Locale('fr');
@@ -165,10 +167,7 @@ class TeacherLiveWidgetTestHarness {
             height: viewportSize!.height,
             child: child,
           );
-    return RepaintBoundary(
-      key: const Key('teacher_live_root'),
-      child: framed,
-    );
+    return RepaintBoundary(key: const Key('teacher_live_root'), child: framed);
   }
 }
 

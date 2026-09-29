@@ -95,13 +95,15 @@ class ChargeDetailSummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            spacing: PrototypeSpacing.sm,
+            runSpacing: PrototypeSpacing.xs,
             children: [
               StatusChip(
                 label: statusLabel,
                 tone: _chargeStatusTone(charge.status),
               ),
-              const Spacer(),
               if (charge.dueDate != null)
                 Text(
                   'Échéance ${context.formatShortDate(charge.dueDate!)}',

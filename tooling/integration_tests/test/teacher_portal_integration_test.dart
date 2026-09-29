@@ -84,165 +84,214 @@ void _teacherPortalSuite(TeacherPortalProfile profile) {
     });
 
     group('bootstrap / context', () {
-      test('effective grants resolve teacher actor', () {
-        expect(context.grants.kind, 'teacher');
-        expect(context.grants.actorId, isNotEmpty);
-        expect(context.grants.schoolId, isNotEmpty);
-      });
+      test(
+        '[api.teacher.${profile.kind.name}.effective-grants-resolve-teacher-actor] effective grants resolve teacher actor',
+        () {
+          expect(context.grants.kind, 'teacher');
+          expect(context.grants.actorId, isNotEmpty);
+          expect(context.grants.schoolId, isNotEmpty);
+        },
+      );
 
-      test('teaching scope matches profile kind', () {
-        if (profile.kind == TeacherPortalKind.subject) {
-          expect(context.teachingScope.classSubjectIds, isNotEmpty);
-        } else {
-          expect(context.teachingScope.classGroupIds, isNotEmpty);
-        }
-      });
+      test(
+        '[api.teacher.${profile.kind.name}.teaching-scope-matches-profile-kind] teaching scope matches profile kind',
+        () {
+          if (profile.kind == TeacherPortalKind.subject) {
+            expect(context.teachingScope.classSubjectIds, isNotEmpty);
+          } else {
+            expect(context.teachingScope.classGroupIds, isNotEmpty);
+          }
+        },
+      );
 
-      test('teacher assignments include expected scope', () {
-        expect(context.teacherAssignments, isNotEmpty);
-        if (profile.expectedClassSubjectIds.isNotEmpty) {
-          final assignmentSubjectIds = context.teacherAssignments
-              .map((row) => row['classSubjectId'] as String?)
-              .whereType<String>()
-              .toSet();
+      test(
+        '[api.teacher.${profile.kind.name}.teacher-assignments-include-expected-scope] teacher assignments include expected scope',
+        () {
+          expect(context.teacherAssignments, isNotEmpty);
+          if (profile.expectedClassSubjectIds.isNotEmpty) {
+            final assignmentSubjectIds = context.teacherAssignments
+                .map((row) => row['classSubjectId'] as String?)
+                .whereType<String>()
+                .toSet();
+            expect(
+              assignmentSubjectIds,
+              containsAll(profile.expectedClassSubjectIds),
+            );
+          }
+          if (profile.expectedClassGroupIds.isNotEmpty) {
+            final assignmentClassIds = context.teacherAssignments
+                .map((row) => row['classGroupId'] as String?)
+                .whereType<String>()
+                .toSet();
+            final classIdsFromSubjects = context.classSubjects
+                .map((row) => row['classGroupId'] as String?)
+                .whereType<String>()
+                .toSet();
+            final allClassIds = {
+              ...assignmentClassIds,
+              ...classIdsFromSubjects,
+            };
+            expect(allClassIds, containsAll(profile.expectedClassGroupIds));
+          }
+        },
+      );
+
+      test(
+        '[api.teacher.${profile.kind.name}.academic-years-list-includes-configured-year] academic years list includes configured year',
+        () {
+          expect(context.academicYears, isNotEmpty);
           expect(
-            assignmentSubjectIds,
-            containsAll(profile.expectedClassSubjectIds),
+            context.academicYears.any(
+              (year) => year['id'] == profile.academicYearId,
+            ),
+            isTrue,
           );
-        }
-        if (profile.expectedClassGroupIds.isNotEmpty) {
-          final assignmentClassIds = context.teacherAssignments
-              .map((row) => row['classGroupId'] as String?)
-              .whereType<String>()
-              .toSet();
-          final classIdsFromSubjects = context.classSubjects
-              .map((row) => row['classGroupId'] as String?)
-              .whereType<String>()
-              .toSet();
-          final allClassIds = {...assignmentClassIds, ...classIdsFromSubjects};
-          expect(allClassIds, containsAll(profile.expectedClassGroupIds));
-        }
-      });
+        },
+      );
 
-      test('academic years list includes configured year', () {
-        expect(context.academicYears, isNotEmpty);
-        expect(
-          context.academicYears.any(
-            (year) => year['id'] == profile.academicYearId,
-          ),
-          isTrue,
-        );
-      });
+      test(
+        '[api.teacher.${profile.kind.name}.academic-periods-list-for-year] academic periods list for year',
+        () {
+          expect(context.academicPeriods, isNotEmpty);
+        },
+      );
 
-      test('academic periods list for year', () {
-        expect(context.academicPeriods, isNotEmpty);
-      });
+      test(
+        '[api.teacher.${profile.kind.name}.assigned-class-groups-resolve] assigned class groups resolve',
+        () {
+          expect(context.assignedClassGroups, isNotEmpty);
+          for (final classGroup in context.assignedClassGroups) {
+            expect(classGroup['name'], isNotEmpty);
+          }
+        },
+      );
 
-      test('assigned class groups resolve', () {
-        expect(context.assignedClassGroups, isNotEmpty);
-        for (final classGroup in context.assignedClassGroups) {
-          expect(classGroup['name'], isNotEmpty);
-        }
-      });
-
-      test('class subjects resolve for subject assignments', () {
-        if (profile.kind == TeacherPortalKind.subject) {
-          expect(context.classSubjects, isNotEmpty);
-        }
-      });
+      test(
+        '[api.teacher.${profile.kind.name}.class-subjects-resolve-for-subject-assignments] class subjects resolve for subject assignments',
+        () {
+          if (profile.kind == TeacherPortalKind.subject) {
+            expect(context.classSubjects, isNotEmpty);
+          }
+        },
+      );
     });
 
     group('calendar / planning', () {
-      test('timetable query returns events list per class', () {
-        expect(timetableByClass, isNotEmpty);
-        for (final entry in timetableByClass.entries) {
-          expect(entry.value, isA<List<dynamic>>());
-        }
-      });
+      test(
+        '[api.teacher.${profile.kind.name}.timetable-query-returns-events-list-per-class] timetable query returns events list per class',
+        () {
+          expect(timetableByClass, isNotEmpty);
+          for (final entry in timetableByClass.entries) {
+            expect(entry.value, isA<List<dynamic>>());
+          }
+        },
+      );
 
-      test('timetable enrichment reads do not fail', () async {
-        final events =
-            timetableByClass[profile.primaryClassGroupId] ?? const [];
-        await loadTimetableEnrichment(
-          session.schoolClient,
-          classGroupId: profile.primaryClassGroupId,
-          academicYearId: profile.academicYearId,
-          events: events,
-        );
-      });
+      test(
+        '[api.teacher.${profile.kind.name}.timetable-enrichment-reads-do-not-fail] timetable enrichment reads do not fail',
+        () async {
+          final events =
+              timetableByClass[profile.primaryClassGroupId] ?? const [];
+          await loadTimetableEnrichment(
+            session.schoolClient,
+            classGroupId: profile.primaryClassGroupId,
+            academicYearId: profile.academicYearId,
+            events: events,
+          );
+        },
+      );
     });
 
     group('evaluations', () {
-      test('assessments and roster reads for primary class', () {
-        expect(evaluationsProbe, isNotNull);
-        final probe = evaluationsProbe!;
-        expect(probe.enrollments, isNotEmpty);
-        // Assessments may be empty in seed; list call succeeding is the probe.
-        expect(probe.assessments, isA<List<Map<String, dynamic>>>());
-        if (probe.assessments.isNotEmpty) {
-          expect(probe.assessmentResults, isA<List<Map<String, dynamic>>>());
+      test(
+        '[api.teacher.${profile.kind.name}.assessments-and-roster-reads-for-primary-class] assessments and roster reads for primary class',
+        () {
+          expect(evaluationsProbe, isNotNull);
+          final probe = evaluationsProbe!;
+          expect(probe.enrollments, isNotEmpty);
+          expect(
+            probe.assessments,
+            isNotEmpty,
+            reason: 'Assessment fixture is required',
+          );
+          expect(
+            probe.assessmentResults,
+            isNotEmpty,
+            reason: 'Graded assessment fixture is required',
+          );
           expect(probe.classSubject, isNotNull);
           expect(probe.subject, isNotNull);
-        }
-      });
+        },
+      );
 
-      test('createAssessment and recordAssessmentResult persist', () async {
-        if (profile.kind != TeacherPortalKind.subject) {
-          return;
-        }
-        final periodId = context.writeProbePeriodId;
-        final classSubjectId = profile.expectedClassSubjectIds.first;
-        if (periodId == null) {
-          markTestSkipped('no academic period configured');
-          return;
-        }
+      test(
+        '[api.teacher.${profile.kind.name}.createassessment-and-recordassessmentresult-persist] createAssessment and recordAssessmentResult persist',
+        () async {
+          final periodId = context.writeProbePeriodId;
+          final classSubjectId =
+              context.classSubjects.firstWhere(
+                    (row) => row['classGroupId'] == profile.primaryClassGroupId,
+                  )['id']
+                  as String;
+          expect(
+            periodId,
+            isNotNull,
+            reason: 'Academic period fixture is required',
+          );
 
-        await probeTeacherEvaluationWrites(
-          session.schoolClient,
-          classGroupId: profile.primaryClassGroupId,
-          classSubjectId: classSubjectId,
-          periodId: periodId,
-          academicYearId: profile.academicYearId,
-        );
-      });
+          await probeTeacherEvaluationWrites(
+            session.schoolClient,
+            classGroupId: profile.primaryClassGroupId,
+            classSubjectId: classSubjectId,
+            periodId: periodId!,
+            academicYearId: profile.academicYearId,
+          );
+        },
+      );
     });
 
     group('session detail / attendance', () {
-      test('lesson session detail chain resolves when class has lessons', () {
-        if (sessionProbe == null) {
-          markTestSkipped(
-            'no lesson sessions for ${profile.primaryClassGroupId} in timetable window',
+      test(
+        '[api.teacher.${profile.kind.name}.lesson-session-detail-chain-resolves-when-class-has-lessons] lesson session detail chain resolves when class has lessons',
+        () {
+          expect(
+            sessionProbe,
+            isNotNull,
+            reason: 'Lesson session fixture is required',
           );
-          return;
-        }
-        final probe = sessionProbe!;
-        expect(probe.lessonSession, isNotEmpty);
-        expect(probe.enrollments, isNotEmpty);
-        expect(probe.students, isNotEmpty);
-        expect(probe.attendanceRows, isA<List<Map<String, dynamic>>>());
-        expect(probe.classSubjectMatters, isA<List<Map<String, dynamic>>>());
-        expect(probe.classSubjectProgress, isA<List<Map<String, dynamic>>>());
-      });
+          final probe = sessionProbe!;
+          expect(probe.lessonSession, isNotEmpty);
+          expect(probe.enrollments, isNotEmpty);
+          expect(probe.students, isNotEmpty);
+          expect(probe.attendanceRows, isA<List<Map<String, dynamic>>>());
+          expect(probe.classSubjectMatters, isA<List<Map<String, dynamic>>>());
+          expect(probe.classSubjectProgress, isA<List<Map<String, dynamic>>>());
+        },
+      );
 
       test(
         profile.kind == TeacherPortalKind.subject
-            ? 'recordAttendance persists and reads back'
-            : 'recordAttendance is forbidden for homeroom on subject lessons',
+            ? '[api.teacher.subject.attendance-save] recordAttendance persists and reads back'
+            : '[api.teacher.homeroom.attendance-denied] recordAttendance is forbidden for homeroom on subject lessons',
         () async {
           final probe = sessionProbe;
           final studentId = probe?.firstStudentId;
-          if (probe == null || studentId == null) {
-            markTestSkipped(
-              'no lesson sessions for ${profile.primaryClassGroupId} in timetable window',
-            );
-            return;
-          }
+          expect(
+            probe,
+            isNotNull,
+            reason: 'Lesson session fixture is required',
+          );
+          expect(
+            studentId,
+            isNotNull,
+            reason: 'Enrolled student fixture is required',
+          );
 
           if (profile.kind == TeacherPortalKind.subject) {
             await recordLessonAttendance(
               session.schoolClient,
-              lessonSessionId: probe.lessonSessionId,
-              studentId: studentId,
+              lessonSessionId: probe!.lessonSessionId,
+              studentId: studentId!,
             );
             return;
           }
@@ -250,8 +299,8 @@ void _teacherPortalSuite(TeacherPortalProfile profile) {
           try {
             await recordLessonAttendance(
               session.schoolClient,
-              lessonSessionId: probe.lessonSessionId,
-              studentId: studentId,
+              lessonSessionId: probe!.lessonSessionId,
+              studentId: studentId!,
             );
             fail(
               'homeroom teacher must not record session attendance for another teacher\'s subject lesson',
@@ -264,35 +313,41 @@ void _teacherPortalSuite(TeacherPortalProfile profile) {
     });
 
     group('roster via enrollments', () {
-      test('students.list by enrollment ids for primary class', () async {
-        final enrollments = await session.schoolClient.enrollments.list(
-          activeEnrollmentsForClass(
-            profile.primaryClassGroupId,
-            academicYearId: profile.academicYearId,
-          ),
-        );
-        expect(enrollments, isNotEmpty);
+      test(
+        '[api.teacher.${profile.kind.name}.students-list-by-enrollment-ids-for-primary-class] students.list by enrollment ids for primary class',
+        () async {
+          final enrollments = await session.schoolClient.enrollments.list(
+            activeEnrollmentsForClass(
+              profile.primaryClassGroupId,
+              academicYearId: profile.academicYearId,
+            ),
+          );
+          expect(enrollments, isNotEmpty);
 
-        final studentIds = enrollments
-            .map((row) => row['studentId'] as String?)
-            .whereType<String>()
-            .toList();
-        final students = await session.schoolClient.students.list(
-          entitiesByIds(studentIds),
-        );
-        expect(students, isNotEmpty);
-      });
+          final studentIds = enrollments
+              .map((row) => row['studentId'] as String?)
+              .whereType<String>()
+              .toList();
+          final students = await session.schoolClient.students.list(
+            entitiesByIds(studentIds),
+          );
+          expect(students, isNotEmpty);
+        },
+      );
     });
 
     group('negative authorization', () {
-      test('staffMembers.get is forbidden for teacher actors', () async {
-        try {
-          await session.schoolClient.staffMembers.get(context.grants.actorId);
-          fail('expected staff member read to be forbidden');
-        } on ApiError catch (error) {
-          expect(error.status, anyOf(403, 404));
-        }
-      });
+      test(
+        '[api.teacher.${profile.kind.name}.staffmembers-get-is-forbidden-for-teacher-actors] staffMembers.get is forbidden for teacher actors',
+        () async {
+          try {
+            await session.schoolClient.staffMembers.get(context.grants.actorId);
+            fail('expected staff member read to be forbidden');
+          } on ApiError catch (error) {
+            expect(error.status, anyOf(403, 404));
+          }
+        },
+      );
     });
   });
 }

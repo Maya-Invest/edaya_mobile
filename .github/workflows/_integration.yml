@@ -14,6 +14,10 @@ jobs:
   integration:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [api, guardian, teacher]
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -46,14 +50,6 @@ jobs:
           IDENTITY_CHECKOUT_TOKEN: ${{ secrets.IDENTITY_CHECKOUT_TOKEN }}
         run: bash .github/scripts/ci-assert-sibling-ref.sh "${{ steps.api_source.outputs.ref }}"
 
-      - name: Checkout identity
-        uses: actions/checkout@v5
-        with:
-          repository: ${{ github.repository_owner }}/edaya_identity
-          ref: ${{ steps.api_source.outputs.ref }}
-          path: .ci/edaya_identity
-          token: ${{ secrets.IDENTITY_CHECKOUT_TOKEN }}
-
       - name: Checkout school
         uses: actions/checkout@v5
         with:
@@ -66,10 +62,9 @@ jobs:
         run: |
           set -euo pipefail
           parent="$(dirname "$GITHUB_WORKSPACE")"
-          rm -rf "$parent/edaya_identity" "$parent/edaya_backend"
-          ln -sfn "$GITHUB_WORKSPACE/.ci/edaya_identity" "$parent/edaya_identity"
+          rm -rf "$parent/edaya_backend"
           ln -sfn "$GITHUB_WORKSPACE/.ci/edaya_backend" "$parent/edaya_backend"
-          test -f "$parent/edaya_identity/package/identity-client/package.json"
+          test -f "$parent/edaya_backend/package/identity-client/package.json"
           test -f "$parent/edaya_backend/package.json"
 
       - name: Start empty Identity and school
@@ -95,7 +90,20 @@ jobs:
           EDAYA_INTEGRATION_TESTS: '1'
           EDAYA_AUTH_URL: http://127.0.0.1:9900
           EDAYA_API_URL: http://127.0.0.1:9999
-        run: melos run test:integration
+        run: python3 scripts/integration-runner.py --suite "${{ matrix.suite }}"
+
+      - name: Validate integration results
+        if: always()
+        run: python3 scripts/integration-runner.py --validate-only --suite "${{ matrix.suite }}"
+
+      - name: Publish integration results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-integration-${{ matrix.suite }}
+          path: .integration-results/
+          include-hidden-files: true
+          if-no-files-found: error
 
       - name: Stop Identity and school
         if: always()

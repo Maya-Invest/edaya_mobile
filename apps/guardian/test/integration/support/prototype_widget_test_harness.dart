@@ -47,10 +47,7 @@ class PrototypeWidgetTestHarness {
             height: viewportSize!.height,
             child: child,
           );
-    return RepaintBoundary(
-      key: designReviewRootKey,
-      child: framed,
-    );
+    return RepaintBoundary(key: designReviewRootKey, child: framed);
   }
 
   Widget buildApp() {

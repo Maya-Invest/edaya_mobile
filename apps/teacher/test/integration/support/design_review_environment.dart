@@ -31,9 +31,9 @@ Future<void> loadDesignReviewFonts() async {
   final loaded = await _loadFontsFromManifest();
   await _loadEdayaUiFonts();
   if (!loaded.contains('MaterialIcons')) {
-    await (FontLoader('MaterialIcons')
-          ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf')))
-        .load();
+    await (FontLoader(
+      'MaterialIcons',
+    )..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'))).load();
   }
 }
 

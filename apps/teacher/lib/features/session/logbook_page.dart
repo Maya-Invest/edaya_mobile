@@ -265,10 +265,11 @@ class _LogbookFormState extends State<LogbookForm> {
           if (widget.chapters.length > 1)
             DropdownButtonFormField<String>(
               initialValue: widget.selectedChapterId ?? widget.chapters.first.id,
+              isExpanded: true,
               decoration: const InputDecoration(labelText: 'Chapitre'),
               items: [
                 for (final chapter in widget.chapters)
-                  DropdownMenuItem(value: chapter.id, child: Text(chapter.name)),
+                  DropdownMenuItem(value: chapter.id, child: Text(chapter.name, overflow: TextOverflow.ellipsis)),
               ],
               onChanged: (value) {
                 if (value != null) {

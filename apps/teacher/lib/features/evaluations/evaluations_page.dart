@@ -445,6 +445,7 @@ class _LiveEvaluationsPage extends LView<LiveEvaluationsController> {
             if (controller.periods.value.isNotEmpty) ...[
               const SizedBox(height: PrototypeSpacing.sm),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 initialValue: controller.selectedPeriodId.value,
                 decoration: const InputDecoration(
                   labelText: 'Période',
@@ -455,7 +456,7 @@ class _LiveEvaluationsPage extends LView<LiveEvaluationsController> {
                   for (final period in controller.periods.value)
                     DropdownMenuItem(
                       value: period['id'] as String,
-                      child: Text(academicPeriodLabel(period)),
+                      child: Text(academicPeriodLabel(period), overflow: TextOverflow.ellipsis),
                     ),
                 ],
                 onChanged: (value) {
@@ -772,6 +773,7 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
           children: [
             DropdownButtonFormField<String>(
               initialValue: _classSubjectId,
+              isExpanded: true,
               decoration: const InputDecoration(
                 labelText: 'Classe · matière',
                 border: OutlineInputBorder(),
@@ -780,7 +782,7 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
                 for (final subject in subjects)
                   DropdownMenuItem(
                     value: subject.id,
-                    child: Text(subject.label),
+                    child: Text(subject.label, overflow: TextOverflow.ellipsis),
                   ),
               ],
               onChanged: (value) => setState(() => _classSubjectId = value),

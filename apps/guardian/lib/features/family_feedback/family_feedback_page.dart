@@ -339,6 +339,7 @@ class _QuestionnaireBody extends StatelessWidget {
               children: [
                 for (final score in [1, 2, 3, 4, 5])
                   ChoiceChip(
+                    key: ValueKey('feedback-${item.id}-$score'),
                     label: Text(instrument.scaleLabels['$score'] ?? '$score'),
                     selected: controller.answers.value[item.id] == score,
                     onSelected: (_) {
@@ -372,6 +373,7 @@ class _QuestionnaireBody extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           FilledButton(
+            key: const ValueKey('feedback-submit'),
             onPressed:
                 controller.answers.value.length == instrument.items.length
                 ? controller.submit

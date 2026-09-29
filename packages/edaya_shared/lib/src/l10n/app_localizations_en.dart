@@ -1876,4 +1876,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get marksProposed => 'Proposed';
+
+  @override
+  String get deliveryChannel => 'Send my code by';
+
+  @override
+  String get phoneCountryHint => 'Phone number with country code (+225…)';
+
+  @override
+  String get authenticatorSetup =>
+      'Add this secret to your authenticator app, then enter its code.';
+
+  @override
+  String get authenticatorCode => 'Authenticator code';
+
+  @override
+  String get recoveryCode => 'Recovery code';
+
+  @override
+  String get useRecoveryCode => 'Use a recovery code';
+
+  @override
+  String get saveRecoveryCodes =>
+      'Save these recovery codes securely. They are shown only once.';
+
+  @override
+  String get savedRecoveryCodes => 'I have saved my codes';
+
+  @override
+  String get accountSecurity => 'Account security';
+
+  @override
+  String get recentSignInHint =>
+      'Sign in again before changing login identifiers or your authenticator.';
+
+  @override
+  String get linkIdentifier => 'Link another login identifier';
+
+  @override
+  String get unlinkIdentifier => 'Unlink and sign out';
+
+  @override
+  String get enableAuthenticator => 'Set up authenticator';
+
+  @override
+  String get recoveryEligible => 'Allow this identifier for account recovery';
 }

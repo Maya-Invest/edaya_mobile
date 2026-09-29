@@ -27,6 +27,10 @@ Future<void> pumpGuardianPage<T extends Widget>(
   T page, {
   DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
 }) async {
+  addTearDown(() async {
+    await resetIntegrationTestSurface(tester);
+    await resetIntegrationTestViewport(tester);
+  });
   await resetIntegrationTestSurface(tester);
   await configureDesignReviewViewport(tester, formFactor);
   harness.viewportSize = designReviewLogicalSize(formFactor);
@@ -41,12 +45,14 @@ Future<void> pumpGuardianShellUntil<T extends Widget>(
   String? initialRoute,
   DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
 }) async {
+  addTearDown(() async {
+    await resetIntegrationTestSurface(tester);
+    await resetIntegrationTestViewport(tester);
+  });
   await resetIntegrationTestSurface(tester);
   await configureDesignReviewViewport(tester, formFactor);
   harness.viewportSize = designReviewLogicalSize(formFactor);
-  await tester.pumpWidget(
-    harness.buildRouterApp(initialRoute: initialRoute),
-  );
+  await tester.pumpWidget(harness.buildRouterApp(initialRoute: initialRoute));
   await pumpUntilFound(tester, find.byType(T));
 }
 
@@ -55,17 +61,17 @@ Future<void> pumpGuardianRoute(
   WidgetTester tester,
   GuardianWidgetTestHarness harness, {
   required String location,
-  Duration settleDelay = const Duration(milliseconds: 1500),
   DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
 }) async {
+  addTearDown(() async {
+    await resetIntegrationTestSurface(tester);
+    await resetIntegrationTestViewport(tester);
+  });
   await resetIntegrationTestSurface(tester);
   await configureDesignReviewViewport(tester, formFactor);
   harness.viewportSize = designReviewLogicalSize(formFactor);
-  await tester.pumpWidget(
-    harness.buildRouterApp(initialRoute: location),
-  );
+  await tester.pumpWidget(harness.buildRouterApp(initialRoute: location));
   await tester.pump();
-  await tester.pump(settleDelay);
 }
 
 /// Pumps the login route with an unauthenticated harness.
@@ -114,7 +120,6 @@ Future<void> openHomeTab(
     initialRoute: '/home',
     formFactor: formFactor,
   );
-  await tester.pump(const Duration(milliseconds: 800));
 }
 
 Future<void> openCalendarTab(
@@ -128,7 +133,7 @@ Future<void> openCalendarTab(
     initialRoute: '/calendar',
     formFactor: formFactor,
   );
-  await tester.pump(const Duration(milliseconds: 1200));
+  await pumpUntilFound(tester, find.text('Toutes les présences'));
 }
 
 Future<void> openScolariteTab(
@@ -142,7 +147,6 @@ Future<void> openScolariteTab(
     initialRoute: '/scolarite/notes',
     formFactor: formFactor,
   );
-  await tester.pump(const Duration(milliseconds: 1200));
 }
 
 Future<void> openFeesTab(
@@ -156,7 +160,7 @@ Future<void> openFeesTab(
     initialRoute: '/fees',
     formFactor: formFactor,
   );
-  await tester.pump(const Duration(milliseconds: 1200));
+  await pumpUntilFound(tester, find.text('Résumé'));
 }
 
 Future<void> openInboxTab(
@@ -170,7 +174,6 @@ Future<void> openInboxTab(
     initialRoute: '/inbox',
     formFactor: formFactor,
   );
-  await tester.pump(const Duration(milliseconds: 1200));
 }
 
 Future<void> openAttendancePage(
@@ -184,7 +187,6 @@ Future<void> openAttendancePage(
     initialRoute: '/attendance',
     formFactor: formFactor,
   );
-  await tester.pump(const Duration(milliseconds: 1200));
 }
 
 /// Opens the student context sheet from the shell chrome.
@@ -213,7 +215,6 @@ Future<void> navigateCalendarWeekToDay(
   controller.selectDay(normalized);
   await controller.loadCalendarData();
   await tester.pump();
-  await tester.pump(const Duration(milliseconds: 800));
 
   final deadline = DateTime.now().add(const Duration(seconds: 20));
   while (DateTime.now().isBefore(deadline)) {
@@ -222,6 +223,7 @@ Future<void> navigateCalendarWeekToDay(
       return;
     }
   }
+  fail('Calendar data did not finish loading');
 }
 
 /// Navigates to [preferDay] via the calendar controller until a session row appears.
@@ -276,10 +278,7 @@ Finder _sessionRows(WidgetTester tester, String? titleNeedle) {
   });
 }
 
-Future<void> tapSessionRow(
-  WidgetTester tester, {
-  String? titleNeedle,
-}) async {
+Future<void> tapSessionRow(WidgetTester tester, {String? titleNeedle}) async {
   final rows = _sessionRows(tester, titleNeedle);
   expect(rows, findsWidgets);
   await tester.tap(rows.first);
@@ -290,13 +289,9 @@ Future<void> tapAlternateStudent(
   GuardianStudentSwitchProbe switchProbe,
 ) async {
   final fullName = find.text(switchProbe.alternateStudentName);
-  if (fullName.evaluate().isNotEmpty) {
-    await tester.tap(fullName.first);
-    return;
-  }
-
-  final firstName = switchProbe.alternateStudentName.split(' ').first;
-  await tester.tap(find.textContaining(firstName).first);
+  await pumpUntilFound(tester, fullName);
+  await tester.ensureVisible(fullName.first);
+  await tester.tap(fullName.first);
 }
 
 /// Confirms the authenticated shell chrome is mounted.

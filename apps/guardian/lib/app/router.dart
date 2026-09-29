@@ -197,13 +197,13 @@ GoRouter createRouter({
             path: '/scolarite/period/:periodId/subject/:subject',
             builder: (context, state) => SubjectGradesPage(
               periodId: state.pathParameters['periodId']!,
-              subject: Uri.decodeComponent(state.pathParameters['subject']!),
+              subject: state.pathParameters['subject']!,
             ),
           ),
           GoRoute(
             path: '/scolarite/subject/:subject/cahier',
             builder: (context, state) => SubjectLogbookPage(
-              subject: Uri.decodeComponent(state.pathParameters['subject']!),
+              subject: state.pathParameters['subject']!,
             ),
           ),
           GoRoute(
@@ -212,7 +212,7 @@ GoRouter createRouter({
               final subject = state.pathParameters['subject']!;
               final tab = state.uri.queryParameters['tab'];
               if (tab == 'cahier') {
-                return '/scolarite/subject/$subject/cahier';
+                return '/scolarite/subject/${Uri.encodeComponent(subject)}/cahier';
               }
               return '/scolarite/progress';
             },

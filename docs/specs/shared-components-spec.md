@@ -12,7 +12,7 @@ Normative for the current Guardian and Teacher apps. Extend these components bef
 | DataState | shared `lib/src/common/widgets/` | Existing ready/loading/empty/error signals and retry callback |
 | AccountSheetBody / AccountProfileHeader | shared common/account widgets | Existing account/profile actions and semantics |
 | ModalBottomSheetPage | shared `lib/src/common/models/` | Existing modal navigation, safe area and dismissal behavior |
-| LoginPage | shared `lib/src/features/auth/` | Email OTP only (email → code); logo and form hierarchy; existing session callbacks |
+| LoginPage | shared `lib/src/features/auth/` | Shared `PasswordlessLoginForm`: email/Telegram/WhatsApp OTP, TOTP and recovery; branded logo and existing session callbacks |
 | GuardianAppBar / TeacherAppBar | app `design/components/` (`PrototypeAppBar`) | Student/class/year context before decoration; current actions retained |
 | SessionTile / TeacherSessionTile | app calendar widgets | Current title, subject, class, kind and time; same detail navigation |
 | FeesSummaryCard / GradeSummaryCards | Guardian feature widgets | All totals and labels retained; responsive numeric presentation |
@@ -27,3 +27,11 @@ Cover approved variants and default/selected/disabled/busy/error/empty states in
 ## Marks correction surfaces
 
 Submitted marks remain read-only in the teacher grading list. MarksCorrectionsPanel shows official versus proposed values and terminal review reasons, and opens a scoped batch proposal dialog. Published source marks cannot be selected. Correction requests and withdrawal run online only; author identity and scope are enforced by the backend. Draft outbox conflicts remain visible and must not replace submitted official values on screen.
+
+## Account authentication
+
+Shared `LoginPage` and `LoginController` implement email/phone OTP, authenticator verification/enrollment, recovery-code replacement and one-time recovery-code display for both apps. `AccountSecurityPage` links/unlinks verified contacts and enrolls an optional authenticator. Identifier removal requires the shared confirmation dialog. Auth challenges and TOTP secrets remain transient controller/client state; only the completed opaque renewal credential is persisted by the existing session storage.
+
+## Integration coverage maintenance
+
+Feature changes must update their registered action scenarios and executable assertions in the same PR. Shared authentication components are exercised through their production forms and captured local delivery transport. Route inventory, action registration and successful execution are all required; reviewers verify that assertions establish the intended behavior. See [integration testing](../reference/integration-testing.md).

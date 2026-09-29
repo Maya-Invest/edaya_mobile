@@ -84,6 +84,10 @@ class AuthClient {
     _credentialOrigin = null;
     _accessTokens.clear();
     _cookieJar.clear();
+    pendingChallenge = null;
+    pendingStep = null;
+    enrollmentSecret = null;
+    recoveryCodes = [];
   }
 
   void invalidateAccessToken({required Uri resource, required String token}) {
@@ -179,27 +183,117 @@ class AuthClient {
     }
   }
 
-  Future<AuthResult<void>> sendEmailOtp({
-    required String email,
-    String type = 'sign-in',
+  String? pendingChallenge;
+  String? pendingStep;
+  String? enrollmentSecret;
+  List<String> recoveryCodes = [];
+
+  Future<AuthResult<void>> sendOtp({
+    required String value,
+    String channel = 'email',
   }) async {
-    final response = await _send('POST', '/email-otp/send-verification-otp', {
-      'email': email,
-      'type': type,
+    final response = await _send('POST', '/edaya/otp/start', {
+      'kind': channel == 'email' ? 'email' : 'phone',
+      'value': value,
+      'channel': channel,
+    });
+    final body = _decodeBody(response);
+    if (response.statusCode >= 400) return AuthResult.failure(_readError(body));
+    pendingChallenge = (body as Map)['challenge'] as String;
+    pendingStep = 'primary_required';
+    return const AuthResult.success(null);
+  }
+
+  Future<AuthResult<bool>> authenticatorEnabled() async {
+    final response = await _send('POST', '/edaya/security', {});
+    final body = _decodeBody(response);
+    if (response.statusCode >= 400) return AuthResult.failure(_readError(body));
+    return AuthResult.success((body as Map)['totpEnabled'] == true);
+  }
+
+  Future<AuthResult<List<Map<String, dynamic>>>> identifiers() async {
+    final response = await _send('POST', '/edaya/session', {});
+    final body = _decodeBody(response);
+    if (response.statusCode >= 400) return AuthResult.failure(_readError(body));
+    final account = (body as Map)['account'] as Map;
+    return AuthResult.success(
+      (account['identifiers'] as List)
+          .map((i) => Map<String, dynamic>.from(i as Map))
+          .toList(),
+    );
+  }
+
+  Future<AuthResult<void>> linkIdentifier({
+    required String value,
+    required String channel,
+    bool recoveryEligible = false,
+  }) async {
+    final response = await _send('POST', '/edaya/identifiers/start', {
+      'value': value,
+      'kind': channel == 'email' ? 'email' : 'phone',
+      'channel': channel,
+      'recoveryEligible': recoveryEligible,
+    });
+    final body = _decodeBody(response);
+    if (response.statusCode >= 400) return AuthResult.failure(_readError(body));
+    pendingChallenge = (body as Map)['challenge'] as String;
+    return const AuthResult.success(null);
+  }
+
+  Future<AuthResult<void>> verifyIdentifier(String code) async {
+    final response = await _send('POST', '/edaya/otp/verify', {
+      'challenge': pendingChallenge,
+      'code': code,
     });
     return _readVoidResult(response);
   }
 
+  Future<AuthResult<void>> unlinkIdentifier(String id) async {
+    final response = await _send('POST', '/edaya/identifiers/unlink', {
+      'identifierId': id,
+    });
+    final result = await _readVoidResult(response);
+    if (result.isSuccess) clearCredentials();
+    return result;
+  }
+
+  Future<AuthResult<void>> sendEmailOtp({
+    required String email,
+    String type = 'sign-in',
+  }) => sendOtp(value: email);
+
   Future<AuthResult<AuthUser>> signInWithEmailOtp({
     required String email,
     required String otp,
-  }) {
-    return _postAuthUser(
-      edayaHttpUsesBrowserCredentials
-          ? '/sign-in/email-otp'
-          : '/edaya/native/sign-in/email-otp',
-      {'email': email, 'otp': otp},
-    );
+  }) => verifyOtp(otp);
+
+  Future<AuthResult<AuthUser>> verifyOtp(String code) => _postAuthUser(
+    '/edaya/otp/verify',
+    {'challenge': pendingChallenge, 'code': code},
+  );
+  Future<AuthResult<AuthUser>> verifyTotp(String code) => _postAuthUser(
+    '/edaya/totp/verify',
+    {'challenge': pendingChallenge, 'code': code},
+  );
+  Future<AuthResult<AuthUser>> recover(String code) => _postAuthUser(
+    '/edaya/recovery',
+    {'challenge': pendingChallenge, 'code': code},
+  );
+  Future<AuthResult<AuthUser>> confirmTotp(String code) => _postAuthUser(
+    '/edaya/totp/confirm',
+    {'challenge': pendingChallenge, 'code': code},
+  );
+  Future<AuthResult<void>> beginTotpEnrollment() async {
+    final response = await _send('POST', '/edaya/totp/enroll', {
+      if (pendingStep == 'enrollment_required') 'challenge': pendingChallenge,
+    });
+    final body = _decodeBody(response);
+    if (response.statusCode >= 400) return AuthResult.failure(_readError(body));
+    final data = body as Map;
+    pendingChallenge = data['challenge'] as String;
+    pendingStep = 'enrollment_required';
+    enrollmentSecret = data['secret'] as String;
+    return const AuthResult.success(null);
   }
 
   /// Local/test helper. Identity only serves this when `AUTH_DEV_OTP_PEEK=true`.
@@ -246,6 +340,18 @@ class AuthClient {
         return AuthResult.failure(_readError(body));
       }
 
+      if (body is Map &&
+          (body['state'] == 'totp_required' ||
+              body['state'] == 'enrollment_required')) {
+        pendingStep = body['state'] as String;
+        pendingChallenge = body['challenge'] as String;
+        return AuthResult.failure(
+          AuthError(
+            message: 'Additional verification required',
+            code: pendingStep,
+          ),
+        );
+      }
       final userJson = _readUserJson(body);
       if (userJson == null) {
         return const AuthResult.failure(
@@ -254,10 +360,10 @@ class AuthClient {
       }
 
       clearCredentials();
-      if (!edayaHttpUsesBrowserCredentials && path.contains('/sign-in/')) {
+      if (!edayaHttpUsesBrowserCredentials) {
         final data = Map<String, dynamic>.from(body as Map);
-        final credential = data['renewalCredential'];
-        if (credential is String && credential.contains('.')) {
+        final credential = data['token'];
+        if (credential is String && credential.isNotEmpty) {
           restoreRenewalCredential(credential);
         } else {
           return const AuthResult.failure(
@@ -265,6 +371,12 @@ class AuthClient {
           );
         }
       }
+      pendingChallenge = null;
+      pendingStep = null;
+      enrollmentSecret = null;
+      recoveryCodes = body is Map && body['recoveryCodes'] is List
+          ? List<String>.from(body['recoveryCodes'] as List)
+          : [];
       return AuthResult.success(AuthUser.fromJson(userJson));
     } on http.ClientException catch (error) {
       return AuthResult.failure(_networkError(error));
@@ -358,6 +470,7 @@ class AuthClient {
     final uri = _resolveUri(path);
     final headers = <String, String>{
       'Accept': 'application/json',
+      if (!edayaHttpUsesBrowserCredentials) 'x-edaya-client': 'native',
       'Origin': _origin,
       if (method != 'GET' && method != 'HEAD')
         'Content-Type': 'application/json',
@@ -370,23 +483,31 @@ class AuthClient {
       headers['Authorization'] = 'Bearer $_renewalCredential';
     }
 
-    final response = await _client.send(
-      http.Request(method, uri)
-        ..headers.addAll(headers)
-        ..body = payload == null
-            ? (method == 'GET' || method == 'HEAD' ? '' : '{}')
-            : jsonEncode(payload),
-    );
+    try {
+      final response = await _client.send(
+        http.Request(method, uri)
+          ..headers.addAll(headers)
+          ..body = payload == null
+              ? (method == 'GET' || method == 'HEAD' ? '' : '{}')
+              : jsonEncode(payload),
+      );
 
-    final bodyBytes = await response.stream.toBytes();
-    final responseBody = utf8.decode(bodyBytes);
+      final bodyBytes = await response.stream.toBytes();
+      final responseBody = utf8.decode(bodyBytes);
 
-    return http.Response(
-      responseBody,
-      response.statusCode,
-      headers: response.headers,
-      request: response.request,
-    );
+      return http.Response(
+        responseBody,
+        response.statusCode,
+        headers: response.headers,
+        request: response.request,
+      );
+    } on http.ClientException catch (error) {
+      final failure = _networkError(error);
+      return http.Response(
+        jsonEncode({'code': failure.code, 'message': failure.message}),
+        503,
+      );
+    }
   }
 
   Uri _resolveUri(String path) {

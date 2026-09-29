@@ -137,22 +137,40 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
   Future<void> load() async {
     errorMessage('');
     await runTask(() async {
-      var summary = _evaluations.evaluationById(evaluationId);
-      if (summary == null) {
-        await _evaluations.loadEvaluations();
-        summary = _evaluations.evaluationById(evaluationId);
-      }
-      evaluation(summary);
-      if (summary == null) {
-        students(const []);
-        return;
-      }
       try {
         final client = _schoolClient();
+        // A marks deep link must resolve independently of the class/period
+        // currently selected in the evaluations list. The review query enforces
+        // access to this assessment before any roster is displayed.
         final review = await client.getAssessmentMarksReview({
           'assessmentId': evaluationId,
         });
         final sheet = (review['assessment'] as Map).cast<String, dynamic>();
+        var summary = _evaluations.evaluationById(evaluationId);
+        if (summary == null) {
+          final classId = sheet['classGroupId'] as String;
+          final classSubjectId = sheet['classSubjectId'] as String;
+          final classGroup = await client.classGroups.get(classId);
+          final classSubject = await client.classSubjects.get(classSubjectId);
+          final subject = await client.subjects.get(
+            classSubject['subjectId'] as String,
+          );
+          summary = LiveEvaluationSummary(
+            id: evaluationId,
+            title: sheet['title'] as String,
+            classGroupId: classId,
+            classSubjectId: classSubjectId,
+            periodId: sheet['periodId'] as String,
+            classLabel: classGroup['name'] as String? ?? classId,
+            subjectLabel: subject['name'] as String? ?? classSubjectId,
+            gradedCount: (review['results'] as List).length,
+            totalStudents: (review['students'] as List).length,
+            maxScore: (sheet['maxScore'] as num).toDouble(),
+            kind: sheet['kind'] as String? ?? 'quiz',
+            date: sheet['startsAt'] as String?,
+          );
+        }
+        evaluation(summary);
         _revision = (sheet['marksRevision'] as num).toInt();
         marksStatus(sheet['marksStatus'] as String);
         canSubmit((review['allowedActions'] as Map)['submit'] == true);

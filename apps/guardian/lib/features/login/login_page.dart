@@ -60,7 +60,11 @@ class _LiveLoginPage extends LScopedView<LoginController> {
   @override
   Widget buildView(BuildContext context, LoginController controller) {
     return _LoginChrome(
-      child: _OtpLogin(controller: controller),
+      child: PasswordlessLoginForm(
+        controller: controller,
+        subtitle:
+            'Connectez-vous avec votre e-mail ou votre numéro de téléphone.',
+      ),
     );
   }
 }
@@ -184,103 +188,5 @@ class _MockLoginState extends State<_MockLogin> {
         ],
       ],
     );
-  }
-}
-
-class _OtpLogin extends StatelessWidget {
-  const _OtpLogin({required this.controller});
-
-  final LoginController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return LWatch(() {
-      final mode = controller.mode.value;
-      return Column(
-        key: ValueKey(mode),
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            mode == LoginMode.verifyOtp ? 'Vérifiez votre e-mail' : 'Connexion',
-            style: Theme.of(context).textTheme.headlineSmall,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: PrototypeSpacing.xs),
-          Text(
-            mode == LoginMode.verifyOtp
-                ? 'Saisissez le code envoyé à ${controller.email.value.trim()}.'
-                : 'Accédez aux informations scolaires de vos enfants.',
-            style: Theme.of(context).textTheme.bodySmall,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: PrototypeSpacing.xl),
-          if (mode == LoginMode.enterEmail)
-            TextFormField(
-              initialValue: controller.email.value,
-              keyboardType: TextInputType.emailAddress,
-              autofillHints: const [AutofillHints.email],
-              decoration: const InputDecoration(
-                labelText: 'E-mail',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (value) => controller.email(value),
-            )
-          else
-            TextFormField(
-              initialValue: controller.otp.value,
-              keyboardType: TextInputType.number,
-              autofillHints: const [AutofillHints.oneTimeCode],
-              decoration: const InputDecoration(
-                labelText: 'Code',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (value) => controller.otp(value),
-            ),
-          const SizedBox(height: PrototypeSpacing.md),
-          LWatch(() {
-            final message = controller.errorMessage.value;
-            if (message.isEmpty) {
-              return const SizedBox.shrink();
-            }
-            return Padding(
-              padding: const EdgeInsets.only(bottom: PrototypeSpacing.md),
-              child: Text(
-                message,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            );
-          }),
-          LWatch(
-            () => FilledButton(
-              onPressed: controller.isBusy.value ? null : controller.submit,
-              child: controller.isBusy.value
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(
-                      mode == LoginMode.verifyOtp
-                          ? 'Vérifier le code'
-                          : 'Envoyer le code',
-                    ),
-            ),
-          ),
-          if (mode == LoginMode.verifyOtp) ...[
-            const SizedBox(height: PrototypeSpacing.sm),
-            TextButton(
-              onPressed: controller.isBusy.value ? null : controller.resendOtp,
-              child: const Text('Renvoyer le code'),
-            ),
-            TextButton(
-              onPressed: controller.isBusy.value
-                  ? null
-                  : controller.showEmailEntry,
-              child: const Text('Utiliser un autre e-mail'),
-            ),
-          ],
-        ],
-      );
-    });
   }
 }

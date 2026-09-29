@@ -111,7 +111,10 @@ class LiveSessionController extends LevitController
     autoDispose(pendingOutboxCount);
     autoDispose(
       _calendar.sessions.stream.listen((_) {
-        session(_calendar.sessionById(sessionId));
+        final refreshed = _calendar.sessionById(sessionId);
+        // A detail route can refer to a lesson outside the calendar's current
+        // week. Refreshing that week must not discard a lesson loaded by ID.
+        if (refreshed != null) session(refreshed);
       }),
     );
     session(_calendar.sessionById(sessionId));

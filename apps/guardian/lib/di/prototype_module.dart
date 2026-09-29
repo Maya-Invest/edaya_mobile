@@ -25,6 +25,9 @@ void registerPrototypeDependencies(
   LevitScope scope, {
   MockStore? store,
   bool? live,
+  AuthClient? authClient,
+  PushNotificationService? pushNotifications,
+  bool includeBootstrap = true,
 }) {
   final isLive = live ?? store == null;
   scope.put<PrototypeRuntime>(
@@ -44,13 +47,22 @@ void registerPrototypeDependencies(
 
   if (isLive) {
     EdayaRootScope.bind(scope, appName: systemL10n().appTitleGuardian);
-    final cookieJar = CookieJar();
+    final cookieJar = authClient?.cookieJar ?? CookieJar();
     scope.put<SessionStorage>(() => SessionStorage(), permanent: true);
     scope.put<PendingInvitationStore>(
       () => PendingInvitationStore(),
       permanent: true,
     );
-    registerEdayaDependencies(scope, cookieJar: cookieJar);
+    if (authClient != null) {
+      scope.put<CookieJar>(() => cookieJar, permanent: true);
+      scope.put<AuthClient>(() => authClient, permanent: true);
+      scope.put<AppSettingsController>(
+        () => AppSettingsController(),
+        permanent: true,
+      );
+    } else {
+      registerEdayaDependencies(scope, cookieJar: cookieJar);
+    }
     registerSchoolClientFactory(
       scope,
       getAcademicYearId: () =>
@@ -60,11 +72,13 @@ void registerPrototypeDependencies(
       getSchoolId: () => scope.find<AppSessionController>().schoolIdHeader,
     );
     scope.put<PushNotificationService>(
-      () => FcmPushNotificationService(
-        schoolClientFactory: scope.find<SchoolClientFactory>(),
-        config: PushNotificationConfigs.guardian,
-        onNotificationOpened: handleGuardianNotificationOpened,
-      ),
+      () =>
+          pushNotifications ??
+          FcmPushNotificationService(
+            schoolClientFactory: scope.find<SchoolClientFactory>(),
+            config: PushNotificationConfigs.guardian,
+            onNotificationOpened: handleGuardianNotificationOpened,
+          ),
       permanent: true,
     );
     scope.put<AppSessionController>(
@@ -98,18 +112,20 @@ void registerPrototypeDependencies(
       ),
       permanent: true,
     );
-    scope.put<AppBootstrapController>(
-      () => AppBootstrapController(
-        authClient: scope.find<AuthClient>(),
-        sessionStorage: scope.find<SessionStorage>(),
-        session: scope.find<AppSessionController>(),
-        pushNotifications: scope.find<PushNotificationService>(),
-        beforeRestore: () => scope.find<PendingInvitationStore>().hydrate(),
-        initializeAuthenticatedContext: () =>
-            initializeGuardianAuthenticatedContext(scope),
-      ),
-      permanent: true,
-    );
+    if (includeBootstrap) {
+      scope.put<AppBootstrapController>(
+        () => AppBootstrapController(
+          authClient: scope.find<AuthClient>(),
+          sessionStorage: scope.find<SessionStorage>(),
+          session: scope.find<AppSessionController>(),
+          pushNotifications: scope.find<PushNotificationService>(),
+          beforeRestore: () => scope.find<PendingInvitationStore>().hydrate(),
+          initializeAuthenticatedContext: () =>
+              initializeGuardianAuthenticatedContext(scope),
+        ),
+        permanent: true,
+      );
+    }
   } else {
     scope.put<AppSettingsController>(
       () => AppSettingsController(),

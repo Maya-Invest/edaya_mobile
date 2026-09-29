@@ -1898,4 +1898,50 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get marksProposed => 'Valeur proposée';
+
+  @override
+  String get deliveryChannel => 'Recevoir mon code par';
+
+  @override
+  String get phoneCountryHint => 'Téléphone avec indicatif (+225…)';
+
+  @override
+  String get authenticatorSetup =>
+      'Ajoutez cette clé à votre application d’authentification, puis saisissez son code.';
+
+  @override
+  String get authenticatorCode => 'Code de l’application';
+
+  @override
+  String get recoveryCode => 'Code de récupération';
+
+  @override
+  String get useRecoveryCode => 'Utiliser un code de récupération';
+
+  @override
+  String get saveRecoveryCodes =>
+      'Conservez ces codes en lieu sûr. Ils ne seront affichés qu’une fois.';
+
+  @override
+  String get savedRecoveryCodes => 'J’ai conservé mes codes';
+
+  @override
+  String get accountSecurity => 'Sécurité du compte';
+
+  @override
+  String get recentSignInHint =>
+      'Reconnectez-vous avant de modifier vos identifiants ou votre application d’authentification.';
+
+  @override
+  String get linkIdentifier => 'Associer un autre identifiant';
+
+  @override
+  String get unlinkIdentifier => 'Dissocier et se déconnecter';
+
+  @override
+  String get enableAuthenticator => 'Configurer l’application';
+
+  @override
+  String get recoveryEligible =>
+      'Autoriser cet identifiant pour récupérer le compte';
 }
