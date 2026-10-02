@@ -10,4 +10,4 @@ Live Flutter widget tests use production controllers, routes and real local HTTP
 
 Mutable fixtures belong to their scenario. Reuse immutable school catalogs only. Dispose scopes, clear local session/settings state and reset outboxes between independent scenarios. Screenshot-generation suites remain separate from functional tests.
 
-Coverage limits: actual Telegram/WhatsApp/email delivery, push delivery, camera, native file opening, native secure storage and future support-assisted recovery require separate validation.
+Coverage limits: actual WhatsApp/SMS/email delivery, push delivery, camera, native file opening, native secure storage and future support-assisted recovery require separate validation.

@@ -218,6 +218,18 @@ abstract class AppLocalizations {
   /// **'Sign in'**
   String get signInButton;
 
+  /// No description provided for @contactLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email or phone number'**
+  String get contactLabel;
+
+  /// No description provided for @invalidContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email or phone number with its country code.'**
+  String get invalidContact;
+
   /// No description provided for @emailLabel.
   ///
   /// In en, this message translates to:
@@ -3281,7 +3293,7 @@ abstract class AppLocalizations {
   /// No description provided for @phoneCountryHint.
   ///
   /// In en, this message translates to:
-  /// **'Phone number with country code (+225…)'**
+  /// **'Côte d’Ivoire mobile numbers only. Example: +2250712345678.'**
   String get phoneCountryHint;
 
   /// No description provided for @authenticatorSetup.
@@ -3355,6 +3367,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Allow this identifier for account recovery'**
   String get recoveryEligible;
+
+  /// No description provided for @contactMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify with'**
+  String get contactMethod;
+
+  /// No description provided for @verifyContactTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your contact'**
+  String get verifyContactTitle;
+
+  /// No description provided for @verificationContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code for {contact}.'**
+  String verificationContact(String contact);
+
+  /// No description provided for @useMostRecentCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the most recent code. Each resend replaces the previous code.'**
+  String get useMostRecentCode;
+
+  /// No description provided for @sendBySms.
+  ///
+  /// In en, this message translates to:
+  /// **'Send by SMS'**
+  String get sendBySms;
+
+  /// No description provided for @resendCountdown.
+  ///
+  /// In en, this message translates to:
+  /// **'You can request another code in {seconds}s.'**
+  String resendCountdown(int seconds);
+
+  /// No description provided for @changeContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Change email or phone number'**
+  String get changeContact;
+
+  /// No description provided for @checkWhatsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Check WhatsApp for the code.'**
+  String get checkWhatsApp;
+
+  /// No description provided for @checkSms.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your text messages for the code.'**
+  String get checkSms;
+
+  /// No description provided for @checkEmailCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your email for the code.'**
+  String get checkEmailCode;
+
+  /// No description provided for @codeExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'This code has expired. Request a new code.'**
+  String get codeExpired;
+
+  /// No description provided for @codeDeliveryFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not send the code. After the countdown, request another code.'**
+  String get codeDeliveryFailed;
+
+  /// No description provided for @codeDeliveryUncertain.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery is not confirmed. If the code arrives, you can still use it.'**
+  String get codeDeliveryUncertain;
+
+  /// No description provided for @retryRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry request'**
+  String get retryRequest;
+
+  /// No description provided for @testingOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Testing only'**
+  String get testingOnly;
+
+  /// No description provided for @showTestCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Show test code'**
+  String get showTestCode;
+
+  /// No description provided for @copyTestCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get copyTestCode;
+
+  /// No description provided for @testCodeUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Test code unavailable'**
+  String get testCodeUnavailable;
 }
 
 class _AppLocalizationsDelegate

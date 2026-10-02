@@ -12,7 +12,7 @@ Normative for the current Guardian and Teacher apps. Extend these components bef
 | DataState | shared `lib/src/common/widgets/` | Existing ready/loading/empty/error signals and retry callback |
 | AccountSheetBody / AccountProfileHeader | shared common/account widgets | Existing account/profile actions and semantics |
 | ModalBottomSheetPage | shared `lib/src/common/models/` | Existing modal navigation, safe area and dismissal behavior |
-| LoginPage | shared `lib/src/features/auth/` | Shared `PasswordlessLoginForm`: email/Telegram/WhatsApp OTP, TOTP and recovery; branded logo and existing session callbacks |
+| LoginPage | shared `lib/src/features/auth/` | Shared `PasswordlessLoginForm`: One contact field with automatic email/international-phone detection, WhatsApp first and explicit SMS fallback, TOTP and recovery; branded logo and existing session callbacks |
 | GuardianAppBar / TeacherAppBar | app `design/components/` (`PrototypeAppBar`) | Student/class/year context before decoration; current actions retained |
 | SessionTile / TeacherSessionTile | app calendar widgets | Current title, subject, class, kind and time; same detail navigation |
 | FeesSummaryCard / GradeSummaryCards | Guardian feature widgets | All totals and labels retained; responsive numeric presentation |
@@ -30,8 +30,12 @@ Submitted marks remain read-only in the teacher grading list. MarksCorrectionsPa
 
 ## Account authentication
 
-Shared `LoginPage` and `LoginController` implement email/phone OTP, authenticator verification/enrollment, recovery-code replacement and one-time recovery-code display for both apps. `AccountSecurityPage` links/unlinks verified contacts and enrolls an optional authenticator. Identifier removal requires the shared confirmation dialog. Auth challenges and TOTP secrets remain transient controller/client state; only the completed opaque renewal credential is persisted by the existing session storage.
+Shared `LoginPage` and `LoginController` implement automatic email/international-phone detection and validation in one login contact field, email/phone OTP, authenticator verification/enrollment, recovery-code replacement and one-time recovery-code display for both apps. `AccountSecurityPage` links/unlinks verified contacts and enrolls an optional authenticator. Identifier removal requires the shared confirmation dialog. Auth challenges and TOTP secrets remain transient controller/client state; only the completed opaque renewal credential is persisted by the existing session storage.
 
 ## Integration coverage maintenance
 
 Feature changes must update their registered action scenarios and executable assertions in the same PR. Shared authentication components are exercised through their production forms and captured local delivery transport. Route inventory, action registration and successful execution are all required; reviewers verify that assertions establish the intended behavior. See [integration testing](../reference/integration-testing.md).
+
+`OtpDeliveryControls` and `OtpDeliveryState` share server countdown, delivery guidance and explicit resend/SMS/retry actions between login and contact linking. The owning controller closes the timer and reactives with its route. Poll only on the visible active verification screen; clear the code text controller after each replacement.
+
+`OtpDeliveryControls` also shares the explicitly enabled testing panel for login and contact linking. `TEST_OTP_ACCESS=true` requires a debug build and server capability discovery; staging alone enables nothing. **Show test code** reveals a transient challenge-bound capture; **Copy** writes it to the clipboard without filling or submitting the input. `OtpDeliveryState` clears it on replacement, expiry, completion, reset, departure, backgrounding and closure, and discards stale lookups. No OTP enters session storage, telemetry or test artifacts. Both French and English labels are required.

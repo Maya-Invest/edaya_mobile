@@ -16,3 +16,5 @@ export 'src/harness/live_fixtures.dart';
 
 export 'src/harness/switchable_transport.dart';
 export 'src/harness/totp.dart';
+
+export 'src/harness/integration_clock.dart';

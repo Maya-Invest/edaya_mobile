@@ -62,11 +62,13 @@ class PortalSession {
         }
         code = delivered.last['code'] as String;
       } else {
-        final peeked = await authClient.peekDevLastOtp(email: config.email);
-        if (!peeked.isSuccess || peeked.data == null) {
+        final peeked = await authClient.revealTestOtp(
+          authClient.pendingChallenge!,
+        );
+        if (peeked == null) {
           throw StateError('Local OTP fixture delivery unavailable');
         }
-        code = peeked.data!;
+        code = peeked.otp;
       }
 
       final signIn = await authClient.signInWithEmailOtp(

@@ -77,6 +77,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInButton => 'Sign in';
 
   @override
+  String get contactLabel => 'Email or phone number';
+
+  @override
+  String get invalidContact =>
+      'Enter a valid email or phone number with its country code.';
+
+  @override
   String get emailLabel => 'Email';
 
   @override
@@ -1881,7 +1888,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deliveryChannel => 'Send my code by';
 
   @override
-  String get phoneCountryHint => 'Phone number with country code (+225…)';
+  String get phoneCountryHint =>
+      'Côte d’Ivoire mobile numbers only. Example: +2250712345678.';
 
   @override
   String get authenticatorSetup =>
@@ -1921,4 +1929,65 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recoveryEligible => 'Allow this identifier for account recovery';
+
+  @override
+  String get contactMethod => 'Verify with';
+
+  @override
+  String get verifyContactTitle => 'Verify your contact';
+
+  @override
+  String verificationContact(String contact) {
+    return 'Enter the code for $contact.';
+  }
+
+  @override
+  String get useMostRecentCode =>
+      'Use the most recent code. Each resend replaces the previous code.';
+
+  @override
+  String get sendBySms => 'Send by SMS';
+
+  @override
+  String resendCountdown(int seconds) {
+    return 'You can request another code in ${seconds}s.';
+  }
+
+  @override
+  String get changeContact => 'Change email or phone number';
+
+  @override
+  String get checkWhatsApp => 'Check WhatsApp for the code.';
+
+  @override
+  String get checkSms => 'Check your text messages for the code.';
+
+  @override
+  String get checkEmailCode => 'Check your email for the code.';
+
+  @override
+  String get codeExpired => 'This code has expired. Request a new code.';
+
+  @override
+  String get codeDeliveryFailed =>
+      'We could not send the code. After the countdown, request another code.';
+
+  @override
+  String get codeDeliveryUncertain =>
+      'Delivery is not confirmed. If the code arrives, you can still use it.';
+
+  @override
+  String get retryRequest => 'Retry request';
+
+  @override
+  String get testingOnly => 'Testing only';
+
+  @override
+  String get showTestCode => 'Show test code';
+
+  @override
+  String get copyTestCode => 'Copy';
+
+  @override
+  String get testCodeUnavailable => 'Test code unavailable';
 }

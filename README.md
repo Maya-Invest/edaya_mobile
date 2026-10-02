@@ -179,7 +179,7 @@ The login and account screens expose **Developer settings** in all build modes (
 
 ### Dev credentials
 
-Optional `--dart-define` values pre-fill the login email. Sign-in uses an emailed OTP (local Identity logs the code, or `GET /auth/edaya/dev/last-otp` when `AUTH_DEV_OTP_PEEK=true`).
+Use the dedicated backend `bun run dev:test` server for local captured email, WhatsApp and SMS. Enable web `PUBLIC_TEST_OTP_ACCESS=true` or Flutter debug `--dart-define=TEST_OTP_ACCESS=true` for explicit Show test code and Copy controls. CI uses that composition and a private captured mailbox; normal staging/production builds omit testing access.
 
 | App | Email define | Default |
 |-----|--------------|---------|
@@ -222,7 +222,7 @@ Shared integration tests live in `tooling/integration_tests`. They use `edaya_au
 
 **PR CI** starts empty Identity (`:9900`) and school (`:9999`) from sibling checkouts, then runs `bun repo seed --skip-profile-photos --skip-attachments` (full demo-ci). Git refs follow the mobile head branch: `staging` → `@staging`, `main`/`master` → `@main`, anything else → `@dev`. The job needs repo secret `IDENTITY_CHECKOUT_TOKEN` (`contents:read` on `edaya_identity` and `edaya_backend`). Identity must have `dev`, `staging`, and `main` branches.
 
-Local `melos run test:integration` is unchanged: start Identity + school yourself and seed before running tests. Local Identity needs `AUTH_DEV_OTP_PEEK=true` so the harness can read the emailed sign-in code.
+Use the dedicated backend `bun run dev:test` server for local captured email, WhatsApp and SMS. Enable web `PUBLIC_TEST_OTP_ACCESS=true` or Flutter debug `--dart-define=TEST_OTP_ACCESS=true` for explicit Show test code and Copy controls. CI uses that composition and a private captured mailbox; normal staging/production builds omit testing access.
 
 ```bash
 # With local API on :9999 and demo teacher seeded

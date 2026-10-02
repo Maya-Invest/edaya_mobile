@@ -70,7 +70,7 @@
     "guardian.multi-child-guardian-switches-linked-student",
     "guardian.multi-child-fees-page-renders-summary",
     "guardian.auth.email",
-    "guardian.auth.telegram",
+    "guardian.auth.sms-switch",
     "guardian.auth.whatsapp",
     "guardian.coverage.routes",
     "guardian.report-card.detail",
@@ -119,6 +119,8 @@
     "teacher.auth.restore-stale",
     "teacher.profiles.select",
     "teacher.subject.report-card.comment",
-    "teacher.homeroom.report-card.comment"
+    "teacher.homeroom.report-card.comment",
+    "teacher.auth.whatsapp",
+    "teacher.auth.sms-switch"
   ]
 }

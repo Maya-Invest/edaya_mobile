@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:http/http.dart' as http;
 
@@ -86,6 +87,9 @@ class AuthClient {
     _cookieJar.clear();
     pendingChallenge = null;
     pendingStep = null;
+    primaryStatus = null;
+    _otpRequests.clear();
+    _uncertainOtpRequest = null;
     enrollmentSecret = null;
     recoveryCodes = [];
   }
@@ -188,18 +192,119 @@ class AuthClient {
   String? enrollmentSecret;
   List<String> recoveryCodes = [];
 
+  OtpStatus? primaryStatus;
+  final Map<String, String> _otpRequests = {};
+  ({String path, Map<String, dynamic> payload})? _uncertainOtpRequest;
+  bool get canRetryOtpRequest => _uncertainOtpRequest != null;
+
+  /// Recovers a lost send response with its original idempotency key.
+  Future<AuthResult<void>> retryOtpRequest() async {
+    final pending = _uncertainOtpRequest;
+    if (pending == null) {
+      return const AuthResult.failure(AuthError(message: 'No pending request'));
+    }
+    return _requestOtp(pending.path, pending.payload);
+  }
+
+  /// Advertised availability; delivery choice is owned by Identity.
+  Future<bool> phoneAvailable() async {
+    final response = await _send('GET', '/edaya/methods');
+    final body = _decodeBody(response);
+    return response.statusCode < 400 &&
+        body is Map &&
+        (body['methods'] as List? ?? []).any(
+          (method) =>
+              method is Map &&
+              method['kind'] == 'phone' &&
+              method['available'] == true,
+        );
+  }
+
+  /// Starts Email or Phone verification. WhatsApp is an initial legacy alias.
   Future<AuthResult<void>> sendOtp({
     required String value,
     String channel = 'email',
+    String locale = 'fr',
   }) async {
-    final response = await _send('POST', '/edaya/otp/start', {
+    if (!['email', 'phone', 'whatsapp'].contains(channel)) {
+      return const AuthResult.failure(
+        AuthError(
+          message: 'Unsupported verification channel',
+          code: 'unsupported_channel',
+        ),
+      );
+    }
+    return _requestOtp('/edaya/otp/start', {
       'kind': channel == 'email' ? 'email' : 'phone',
       'value': value,
-      'channel': channel,
+      'locale': locale,
+    });
+  }
+
+  /// Requests a replacement challenge; the server retains destination and purpose.
+  Future<AuthResult<void>> resendOtp({String action = 'resend'}) async {
+    if (pendingChallenge == null) {
+      return const AuthResult.failure(
+        AuthError(message: 'Verification expired', code: 'challenge_expired'),
+      );
+    }
+    return _requestOtp('/edaya/otp/resend', {
+      'challenge': pendingChallenge,
+      'action': action,
+    });
+  }
+
+  /// Observes delivery only. Never sends a code or switches channels.
+  Future<AuthResult<OtpStatus>> otpStatus() async {
+    final challenge = pendingChallenge;
+    if (challenge == null) {
+      return const AuthResult.failure(
+        AuthError(message: 'Verification expired', code: 'challenge_expired'),
+      );
+    }
+    final response = await _send('POST', '/edaya/otp/status', {
+      'challenge': challenge,
     });
     final body = _decodeBody(response);
     if (response.statusCode >= 400) return AuthResult.failure(_readError(body));
-    pendingChallenge = (body as Map)['challenge'] as String;
+    final status = OtpStatus.fromJson(Map<String, dynamic>.from(body as Map));
+    if (challenge == pendingChallenge && pendingStep == 'primary_required') {
+      primaryStatus = status;
+    }
+    return AuthResult.success(status);
+  }
+
+  Future<AuthResult<void>> _requestOtp(
+    String path,
+    Map<String, dynamic> payload,
+  ) async {
+    final key = jsonEncode([path, payload]);
+    final requestId = _otpRequests.putIfAbsent(key, _newRequestId);
+    final response = await _send('POST', path, {
+      ...payload,
+      'requestId': requestId,
+    });
+    final body = _decodeBody(response);
+    if (response.statusCode >= 400) {
+      final error = _readError(body);
+      if (response.statusCode >= 500 || error.code == 'NETWORK_ERROR') {
+        _uncertainOtpRequest = (path: path, payload: Map.of(payload));
+      } else {
+        _otpRequests.remove(key);
+        _uncertainOtpRequest = null;
+      }
+      if (body is Map && body['nextResendAt'] is num && primaryStatus != null) {
+        primaryStatus = primaryStatus!.withCooldown(
+          (body['nextResendAt'] as num).toInt(),
+          (body['serverNow'] as num?)?.toInt(),
+        );
+      }
+      return AuthResult.failure(error);
+    }
+    _otpRequests.remove(key);
+    _uncertainOtpRequest = null;
+    primaryStatus = OtpStatus.fromJson(Map<String, dynamic>.from(body as Map));
+    pendingChallenge = primaryStatus!.challenge;
     pendingStep = 'primary_required';
     return const AuthResult.success(null);
   }
@@ -227,17 +332,22 @@ class AuthClient {
     required String value,
     required String channel,
     bool recoveryEligible = false,
+    String locale = 'fr',
   }) async {
-    final response = await _send('POST', '/edaya/identifiers/start', {
+    if (!['email', 'phone', 'whatsapp'].contains(channel)) {
+      return const AuthResult.failure(
+        AuthError(
+          message: 'Unsupported verification channel',
+          code: 'unsupported_channel',
+        ),
+      );
+    }
+    return _requestOtp('/edaya/identifiers/start', {
       'value': value,
       'kind': channel == 'email' ? 'email' : 'phone',
-      'channel': channel,
       'recoveryEligible': recoveryEligible,
+      'locale': locale,
     });
-    final body = _decodeBody(response);
-    if (response.statusCode >= 400) return AuthResult.failure(_readError(body));
-    pendingChallenge = (body as Map)['challenge'] as String;
-    return const AuthResult.success(null);
   }
 
   Future<AuthResult<void>> verifyIdentifier(String code) async {
@@ -245,7 +355,13 @@ class AuthClient {
       'challenge': pendingChallenge,
       'code': code,
     });
-    return _readVoidResult(response);
+    final result = await _readVoidResult(response);
+    if (result.isSuccess) {
+      pendingChallenge = null;
+      pendingStep = null;
+      primaryStatus = null;
+    }
+    return result;
   }
 
   Future<AuthResult<void>> unlinkIdentifier(String id) async {
@@ -296,27 +412,43 @@ class AuthClient {
     return const AuthResult.success(null);
   }
 
-  /// Local/test helper. Identity only serves this when `AUTH_DEV_OTP_PEEK=true`.
-  Future<AuthResult<String>> peekDevLastOtp({required String email}) async {
-    try {
-      final encoded = Uri.encodeQueryComponent(email.trim());
-      final response = await _send('GET', '/edaya/dev/last-otp?email=$encoded');
-      final body = _decodeBody(response);
-      if (response.statusCode >= 400) {
-        return AuthResult.failure(_readError(body));
-      }
-      if (body is Map && body['otp'] is String) {
-        final otp = (body['otp'] as String).trim();
-        if (otp.isNotEmpty) {
-          return AuthResult.success(otp);
-        }
-      }
-      return const AuthResult.failure(
-        AuthError(message: 'No OTP recorded for this email'),
-      );
-    } on http.ClientException catch (error) {
-      return AuthResult.failure(_networkError(error));
+  /// Explicitly enabled debug builds only; constant guards remove HTTP branches otherwise.
+  static const testOtpAccess =
+      bool.fromEnvironment('TEST_OTP_ACCESS') &&
+      !bool.fromEnvironment('dart.vm.product') &&
+      !bool.fromEnvironment('dart.vm.profile');
+  Future<bool>? _testingDiscovery;
+  Future<bool> testingOtpAvailable() {
+    if (!testOtpAccess) return Future.value(false);
+    return _testingDiscovery ??= _discoverTestingOtp();
+  }
+
+  Future<bool> _discoverTestingOtp() async {
+    final response = await _send('GET', '/edaya/testing/capabilities');
+    final body = _decodeBody(response);
+    return response.statusCode == 200 &&
+        body is Map &&
+        body['otpAccess'] == true;
+  }
+
+  Future<({String challenge, String otp, String channel, int expiresAt})?>
+  revealTestOtp(String challenge) async {
+    if (!testOtpAccess) return null;
+    final response = await _send('POST', '/edaya/testing/otp', {
+      'challenge': challenge,
+    });
+    final body = _decodeBody(response);
+    if (response.statusCode != 200 ||
+        body is! Map ||
+        body['challenge'] != challenge) {
+      return null;
     }
+    return (
+      challenge: body['challenge'] as String,
+      otp: body['otp'] as String,
+      channel: body['channel'] as String,
+      expiresAt: (body['expiresAt'] as num).toInt(),
+    );
   }
 
   Future<AuthResult<void>> signOut() async {
@@ -343,6 +475,7 @@ class AuthClient {
       if (body is Map &&
           (body['state'] == 'totp_required' ||
               body['state'] == 'enrollment_required')) {
+        primaryStatus = null;
         pendingStep = body['state'] as String;
         pendingChallenge = body['challenge'] as String;
         return AuthResult.failure(
@@ -518,4 +651,67 @@ class AuthClient {
     final base = Uri.parse(baseUrl.endsWith('/') ? baseUrl : '$baseUrl/');
     return base.resolve('${normalizedBasePath.substring(1)}$normalizedPath');
   }
+}
+
+/// Transient delivery and cooldown state; never a completed authentication proof.
+class OtpStatus {
+  OtpStatus({
+    required this.challenge,
+    required this.channel,
+    required this.delivery,
+    required this.lifecycle,
+    required this.expiresAt,
+    required this.nextResendAt,
+    required this.canResend,
+    required this.canSms,
+    required this.clockOffset,
+  });
+  final String challenge, channel, delivery, lifecycle;
+  final int expiresAt, nextResendAt, clockOffset;
+  final bool canResend, canSms;
+  factory OtpStatus.fromJson(Map<String, dynamic> json) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final actions = json['actions'] as Map?;
+    return OtpStatus(
+      challenge: json['challenge'] as String,
+      channel: json['channel'] as String? ?? 'email',
+      delivery: json['delivery'] as String? ?? 'accepted',
+      lifecycle: json['lifecycle'] as String? ?? 'pending',
+      expiresAt: (json['expiresAt'] as num?)?.toInt() ?? now + 300000,
+      nextResendAt: (json['nextResendAt'] as num?)?.toInt() ?? now + 60000,
+      canResend: actions?['resend'] != false,
+      canSms: actions?['sms'] == true,
+      clockOffset: ((json['serverNow'] as num?)?.toInt() ?? now) - now,
+    );
+  }
+  int get secondsRemaining => max(
+    0,
+    ((nextResendAt - DateTime.now().millisecondsSinceEpoch - clockOffset) /
+            1000)
+        .ceil(),
+  );
+  OtpStatus withCooldown(int next, int? serverNow) => OtpStatus(
+    challenge: challenge,
+    channel: channel,
+    delivery: delivery,
+    lifecycle: lifecycle,
+    expiresAt: expiresAt,
+    nextResendAt: next,
+    canResend: canResend,
+    canSms: canSms,
+    clockOffset: serverNow == null
+        ? clockOffset
+        : serverNow - DateTime.now().millisecondsSinceEpoch,
+  );
+}
+
+String _newRequestId() {
+  final random = Random.secure();
+  final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+  bytes[6] = (bytes[6] & 15) | 64;
+  bytes[8] = (bytes[8] & 63) | 128;
+  final hex = bytes
+      .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+      .join();
+  return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
 }

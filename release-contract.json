@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "schemaFingerprint": "a0a11734c5eea214e5e68e9c1fd10eb8e48919e01b49b939eafc7f8251312278",
-  "backendSourceRevision": "sha256:0890e6669eafa235b6fe4698aac6ba62588889d6be27bf9858b908feb0272a54",
+  "backendSourceRevision": "sha256:d3024387fe9c6072570f90cb99e21dad70db8d3bd7d144377750705cd1689906",
   "artifacts": {
     "backend": {
       "package/api-client/src/openapi.json": "a0a11734c5eea214e5e68e9c1fd10eb8e48919e01b49b939eafc7f8251312278",
@@ -22,5 +22,5 @@
       "packages/edaya_api_client/lib/src/generated/school_client_surface.dart": "74e0a43c4951a389316f4511ecc9a5b9b89939ead7df041c8da011eb924f832a"
     }
   },
-  "releaseId": "81b7aa8682090c2e386a6f4746eb2a3bbd9dce0c99be78e9e15bb55cf5cb2007"
+  "releaseId": "9d1d0c08f3eba1c28658057c245f50b38ae18031455102f7862778efb3b00aa8"
 }

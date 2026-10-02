@@ -41,6 +41,8 @@
   "retry": "Retry",
   "signInTitle": "Sign in",
   "signInButton": "Sign in",
+  "contactLabel": "Email or phone number",
+  "invalidContact": "Enter a valid email or phone number with its country code.",
   "emailLabel": "Email",
   "passwordLabel": "Password",
   "signInFailed": "Sign-in failed",
@@ -1213,7 +1215,7 @@
   "marksOriginal": "Original",
   "marksProposed": "Proposed",
   "deliveryChannel": "Send my code by",
-  "phoneCountryHint": "Phone number with country code (+225…)",
+  "phoneCountryHint": "Côte d’Ivoire mobile numbers only. Example: +2250712345678.",
   "authenticatorSetup": "Add this secret to your authenticator app, then enter its code.",
   "authenticatorCode": "Authenticator code",
   "recoveryCode": "Recovery code",
@@ -1225,5 +1227,37 @@
   "linkIdentifier": "Link another login identifier",
   "unlinkIdentifier": "Unlink and sign out",
   "enableAuthenticator": "Set up authenticator",
-  "recoveryEligible": "Allow this identifier for account recovery"
+  "recoveryEligible": "Allow this identifier for account recovery",
+  "contactMethod": "Verify with",
+  "verifyContactTitle": "Verify your contact",
+  "verificationContact": "Enter the code for {contact}.",
+  "useMostRecentCode": "Use the most recent code. Each resend replaces the previous code.",
+  "sendBySms": "Send by SMS",
+  "resendCountdown": "You can request another code in {seconds}s.",
+  "changeContact": "Change email or phone number",
+  "checkWhatsApp": "Check WhatsApp for the code.",
+  "checkSms": "Check your text messages for the code.",
+  "checkEmailCode": "Check your email for the code.",
+  "codeExpired": "This code has expired. Request a new code.",
+  "codeDeliveryFailed": "We could not send the code. After the countdown, request another code.",
+  "codeDeliveryUncertain": "Delivery is not confirmed. If the code arrives, you can still use it.",
+  "@resendCountdown": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@verificationContact": {
+    "placeholders": {
+      "contact": {
+        "type": "String"
+      }
+    }
+  },
+  "retryRequest": "Retry request",
+  "testingOnly": "Testing only",
+  "showTestCode": "Show test code",
+  "copyTestCode": "Copy",
+  "testCodeUnavailable": "Test code unavailable"
 }

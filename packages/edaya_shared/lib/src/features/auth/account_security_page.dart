@@ -4,6 +4,9 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../../l10n/l10n_extension.dart';
 import 'app_session_controller.dart';
 import 'login_page.dart';
+import 'otp_delivery_state.dart';
+import 'otp_delivery_controls.dart';
+import '../../l10n/l10n_lookup.dart';
 
 class AccountSecurityController extends LevitController
     with LevitReactiveTasksMixin {
@@ -14,6 +17,12 @@ class AccountSecurityController extends LevitController
   final value = LxVar('');
   final channel = LxVar('email');
   final code = LxVar('');
+  final codeText = TextEditingController();
+  late final delivery = OtpDeliveryState(
+    auth,
+    active: () => challengeSent.value,
+    busy: () => isBusy.value,
+  );
   final challengeSent = LxVar(false);
   final recoveryEligible = LxVar(false);
   final error = LxVar('');
@@ -29,7 +38,15 @@ class AccountSecurityController extends LevitController
     autoDispose(recoveryEligible);
     autoDispose(error);
     autoDispose(totpEnabled);
+    delivery.start();
     load();
+  }
+
+  @override
+  void onClose() {
+    delivery.close();
+    codeText.dispose();
+    super.onClose();
   }
 
   Future<void> load() async {
@@ -45,6 +62,7 @@ class AccountSecurityController extends LevitController
   }
 
   Future<void> link() async {
+    if (isBusy.value) return;
     await runTask(() async {
       error('');
       final result = challengeSent.value
@@ -53,7 +71,9 @@ class AccountSecurityController extends LevitController
               value: value.value.trim(),
               channel: channel.value,
               recoveryEligible: recoveryEligible.value,
+              locale: systemL10n().localeName.startsWith('en') ? 'en' : 'fr',
             );
+      delivery.refresh();
       if (!result.isSuccess) {
         error(result.error?.message ?? '');
         return;
@@ -62,11 +82,36 @@ class AccountSecurityController extends LevitController
         challengeSent(false);
         value('');
         code('');
+        codeText.clear();
         await load();
       } else {
+        delivery.refresh();
         challengeSent(true);
       }
     }, id: 'link');
+  }
+
+  Future<void> resend({String action = 'resend'}) async {
+    if (action == 'retry'
+        ? !delivery.retryable.value
+        : action == 'sms'
+        ? !delivery.canSms
+        : !delivery.canResend) {
+      return;
+    }
+    await runTask(() async {
+      error('');
+      final result = action == 'retry'
+          ? await auth.retryOtpRequest()
+          : await auth.resendOtp(action: action);
+      delivery.refresh();
+      if (!result.isSuccess) {
+        error(result.error?.message ?? '');
+      } else {
+        code('');
+        codeText.clear();
+      }
+    }, id: 'resend-link');
   }
 
   Future<void> unlink(String id) async {
@@ -149,27 +194,32 @@ class AccountSecurityPage extends LScopedView<AccountSecurityController> {
           ),
           if (!controller.challengeSent.value) ...[
             DropdownButtonFormField<String>(
+              key: const Key('auth-link-channel'),
               initialValue: controller.channel.value,
               items: [
                 DropdownMenuItem(
                   value: 'email',
                   child: Text(context.tr.emailLabel),
                 ),
-                const DropdownMenuItem(
-                  value: 'telegram',
-                  child: Text('Telegram'),
-                ),
-                const DropdownMenuItem(
-                  value: 'whatsapp',
-                  child: Text('WhatsApp'),
-                ),
+                if (controller.delivery.phoneAvailable.value)
+                  DropdownMenuItem(
+                    value: 'phone',
+                    child: Text(context.tr.phoneLabel),
+                  ),
               ],
-              onChanged: (value) {
-                if (value != null) controller.channel(value);
-              },
+              onChanged: controller.isBusy.value
+                  ? null
+                  : (value) {
+                      if (value != null) controller.channel(value);
+                    },
             ),
             TextFormField(
+              key: const Key('auth-link-contact'),
               onChanged: controller.value.call,
+              enabled: !controller.isBusy.value,
+              keyboardType: controller.channel.value == 'email'
+                  ? TextInputType.emailAddress
+                  : TextInputType.phone,
               decoration: InputDecoration(
                 labelText: controller.channel.value == 'email'
                     ? context.tr.emailLabel
@@ -183,17 +233,34 @@ class AccountSecurityPage extends LScopedView<AccountSecurityController> {
             ),
           ] else
             TextFormField(
+              key: const Key('auth-link-code'),
+              controller: controller.codeText,
+              enabled: !controller.isBusy.value,
               onChanged: controller.code.call,
               decoration: InputDecoration(labelText: context.tr.otpLabel),
             ),
           FilledButton(
-            onPressed: controller.isBusy.value ? null : controller.link,
+            key: const Key('auth-link-submit'),
+            onPressed:
+                controller.isBusy.value ||
+                    (controller.challengeSent.value &&
+                        controller.delivery.status.value?.lifecycle !=
+                            'pending')
+                ? null
+                : controller.link,
             child: Text(
               controller.challengeSent.value
                   ? context.tr.verifyCodeButton
                   : context.tr.sendCodeButton,
             ),
           ),
+          if (controller.challengeSent.value)
+            OtpDeliveryControls(
+              state: controller.delivery,
+              onResend: () => controller.resend(),
+              onSms: () => controller.resend(action: 'sms'),
+              onRetry: () => controller.resend(action: 'retry'),
+            ),
           const SizedBox(height: 24),
           if (controller.totpEnabled.value == false)
             OutlinedButton(

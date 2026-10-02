@@ -77,6 +77,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get signInButton => 'Se connecter';
 
   @override
+  String get contactLabel => 'E-mail ou numéro de téléphone';
+
+  @override
+  String get invalidContact =>
+      'Saisissez un e-mail valide ou un numéro de téléphone avec son indicatif pays.';
+
+  @override
   String get emailLabel => 'E-mail';
 
   @override
@@ -1903,7 +1910,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get deliveryChannel => 'Recevoir mon code par';
 
   @override
-  String get phoneCountryHint => 'Téléphone avec indicatif (+225…)';
+  String get phoneCountryHint =>
+      'Numéros mobiles de Côte d’Ivoire uniquement. Exemple : +2250712345678.';
 
   @override
   String get authenticatorSetup =>
@@ -1944,4 +1952,65 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get recoveryEligible =>
       'Autoriser cet identifiant pour récupérer le compte';
+
+  @override
+  String get contactMethod => 'Vérifier avec';
+
+  @override
+  String get verifyContactTitle => 'Vérifier votre contact';
+
+  @override
+  String verificationContact(String contact) {
+    return 'Saisissez le code pour $contact.';
+  }
+
+  @override
+  String get useMostRecentCode =>
+      'Utilisez le dernier code reçu. Chaque nouvel envoi remplace le code précédent.';
+
+  @override
+  String get sendBySms => 'Envoyer par SMS';
+
+  @override
+  String resendCountdown(int seconds) {
+    return 'Vous pourrez demander un autre code dans ${seconds}s.';
+  }
+
+  @override
+  String get changeContact => 'Changer d’adresse e-mail ou de numéro';
+
+  @override
+  String get checkWhatsApp => 'Consultez WhatsApp pour obtenir le code.';
+
+  @override
+  String get checkSms => 'Consultez vos SMS pour obtenir le code.';
+
+  @override
+  String get checkEmailCode => 'Consultez votre e-mail pour obtenir le code.';
+
+  @override
+  String get codeExpired => 'Ce code a expiré. Demandez un nouveau code.';
+
+  @override
+  String get codeDeliveryFailed =>
+      'Le code n’a pas pu être envoyé. Après le décompte, demandez un nouveau code.';
+
+  @override
+  String get codeDeliveryUncertain =>
+      'La réception du code n’est pas confirmée. Vous pouvez l’utiliser s’il arrive.';
+
+  @override
+  String get retryRequest => 'Réessayer la demande';
+
+  @override
+  String get testingOnly => 'Réservé aux tests';
+
+  @override
+  String get showTestCode => 'Afficher le code de test';
+
+  @override
+  String get copyTestCode => 'Copier';
+
+  @override
+  String get testCodeUnavailable => 'Code de test indisponible';
 }

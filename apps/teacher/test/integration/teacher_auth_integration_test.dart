@@ -3,6 +3,7 @@ library;
 
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_shared/src/features/auth/account_security_page.dart';
 import 'package:edaya_integration_tests/edaya_integration_tests.dart';
 import 'package:edaya_teacher/di/prototype_module.dart';
 import 'package:edaya_teacher/design/theme.dart';
@@ -11,6 +12,7 @@ import 'package:edaya_teacher/features/login/login_page.dart' as teacher;
 import 'package:edaya_teacher/live/noop_push.dart';
 import 'package:edaya_teacher/mock/mock_store.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -27,6 +29,49 @@ Future<void> until(WidgetTester tester, Finder finder) async {
     if (tester.any(finder)) return;
   }
   fail('Expected authentication outcome: $finder');
+}
+
+Future<void> revealAndCopy(
+  WidgetTester tester,
+  String expected, {
+  String field = 'auth-code',
+}) async {
+  final reveal = find.byKey(const Key('auth-test-reveal'));
+  final deadline = DateTime.now().add(const Duration(seconds: 15));
+  while (!tester.any(reveal) && DateTime.now().isBefore(deadline)) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+  expect(tester.any(reveal), isTrue);
+  await tester.ensureVisible(reveal);
+  await tester.tap(reveal);
+  final displayed = find.byKey(const Key('auth-test-code'));
+  while (!tester.any(displayed) && DateTime.now().isBefore(deadline)) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+  expect(tester.any(displayed), isTrue);
+  expect(tester.widget<Text>(displayed).data == expected, isTrue);
+  final input = tester.widget<TextFormField>(find.byKey(Key(field)));
+  expect(input.controller!.text.isEmpty, isTrue);
+  String? copied;
+  tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+    SystemChannels.platform,
+    (call) async {
+      if (call.method == 'Clipboard.setData') {
+        copied = (call.arguments as Map)['text'] as String;
+      }
+      return null;
+    },
+  );
+  try {
+    await tester.tap(find.byKey(const Key('auth-test-copy')));
+    await tester.pump();
+    expect(copied == expected, isTrue);
+  } finally {
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      null,
+    );
+  }
 }
 
 Future<void> main() async {
@@ -85,6 +130,7 @@ Future<void> main() async {
       'email',
       since,
     );
+    await revealAndCopy(tester, code);
     await tester.enterText(find.byKey(const Key('auth-code')), code);
     await tester.tap(find.byKey(const Key('auth-submit')));
     await until(tester, find.byType(HomePage));
@@ -108,6 +154,128 @@ Future<void> main() async {
       await resetIntegrationTestViewport(tester);
     });
     await tester.pumpWidget(app());
+  }
+
+  for (final channel in ['whatsapp', 'sms-switch']) {
+    testWidgets(
+      '[teacher.auth.$channel] verifies a linked phone and preserves teaching access',
+      (tester) async {
+        await mount(tester);
+        await signIn(tester);
+        final auth = scope.find<AuthClient>();
+        final phone =
+            '+22507${DateTime.now().microsecondsSinceEpoch.toString().substring(8)}';
+        var since = DateTime.now();
+        scope.find<GoRouter>().go('/account/profile');
+        await until(tester, find.text('Sécurité du compte'));
+        await tester.ensureVisible(find.text('Sécurité du compte'));
+        await tester.tap(find.text('Sécurité du compte'));
+        await until(tester, find.byType(AccountSecurityPage));
+        await until(tester, find.byKey(const Key('auth-link-contact')));
+        final security = tester
+            .element(find.byKey(const Key('auth-link-contact')))
+            .levit
+            .find<AccountSecurityController>();
+        final ready = DateTime.now().add(const Duration(seconds: 15));
+        while (!security.delivery.phoneAvailable.value &&
+            DateTime.now().isBefore(ready)) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        await tester.ensureVisible(find.byKey(const Key('auth-link-channel')));
+        await tester.tap(find.byKey(const Key('auth-link-channel')));
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.tap(find.text('Téléphone').last);
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.enterText(
+          find.byKey(const Key('auth-link-contact')),
+          phone,
+        );
+        await tester.ensureVisible(find.byKey(const Key('auth-link-submit')));
+        await tester.tap(find.byKey(const Key('auth-link-submit')));
+        await until(tester, find.byKey(const Key('auth-link-code')));
+        final linkingCode = await capturedOtp(phone, 'whatsapp', since);
+        await revealAndCopy(tester, linkingCode, field: 'auth-link-code');
+        await tester.enterText(
+          find.byKey(const Key('auth-link-code')),
+          linkingCode,
+        );
+        await tester.ensureVisible(find.byKey(const Key('auth-link-submit')));
+        await tester.tap(find.byKey(const Key('auth-link-submit')));
+        await until(tester, find.text(phone));
+        expect(security.delivery.testCode.value.isEmpty, isTrue);
+        Navigator.of(tester.element(find.byType(AccountSecurityPage))).pop();
+        scope.find<GoRouter>().go('/home');
+        await until(tester, find.byType(HomePage));
+        await scope.find<AppSessionController>().signOut();
+        await until(tester, find.byKey(const Key('auth-identifier')));
+        final controller = tester
+            .element(find.byKey(const Key('auth-identifier')))
+            .levit
+            .find<LoginController>();
+        final availableDeadline = DateTime.now().add(
+          const Duration(seconds: 15),
+        );
+        while (!controller.delivery.phoneAvailable.value &&
+            DateTime.now().isBefore(availableDeadline)) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        expect(controller.delivery.phoneAvailable.value, isTrue);
+        expect(find.byKey(const Key('auth-channel')), findsNothing);
+        await tester.enterText(find.byKey(const Key('auth-identifier')), phone);
+        late String code;
+        try {
+          // Linking and login share the same recipient cooldown.
+          await setIntegrationClockOffset(const Duration(seconds: 61));
+          since = DateTime.now();
+          await tester.ensureVisible(find.byKey(const Key('auth-submit')));
+          await tester.tap(find.byKey(const Key('auth-submit')));
+          await until(tester, find.byKey(const Key('auth-code')));
+          code = await capturedOtp(phone, 'whatsapp', since);
+          expect(controller.delivery.remaining.value, greaterThan(110));
+          if (channel == 'sms-switch') {
+            expect(controller.delivery.canSms, isFalse);
+            await tester.enterText(find.byKey(const Key('auth-code')), code);
+            await setIntegrationClockOffset(const Duration(seconds: 182));
+            final deadline = DateTime.now().add(const Duration(seconds: 15));
+            while (!controller.delivery.canSms &&
+                DateTime.now().isBefore(deadline)) {
+              await tester.pump(const Duration(milliseconds: 100));
+            }
+            expect(controller.delivery.canSms, isTrue);
+            since = DateTime.now();
+            await tester.ensureVisible(find.byKey(const Key('auth-sms')));
+            await tester.tap(find.byKey(const Key('auth-sms')));
+            code = await capturedOtp(phone, 'sms', since);
+            while (controller.isBusy.value) {
+              await tester.pump(const Duration(milliseconds: 100));
+            }
+            expect(controller.otpText.text, isEmpty);
+            expect(controller.delivery.testCode.value.isEmpty, isTrue);
+            expect(controller.delivery.status.value!.channel, 'sms');
+            expect(controller.delivery.status.value!.canSms, isFalse);
+          }
+        } finally {
+          await setIntegrationClockOffset(Duration.zero);
+        }
+        await tester.enterText(find.byKey(const Key('auth-code')), '');
+        await revealAndCopy(tester, code);
+        await tester.enterText(find.byKey(const Key('auth-code')), code);
+        await tester.ensureVisible(find.byKey(const Key('auth-submit')));
+        await tester.tap(find.byKey(const Key('auth-submit')));
+        await until(tester, find.byType(HomePage));
+        expect(
+          scope.find<AppSessionController>().grants.value?.kind,
+          'teacher',
+        );
+        expect((await auth.getSession()).data?.user.id, isNotEmpty);
+        expect(
+          (await auth.identifiers()).data?.any(
+            (identifier) => identifier['value'] == phone,
+          ),
+          isTrue,
+        );
+      },
+    );
   }
 
   testWidgets(

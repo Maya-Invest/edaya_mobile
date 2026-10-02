@@ -20,6 +20,8 @@
   "retry": "Réessayer",
   "signInTitle": "Connexion",
   "signInButton": "Se connecter",
+  "contactLabel": "E-mail ou numéro de téléphone",
+  "invalidContact": "Saisissez un e-mail valide ou un numéro de téléphone avec son indicatif pays.",
   "emailLabel": "E-mail",
   "passwordLabel": "Mot de passe",
   "signInFailed": "Échec de la connexion",
@@ -530,7 +532,7 @@
   "marksOriginal": "Valeur initiale",
   "marksProposed": "Valeur proposée",
   "deliveryChannel": "Recevoir mon code par",
-  "phoneCountryHint": "Téléphone avec indicatif (+225…)",
+  "phoneCountryHint": "Numéros mobiles de Côte d’Ivoire uniquement. Exemple : +2250712345678.",
   "authenticatorSetup": "Ajoutez cette clé à votre application d’authentification, puis saisissez son code.",
   "authenticatorCode": "Code de l’application",
   "recoveryCode": "Code de récupération",
@@ -542,5 +544,37 @@
   "linkIdentifier": "Associer un autre identifiant",
   "unlinkIdentifier": "Dissocier et se déconnecter",
   "enableAuthenticator": "Configurer l’application",
-  "recoveryEligible": "Autoriser cet identifiant pour récupérer le compte"
+  "recoveryEligible": "Autoriser cet identifiant pour récupérer le compte",
+  "contactMethod": "Vérifier avec",
+  "verifyContactTitle": "Vérifier votre contact",
+  "verificationContact": "Saisissez le code pour {contact}.",
+  "useMostRecentCode": "Utilisez le dernier code reçu. Chaque nouvel envoi remplace le code précédent.",
+  "sendBySms": "Envoyer par SMS",
+  "resendCountdown": "Vous pourrez demander un autre code dans {seconds}s.",
+  "changeContact": "Changer d’adresse e-mail ou de numéro",
+  "checkWhatsApp": "Consultez WhatsApp pour obtenir le code.",
+  "checkSms": "Consultez vos SMS pour obtenir le code.",
+  "checkEmailCode": "Consultez votre e-mail pour obtenir le code.",
+  "codeExpired": "Ce code a expiré. Demandez un nouveau code.",
+  "codeDeliveryFailed": "Le code n’a pas pu être envoyé. Après le décompte, demandez un nouveau code.",
+  "codeDeliveryUncertain": "La réception du code n’est pas confirmée. Vous pouvez l’utiliser s’il arrive.",
+  "@resendCountdown": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@verificationContact": {
+    "placeholders": {
+      "contact": {
+        "type": "String"
+      }
+    }
+  },
+  "retryRequest": "Réessayer la demande",
+  "testingOnly": "Réservé aux tests",
+  "showTestCode": "Afficher le code de test",
+  "copyTestCode": "Copier",
+  "testCodeUnavailable": "Code de test indisponible"
 }

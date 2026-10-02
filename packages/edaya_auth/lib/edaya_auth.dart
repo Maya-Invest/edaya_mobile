@@ -8,3 +8,4 @@ export 'src/auth_session.dart';
 export 'src/auth_user.dart';
 export 'src/cookie_jar.dart';
 export 'src/http_client_factory.dart';
+export 'src/login_identifier.dart';

@@ -41,7 +41,7 @@ EDAYA_ACADEMIC_YEAR_ID=2025-ci \
 melos run test:integration
 ```
 
-Identity must have `AUTH_DEV_OTP_PEEK=true` so tests can read the emailed code.
+Use the dedicated backend `bun run dev:test` server for local captured email, WhatsApp and SMS. Enable web `PUBLIC_TEST_OTP_ACCESS=true` or Flutter debug `--dart-define=TEST_OTP_ACCESS=true` for explicit Show test code and Copy controls. CI uses that composition and a private captured mailbox; normal staging/production builds omit testing access.
 
 ## What these tests do not cover
 

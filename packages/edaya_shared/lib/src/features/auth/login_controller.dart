@@ -1,7 +1,8 @@
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:levit_flutter/levit_flutter.dart';
+import 'package:flutter/widgets.dart';
+import 'otp_delivery_state.dart';
 
-import '../../config/developer_settings_config.dart';
 import '../../l10n/l10n_lookup.dart';
 import 'app_session_controller.dart';
 
@@ -33,7 +34,17 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
   final Future<void> Function() _onSignInSuccess;
   final email = LxVar('');
   final otp = LxVar('');
-  final channel = LxVar('email');
+  final otpText = TextEditingController();
+  late final delivery = OtpDeliveryState(
+    _authClient,
+    active: () => mode.value == LoginMode.verifyOtp,
+    busy: () => isBusy.value,
+  );
+  void _setOtp(String value) {
+    otp(value);
+    otpText.text = value;
+  }
+
   final enrollmentSecret = LxVar('');
   final recoveryCodes = LxVar<List<String>>([]);
   AuthUser? _completedUser;
@@ -45,15 +56,22 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
     super.onInit();
     autoDispose(email);
     autoDispose(otp);
-    autoDispose(channel);
     autoDispose(enrollmentSecret);
     autoDispose(recoveryCodes);
     autoDispose(errorMessage);
     autoDispose(mode);
+    delivery.start();
     if (startWithEnrollment) {
       mode(LoginMode.enrollTotp);
       beginEnrollment();
     }
+  }
+
+  @override
+  void onClose() {
+    delivery.close();
+    otpText.dispose();
+    super.onClose();
   }
 
   Future<void> beginEnrollment() async {
@@ -69,11 +87,12 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
 
   void showEmailEntry() {
     errorMessage('');
-    otp('');
+    _setOtp('');
     mode(LoginMode.enterEmail);
   }
 
   Future<void> submit() async {
+    if (isBusy.value) return;
     switch (mode.value) {
       case LoginMode.enterEmail:
         await sendCode();
@@ -97,28 +116,24 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
 
   Future<void> sendCode() async {
     errorMessage('');
-    final trimmedEmail = email.value.trim();
-    if (trimmedEmail.isEmpty) {
-      errorMessage(systemL10n().emailRequired);
+    final identifier = LoginIdentifier.detect(email.value);
+    if (identifier == null) {
+      errorMessage(systemL10n().invalidContact);
       return;
     }
     await runTask(() async {
       final result = await _authClient.sendOtp(
-        value: trimmedEmail,
-        channel: channel.value,
+        value: identifier.value,
+        channel: identifier.kind,
+        locale: systemL10n().localeName.startsWith('en') ? 'en' : 'fr',
       );
+      delivery.refresh();
       if (!result.isSuccess) {
         errorMessage(result.error?.message ?? systemL10n().otpSendFailed);
         return;
       }
-      var nextOtp = '';
-      if (DeveloperSettingsConfig.enabled && channel.value == 'email') {
-        final peek = await _authClient.peekDevLastOtp(email: trimmedEmail);
-        if (peek.isSuccess && peek.data != null) {
-          nextOtp = peek.data!.trim();
-        }
-      }
-      otp(nextOtp);
+      _setOtp('');
+      delivery.refresh();
       mode(LoginMode.verifyOtp);
     }, id: 'send-otp');
   }
@@ -134,15 +149,24 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
     }, id: 'verify-otp');
   }
 
-  Future<void> resendOtp() async {
+  Future<void> resendOtp({String action = 'resend'}) async {
+    if (action == 'retry'
+        ? !delivery.retryable.value
+        : action == 'sms'
+        ? !delivery.canSms
+        : !delivery.canResend) {
+      return;
+    }
     errorMessage('');
     await runTask(() async {
-      final result = await _authClient.sendOtp(
-        value: email.value.trim(),
-        channel: channel.value,
-      );
+      final result = action == 'retry'
+          ? await _authClient.retryOtpRequest()
+          : await _authClient.resendOtp(action: action);
+      delivery.refresh();
       if (!result.isSuccess) {
         errorMessage(result.error?.message ?? systemL10n().otpSendFailed);
+      } else {
+        _setOtp('');
       }
     }, id: 'resend-otp');
   }
@@ -157,13 +181,13 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
   }
 
   void useRecovery() {
-    otp('');
+    _setOtp('');
     mode(LoginMode.recovery);
   }
 
   Future<void> _finishAuth(AuthResult<AuthUser> result) async {
     if (result.error?.code == 'totp_required') {
-      otp('');
+      _setOtp('');
       mode(LoginMode.verifyTotp);
       return;
     }
@@ -174,7 +198,7 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
         return;
       }
       enrollmentSecret(_authClient.enrollmentSecret ?? '');
-      otp('');
+      _setOtp('');
       mode(LoginMode.enrollTotp);
       return;
     }

@@ -19,7 +19,7 @@
           {
             "id": "guardian.authentication.phone",
             "scenarios": [
-              "guardian.auth.telegram",
+              "guardian.auth.sms-switch",
               "guardian.auth.whatsapp"
             ]
           },
@@ -39,6 +39,14 @@
             "id": "guardian.authentication.session",
             "scenarios": [
               "guardian.auth.restore-stale"
+            ]
+          },
+          {
+            "id": "guardian.authentication.test-otp",
+            "scenarios": [
+              "guardian.auth.email",
+              "guardian.auth.whatsapp",
+              "guardian.auth.sms-switch"
             ]
           }
         ]
@@ -290,6 +298,21 @@
             "id": "teacher.authentication.session",
             "scenarios": [
               "teacher.auth.restore-stale"
+            ]
+          },
+          {
+            "id": "teacher.authentication.phone",
+            "scenarios": [
+              "teacher.auth.whatsapp",
+              "teacher.auth.sms-switch"
+            ]
+          },
+          {
+            "id": "teacher.authentication.test-otp",
+            "scenarios": [
+              "teacher.auth.email",
+              "teacher.auth.whatsapp",
+              "teacher.auth.sms-switch"
             ]
           }
         ]

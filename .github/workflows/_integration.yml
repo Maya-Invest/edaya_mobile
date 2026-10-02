@@ -74,7 +74,7 @@ jobs:
         run: |
           set -euo pipefail
           parent="$(dirname "$GITHUB_WORKSPACE")"
-          if ! (cd "$parent/edaya_backend" && bun repo seed --skip-profile-photos --skip-attachments); then
+          if ! (cd "$parent/edaya_backend" && bun --no-env-file repo seed --skip-profile-photos --skip-attachments); then
             echo "--- identity.log ---" >&2
             cat /tmp/edaya-ci-apis/identity.log >&2 || true
             echo "--- school.log ---" >&2

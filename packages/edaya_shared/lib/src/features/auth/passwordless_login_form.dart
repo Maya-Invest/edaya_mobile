@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 import '../../l10n/l10n_extension.dart';
 import 'login_controller.dart';
+import 'otp_delivery_controls.dart';
 
 /// The complete account authentication flow shared by both branded apps.
 class PasswordlessLoginForm extends StatelessWidget {
@@ -20,10 +21,10 @@ class PasswordlessLoginForm extends StatelessWidget {
       LWatch(() {
         final mode = controller.mode.value;
         final title = mode == LoginMode.verifyOtp
-            ? context.tr.verifyEmailTitle
+            ? context.tr.verifyContactTitle
             : context.tr.signInTitle;
         final description = mode == LoginMode.verifyOtp
-            ? context.tr.verificationCodeSent(controller.email.value.trim())
+            ? context.tr.verificationContact(controller.email.value.trim())
             : subtitle;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -56,42 +57,23 @@ class PasswordlessLoginForm extends StatelessWidget {
                 key: const Key('auth-recovery-codes'),
               ),
             ] else if (mode == LoginMode.enterEmail) ...[
-              DropdownButtonFormField<String>(
-                key: const Key('auth-channel'),
-                initialValue: controller.channel.value,
-                decoration: InputDecoration(
-                  labelText: context.tr.deliveryChannel,
-                ),
-                items: [
-                  DropdownMenuItem(
-                    value: 'email',
-                    child: Text(context.tr.emailLabel),
-                  ),
-                  const DropdownMenuItem(
-                    value: 'telegram',
-                    child: Text('Telegram'),
-                  ),
-                  const DropdownMenuItem(
-                    value: 'whatsapp',
-                    child: Text('WhatsApp'),
-                  ),
-                ],
-                onChanged: (value) {
-                  if (value != null) controller.channel(value);
-                },
-              ),
-              const SizedBox(height: 16),
               TextFormField(
                 key: const Key('auth-identifier'),
                 initialValue: controller.email.value,
-                keyboardType: controller.channel.value == 'email'
-                    ? TextInputType.emailAddress
-                    : TextInputType.phone,
-                autofillHints: const [AutofillHints.email],
+                keyboardType: TextInputType.emailAddress,
+                autofillHints: const [AutofillHints.username],
+                autocorrect: false,
+                enabled: !controller.isBusy.value,
                 decoration: InputDecoration(
-                  labelText: controller.channel.value == 'email'
-                      ? context.tr.emailLabel
-                      : context.tr.phoneCountryHint,
+                  labelText: context.tr.contactLabel,
+                  helperText:
+                      RegExp(
+                            r'^[+\d(]',
+                          ).hasMatch(controller.email.value.trim()) &&
+                          !controller.email.value.contains('@')
+                      ? context.tr.phoneCountryHint
+                      : null,
+                  helperMaxLines: 3,
                 ),
                 onChanged: (value) => controller.email(value),
               ),
@@ -107,7 +89,8 @@ class PasswordlessLoginForm extends StatelessWidget {
               ],
               TextFormField(
                 key: const Key('auth-code'),
-                initialValue: controller.otp.value,
+                controller: controller.otpText,
+                enabled: !controller.isBusy.value,
                 keyboardType: mode == LoginMode.recovery
                     ? TextInputType.text
                     : TextInputType.number,
@@ -142,7 +125,12 @@ class PasswordlessLoginForm extends StatelessWidget {
       LWatch(
         () => FilledButton(
           key: const Key('auth-submit'),
-          onPressed: controller.isBusy.value ? null : controller.submit,
+          onPressed:
+              controller.isBusy.value ||
+                  (controller.mode.value == LoginMode.verifyOtp &&
+                      controller.delivery.status.value?.lifecycle != 'pending')
+              ? null
+              : controller.submit,
           child: controller.isBusy.value
               ? const SizedBox(
                   width: 20,
@@ -171,17 +159,17 @@ class PasswordlessLoginForm extends StatelessWidget {
         }
         return Column(
           children: [
-            const SizedBox(height: 12),
-            TextButton(
-              key: const Key('auth-resend'),
-              onPressed: controller.isBusy.value ? null : controller.resendOtp,
-              child: Text(context.tr.resendCodeButton),
+            OtpDeliveryControls(
+              state: controller.delivery,
+              onResend: () => controller.resendOtp(),
+              onSms: () => controller.resendOtp(action: 'sms'),
+              onRetry: () => controller.resendOtp(action: 'retry'),
             ),
             TextButton(
               onPressed: controller.isBusy.value
                   ? null
                   : controller.showEmailEntry,
-              child: Text(context.tr.useDifferentEmail),
+              child: Text(context.tr.changeContact),
             ),
           ],
         );

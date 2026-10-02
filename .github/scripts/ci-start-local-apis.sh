@@ -51,24 +51,6 @@ path.write_text("\n".join(out) + "\n")
 PY
 }
 
-overlay_identity_env() {
-	local file="$1"
-	upsert_env "$file" TRUSTED_ORIGINS "$TRUSTED_ORIGINS"
-	upsert_env "$file" WEBAPP_ORIGIN "$WEBAPP_ORIGIN"
-	upsert_env "$file" IDENTITY_DIRECTORY_SECRET "$DIRECTORY_SECRET"
-	upsert_env "$file" REQUIRE_EMAIL_VERIFICATION false
-	upsert_env "$file" AUTH_DEV_OTP_PEEK false
-	upsert_env "$file" AUTH_EMAIL_LOG_OTP false
-	upsert_env "$file" TELEGRAM_GATEWAY_TOKEN test-only-captured
-	upsert_env "$file" WHATSAPP_ACCESS_TOKEN test-only-captured
-	upsert_env "$file" WHATSAPP_PHONE_NUMBER_ID 123456789
-	upsert_env "$file" WHATSAPP_API_VERSION v23.0
-	upsert_env "$file" WHATSAPP_AUTH_TEMPLATE test
-	upsert_env "$file" PORT "$AUTH_PORT"
-	upsert_env "$file" BETTER_AUTH_URL "$AUTH_ORIGIN"
-	upsert_env "$file" FIRST_PARTY_API_ORIGINS "$API_ORIGIN"
-}
-
 overlay_school_env() {
 	local file="$1"
 	upsert_env "$file" TRUSTED_ORIGINS "$TRUSTED_ORIGINS"
@@ -80,7 +62,7 @@ overlay_school_env() {
 	upsert_env "$file" API_ORIGIN "$API_ORIGIN"
 	upsert_env "$file" LOG_LEVEL error
 	upsert_env "$file" LOCAL_FILES_URL "http://127.0.0.1:$FILES_PORT"
-	upsert_env "$file" LOCAL_FILES_ROOT .data/files
+	upsert_env "$file" LOCAL_FILES_ROOT "$PID_DIR/files"
 	upsert_env "$file" LOCAL_FILES_SECRET dev-local-files-secret
 	upsert_env "$file" LOCAL_FILES_PORT "$FILES_PORT"
 }
@@ -141,16 +123,10 @@ case "$ACTION" in
 
 		mkdir -p "$PID_DIR" "$IDENTITY_ROOT/apps/identity" "$BACKEND_ROOT/apps/api"
 
-		cp "$IDENTITY_ROOT/.env.example" "$IDENTITY_ROOT/.env"
-		if [ -f "$IDENTITY_ROOT/apps/identity/.env.example" ]; then
-			cp "$IDENTITY_ROOT/apps/identity/.env.example" "$IDENTITY_ROOT/apps/identity/.env"
-		else
-			cp "$IDENTITY_ROOT/.env.example" "$IDENTITY_ROOT/apps/identity/.env"
-		fi
-		cp "$BACKEND_ROOT/apps/api/.env.example" "$BACKEND_ROOT/apps/api/.env"
-
-		overlay_identity_env "$IDENTITY_ROOT/apps/identity/.env"
-		overlay_school_env "$BACKEND_ROOT/apps/api/.env"
+		# Disposable school configuration, leaving all checkout .env files intact.
+		cp "$BACKEND_ROOT/apps/api/.env.example" "$PID_DIR/school.env"
+		overlay_school_env "$PID_DIR/school.env"
+		upsert_env "$PID_DIR/school.env" DATABASE_URL "pglite:$PID_DIR/school-db"
 
 		echo "Installing Identity dependencies"
 		(cd "$IDENTITY_ROOT" && bun install --frozen-lockfile)
@@ -159,6 +135,9 @@ case "$ACTION" in
 		(cd "$BACKEND_ROOT" && bun install --frozen-lockfile)
 
 		if [ -n "${GITHUB_ENV:-}" ]; then
+			echo "SEED_ENV_FILE=$PID_DIR/school.env" >> "$GITHUB_ENV"
+			echo "SEED_API_URL=$API_ORIGIN" >> "$GITHUB_ENV"
+			echo "SEED_AUTH_URL=$AUTH_ORIGIN" >> "$GITHUB_ENV"
 			echo "EDAYA_TEST_OTP_FILE=$PID_DIR/otp.jsonl" >> "$GITHUB_ENV"
 			echo "EDAYA_TEST_POLICY_FILE=$PID_DIR/privileged-accounts.json" >> "$GITHUB_ENV"
 			echo "EDAYA_TEST_CLOCK_FILE=$PID_DIR/clock-offset" >> "$GITHUB_ENV"
@@ -166,7 +145,7 @@ case "$ACTION" in
 
 		echo "Starting Identity on :$AUTH_PORT (empty, no seed)"
 		start_background "$PID_DIR/identity.pid" "$PID_DIR/identity.log" "$IDENTITY_ROOT" \
-			env NODE_ENV=test EDAYA_TEST_POLICY_FILE="$PID_DIR/privileged-accounts.json" EDAYA_TEST_OTP_FILE="$PID_DIR/otp.jsonl" EDAYA_TEST_CLOCK_FILE="$PID_DIR/clock-offset" bun apps/identity/tests/support/live-integration-server.ts
+			env NODE_ENV=test EDAYA_TEST_PORT="$AUTH_PORT" EDAYA_TEST_API_ORIGIN="$API_ORIGIN" EDAYA_TEST_TRUSTED_ORIGINS="$TRUSTED_ORIGINS" EDAYA_TEST_DIRECTORY_SECRET="$DIRECTORY_SECRET" EDAYA_TEST_POLICY_FILE="$PID_DIR/privileged-accounts.json" EDAYA_TEST_OTP_FILE="$PID_DIR/otp.jsonl" EDAYA_TEST_CLOCK_FILE="$PID_DIR/clock-offset" bun --no-env-file apps/identity/tests/support/live-integration-server.ts
 		if ! bash "$WAIT_SCRIPT" "$AUTH_ORIGIN/" 120; then
 			dump_logs
 			exit 1
@@ -174,15 +153,24 @@ case "$ACTION" in
 
 		echo "Starting school API on :$API_PORT (empty, no seed)"
 		start_background "$PID_DIR/school.pid" "$PID_DIR/school.log" "$BACKEND_ROOT" \
-			bun repo dev
+			env EDAYA_LOCAL_ENV_FILE="$PID_DIR/school.env" bun --no-env-file apps/api/src/entries/local.ts
 		if ! bash "$WAIT_SCRIPT" "$API_ORIGIN/reference" 120; then
+			dump_logs
+			exit 1
+		fi
+		echo "Starting local files on :$FILES_PORT"
+		start_background "$PID_DIR/files.pid" "$PID_DIR/files.log" "$BACKEND_ROOT" \
+			env EDAYA_LOCAL_ENV_FILE="$PID_DIR/school.env" bun --no-env-file tooling/local-files-server/src/main.ts
+		if ! bash "$WAIT_SCRIPT" "http://127.0.0.1:$FILES_PORT/health" 120; then
 			dump_logs
 			exit 1
 		fi
 		;;
 	stop)
+		kill_pidfile "$PID_DIR/files.pid"
 		kill_pidfile "$PID_DIR/school.pid"
 		kill_pidfile "$PID_DIR/identity.pid"
+		rm -f "$PID_DIR/otp.jsonl" "$PID_DIR/clock-offset" "$PID_DIR/privileged-accounts.json" "$PID_DIR/school.env"
 		;;
 	*)
 		echo "Unknown action: $ACTION" >&2

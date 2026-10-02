@@ -12,9 +12,9 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 SUITES = {
-    "api": ("tooling/integration_tests", ["dart", "test", "--tags", "integration", "--reporter", "json"]),
-    "guardian": ("apps/guardian", ["flutter", "test", "test/integration", "--tags", "integration", "--concurrency=1", "--machine"]),
-    "teacher": ("apps/teacher", ["flutter", "test", "test/integration", "--tags", "integration", "--concurrency=1", "--machine"]),
+    "api": ("tooling/integration_tests", ["dart", "-DTEST_OTP_ACCESS=true", "test", "--tags", "integration", "--reporter", "json"]),
+    "guardian": ("apps/guardian", ["flutter", "test", "test/integration", "--tags", "integration", "--concurrency=1", "--dart-define=TEST_OTP_ACCESS=true", "--machine"]),
+    "teacher": ("apps/teacher", ["flutter", "test", "test/integration", "--tags", "integration", "--concurrency=1", "--dart-define=TEST_OTP_ACCESS=true", "--machine"]),
 }
 
 
@@ -38,6 +38,7 @@ def validate_freshness(metadata, fingerprint):
 
 
 def redact(value):
+    value = re.sub(r"(?<![0-9])[0-9]{6}(?![0-9])", "[REDACTED]", value)
     value = re.sub(r"(?i)Bearer\s+[^\s\"']+", "Bearer [REDACTED]", value)
     value = re.sub(r"/invite/(?!:token(?:[\s/?\"']|$))[^\s/?\"']+", "/invite/[REDACTED]", value)
     return re.sub(r'(?i)(\b(?:authorization|cookie|token|secret|password|otp|code|recoveryCode)\b[\"\s]*[:=]\s*[\"\']?)[^\s\"\',}]+', r'\1[REDACTED]', value)
