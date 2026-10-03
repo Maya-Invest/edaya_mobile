@@ -26,7 +26,14 @@ const generatedHeader =
 
 Future<void> main(List<String> args) async {
   final options = _parseArgs(args);
-  final bindings = await _loadBindings(options);
+  final openApi = options.bindingsInputPath != null
+      ? null
+      : options.openApiUrl != null
+      ? await _readOpenApiFromUrl(options.openApiUrl!)
+      : await _readOpenApiFromFile(options.openApiPath!);
+  final bindings = openApi == null
+      ? await _loadBindings(options)
+      : _extractBindings(openApi);
   final outputDir = Directory(options.outputDir);
   if (!outputDir.existsSync()) {
     outputDir.createSync(recursive: true);
@@ -46,6 +53,20 @@ Future<void> main(List<String> args) async {
     '${outputDir.path}/school_client_surface.dart',
   ).writeAsString(_generateSurfaceDart(bindings));
 
+  if (openApi != null && bindings['auth'] is Map) {
+    await File(
+      '${outputDir.path}/auth_contracts.dart',
+    ).writeAsString(_generateAuthContracts(openApi, bindings));
+  }
+
+  if (openApi != null && bindings['auth'] is Map) {
+    final formatted = await Process.run('dart', [
+      'format',
+      '${outputDir.path}/auth_contracts.dart',
+    ]);
+    if (formatted.exitCode != 0)
+      throw StateError('Could not format auth contracts');
+  }
   stdout.writeln('Dart API client bindings generated at ${outputDir.path}');
 }
 
@@ -624,3 +645,145 @@ Map<String, String> _stringMap(Object? value, String fieldName) {
 }
 
 String _dartString(String value) => jsonEncode(value);
+
+String _generateAuthContracts(
+  Map<String, dynamic> document,
+  Map<String, dynamic> bindings,
+) {
+  final schemas = Map<String, dynamic>.from(
+    document['components']['schemas'] as Map,
+  );
+  final output = StringBuffer(
+    '$generatedHeader// ignore_for_file: prefer_null_aware_operators, use_null_aware_elements\n',
+  );
+  String fieldType(Map schema) {
+    final reference = schema[r'$ref'];
+    if (reference is String)
+      return reference
+          .split('/')
+          .last
+          .replaceAll('AuthUser', 'AuthUserDto')
+          .replaceAll('AuthSession', 'AuthSessionDto');
+    return switch (schema['type']) {
+      'string' => 'String',
+      'boolean' => 'bool',
+      'integer' || 'number' => 'num',
+      'array' => 'List<${fieldType(schema['items'] as Map)}>',
+      'object' => 'Map<String, dynamic>',
+      _ => 'Object',
+    };
+  }
+
+  String decode(Map schema, String expression) {
+    final type = fieldType(schema);
+    if (schema[r'$ref'] != null)
+      return '$type.fromJson(Map<String, dynamic>.from($expression as Map))';
+    if (schema['type'] == 'array')
+      return '($expression as List).map((value) => ${decode(schema['items'] as Map, 'value')}).toList()';
+    if (schema['type'] == 'object')
+      return 'Map<String, dynamic>.from($expression as Map)';
+    return '$expression as $type';
+  }
+
+  String encode(Map schema, String expression) {
+    if (schema[r'$ref'] != null) return '$expression.toJson()';
+    if (schema['type'] == 'array')
+      return '$expression.map((value) => ${encode(schema['items'] as Map, 'value')}).toList()';
+    return expression;
+  }
+
+  Map<String, dynamic> flatten(Map schema) {
+    final reference = schema[r'$ref'];
+    if (reference is String)
+      return flatten(schemas[reference.split('/').last] as Map);
+    if (schema['allOf'] is! List) return Map<String, dynamic>.from(schema);
+    final parts = (schema['allOf'] as List).map((part) => flatten(part as Map));
+    final properties = <String, dynamic>{};
+    final required = <String>{};
+    for (final part in parts) {
+      properties.addAll(
+        Map<String, dynamic>.from(part['properties'] as Map? ?? {}),
+      );
+      required.addAll((part['required'] as List? ?? []).cast<String>());
+    }
+    return {
+      'type': 'object',
+      'properties': properties,
+      'required': required.toList(),
+    };
+  }
+
+  for (final entry in schemas.entries.where(
+    (entry) => entry.key.startsWith('Auth') || entry.key == 'AccountIdentifier',
+  )) {
+    final name = entry.key
+        .replaceAll('AuthUser', 'AuthUserDto')
+        .replaceAll('AuthSession', 'AuthSessionDto');
+    final schema = flatten(entry.value as Map);
+    if (schema['type'] != 'object') {
+      output.writeln(
+        'class $name { const $name(this.value); final Map<String, dynamic> value; factory $name.fromJson(Map<String, dynamic> json) => $name(json); Map<String, dynamic> toJson() => value; }',
+      );
+      continue;
+    }
+    final properties = Map<String, dynamic>.from(
+      schema['properties'] as Map? ?? {},
+    );
+    final required = (schema['required'] as List? ?? []).toSet();
+    output.writeln('class $name {');
+    if (properties.isEmpty) {
+      output.writeln(
+        'const $name(); factory $name.fromJson(Map<String, dynamic> json) => const $name(); Map<String, dynamic> toJson() => {}; }',
+      );
+      continue;
+    }
+    output.writeln('const $name({');
+    for (final field in properties.keys) {
+      output.writeln(
+        '${required.contains(field) ? 'required ' : ''}this.$field,',
+      );
+    }
+    output.writeln('});');
+    for (final field in properties.entries) {
+      final nullable =
+          !required.contains(field.key) || field.value['nullable'] == true;
+      output.writeln(
+        'final ${fieldType(field.value as Map)}${nullable ? '?' : ''} ${field.key};',
+      );
+    }
+    output.writeln(
+      'factory $name.fromJson(Map<String, dynamic> json) => $name(',
+    );
+    for (final field in properties.entries) {
+      final key = field.key;
+      final nullable =
+          !required.contains(key) || field.value['nullable'] == true;
+      output.writeln(
+        "$key: ${nullable ? "json['$key'] == null ? null : " : ''}${decode(field.value as Map, "json['$key']")},",
+      );
+    }
+    output.writeln('); Map<String, dynamic> toJson() => {');
+    for (final field in properties.entries) {
+      final key = field.key;
+      final nullable =
+          !required.contains(key) || field.value['nullable'] == true;
+      final condition = !required.contains(key) ? 'if ($key != null) ' : '';
+      final value = encode(field.value as Map, nullable ? '$key!' : key);
+      output.writeln(
+        "$condition'$key': ${nullable && required.contains(key) ? '$key == null ? null : ' : ''}$value,",
+      );
+    }
+    output.writeln('}; }');
+  }
+  output.writeln(
+    'class AuthRoute { const AuthRoute(this.method, this.path); final String method, path; }',
+  );
+  output.writeln('const authRoutes = <String, AuthRoute>{');
+  for (final entry in (bindings['auth'] as Map).entries) {
+    output.writeln(
+      "${_dartString(entry.key as String)}: AuthRoute(${_dartString(entry.value['method'] as String)}, ${_dartString(entry.value['path'] as String)}),",
+    );
+  }
+  output.writeln('};');
+  return output.toString();
+}

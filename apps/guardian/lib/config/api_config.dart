@@ -3,7 +3,7 @@ import 'package:edaya_shared/edaya_shared.dart';
 /// API and dev credential configuration for the next guardian app.
 ///
 /// Base URL: SharedPreferences override → `--dart-define=API_URL` → app default.
-/// Identity is configured independently with `--dart-define=AUTH_URL=...`.
+/// Authentication uses the selected API URL.
 abstract final class ApiConfig {
   static String get baseUrl => ApiBaseUrlConfig.baseUrl;
 

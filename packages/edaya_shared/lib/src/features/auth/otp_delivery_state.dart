@@ -99,7 +99,7 @@ class OtpDeliveryState with WidgetsBindingObserver {
   void start() {
     WidgetsBinding.instance.addObserver(this);
     unawaited(_discoverTesting());
-    unawaited(_loadMethods());
+    unawaited(loadMethods());
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       expired(
         status.value != null &&
@@ -119,14 +119,14 @@ class OtpDeliveryState with WidgetsBindingObserver {
     });
   }
 
-  Future<void> _loadMethods() async {
+  Future<void> loadMethods() async {
     try {
       final available = await auth.phoneAvailable();
       if (!_closed) {
         phoneAvailable(available);
       }
     } catch (_) {
-      /* Discovery can be retried on a new screen. */
+      if (!_closed) phoneAvailable(false);
     }
   }
 

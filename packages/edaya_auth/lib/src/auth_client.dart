@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:edaya_api_client/edaya_api_client.dart' as contract;
 import 'package:http/http.dart' as http;
 
 import 'auth_error.dart';
@@ -122,9 +123,11 @@ class AuthClient {
     _ResourceTokenState state,
   ) async {
     try {
-      final response = await _send('POST', '/edaya/access-token', {
-        'resource': origin,
-      });
+      final response = await _send(
+        'POST',
+        '/edaya/access-token',
+        contract.AuthResource(resource: origin).toJson(),
+      );
       final body = _decodeBody(response);
       if (response.statusCode >= 400) {
         if (response.statusCode == 401 && generation == _generation) {
@@ -135,9 +138,11 @@ class AuthClient {
       if (generation != _generation) {
         throw const AuthError(message: 'Authentication changed during renewal');
       }
-      final data = Map<String, dynamic>.from(body as Map);
-      final token = data['accessToken'] as String;
-      final expiresAt = DateTime.parse(data['expiresAt'] as String);
+      final data = contract.AuthAccessToken.fromJson(
+        Map<String, dynamic>.from(body as Map),
+      );
+      final token = data.accessToken;
+      final expiresAt = DateTime.parse(data.expiresAt);
       final segments = token.split('.');
       if (segments.length != 3 ||
           segments.any((segment) => segment.isEmpty) ||
@@ -234,11 +239,14 @@ class AuthClient {
         ),
       );
     }
-    return _requestOtp('/edaya/otp/start', {
-      'kind': channel == 'email' ? 'email' : 'phone',
-      'value': value,
-      'locale': locale,
-    });
+    return _requestOtp(
+      '/edaya/otp/start',
+      contract.AuthStart(
+        kind: channel == 'email' ? 'email' : 'phone',
+        value: value,
+        locale: locale,
+      ).toJson(),
+    );
   }
 
   /// Requests a replacement challenge; the server retains destination and purpose.
@@ -280,10 +288,14 @@ class AuthClient {
   ) async {
     final key = jsonEncode([path, payload]);
     final requestId = _otpRequests.putIfAbsent(key, _newRequestId);
-    final response = await _send('POST', path, {
-      ...payload,
-      'requestId': requestId,
-    });
+    final request = path == '/edaya/otp/resend'
+        ? contract.AuthResend(
+            challenge: payload['challenge'] as String,
+            action: payload['action'] as String,
+            requestId: requestId,
+          ).toJson()
+        : {...payload, 'requestId': requestId};
+    final response = await _send('POST', path, request);
     final body = _decodeBody(response);
     if (response.statusCode >= 400) {
       final error = _readError(body);
@@ -342,12 +354,15 @@ class AuthClient {
         ),
       );
     }
-    return _requestOtp('/edaya/identifiers/start', {
-      'value': value,
-      'kind': channel == 'email' ? 'email' : 'phone',
-      'recoveryEligible': recoveryEligible,
-      'locale': locale,
-    });
+    return _requestOtp(
+      '/edaya/identifiers/start',
+      contract.AuthStart(
+        kind: channel == 'email' ? 'email' : 'phone',
+        value: value,
+        recoveryEligible: recoveryEligible,
+        locale: locale,
+      ).toJson(),
+    );
   }
 
   Future<AuthResult<void>> verifyIdentifier(String code) async {
@@ -600,7 +615,12 @@ class AuthClient {
     Map<String, dynamic>? payload,
   ]) async {
     _checkOrigin();
-    final uri = _resolveUri(path);
+    final routes = contract.authRoutes.values.where(
+      (route) => route.path == '$basePath$path' && route.method == method,
+    );
+    final uri = routes.isEmpty
+        ? _resolveUri(path)
+        : Uri.parse(baseUrl).resolve(routes.first.path);
     final headers = <String, String>{
       'Accept': 'application/json',
       if (!edayaHttpUsesBrowserCredentials) 'x-edaya-client': 'native',

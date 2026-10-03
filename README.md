@@ -163,9 +163,9 @@ Default API URL depends on the app (no `--dart-define` needed for local dev):
 Override at build time:
 
 ```bash
-flutter run --dart-define=AUTH_URL=http://localhost:9900 --dart-define=API_URL=http://localhost:9999
-flutter run --dart-define=AUTH_URL=http://10.0.2.2:9900 --dart-define=API_URL=http://10.0.2.2:9999
-flutter run --dart-define=AUTH_URL=https://staging.identity.api.edayaplus.com --dart-define=API_URL=https://staging.school.api.edayaplus.com
+flutter run --dart-define=API_URL=http://localhost:9999
+flutter run --dart-define=API_URL=http://10.0.2.2:9999
+flutter run --dart-define=API_URL=https://staging.api.edayaplus.com
 ```
 
 Or use Melos shortcuts:
@@ -220,7 +220,7 @@ melos exec --scope=edaya_auth -- flutter test
 
 Shared integration tests live in `tooling/integration_tests`. They use `edaya_auth` + `edaya_api_client` against a running API (local seed or staging).
 
-**PR CI** starts empty Identity (`:9900`) and school (`:9999`) from sibling checkouts, then runs `bun repo seed --skip-profile-photos --skip-attachments` (full demo-ci). Git refs follow the mobile head branch: `staging` → `@staging`, `main`/`master` → `@main`, anything else → `@dev`. The job needs repo secret `IDENTITY_CHECKOUT_TOKEN` (`contents:read` on `edaya_identity` and `edaya_backend`). Identity must have `dev`, `staging`, and `main` branches.
+**PR CI** starts empty the unified API (`:9999`) from sibling checkouts, then runs `bun repo seed --skip-profile-photos --skip-attachments` (full demo-ci). Git refs follow the mobile head branch: `staging` → `@staging`, `main`/`master` → `@main`, anything else → `@dev`. The job needs repo secret `IDENTITY_CHECKOUT_TOKEN` (`contents:read` on `edaya_backend`). Backend branches must match the selected candidate.
 
 Use the dedicated backend `bun run dev:test` server for local captured email, WhatsApp and SMS. Enable web `PUBLIC_TEST_OTP_ACCESS=true` or Flutter debug `--dart-define=TEST_OTP_ACCESS=true` for explicit Show test code and Copy controls. CI uses that composition and a private captured mailbox; normal staging/production builds omit testing access.
 
@@ -236,7 +236,6 @@ Environment variables:
 
 | Variable | Fallback | Default |
 |----------|----------|---------|
-| `EDAYA_AUTH_URL` | `AUTH_URL` | `http://localhost:9900` |
 | `EDAYA_API_URL` | `BASE_URL` | `http://localhost:9999` |
 | `EDAYA_TEACHER_EMAIL` | `TEACHER_EMAIL` | `a.toure@ecole-ci.edaya.dev` |
 | `EDAYA_ACADEMIC_YEAR_ID` | `ACADEMIC_YEAR_ID` | `2025-ci` |

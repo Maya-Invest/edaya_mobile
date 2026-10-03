@@ -10,7 +10,7 @@ void main() {
     'OTP delivery reports network failure without creating a challenge',
     () async {
       final client = AuthClient(
-        baseUrl: 'http://localhost:9900',
+        baseUrl: 'http://localhost:9999',
         client: MockClient((_) async {
           throw http.ClientException('offline');
         }),
@@ -66,7 +66,7 @@ void main() {
   test('normal builds perform no testing requests', () async {
     var requests = 0;
     final client = AuthClient(
-      baseUrl: 'http://localhost:9900',
+      baseUrl: 'http://localhost:9999',
       client: MockClient((_) async {
         requests++;
         return http.Response('{}', 404);
@@ -99,7 +99,7 @@ void main() {
       final ids = <String>[];
       var calls = 0;
       final client = AuthClient(
-        baseUrl: 'http://localhost:9900',
+        baseUrl: 'http://localhost:9999',
         client: MockClient((request) async {
           if (request.url.path.endsWith('/status')) {
             return http.Response(
@@ -187,7 +187,7 @@ void main() {
       var calls = 0;
       final now = DateTime.now().millisecondsSinceEpoch;
       final client = AuthClient(
-        baseUrl: 'http://localhost:9900',
+        baseUrl: 'http://localhost:9999',
         client: MockClient((request) async {
           requests.add(jsonDecode(request.body) as Map);
           if (++calls == 1) throw http.ClientException('lost response');
@@ -237,7 +237,7 @@ void main() {
     () async {
       final requests = <Map>[];
       final client = AuthClient(
-        baseUrl: 'http://localhost:9900',
+        baseUrl: 'http://localhost:9999',
         client: MockClient((request) async {
           expect(request.url.path, '/auth/edaya/otp/resend');
           final payload = jsonDecode(request.body) as Map;
@@ -271,7 +271,7 @@ void main() {
     () async {
       late AuthClient client;
       client = AuthClient(
-        baseUrl: 'http://localhost:9900',
+        baseUrl: 'http://localhost:9999',
         client: MockClient((request) async {
           expect(request.method, 'POST');
           expect(request.url.path, '/auth/edaya/otp/status');

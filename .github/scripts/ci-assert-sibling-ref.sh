@@ -22,7 +22,7 @@ assert_branch() {
 		return 0
 	fi
 	echo "Could not read ${OWNER}/${repo}@${REF}." >&2
-	echo "Mobile integration starts empty Identity (:9900) and school (:9999) from that branch." >&2
+	echo "Mobile integration starts the unified API (:9999) from that branch." >&2
 	echo "Create ${REF} on ${OWNER}/${repo} (Identity needs dev, staging, and main)," >&2
 	echo "and grant IDENTITY_CHECKOUT_TOKEN contents:read on both sibling repos." >&2
 	exit 1

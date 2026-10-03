@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 /// API and dev credential configuration for the teacher app.
 ///
 /// The School API defaults to staging unless `--dart-define=API_URL=...` or a
-/// SharedPreferences override is set. Identity uses `--dart-define=AUTH_URL=...`.
+/// SharedPreferences override is set. Authentication uses the selected API URL.
 abstract final class ApiConfig {
   static String get baseUrl => ApiBaseUrlConfig.baseUrl;
 

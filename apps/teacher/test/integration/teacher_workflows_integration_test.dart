@@ -46,9 +46,10 @@ Future<void> gone(WidgetTester tester, Type type) async {
 Future<T> persisted<T>(
   WidgetTester tester,
   Future<T> Function() read,
-  bool Function(T) ready,
-) async {
-  final deadline = DateTime.now().add(const Duration(seconds: 20));
+  bool Function(T) ready, {
+  Duration timeout = const Duration(seconds: 20),
+}) async {
+  final deadline = DateTime.now().add(timeout);
   while (true) {
     final value = await read();
     if (ready(value)) return value;
@@ -227,6 +228,8 @@ Future<void> main() async {
         (rows) =>
             rows.length == roster.length &&
             rows.every((row) => row['score'] == 20),
+        // Fill persists one request per student; allow the entire batch to finish.
+        timeout: Duration(seconds: 20 + roster.length * 10),
       );
       expect(marks.map((row) => row['studentId']).toSet().length, marks.length);
       harness.scope.find<GoRouter>().go('/evaluations');
@@ -462,6 +465,8 @@ Future<void> main() async {
         tester,
         () => baseline.schoolClient.attendance.list({'lessonSessionId': id}),
         (rows) => rows.length == roster.length,
+        // The outbox persists one request per student before draining the batch.
+        timeout: Duration(seconds: 20 + roster.length * 10),
       );
       await persisted(
         tester,
@@ -579,6 +584,7 @@ Future<void> main() async {
         (rows) =>
             rows.length == roster.length &&
             rows.every((row) => row['score'] == 20),
+        timeout: Duration(seconds: 20 + roster.length * 10),
       );
       await tester.ensureVisible(find.text('Soumettre les notes'));
       await tester.tap(find.text('Soumettre les notes'));

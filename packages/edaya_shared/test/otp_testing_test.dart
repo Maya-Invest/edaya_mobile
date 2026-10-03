@@ -15,7 +15,7 @@ void main() {
       final responses = <Completer<http.Response>>[];
       var discovery = 0;
       final auth = AuthClient(
-        baseUrl: 'http://localhost:9900',
+        baseUrl: 'http://localhost:9999',
         client: MockClient((request) async {
           if (request.url.path.endsWith('/capabilities')) {
             discovery++;

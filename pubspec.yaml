@@ -27,7 +27,7 @@ melos:
       exec: dart analyze lib test
       description: Run static analysis on lib/ and test/ (skips build artifacts).
     test:
-      exec: flutter test --exclude-tags 'integration || design-review'
+      exec: flutter test --exclude-tags 'integration || staging || design-review'
       description: Run unit and widget tests, excluding live APIs and screenshot generation.
     format:
       exec: dart format lib test
@@ -42,14 +42,14 @@ melos:
       run: bash scripts/check-api-bindings-drift.sh
       description: Verify committed Dart bindings match spec/client-bindings.json.
     run:guardian:local:
-      run: cd apps/guardian && flutter run --dart-define=AUTH_URL=http://10.0.2.2:9900 --dart-define=API_URL=http://10.0.2.2:9999
+      run: cd apps/guardian && flutter run --dart-define=API_URL=http://10.0.2.2:9999
       description: Run guardian app against local API (Android emulator).
     run:guardian:legacy:local:
       run: echo "guardian_legacy is not a current app" && exit 1
       description: Removed legacy guardian app. Do not run.
     run:teacher:local:
-      run: cd apps/teacher && flutter run --dart-define=AUTH_URL=http://10.0.2.2:9900 --dart-define=API_URL=http://10.0.2.2:9999
-      description: Run teacher app against local Identity and school API (Android emulator).
+      run: cd apps/teacher && flutter run --dart-define=API_URL=http://10.0.2.2:9999
+      description: Run teacher app against local API (Android emulator).
     run:teacher:legacy:local:
       run: echo "teacher_legacy is not a current app" && exit 1
       description: Removed legacy teacher app. Do not run.
@@ -77,8 +77,13 @@ melos:
         melos run brand:check &&
         melos run generated:check &&
         melos run analyze &&
-        melos run test
+        melos run test &&
+        node --test scripts/apk-signature.test.mjs &&
+        python3 -m unittest discover -s scripts -p 'test_*.py'
       description: Run generated drift check, analysis, and tests.
+    test:staging:
+      run: python3 scripts/staging-smoke.py
+      description: Smoke-test deployed staging using private native sessions, without OTP capture.
     test:integration:
       run: python3 scripts/integration-runner.py
       description: Run all live suites independently and aggregate machine-readable outcomes.

@@ -8,3 +8,5 @@ export 'src/http_transport.dart';
 export 'src/school_client.dart';
 export 'src/transport.dart';
 export 'src/generated/school_client_surface.dart';
+
+export 'src/generated/auth_contracts.dart';

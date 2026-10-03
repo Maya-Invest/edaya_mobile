@@ -13,7 +13,7 @@ melos run run:teacher:local
 melos run run:teacher:staging
 ```
 
-Requires local Identity (`10.0.2.2:9900`) and school API (`10.0.2.2:9999`) for emulator runs. Default demo email: `a.toure@ecole-ci.edaya.dev`.
+Requires the local API (`10.0.2.2:9999`) for emulator runs. Default demo email: `a.toure@ecole-ci.edaya.dev`.
 
 Widget tests (mock harness, no API):
 

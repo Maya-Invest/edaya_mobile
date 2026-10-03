@@ -62,10 +62,7 @@ class GuardianWidgetTestHarness {
     final baseConfig = IntegrationConfig.fromEnvironment();
     final config = baseConfig.withGuardianEmail(profile.email);
 
-    ApiBaseUrlConfig.configure(
-      appDefaultUrl: config.baseUrl,
-      appDefaultAuthUrl: config.authUrl,
-    );
+    ApiBaseUrlConfig.configure(appDefaultUrl: config.baseUrl);
     await ApiBaseUrlConfig.saveOverride(config.baseUrl);
     await AppSettingsController.preload();
 
@@ -94,10 +91,7 @@ class GuardianWidgetTestHarness {
     FlutterSecureStorage.setMockInitialValues({});
 
     final config = IntegrationConfig.fromEnvironment();
-    ApiBaseUrlConfig.configure(
-      appDefaultUrl: config.baseUrl,
-      appDefaultAuthUrl: config.authUrl,
-    );
+    ApiBaseUrlConfig.configure(appDefaultUrl: config.baseUrl);
     await ApiBaseUrlConfig.saveOverride(config.baseUrl);
     await AppSettingsController.preload();
 

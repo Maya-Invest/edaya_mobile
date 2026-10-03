@@ -66,6 +66,7 @@
   "apps/teacher/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png": "9290e7f55facb49e9a74e0f8fe75de8d76b1ac179c8c2818e29ed03d97f48035",
   "apps/teacher/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png": "bf682940e167d2202edd03732baec1c134989825657fd045c2c010d5b6d91a9f",
   "apps/teacher/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png": "807914a9dfbbd27f26b3f342c9981b8d011a83d2204bf5d1a3d5d8edb9faee70",
+  "apps/teacher/android/app/src/main/res/values/colors.xml": "f81da3e5351c0f302afcd6ee49da2ec492e2592bcd1476c68d77accbeb9bc753",
   "apps/teacher/android/app/src/main/res/values/styles.xml": "937d7c82f539c72eb94fd3a3773f29b3d3fef1997213c92cb632298cedf4bda9",
   "apps/teacher/android/app/src/main/res/values-night/styles.xml": "8c5bad5152f217e837519f9c15211d19f39bd45f5f67faf6dd81cb4b299e518f",
   "apps/teacher/android/app/src/main/res/values-night-v31/styles.xml": "24e491194b69d3c4abf5bff628942f4d78eb7328b8ace32b677b575e5d4bc805",

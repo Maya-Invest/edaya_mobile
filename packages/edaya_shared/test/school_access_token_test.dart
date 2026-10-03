@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('native school clients require a renewal credential', () {
-    final client = AuthClient(baseUrl: 'http://localhost:9900');
+    final client = AuthClient(baseUrl: 'http://localhost:9999');
     expect(canIssueSchoolAccessToken(client), isFalse);
     client.restoreRenewalCredential('signed.proof');
     expect(canIssueSchoolAccessToken(client), isTrue);

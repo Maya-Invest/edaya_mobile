@@ -10,6 +10,7 @@ final children = Uri.parse('https://children.example.test');
 
 String payload(String token) => jsonEncode({
   'accessToken': token,
+  'tokenType': 'Bearer',
   'expiresAt': DateTime.now().add(const Duration(minutes: 5)).toIso8601String(),
 });
 

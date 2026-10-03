@@ -15,6 +15,7 @@ packages/**/pubspec.lock
 
 # Platform-specific generated files
 **/.cxx/
+**/.kotlin/
 **/DerivedData/
 
 # macOS

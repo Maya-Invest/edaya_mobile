@@ -227,7 +227,7 @@ abstract class AppLocalizations {
   /// No description provided for @invalidContact.
   ///
   /// In en, this message translates to:
-  /// **'Enter a valid email or phone number with its country code.'**
+  /// **'Enter a valid contact.'**
   String get invalidContact;
 
   /// No description provided for @emailLabel.
@@ -3290,6 +3290,12 @@ abstract class AppLocalizations {
   /// **'Send my code by'**
   String get deliveryChannel;
 
+  /// No description provided for @phoneUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone verification is temporarily unavailable. Use email.'**
+  String get phoneUnavailable;
+
   /// No description provided for @phoneCountryHint.
   ///
   /// In en, this message translates to:
@@ -3407,7 +3413,7 @@ abstract class AppLocalizations {
   /// No description provided for @changeContact.
   ///
   /// In en, this message translates to:
-  /// **'Change email or phone number'**
+  /// **'Change contact'**
   String get changeContact;
 
   /// No description provided for @checkWhatsApp.

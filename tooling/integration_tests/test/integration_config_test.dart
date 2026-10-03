@@ -6,9 +6,9 @@ void main() {
   test('IntegrationConfig.fromEnvironment applies demo defaults', () {
     final config = IntegrationConfig.fromEnvironment();
 
-    expect(config.authUrl, 'http://localhost:9900');
+    expect(config.authUrl, 'http://localhost:9999');
     expect(config.baseUrl, 'http://localhost:9999');
-    expect(config.authUrl, 'http://localhost:9900');
+    expect(config.authUrl, 'http://localhost:9999');
     expect(config.email, 'a.toure@ecole-ci.edaya.dev');
     expect(config.academicYearId, '2025-ci');
     expect(config.classGroupId, 'ci-6a');

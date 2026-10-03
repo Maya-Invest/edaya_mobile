@@ -1,3 +1,4 @@
+import { verifyApkIdentity } from "./apk-signature.mjs";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
@@ -17,10 +18,8 @@ for (const [app, applicationId] of [["guardian", "com.softilab.edaya.guardian"],
   const certificate = execFileSync("keytool", ["-exportcert", "-alias", properties.keyAlias, "-keystore", resolve(android, properties.storeFile), "-storepass:env", "EDAYA_KEYSTORE_PASSWORD"], { env: { ...process.env, EDAYA_KEYSTORE_PASSWORD: properties.storePassword } });
   const fingerprint = createHash("sha256").update(certificate).digest("hex");
   const verification = run(resolve(buildTools, "apksigner"), ["verify", "--print-certs", apk]);
-  const actualFingerprint = verification.match(/Signer #1 certificate SHA-256 digest: ([a-f0-9]+)/i)?.[1]?.toLowerCase();
-  if (actualFingerprint !== fingerprint) throw new Error(`${app} APK does not match the existing signing certificate`);
-  const actualId = run(resolve(buildTools, "aapt"), ["dump", "badging", apk]).match(/package: name='([^']+)'/)?.[1];
-  if (actualId !== applicationId) throw new Error(`${app} APK application ID changed`);
+  const badging = run(resolve(buildTools, "aapt"), ["dump", "badging", apk]);
+  verifyApkIdentity(app, fingerprint, verification, applicationId, badging);
   records.push({ app, applicationId, certificateSha256: fingerprint, sha256: createHash("sha256").update(readFileSync(apk)).digest("hex") });
 }
 writeFileSync(resolve(root, "release-apks/signatures.json"), `${JSON.stringify(records, null, 2)}\n`);

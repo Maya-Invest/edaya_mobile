@@ -121,6 +121,10 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
       errorMessage(systemL10n().invalidContact);
       return;
     }
+    if (identifier.kind == 'phone' && !delivery.phoneAvailable.value) {
+      errorMessage(systemL10n().phoneUnavailable);
+      return;
+    }
     await runTask(() async {
       final result = await _authClient.sendOtp(
         value: identifier.value,

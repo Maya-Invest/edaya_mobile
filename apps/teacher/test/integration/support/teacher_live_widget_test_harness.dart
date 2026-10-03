@@ -59,10 +59,7 @@ class TeacherLiveWidgetTestHarness {
     final baseConfig = IntegrationConfig.fromEnvironment();
     final config = baseConfig.withTeacherEmail(profile.email);
 
-    ApiBaseUrlConfig.configure(
-      appDefaultUrl: config.baseUrl,
-      appDefaultAuthUrl: config.authUrl,
-    );
+    ApiBaseUrlConfig.configure(appDefaultUrl: config.baseUrl);
     await ApiBaseUrlConfig.saveOverride(config.baseUrl);
     await AppSettingsController.preload();
 

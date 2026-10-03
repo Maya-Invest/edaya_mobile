@@ -16,6 +16,8 @@ class AccountSecurityController extends LevitController
   final identifiers = LxVar<List<Map<String, dynamic>>>([]);
   final value = LxVar('');
   final channel = LxVar('email');
+  String get selectedChannel =>
+      delivery.phoneAvailable.value ? channel.value : 'email';
   final code = LxVar('');
   final codeText = TextEditingController();
   late final delivery = OtpDeliveryState(
@@ -63,13 +65,25 @@ class AccountSecurityController extends LevitController
 
   Future<void> link() async {
     if (isBusy.value) return;
+    if (!challengeSent.value) {
+      final identifier = LoginIdentifier.detect(value.value);
+      if (identifier?.kind == 'phone' && !delivery.phoneAvailable.value) {
+        error(systemL10n().phoneUnavailable);
+        return;
+      }
+      if (identifier == null || identifier.kind != selectedChannel) {
+        error(systemL10n().invalidContact);
+        return;
+      }
+      value(identifier.value);
+    }
     await runTask(() async {
       error('');
       final result = challengeSent.value
           ? await auth.verifyIdentifier(code.value.trim())
           : await auth.linkIdentifier(
               value: value.value.trim(),
-              channel: channel.value,
+              channel: selectedChannel,
               recoveryEligible: recoveryEligible.value,
               locale: systemL10n().localeName.startsWith('en') ? 'en' : 'fr',
             );
@@ -193,35 +207,36 @@ class AccountSecurityPage extends LScopedView<AccountSecurityController> {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           if (!controller.challengeSent.value) ...[
-            DropdownButtonFormField<String>(
-              key: const Key('auth-link-channel'),
-              initialValue: controller.channel.value,
-              items: [
-                DropdownMenuItem(
-                  value: 'email',
-                  child: Text(context.tr.emailLabel),
-                ),
-                if (controller.delivery.phoneAvailable.value)
+            if (controller.delivery.phoneAvailable.value)
+              DropdownButtonFormField<String>(
+                key: const Key('auth-link-channel'),
+                initialValue: controller.selectedChannel,
+                items: [
                   DropdownMenuItem(
-                    value: 'phone',
-                    child: Text(context.tr.phoneLabel),
+                    value: 'email',
+                    child: Text(context.tr.emailLabel),
                   ),
-              ],
-              onChanged: controller.isBusy.value
-                  ? null
-                  : (value) {
-                      if (value != null) controller.channel(value);
-                    },
-            ),
+                  if (controller.delivery.phoneAvailable.value)
+                    DropdownMenuItem(
+                      value: 'phone',
+                      child: Text(context.tr.phoneLabel),
+                    ),
+                ],
+                onChanged: controller.isBusy.value
+                    ? null
+                    : (value) {
+                        if (value != null) controller.channel(value);
+                      },
+              ),
             TextFormField(
               key: const Key('auth-link-contact'),
               onChanged: controller.value.call,
               enabled: !controller.isBusy.value,
-              keyboardType: controller.channel.value == 'email'
+              keyboardType: controller.selectedChannel == 'email'
                   ? TextInputType.emailAddress
                   : TextInputType.phone,
               decoration: InputDecoration(
-                labelText: controller.channel.value == 'email'
+                labelText: controller.selectedChannel == 'email'
                     ? context.tr.emailLabel
                     : context.tr.phoneCountryHint,
               ),

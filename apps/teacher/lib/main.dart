@@ -26,10 +26,7 @@ Future<void> main() async {
     notificationConfig: PushNotificationConfigs.teacher,
   );
   FirebaseMessaging.onBackgroundMessage(teacherFcmBackgroundHandler);
-  ApiBaseUrlConfig.configure(
-    appDefaultUrl: ApiBaseUrlConfig.stagingUrl,
-    appDefaultAuthUrl: ApiBaseUrlConfig.stagingAuthUrl,
-  );
+  ApiBaseUrlConfig.configure(appDefaultUrl: ApiBaseUrlConfig.stagingUrl);
   await ApiBaseUrlConfig.load();
   await AppSettingsController.preload();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);

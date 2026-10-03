@@ -145,6 +145,7 @@ class LiveEvaluationsController extends LevitController
   }
 
   Future<void> loadPeriods() async {
+    if (isClosed) return;
     final yearId = _academicYear.selectedYearId.value;
     if (yearId == null) {
       periods(const []);
@@ -157,18 +158,21 @@ class LiveEvaluationsController extends LevitController
           academicPeriodsForYear(yearId),
         ),
       );
+      if (isClosed) return;
       periods(rows);
       final currentId = selectedPeriodId.value;
       if (currentId == null || !rows.any((row) => row['id'] == currentId)) {
         selectedPeriodId(currentAcademicPeriodId(rows));
       }
     } on Object {
+      if (isClosed) return;
       periods(const []);
       selectedPeriodId(null);
     }
   }
 
   Future<void> loadClassSubjects() async {
+    if (isClosed) return;
     final taughtIds = _teacherContext.taughtClassSubjectIds.value;
     if (taughtIds.isEmpty) {
       classSubjects(const []);
@@ -183,6 +187,7 @@ class LiveEvaluationsController extends LevitController
       final rows = await client.classSubjects.list(
         entitiesByIds(taughtIds.toList()),
       );
+      if (isClosed) return;
       final subjectIds = rows
           .map((row) => row['subjectId'] as String?)
           .whereType<String>()
@@ -191,6 +196,7 @@ class LiveEvaluationsController extends LevitController
       final subjectRows = subjectIds.isEmpty
           ? <Map<String, dynamic>>[]
           : await client.subjects.list(entitiesByIds(subjectIds));
+      if (isClosed) return;
       final subjectNameById = {
         for (final subject in subjectRows)
           subject['id'] as String:
@@ -211,11 +217,13 @@ class LiveEvaluationsController extends LevitController
       }).toList()..sort((a, b) => a.label.compareTo(b.label));
       classSubjects(options);
     } on Object {
+      if (isClosed) return;
       classSubjects(const []);
     }
   }
 
   Future<void> loadEvaluations() async {
+    if (isClosed) return;
     final yearId = _academicYear.selectedYearId.value;
     final taughtSubjectIds = _teacherContext.taughtClassSubjectIds.value;
     final classGroupIds = _teacherContext.visibleClassGroupIds;
@@ -239,6 +247,7 @@ class LiveEvaluationsController extends LevitController
         final classSubjectRows = await client.classSubjects.list(
           entitiesByIds(taughtSubjectIds.toList()),
         );
+        if (isClosed) return;
         final subjectIds = classSubjectRows
             .map((row) => row['subjectId'] as String?)
             .whereType<String>()
@@ -247,6 +256,7 @@ class LiveEvaluationsController extends LevitController
         final subjectRows = subjectIds.isEmpty
             ? <Map<String, dynamic>>[]
             : await client.subjects.list(entitiesByIds(subjectIds));
+        if (isClosed) return;
         final subjectNameById = {
           for (final subject in subjectRows)
             subject['id'] as String:
@@ -264,6 +274,7 @@ class LiveEvaluationsController extends LevitController
           final assessmentRows = await client.assessments.list(
             assessmentsForClassSubjectPeriod(classSubjectId, periodId),
           );
+          if (isClosed) return;
           if (assessmentRows.isEmpty) {
             continue;
           }
@@ -272,6 +283,7 @@ class LiveEvaluationsController extends LevitController
             final enrollmentRows = await client.enrollments.list(
               activeEnrollmentsForClass(classGroupId, academicYearId: yearId),
             );
+            if (isClosed) return;
             totalStudents = enrollmentRows.length;
             enrollmentCountByClass[classGroupId] = totalStudents;
           }
@@ -281,6 +293,7 @@ class LiveEvaluationsController extends LevitController
           final allResults = await client.assessmentResults.list(
             resultsForAssessments(assessmentIds),
           );
+          if (isClosed) return;
           final gradedByAssessment = <String, int>{};
           for (final result in allResults) {
             if (result['score'] == null) {
@@ -312,17 +325,21 @@ class LiveEvaluationsController extends LevitController
                 totalStudents: totalStudents,
                 maxScore: (assessment['maxScore'] as num?)?.toDouble() ?? 20,
                 kind: assessment['kind'] as String? ?? 'quiz',
-                date: assessment['startsAt'] as String? ??
+                date:
+                    assessment['startsAt'] as String? ??
                     assessment['dueAt'] as String?,
               ),
             );
           }
         }
+        if (isClosed) return;
         evaluations(summaries);
       } on api.ApiError catch (error) {
+        if (isClosed) return;
         errorMessage(systemL10n().couldNotLoadEvaluations('$error'));
         evaluations(const []);
       } on Object catch (error) {
+        if (isClosed) return;
         errorMessage(systemL10n().couldNotLoadEvaluations('$error'));
         evaluations(const []);
       }
@@ -403,9 +420,7 @@ class LiveEvaluationsController extends LevitController
 
   Future<String?> completeEvaluation(LiveEvaluationSummary evaluation) async {
     try {
-      await _schoolClient().completeAssessment({
-        'assessmentId': evaluation.id,
-      });
+      await _schoolClient().completeAssessment({'assessmentId': evaluation.id});
       await loadEvaluations();
       return null;
     } on Object catch (error) {

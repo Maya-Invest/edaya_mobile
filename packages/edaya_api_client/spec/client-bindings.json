@@ -1836,6 +1836,126 @@
       "responseSchemaName": "TeacherFamilyFeedbackResult"
     }
   },
+  "auth": {
+    "methods": {
+      "method": "GET",
+      "path": "/auth/edaya/methods",
+      "responseSchemaName": "AuthMethods",
+      "basePath": "root"
+    },
+    "startOtp": {
+      "method": "POST",
+      "path": "/auth/edaya/otp/start",
+      "requestSchemaName": "AuthStart",
+      "responseSchemaName": "AuthPrimaryStatus",
+      "basePath": "root"
+    },
+    "statusOtp": {
+      "method": "POST",
+      "path": "/auth/edaya/otp/status",
+      "requestSchemaName": "AuthChallengeInput",
+      "responseSchemaName": "AuthPrimaryStatus",
+      "basePath": "root"
+    },
+    "resendOtp": {
+      "method": "POST",
+      "path": "/auth/edaya/otp/resend",
+      "requestSchemaName": "AuthResend",
+      "responseSchemaName": "AuthPrimaryStatus",
+      "basePath": "root"
+    },
+    "verifyOtp": {
+      "method": "POST",
+      "path": "/auth/edaya/otp/verify",
+      "requestSchemaName": "AuthProof",
+      "responseSchemaName": "AuthOutcome",
+      "basePath": "root"
+    },
+    "verifyTotp": {
+      "method": "POST",
+      "path": "/auth/edaya/totp/verify",
+      "requestSchemaName": "AuthProof",
+      "responseSchemaName": "AuthOutcome",
+      "basePath": "root"
+    },
+    "enroll": {
+      "method": "POST",
+      "path": "/auth/edaya/totp/enroll",
+      "requestSchemaName": "AuthEnrollmentInput",
+      "responseSchemaName": "AuthEnrollment",
+      "basePath": "root"
+    },
+    "confirmEnrollment": {
+      "method": "POST",
+      "path": "/auth/edaya/totp/confirm",
+      "requestSchemaName": "AuthProof",
+      "responseSchemaName": "AuthOutcome",
+      "basePath": "root"
+    },
+    "recover": {
+      "method": "POST",
+      "path": "/auth/edaya/recovery",
+      "requestSchemaName": "AuthProof",
+      "responseSchemaName": "AuthEnrollment",
+      "basePath": "root"
+    },
+    "linkIdentifier": {
+      "method": "POST",
+      "path": "/auth/edaya/identifiers/start",
+      "requestSchemaName": "AuthStart",
+      "responseSchemaName": "AuthPrimaryStatus",
+      "basePath": "root"
+    },
+    "unlinkIdentifier": {
+      "method": "POST",
+      "path": "/auth/edaya/identifiers/unlink",
+      "requestSchemaName": "AuthUnlink",
+      "responseSchemaName": "AuthSuccess",
+      "basePath": "root"
+    },
+    "security": {
+      "method": "POST",
+      "path": "/auth/edaya/security",
+      "requestSchemaName": "AuthEmptyInput",
+      "responseSchemaName": "AuthSecurity",
+      "basePath": "root"
+    },
+    "disableTotp": {
+      "method": "POST",
+      "path": "/auth/edaya/totp/disable",
+      "requestSchemaName": "AuthEmptyInput",
+      "responseSchemaName": "AuthSuccess",
+      "basePath": "root"
+    },
+    "getSession": {
+      "method": "POST",
+      "path": "/auth/edaya/session",
+      "requestSchemaName": "AuthEmptyInput",
+      "responseSchemaName": "AuthSnapshot",
+      "basePath": "root"
+    },
+    "accessToken": {
+      "method": "POST",
+      "path": "/auth/edaya/access-token",
+      "requestSchemaName": "AuthResource",
+      "responseSchemaName": "AuthAccessToken",
+      "basePath": "root"
+    },
+    "signOut": {
+      "method": "POST",
+      "path": "/auth/edaya/sign-out",
+      "requestSchemaName": "AuthEmptyInput",
+      "responseSchemaName": "AuthSuccess",
+      "basePath": "root"
+    },
+    "signOutAll": {
+      "method": "POST",
+      "path": "/auth/edaya/sign-out-all",
+      "requestSchemaName": "AuthEmptyInput",
+      "responseSchemaName": "AuthSuccess",
+      "basePath": "root"
+    }
+  },
   "authorization": {
     "effectiveGrants": {
       "method": "GET",

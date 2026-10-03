@@ -265,7 +265,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
     double? score, {
     String? designation,
   }) async {
-    if (_saving || marksStatus.value != 'draft') return;
+    if (isClosed || _saving || marksStatus.value != 'draft') return;
     final summary = evaluation.value;
     if (summary == null) {
       return;
@@ -321,9 +321,12 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
       )) {
         throw Exception('offline pending marks');
       }
+      if (isClosed) return;
       await _schoolClient().recordAssessmentResult(payload);
+      if (isClosed) return;
       _revision++;
       await _outboxStore.removeByIdempotencyKey(idempotencyKey);
+      if (isClosed) return;
       _patchRow(
         studentId,
         resultId: resultId,
@@ -336,6 +339,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
         students.value.where((item) => item.score != null).length,
       );
     } on Object catch (error) {
+      if (isClosed) return;
       final retryable = isRetryableTeacherWriteFailure(error);
       if (retryable) _revision++;
       await _outboxStore.enqueue(
@@ -350,6 +354,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
               : TeacherOutboxState.conflict,
         ),
       );
+      if (isClosed) return;
       _patchRow(
         studentId,
         resultId: resultId,
@@ -368,7 +373,9 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
   }
 
   Future<void> fillUngraded(double score) async {
+    if (isClosed) return;
     for (final row in students.value) {
+      if (isClosed) return;
       if (row.score != null ||
           row.designation == 'absent' ||
           row.designation == 'exempt' ||
@@ -380,7 +387,9 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
   }
 
   Future<void> clearUnlocked() async {
+    if (isClosed) return;
     for (final row in students.value) {
+      if (isClosed) return;
       if (row.marksLocked || row.score == null) {
         continue;
       }

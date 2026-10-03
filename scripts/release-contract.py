@@ -12,7 +12,7 @@ TS_FILES = ['openapi.json', 'schema.d.ts', 'generated/client-bindings.ts', 'gene
 ARTIFACTS = {
     'backend': ['package/api-client/src/' + p for p in TS_FILES] + ['tooling/repo/fixtures/openapi.json'],
     'web': ['apps/webapp/node_modules/@maya-invest/edaya-api-client/src/' + p for p in TS_FILES],
-    'mobile': ['packages/edaya_api_client/spec/client-bindings.json', 'packages/edaya_api_client/lib/src/generated/client_bindings.dart', 'packages/edaya_api_client/lib/src/generated/school_client_surface.dart'],
+    'mobile': ['packages/edaya_api_client/spec/client-bindings.json', 'packages/edaya_api_client/lib/src/generated/client_bindings.dart', 'packages/edaya_api_client/lib/src/generated/school_client_surface.dart', 'packages/edaya_api_client/lib/src/generated/auth_contracts.dart'],
 }
 
 
@@ -29,7 +29,7 @@ def artifact_hash(path):
 
 
 def source_fingerprint(root):
-    files = sorted([*root.glob('apps/api/src/**/*'), *root.glob('apps/identity/src/**/*'), *root.glob('apps/identity/testing/**/*'), *root.glob('package/*/src/**/*'), *root.glob('package/adaptor-postgres/drizzle/*.sql'), *root.glob('package/adaptor-account/drizzle/*.sql'), *root.glob('package/adaptor-auth/drizzle/*.sql')])
+    files = sorted([*root.glob('apps/api/src/**/*'), *root.glob('apps/api/src/identity/**/*'), *root.glob('apps/api/src/identity/testing/**/*'), *root.glob('package/*/src/**/*'), *root.glob('package/adaptor-postgres/drizzle/*.sql'), *root.glob('package/adaptor-account/drizzle/*.sql'), *root.glob('package/adaptor-auth/drizzle/*.sql')])
     return digest(canonical({str(p.relative_to(root)): digest(p.read_bytes()) for p in files if p.is_file() and '.test.' not in p.name}))
 
 

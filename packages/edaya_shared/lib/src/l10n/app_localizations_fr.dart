@@ -80,8 +80,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get contactLabel => 'E-mail ou numéro de téléphone';
 
   @override
-  String get invalidContact =>
-      'Saisissez un e-mail valide ou un numéro de téléphone avec son indicatif pays.';
+  String get invalidContact => 'Saisissez un contact valide.';
 
   @override
   String get emailLabel => 'E-mail';
@@ -1910,6 +1909,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get deliveryChannel => 'Recevoir mon code par';
 
   @override
+  String get phoneUnavailable =>
+      'La vérification par téléphone est temporairement indisponible. Utilisez une adresse e-mail.';
+
+  @override
   String get phoneCountryHint =>
       'Numéros mobiles de Côte d’Ivoire uniquement. Exemple : +2250712345678.';
 
@@ -1977,7 +1980,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get changeContact => 'Changer d’adresse e-mail ou de numéro';
+  String get changeContact => 'Modifier le contact';
 
   @override
   String get checkWhatsApp => 'Consultez WhatsApp pour obtenir le code.';

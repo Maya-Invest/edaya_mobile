@@ -2,11 +2,10 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-if [[ -z "${EDAYA_AUTH_URL:-}" || -z "${EDAYA_API_URL:-}" ]]; then
-  echo "Set EDAYA_AUTH_URL and EDAYA_API_URL before building a distributable app." >&2
+if [[ -z "${EDAYA_API_URL:-}" ]]; then
+  echo "Set EDAYA_API_URL before building a distributable app." >&2
   exit 1
 fi
-AUTH_URL="$EDAYA_AUTH_URL"
 API_URL="$EDAYA_API_URL"
 APPS=(guardian teacher)
 
@@ -27,12 +26,11 @@ build_app() {
   local app="$1"
   require_key_properties "$app"
 
-  echo "Building Play Store AAB for $app (AUTH_URL=$AUTH_URL, API_URL=$API_URL)..."
+  echo "Building Play Store AAB for $app (API_URL=$API_URL)..."
   (
     cd "$ROOT/apps/$app"
     flutter build appbundle \
       --release \
-      --dart-define="AUTH_URL=$AUTH_URL" \
       --dart-define="API_URL=$API_URL"
   )
 

@@ -102,10 +102,7 @@ Future<void> main() async {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     FlutterSecureStorage.setMockInitialValues({});
-    ApiBaseUrlConfig.configure(
-      appDefaultUrl: config.baseUrl,
-      appDefaultAuthUrl: config.authUrl,
-    );
+    ApiBaseUrlConfig.configure(appDefaultUrl: config.baseUrl);
     await ApiBaseUrlConfig.saveOverride(config.baseUrl);
     await AppSettingsController.preload();
   });

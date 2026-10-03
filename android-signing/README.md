@@ -29,5 +29,5 @@ Outputs:
 - `apps/guardian/build/app/outputs/bundle/release/app-release.aab`
 - `apps/teacher/build/app/outputs/bundle/release/app-release.aab`
 
-Staging URLs (`https://staging.identity.api.edayaplus.com` and `https://staging.school.api.edayaplus.com`) are baked in via `--dart-define=AUTH_URL=... --dart-define=API_URL=...`.
-Override with `EDAYA_AUTH_URL` / `EDAYA_API_URL` when building (for example production: `https://identity.api.edayaplus.com` and `https://school.api.edayaplus.com`).
+Staging URLs (`https://staging.api.edayaplus.com` and `https://staging.api.edayaplus.com`) are baked in via `--dart-define=API_URL=...`.
+Override with `EDAYA_API_URL` when building (for example production: `https://api.edayaplus.com` and `https://api.edayaplus.com`).

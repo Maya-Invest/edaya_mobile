@@ -65,9 +65,12 @@ class PasswordlessLoginForm extends StatelessWidget {
                 autocorrect: false,
                 enabled: !controller.isBusy.value,
                 decoration: InputDecoration(
-                  labelText: context.tr.contactLabel,
+                  labelText: controller.delivery.phoneAvailable.value
+                      ? context.tr.contactLabel
+                      : context.tr.emailLabel,
                   helperText:
-                      RegExp(
+                      controller.delivery.phoneAvailable.value &&
+                          RegExp(
                             r'^[+\d(]',
                           ).hasMatch(controller.email.value.trim()) &&
                           !controller.email.value.contains('@')

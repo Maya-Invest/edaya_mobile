@@ -1,26 +1,22 @@
 #!/usr/bin/env bash
-# Start or stop empty local Identity + school (no demo seed) for mobile integration CI.
-# Seed runs as a separate workflow step: bun repo seed --skip-profile-photos --skip-attachments
+# Start or stop empty unified API (no demo seed) for web Playwright CI.
 set -euo pipefail
 
 ACTION="${1:?usage: ci-start-local-apis.sh start|stop}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="${GITHUB_WORKSPACE:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
-PARENT="$(dirname "$REPO_ROOT")"
+WEB_ROOT="${GITHUB_WORKSPACE:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
+PARENT="$(dirname "$WEB_ROOT")"
 BACKEND_ROOT="${BACKEND_ROOT:-$PARENT/edaya_backend}"
-IDENTITY_ROOT="$BACKEND_ROOT"
 PID_DIR="${EDAYA_CI_API_PID_DIR:-/tmp/edaya-ci-apis}"
 WAIT_SCRIPT="$SCRIPT_DIR/ci-wait-for-url.sh"
-AUTH_PORT="${EDAYA_CI_AUTH_PORT:-9900}"
 API_PORT="${EDAYA_CI_API_PORT:-9999}"
 FILES_PORT="${EDAYA_CI_FILES_PORT:-9200}"
-AUTH_ORIGIN="http://127.0.0.1:$AUTH_PORT"
 API_ORIGIN="http://127.0.0.1:$API_PORT"
 
 TRUSTED_ORIGINS="http://localhost:5173,http://localhost:4173,http://127.0.0.1:5173,http://127.0.0.1:4173"
-DIRECTORY_SECRET="local-directory-secret"
-WEBAPP_ORIGIN="http://localhost:5173"
+WEBAPP_ORIGIN="${EDAYA_CI_WEBAPP_ORIGIN:-http://127.0.0.1:4173}"
+TRUSTED_ORIGINS="$TRUSTED_ORIGINS,$WEBAPP_ORIGIN"
 
 upsert_env() {
 	local file="$1"
@@ -55,11 +51,9 @@ overlay_school_env() {
 	local file="$1"
 	upsert_env "$file" TRUSTED_ORIGINS "$TRUSTED_ORIGINS"
 	upsert_env "$file" WEBAPP_ORIGIN "$WEBAPP_ORIGIN"
-	upsert_env "$file" IDENTITY_DIRECTORY_SECRET "$DIRECTORY_SECRET"
 	upsert_env "$file" PORT "$API_PORT"
-	upsert_env "$file" IDENTITY_ISSUER "$AUTH_ORIGIN"
-	upsert_env "$file" IDENTITY_DIRECTORY_URL "$AUTH_ORIGIN"
 	upsert_env "$file" API_ORIGIN "$API_ORIGIN"
+	upsert_env "$file" ALLOW_PUBLIC_SCHOOL_REGISTRATION true
 	upsert_env "$file" LOG_LEVEL error
 	upsert_env "$file" LOCAL_FILES_URL "http://127.0.0.1:$FILES_PORT"
 	upsert_env "$file" LOCAL_FILES_ROOT "$PID_DIR/files"
@@ -68,8 +62,6 @@ overlay_school_env() {
 }
 
 dump_logs() {
-	echo "--- identity.log ---" >&2
-	cat "$PID_DIR/identity.log" >&2 || true
 	echo "--- school.log ---" >&2
 	cat "$PID_DIR/school.log" >&2 || true
 }
@@ -116,51 +108,36 @@ start_background() {
 
 case "$ACTION" in
 	start)
-		test -f "$IDENTITY_ROOT/package/identity-client/package.json"
 		test -f "$BACKEND_ROOT/package.json"
-		test -f "$IDENTITY_ROOT/.env.example"
 		test -f "$BACKEND_ROOT/apps/api/.env.example"
 
-		mkdir -p "$PID_DIR" "$IDENTITY_ROOT/apps/identity" "$BACKEND_ROOT/apps/api"
 
+		mkdir -p "$PID_DIR"
 		# Disposable school configuration, leaving all checkout .env files intact.
 		cp "$BACKEND_ROOT/apps/api/.env.example" "$PID_DIR/school.env"
 		overlay_school_env "$PID_DIR/school.env"
 		upsert_env "$PID_DIR/school.env" DATABASE_URL "pglite:$PID_DIR/school-db"
 
-		echo "Installing Identity dependencies"
-		(cd "$IDENTITY_ROOT" && bun install --frozen-lockfile)
-
-		echo "Installing school dependencies"
+		mkdir -p "$PID_DIR"
+		upsert_env "$PID_DIR/school.env" AUTH_DATABASE_URL "pglite:$PID_DIR/account-db"
 		(cd "$BACKEND_ROOT" && bun install --frozen-lockfile)
 
 		if [ -n "${GITHUB_ENV:-}" ]; then
 			echo "SEED_ENV_FILE=$PID_DIR/school.env" >> "$GITHUB_ENV"
 			echo "SEED_API_URL=$API_ORIGIN" >> "$GITHUB_ENV"
-			echo "SEED_AUTH_URL=$AUTH_ORIGIN" >> "$GITHUB_ENV"
 			echo "EDAYA_TEST_OTP_FILE=$PID_DIR/otp.jsonl" >> "$GITHUB_ENV"
 			echo "EDAYA_TEST_POLICY_FILE=$PID_DIR/privileged-accounts.json" >> "$GITHUB_ENV"
 			echo "EDAYA_TEST_CLOCK_FILE=$PID_DIR/clock-offset" >> "$GITHUB_ENV"
 		fi
 
-		echo "Starting Identity on :$AUTH_PORT (empty, no seed)"
-		start_background "$PID_DIR/identity.pid" "$PID_DIR/identity.log" "$IDENTITY_ROOT" \
-			env NODE_ENV=test EDAYA_TEST_PORT="$AUTH_PORT" EDAYA_TEST_API_ORIGIN="$API_ORIGIN" EDAYA_TEST_TRUSTED_ORIGINS="$TRUSTED_ORIGINS" EDAYA_TEST_DIRECTORY_SECRET="$DIRECTORY_SECRET" EDAYA_TEST_POLICY_FILE="$PID_DIR/privileged-accounts.json" EDAYA_TEST_OTP_FILE="$PID_DIR/otp.jsonl" EDAYA_TEST_CLOCK_FILE="$PID_DIR/clock-offset" bun --no-env-file apps/identity/tests/support/live-integration-server.ts
-		if ! bash "$WAIT_SCRIPT" "$AUTH_ORIGIN/" 120; then
-			dump_logs
-			exit 1
-		fi
-
-		echo "Starting school API on :$API_PORT (empty, no seed)"
+		echo "Starting unified testing API on :$API_PORT"
 		start_background "$PID_DIR/school.pid" "$PID_DIR/school.log" "$BACKEND_ROOT" \
-			env EDAYA_LOCAL_ENV_FILE="$PID_DIR/school.env" bun --no-env-file apps/api/src/entries/local.ts
-		if ! bash "$WAIT_SCRIPT" "$API_ORIGIN/reference" 120; then
-			dump_logs
-			exit 1
-		fi
+			env NODE_ENV=test EDAYA_LOCAL_ENV_FILE="$PID_DIR/school.env" EDAYA_TEST_PORT="$API_PORT" EDAYA_TEST_AUTH_DATABASE_URL="pglite:$PID_DIR/account-db" EDAYA_TEST_TRUSTED_ORIGINS="$TRUSTED_ORIGINS" EDAYA_TEST_POLICY_FILE="$PID_DIR/privileged-accounts.json" EDAYA_TEST_OTP_FILE="$PID_DIR/otp.jsonl" EDAYA_TEST_CLOCK_FILE="$PID_DIR/clock-offset" bun --no-env-file apps/api/src/identity/entries/testing.ts
+		if ! bash "$WAIT_SCRIPT" "$API_ORIGIN/reference" 120; then dump_logs; exit 1; fi
+
 		echo "Starting local files on :$FILES_PORT"
 		start_background "$PID_DIR/files.pid" "$PID_DIR/files.log" "$BACKEND_ROOT" \
-			env EDAYA_LOCAL_ENV_FILE="$PID_DIR/school.env" bun --no-env-file tooling/local-files-server/src/main.ts
+			env EDAYA_LOCAL_ENV_FILE="$PID_DIR/school.env" bun --no-env-file tooling/repo/dev/local-files.ts
 		if ! bash "$WAIT_SCRIPT" "http://127.0.0.1:$FILES_PORT/health" 120; then
 			dump_logs
 			exit 1
@@ -169,7 +146,6 @@ case "$ACTION" in
 	stop)
 		kill_pidfile "$PID_DIR/files.pid"
 		kill_pidfile "$PID_DIR/school.pid"
-		kill_pidfile "$PID_DIR/identity.pid"
 		rm -f "$PID_DIR/otp.jsonl" "$PID_DIR/clock-offset" "$PID_DIR/privileged-accounts.json" "$PID_DIR/school.env"
 		;;
 	*)
