@@ -363,6 +363,18 @@ extension GeneratedSchoolClientCommands on SchoolClient {
   Future<Map<String, dynamic>> reviseAssessmentMarksCorrection(Map<String, dynamic> payload) =>
       runCommand("revise-assessment-marks-correction", payload);
 
+  Future<Map<String, dynamic>> startConversation(Map<String, dynamic> payload) =>
+      runCommand("start-conversation", payload);
+
+  Future<Map<String, dynamic>> replyConversation(Map<String, dynamic> payload) =>
+      runCommand("reply-conversation", payload);
+
+  Future<Map<String, dynamic>> resolveConversation(Map<String, dynamic> payload) =>
+      runCommand("resolve-conversation", payload);
+
+  Future<Map<String, dynamic>> markConversationRead(Map<String, dynamic> payload) =>
+      runCommand("mark-conversation-read", payload);
+
   Future<Map<String, dynamic>> requestTeacherCorrection(Map<String, dynamic> payload) =>
       runCommand("request-teacher-correction", payload);
 
@@ -691,6 +703,15 @@ extension GeneratedSchoolClientQueries on SchoolClient {
 
   Future<Map<String, dynamic>> getTeacherWorkflowState(Map<String, dynamic> payload) =>
       runQuery("get-teacher-workflow-state", payload);
+
+  Future<Map<String, dynamic>> listConversationRecipients(Map<String, dynamic> payload) =>
+      runQuery("list-conversation-recipients", payload);
+
+  Future<Map<String, dynamic>> listConversations(Map<String, dynamic> payload) =>
+      runQuery("list-conversations", payload);
+
+  Future<Map<String, dynamic>> getConversation(Map<String, dynamic> payload) =>
+      runQuery("get-conversation", payload);
 
   Future<Map<String, dynamic>> listTeacherCorrections(Map<String, dynamic> payload) =>
       runQuery("list-teacher-corrections", payload);

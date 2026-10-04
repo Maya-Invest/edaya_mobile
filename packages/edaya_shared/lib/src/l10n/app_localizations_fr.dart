@@ -2102,4 +2102,80 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get workflowTeacherExplanation => 'Explication de l’enseignant';
+
+  @override
+  String get messagingNew => 'Nouveau message';
+
+  @override
+  String get messagingSchool => 'École';
+
+  @override
+  String get messagingTeacher => 'Enseignant';
+
+  @override
+  String get messagingSubject => 'Objet';
+
+  @override
+  String get messagingBody => 'Message';
+
+  @override
+  String get messagingSend => 'Envoyer';
+
+  @override
+  String get messagingReply => 'Répondre';
+
+  @override
+  String get messagingEmpty => 'Aucune conversation';
+
+  @override
+  String get messagingOversight =>
+      'Le personnel autorisé de l’école peut consulter les échanges avec les enseignants.';
+
+  @override
+  String get messagingIncludeChild => 'Préciser l’enfant sélectionné';
+
+  @override
+  String get messagingUnavailable =>
+      'La messagerie est actuellement indisponible pour ce destinataire.';
+
+  @override
+  String get messagingHistory => 'Conversation en lecture seule';
+
+  @override
+  String get messagingLoadMore => 'Charger les messages précédents';
+
+  @override
+  String get messagingRefresh => 'Actualiser';
+
+  @override
+  String get messagingAwaitingSchool => 'En attente de l’école';
+
+  @override
+  String get messagingAwaitingGuardian => 'En attente du parent';
+
+  @override
+  String get messagingResolved => 'Résolu';
+
+  @override
+  String get messagingFailed =>
+      'Envoi impossible. Votre brouillon est conservé. Réessayez.';
+
+  @override
+  String get messagingChanged =>
+      'De nouveaux échanges sont disponibles. Consultez-les avant de renvoyer votre message.';
+
+  @override
+  String get messagingRequired => 'Saisissez un objet et un message.';
+
+  @override
+  String get messagingSchoolAuthor => 'Personnel de l’école';
+
+  @override
+  String get messagingRead => 'Lu';
+
+  @override
+  String get messagingUnread => 'Non lu';
+
+  @override
+  String get messagingConversations => 'Conversations';
 }

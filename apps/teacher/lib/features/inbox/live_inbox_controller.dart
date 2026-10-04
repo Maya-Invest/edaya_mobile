@@ -20,12 +20,20 @@ class LiveInboxController extends LevitController with LevitReactiveTasksMixin {
   int _generation = 0;
   bool _closed = false;
 
+  final conversationUnread = LxVar(0);
   final deliveries = LxVar<List<InboxDelivery>>(const []);
   final errorMessage = LxVar('');
 
   @override
   void onInit() {
     super.onInit();
+    autoDispose(conversationUnread);
+    autoDispose(
+      conversationCountsChanged.stream.listen((_) => unawaited(loadInbox())),
+    );
+    autoDispose(
+      messagingRefreshEvents.stream.listen((_) => unawaited(loadInbox())),
+    );
     autoDispose(deliveries);
     autoDispose(errorMessage);
     autoDispose(_session.user.stream.listen((_) => unawaited(loadInbox())));
@@ -53,7 +61,14 @@ class LiveInboxController extends LevitController with LevitReactiveTasksMixin {
   String get emptyMessage => systemL10n().noMessagesInInbox;
 
   int get unreadCount =>
-      deliveries.value.where((delivery) => delivery.isUnread).length;
+      deliveries.value
+          .where(
+            (delivery) =>
+                delivery.isUnread &&
+                delivery.eventKey != 'conversation.message',
+          )
+          .length +
+      conversationUnread.value;
 
   InboxDelivery? deliveryById(String id) {
     for (final delivery in deliveries.value) {
@@ -91,6 +106,7 @@ class LiveInboxController extends LevitController with LevitReactiveTasksMixin {
       if (_closed) {
         return;
       }
+      conversationUnread(0);
       deliveries(const []);
       errorMessage('');
       return;
@@ -121,6 +137,18 @@ class LiveInboxController extends LevitController with LevitReactiveTasksMixin {
           return bTime.compareTo(aTime);
         });
       deliveries(parsed);
+      try {
+        final page = await _schoolClient().runQuery('list-conversations', {
+          'limit': 1,
+        });
+        if (generation == _generation && key == _inboxKey()) {
+          conversationUnread((page['unreadCount'] as num).toInt());
+        }
+      } on Object {
+        if (generation == _generation && key == _inboxKey()) {
+          conversationUnread(0);
+        }
+      }
     } on api.ApiError catch (error) {
       if (_closed || generation != _generation || key != _inboxKey()) {
         return;

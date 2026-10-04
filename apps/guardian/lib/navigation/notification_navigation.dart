@@ -6,9 +6,19 @@ import 'package:go_router/go_router.dart';
 import '../features/context/student_context_controller.dart';
 import '../features/inbox/inbox_routes.dart';
 
+final _conversationNavigation = ConversationNotificationNavigation();
+
 /// Routes the user after they open a push notification in the guardian app.
 void handleGuardianNotificationOpened(RemoteMessage message) {
   final session = EdayaRootScope.find<AppSessionController>();
+  if (_conversationNavigation.handle(
+    message,
+    session: session,
+    kind: 'guardian',
+    onReady: (path) => EdayaRootScope.find<GoRouter>().go(path),
+  )) {
+    return;
+  }
   if (!session.isAuthenticated) {
     return;
   }

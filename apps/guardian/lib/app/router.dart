@@ -247,6 +247,12 @@ GoRouter createRouter({
             builder: (_, _) => hubPlaceholder(),
             routes: [
               GoRoute(
+                path: 'conversation/:conversationId',
+                builder: (_, state) => ConversationPage(
+                  conversationId: state.pathParameters['conversationId']!,
+                ),
+              ),
+              GoRoute(
                 path: 'message/:id',
                 builder: (context, state) {
                   final extra = state.extra;

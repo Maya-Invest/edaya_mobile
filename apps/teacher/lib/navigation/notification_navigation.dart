@@ -3,9 +3,19 @@ import 'package:go_router/go_router.dart';
 
 import 'teacher_notification_targets.dart';
 
+final _conversationNavigation = ConversationNotificationNavigation();
+
 /// Routes the user after they open a push notification in the teacher app.
 void handleTeacherNotificationOpened(RemoteMessage message) {
   final session = EdayaRootScope.find<AppSessionController>();
+  if (_conversationNavigation.handle(
+    message,
+    session: session,
+    kind: 'teacher',
+    onReady: (path) => EdayaRootScope.find<GoRouter>().go(path),
+  )) {
+    return;
+  }
   if (!session.isAuthenticated) {
     return;
   }

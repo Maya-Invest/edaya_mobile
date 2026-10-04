@@ -90,7 +90,8 @@
     "guardian.auth.restore-stale",
     "guardian.profiles.select",
     "guardian.invitation.accept",
-    "guardian.auth.totp-recovery"
+    "guardian.auth.totp-recovery",
+    "guardian.messaging.school"
   ],
   "teacher": [
     "teacher.subject.bootstrap",
@@ -123,6 +124,7 @@
     "teacher.auth.whatsapp",
     "teacher.auth.sms-switch",
     "teacher.daily-attendance.submit",
-    "teacher.discipline.correction"
+    "teacher.discipline.correction",
+    "teacher.messaging.reply"
   ]
 }

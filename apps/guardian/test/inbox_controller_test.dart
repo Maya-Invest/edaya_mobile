@@ -43,6 +43,16 @@ class _Transport implements api.Transport {
     String path, {
     api.TransportRequestOptions? options,
   }) async {
+    if (path.endsWith('/list-conversations')) {
+      return <String, dynamic>{
+            'items': [],
+            'total': 0,
+            'unreadCount': 0,
+            'offset': 0,
+            'limit': 1,
+          }
+          as T;
+    }
     queries.add(options?.body);
     final response = Completer<List<Map<String, dynamic>>>();
     pending.add(response);

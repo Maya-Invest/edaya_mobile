@@ -23,6 +23,7 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
 
   int _generation = 0;
 
+  final conversationUnread = LxVar(0);
   final deliveries = LxVar<List<InboxDelivery>>(const []);
   final campaigns = LxVar<List<GuardianFamilyFeedbackCampaign>>(const []);
   final errorMessage = LxVar('');
@@ -30,6 +31,13 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
   @override
   void onInit() {
     super.onInit();
+    autoDispose(conversationUnread);
+    autoDispose(
+      conversationCountsChanged.stream.listen((_) => unawaited(loadInbox())),
+    );
+    autoDispose(
+      messagingRefreshEvents.stream.listen((_) => unawaited(loadInbox())),
+    );
     autoDispose(deliveries);
     autoDispose(campaigns);
     autoDispose(errorMessage);
@@ -45,6 +53,9 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
     unawaited(loadInbox());
   }
 
+  @override
+  void onClose() { _generation++; super.onClose(); }
+
   DataStatus get dataStatus {
     if (isBusy.value && deliveries.value.isEmpty) {
       return DataStatus.loading;
@@ -58,7 +69,14 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
   String get emptyMessage => systemL10n().noMessagesInInbox;
 
   int get unreadCount =>
-      deliveries.value.where((delivery) => delivery.isUnread).length;
+      deliveries.value
+          .where(
+            (delivery) =>
+                delivery.isUnread &&
+                delivery.eventKey != 'conversation.message',
+          )
+          .length +
+      conversationUnread.value;
 
   int get openCampaignCount =>
       campaigns.value.where((item) => item.slotState == 'open').length;
@@ -84,6 +102,7 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
     final generation = ++_generation;
     final key = _inboxKey();
     if (key == null) {
+      conversationUnread(0);
       deliveries(const []);
       campaigns(const []);
       errorMessage('');
@@ -115,6 +134,18 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
           return bTime.compareTo(aTime);
         });
       deliveries(parsed);
+      try {
+        final page = await _schoolClient().runQuery('list-conversations', {
+          'limit': 1,
+        });
+        if (generation == _generation && key == _inboxKey()) {
+          conversationUnread((page['unreadCount'] as num).toInt());
+        }
+      } on Object {
+        if (generation == _generation && key == _inboxKey()) {
+          conversationUnread(0);
+        }
+      }
       try {
         final items = await listGuardianFamilyFeedbackCampaigns(
           _schoolClient(),

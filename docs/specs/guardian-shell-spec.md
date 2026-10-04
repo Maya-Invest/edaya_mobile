@@ -14,7 +14,7 @@ This spec defines information architecture, shell chrome, student context, adapt
 |------|-------------|
 | Audience | Guardians (parents / legal guardians), French-first |
 | Tone | Family companion — not a staff workspace |
-| v1 interactions | Mostly **read-only**; guardian **profile** may update contact details and notification channels. Other write flows (justify absence, pay, reply, …) are out of scope until specified |
+| v1 interactions | Mostly **read-only**; guardian **profile** may update contact details and notification channels. Text conversations and replies are supported in Messages. Other write flows (justify absence, pay, …) are out of scope until specified |
 | Child awareness | When content is student-specific, active student context must remain visible in the shell |
 
 ---
@@ -297,3 +297,9 @@ Must not be treated as shell requirements:
 - Deprecated “permanent master–detail” naming or APIs
 - Historical redesign tables comparing old production screens
 - Web staff patterns (list + URL drawer + mutation modals as the workspace model)
+
+## Guardian conversations
+
+Messages supports New message, a merged notification/conversation list, and `/inbox/conversation/:conversationId` details under the existing Messages tab. Avis remains unchanged. Teacher conversations capture the selected child and a currently assigned teacher; school conversations may omit the child. Subject and body are text only. Recipient changes clear composer fields. Unsent drafts remain transient and are cleared on profile/logout changes.
+
+Conversation details retain their captured school, participants and child independently of the shell selection. Guardians retain authorized read-only history after the original teaching relationship ends. Teacher exchanges explain school oversight. School enquiry status is shown separately from personal unread state. Push destinations establish the correct selected school/profile before navigation, including after sign-in.

@@ -184,15 +184,16 @@ class _LiveInboxPage extends LScopedView<InboxController> {
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: Text(
-              showingAvis
-                  ? '${controller.openCampaignCount} ouvert(s)'
-                  : '${controller.unreadCount} non lu(s)',
-              style: Theme.of(context).textTheme.bodySmall,
+          if (showingAvis)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Text(
+                showingAvis
+                    ? '${controller.openCampaignCount} ouvert(s)'
+                    : '${controller.unreadCount} non lu(s)',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ),
-          ),
           Expanded(
             child: showingAvis
                 ? _CampaignList(controller: controller, selectedId: selectedId)
@@ -212,55 +213,30 @@ class _MessageList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final deliveries = controller.deliveries.value;
-    if (deliveries.isEmpty) {
-      return EmptyState(title: controller.emptyMessage);
-    }
-
-    return ListView.separated(
-      padding: const EdgeInsets.all(PrototypeSpacing.md),
-      itemCount: deliveries.length,
-      separatorBuilder: (_, _) => const SizedBox(height: PrototypeSpacing.xs),
-      itemBuilder: (context, i) {
-        final m = deliveries[i];
-        final selected = selectedId == m.id;
-        final sentAt = m.sortDate;
-        return ListRow(
-          title: m.title,
-          subtitle: m.body.length > 80 ? '${m.body.substring(0, 80)}…' : m.body,
-          unread: m.isUnread,
-          selected: selected,
-          badge: m.isUnread
-              ? 'Nouveau'
-              : sentAt == null
-              ? 'Lu'
-              : 'Lu · ${formatDate(sentAt)}',
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: m.isUnread
-                  ? PrototypeColors.primaryContainer
-                  : const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(10),
+    return LWatch(() {
+      final student = context.levit
+          .find<StudentContextController>()
+          .activeStudent
+          .value;
+      return MessagingInbox(
+        guardian: true,
+        studentId: student?.id,
+        studentName: student?.fullName,
+        notices: [
+          for (final m in controller.deliveries.value.where(
+            (m) => m.eventKey != 'conversation.message',
+          ))
+            MessagingNotice(
+              id: m.id,
+              title: m.title,
+              body: m.body,
+              unread: m.isUnread,
+              at: m.sortDate,
             ),
-            child: Icon(
-              Icons.mail_outline,
-              size: 20,
-              color: m.isUnread
-                  ? PrototypeColors.primary
-                  : PrototypeColors.onSurfaceVariant,
-            ),
-          ),
-          onTap: () => context.push(inboxMessagePath(m.id), extra: m),
-          trailing: Icon(
-            Icons.chevron_right,
-            color: selected
-                ? PrototypeColors.primary
-                : PrototypeColors.onSurfaceVariant,
-          ),
-        );
-      },
-    );
+        ],
+        onNotice: (id) => context.push(inboxMessagePath(id)),
+      );
+    });
   }
 }
 

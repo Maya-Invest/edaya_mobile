@@ -3649,6 +3649,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Teacher explanation'**
   String get workflowTeacherExplanation;
+
+  /// No description provided for @messagingNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New message'**
+  String get messagingNew;
+
+  /// No description provided for @messagingSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'School'**
+  String get messagingSchool;
+
+  /// No description provided for @messagingTeacher.
+  ///
+  /// In en, this message translates to:
+  /// **'Teacher'**
+  String get messagingTeacher;
+
+  /// No description provided for @messagingSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject'**
+  String get messagingSubject;
+
+  /// No description provided for @messagingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get messagingBody;
+
+  /// No description provided for @messagingSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get messagingSend;
+
+  /// No description provided for @messagingReply.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply'**
+  String get messagingReply;
+
+  /// No description provided for @messagingEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No conversations yet'**
+  String get messagingEmpty;
+
+  /// No description provided for @messagingOversight.
+  ///
+  /// In en, this message translates to:
+  /// **'Authorized school staff can review teacher conversations.'**
+  String get messagingOversight;
+
+  /// No description provided for @messagingIncludeChild.
+  ///
+  /// In en, this message translates to:
+  /// **'Include the selected child'**
+  String get messagingIncludeChild;
+
+  /// No description provided for @messagingUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Messaging is currently unavailable for this recipient.'**
+  String get messagingUnavailable;
+
+  /// No description provided for @messagingHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Read-only conversation'**
+  String get messagingHistory;
+
+  /// No description provided for @messagingLoadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load older messages'**
+  String get messagingLoadMore;
+
+  /// No description provided for @messagingRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get messagingRefresh;
+
+  /// No description provided for @messagingAwaitingSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting school'**
+  String get messagingAwaitingSchool;
+
+  /// No description provided for @messagingAwaitingGuardian.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting guardian'**
+  String get messagingAwaitingGuardian;
+
+  /// No description provided for @messagingResolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolved'**
+  String get messagingResolved;
+
+  /// No description provided for @messagingFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to send. Your draft is preserved. Try again.'**
+  String get messagingFailed;
+
+  /// No description provided for @messagingChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'New activity is available. Review the conversation before sending again.'**
+  String get messagingChanged;
+
+  /// No description provided for @messagingRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a subject and a message.'**
+  String get messagingRequired;
+
+  /// No description provided for @messagingSchoolAuthor.
+  ///
+  /// In en, this message translates to:
+  /// **'School staff'**
+  String get messagingSchoolAuthor;
+
+  /// No description provided for @messagingRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get messagingRead;
+
+  /// No description provided for @messagingUnread.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread'**
+  String get messagingUnread;
+
+  /// No description provided for @messagingConversations.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversations'**
+  String get messagingConversations;
 }
 
 class _AppLocalizationsDelegate

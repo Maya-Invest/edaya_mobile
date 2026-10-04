@@ -63,3 +63,8 @@ export 'src/ui/session_card.dart';
 export 'src/ui/status_badge.dart';
 export 'src/ui/sync_indicator.dart';
 export 'src/offline/teacher_outbox_store.dart';
+
+export 'src/features/messaging/conversation_widgets.dart';
+export 'src/features/messaging/conversation_controller.dart';
+export 'src/features/messaging/conversation_notification_navigation.dart';
+export 'src/features/messaging/messaging_events.dart';

@@ -2079,4 +2079,80 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get workflowTeacherExplanation => 'Teacher explanation';
+
+  @override
+  String get messagingNew => 'New message';
+
+  @override
+  String get messagingSchool => 'School';
+
+  @override
+  String get messagingTeacher => 'Teacher';
+
+  @override
+  String get messagingSubject => 'Subject';
+
+  @override
+  String get messagingBody => 'Message';
+
+  @override
+  String get messagingSend => 'Send';
+
+  @override
+  String get messagingReply => 'Reply';
+
+  @override
+  String get messagingEmpty => 'No conversations yet';
+
+  @override
+  String get messagingOversight =>
+      'Authorized school staff can review teacher conversations.';
+
+  @override
+  String get messagingIncludeChild => 'Include the selected child';
+
+  @override
+  String get messagingUnavailable =>
+      'Messaging is currently unavailable for this recipient.';
+
+  @override
+  String get messagingHistory => 'Read-only conversation';
+
+  @override
+  String get messagingLoadMore => 'Load older messages';
+
+  @override
+  String get messagingRefresh => 'Refresh';
+
+  @override
+  String get messagingAwaitingSchool => 'Awaiting school';
+
+  @override
+  String get messagingAwaitingGuardian => 'Awaiting guardian';
+
+  @override
+  String get messagingResolved => 'Resolved';
+
+  @override
+  String get messagingFailed =>
+      'Unable to send. Your draft is preserved. Try again.';
+
+  @override
+  String get messagingChanged =>
+      'New activity is available. Review the conversation before sending again.';
+
+  @override
+  String get messagingRequired => 'Enter a subject and a message.';
+
+  @override
+  String get messagingSchoolAuthor => 'School staff';
+
+  @override
+  String get messagingRead => 'Read';
+
+  @override
+  String get messagingUnread => 'Unread';
+
+  @override
+  String get messagingConversations => 'Conversations';
 }

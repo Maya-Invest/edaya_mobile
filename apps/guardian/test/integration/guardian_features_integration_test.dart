@@ -91,6 +91,50 @@ Future<void> main() async {
   });
 
   testWidgets(
+    '[guardian.messaging.school] composes a childless school enquiry and receives the school reply',
+    (tester) async {
+      final subject = 'Opening hours ${DateTime.now().microsecondsSinceEpoch}';
+      await pumpGuardianRoute(tester, harness, location: '/inbox');
+      await pumpUntilFound(tester, find.text('Nouveau message'));
+      await tester.tap(find.text('Nouveau message'));
+      await pumpUntilFound(
+        tester,
+        find.byType(DropdownButtonFormField<String>),
+      );
+      await tester.enterText(
+        find.byWidgetPredicate(
+          (w) => w is TextField && w.decoration?.labelText == 'Objet',
+        ),
+        subject,
+      );
+      await tester.enterText(
+        find.byWidgetPredicate(
+          (w) => w is TextField && w.decoration?.labelText == 'Message',
+        ),
+        'When does the office open?',
+      );
+      await tester.tap(find.text('Envoyer'));
+      await pumpUntilFound(tester, find.byType(ConversationPage));
+      await pumpUntilFound(tester, find.text('When does the office open?'));
+      final page = await session.schoolClient.runQuery('list-conversations', {
+        'destination': 'school',
+      });
+      final row = (page['items'] as List).cast<Map>().firstWhere(
+        (r) => r['subject'] == subject,
+      );
+      expect(row['studentId'], isNull);
+      expect(row['status'], 'awaiting_school');
+      await owner.schoolClient.runCommand('reply-conversation', {
+        'conversationId': row['id'],
+        'expectedVersion': row['version'],
+        'requestId': 'answer-$subject',
+        'body': 'The office opens at eight.',
+      });
+      await tester.tap(find.byTooltip('Actualiser'));
+      await pumpUntilFound(tester, find.text('The office opens at eight.'));
+    },
+  );
+  testWidgets(
     '[guardian.report-card.detail] displays a published report with its real period and average',
     (tester) async {
       final card = probes.academic.reportCards.first;

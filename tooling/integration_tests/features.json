@@ -195,7 +195,8 @@
           "/inbox/message/:id",
           "/message/:id",
           "/inbox/avis",
-          "/inbox/avis/:campaignId"
+          "/inbox/avis/:campaignId",
+          "/inbox/conversation/:conversationId"
         ],
         "actions": [
           {
@@ -215,6 +216,12 @@
             "id": "guardian.communications.feedback",
             "scenarios": [
               "guardian.feedback.submit"
+            ]
+          },
+          {
+            "id": "guardian.communications.conversations",
+            "scenarios": [
+              "guardian.messaging.school"
             ]
           }
         ]
@@ -462,7 +469,8 @@
           "/message/:id",
           "/evaluations/avis",
           "/evaluations/avis/:feedbackId",
-          "/home/avis/:feedbackId"
+          "/home/avis/:feedbackId",
+          "/inbox/conversation/:conversationId"
         ],
         "actions": [
           {
@@ -475,6 +483,12 @@
             "id": "teacher.communications.feedback",
             "scenarios": [
               "teacher.feedback.read"
+            ]
+          },
+          {
+            "id": "teacher.communications.conversations",
+            "scenarios": [
+              "teacher.messaging.reply"
             ]
           }
         ]

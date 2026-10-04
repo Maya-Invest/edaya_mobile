@@ -127,6 +127,55 @@ Future<void> main() async {
   }
 
   testWidgets(
+    '[teacher.messaging.reply] receives an eligible guardian question and replies from the teacher inbox',
+    (tester) async {
+      final config = IntegrationConfig.fromEnvironment();
+      const family = GuardianPortalProfile.mariamKone;
+      final guardianSession = await PortalSession.signIn(
+        config: config.withGuardianEmail(family.email),
+        actorKind: 'guardian',
+        academicYearId: profile.academicYearId,
+      );
+      await bootstrapGuardianPortal(guardianSession, family);
+      final recipients = await guardianSession.schoolClient.runQuery(
+        'list-conversation-recipients',
+        {'studentId': family.primaryStudentId},
+      );
+      final target = (recipients['teachers'] as List).cast<Map>().firstWhere(
+        (r) => r['id'] == harness.context.grants.actorId,
+      );
+      final subject = 'Homework ${DateTime.now().microsecondsSinceEpoch}';
+      final conversation = await guardianSession.schoolClient
+          .runCommand('start-conversation', {
+            'requestId': subject,
+            'destination': 'teacher',
+            'teacherId': target['id'],
+            'studentId': family.primaryStudentId,
+            'subject': subject,
+            'body': 'Which exercise should we complete?',
+          });
+      await mount(tester, '/inbox');
+      await until(tester, find.text(subject));
+      await tester.tap(find.text(subject));
+      await until(tester, find.byType(ConversationPage));
+      await until(tester, field('Répondre'));
+      await tester.enterText(
+        field('Répondre'),
+        'Please complete exercise three.',
+      );
+      await tester.tap(find.text('Envoyer'));
+      await persisted(
+        tester,
+        () => guardianSession.schoolClient.runQuery('get-conversation', {
+          'conversationId': conversation['id'],
+        }),
+        (row) => (row['messages'] as List).any(
+          (message) => message['body'] == 'Please complete exercise three.',
+        ),
+      );
+    },
+  );
+  testWidgets(
     '[teacher.attendance.save] records a complete roster and persists after reopening',
     (tester) async {
       final lesson = await lessonFixture();

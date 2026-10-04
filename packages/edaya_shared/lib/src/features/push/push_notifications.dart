@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../messaging/messaging_events.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../api/evaluation_data.dart';
@@ -398,6 +399,7 @@ class FcmPushNotificationService implements PushNotificationService {
       _foregroundMessageSubscription ??= FirebaseMessaging.onMessage.listen((
         message,
       ) {
+        messagingRefreshEvents.add(null);
         unawaited(_showForegroundNotification(message));
       });
 

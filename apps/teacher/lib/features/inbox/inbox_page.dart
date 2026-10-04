@@ -36,7 +36,6 @@ class _LiveInboxPage extends LView<LiveInboxController> {
       controller.deliveries.value;
       controller.errorMessage.value;
       controller.isBusy.value;
-      final selectedId = GoRouterState.of(context).pathParameters['id'];
       if (controller.dataStatus == DataStatus.loading) {
         return const AdaptiveContent(
           child: Center(child: CircularProgressIndicator()),
@@ -47,68 +46,21 @@ class _LiveInboxPage extends LView<LiveInboxController> {
           child: EmptyState(title: controller.errorMessage.value),
         );
       }
-      final deliveries = controller.deliveries.value;
-      if (deliveries.isEmpty) {
-        return AdaptiveContent(
-          child: EmptyState(title: controller.emptyMessage),
-        );
-      }
       return AdaptiveContent(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: Text(
-                context.tr.unreadCount(controller.unreadCount),
-                style: Theme.of(context).textTheme.bodySmall,
+        child: MessagingInbox(
+          notices: [
+            for (final m in controller.deliveries.value.where(
+              (m) => m.eventKey != 'conversation.message',
+            ))
+              MessagingNotice(
+                id: m.id,
+                title: m.title,
+                body: m.body,
+                unread: m.isUnread,
+                at: m.sortDate,
               ),
-            ),
-            Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.all(PrototypeSpacing.md),
-                itemCount: deliveries.length,
-                separatorBuilder: (_, _) =>
-                    const SizedBox(height: PrototypeSpacing.xs),
-                itemBuilder: (context, i) {
-                  final m = deliveries[i];
-                  final selected = selectedId == m.id;
-                  return ListRow(
-                    title: m.title,
-                    subtitle: m.body.length > 80
-                        ? '${m.body.substring(0, 80)}…'
-                        : m.body,
-                    unread: m.isUnread,
-                    selected: selected,
-                    badge: m.status.label(context.tr),
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: m.isUnread
-                            ? PrototypeColors.primaryContainer
-                            : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        Icons.mail_outline,
-                        size: 20,
-                        color: m.isUnread
-                            ? PrototypeColors.primary
-                            : PrototypeColors.onSurfaceVariant,
-                      ),
-                    ),
-                    onTap: () => context.go(inboxMessagePath(m.id)),
-                    trailing: Icon(
-                      Icons.chevron_right,
-                      color: selected
-                          ? PrototypeColors.primary
-                          : PrototypeColors.onSurfaceVariant,
-                    ),
-                  );
-                },
-              ),
-            ),
           ],
+          onNotice: (id) => context.push(inboxMessagePath(id)),
         ),
       );
     });

@@ -213,3 +213,7 @@ All other chrome and list widgets reuse the guardian design-language catalog.
 8. Design-review (or equivalent) must cover compact, medium, and expanded widths.
 9. Login is Identity OTP (not “any code works”) on the runnable product.
 10. Accueil family-feedback tasks and `/evaluations/avis` read live teacher results.
+
+## Guardian conversations
+
+The existing inbox merges notifications with guardian conversation previews. `/inbox/conversation/:conversationId` shows captured school/child/participants, chronological messages and an online reply composer. Explain authorized school oversight. Losing the original teaching relationship removes access; another teacher never inherits the thread. Unread positions belong to the selected profile. Poll only visible messaging surfaces in the foreground; refresh on resume and push.

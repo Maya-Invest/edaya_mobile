@@ -17,6 +17,7 @@ import 'package:edaya_guardian/features/inbox/message_detail_page.dart';
 import 'package:edaya_guardian/features/scolarite/grade_detail_page.dart';
 import 'package:edaya_guardian/features/scolarite/results_page.dart';
 import 'package:edaya_integration_tests/edaya_integration_tests.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
@@ -286,10 +287,18 @@ void _mariamKoneSuite() {
           isNotEmpty,
           reason: 'Required inbox fixture',
         );
-        await pumpUntilFound(tester, find.byType(ListRow));
-        final tileCount = find.byType(ListRow).evaluate().length;
-        expect(tileCount, greaterThan(0));
-        expect(tileCount, lessThanOrEqualTo(probes.inbox.deliveries.length));
+        final titles = probes.inbox.deliveries
+            .map((delivery) => delivery['title'])
+            .toSet();
+        final visibleDeliveries = find.byWidgetPredicate(
+          (widget) => widget is Text && titles.contains(widget.data),
+        );
+        await pumpUntilFound(tester, visibleDeliveries);
+        expect(visibleDeliveries, findsWidgets);
+        expect(
+          visibleDeliveries.evaluate().length,
+          lessThanOrEqualTo(probes.inbox.deliveries.length),
+        );
       },
     );
 

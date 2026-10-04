@@ -77,6 +77,10 @@ String? resolveTeacherNotificationPath(
 }
 
 String? _pathFromEntityIds(Map<String, String> data) {
+  final conversationId = _firstNonEmpty(data, const ['conversationId']);
+  if (conversationId != null) {
+    return '/inbox/conversation/${Uri.encodeComponent(conversationId)}';
+  }
   final sessionId = _firstNonEmpty(data, const [
     'lessonSessionId',
     'sessionId',
