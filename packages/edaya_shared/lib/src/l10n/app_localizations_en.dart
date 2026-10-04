@@ -1993,4 +1993,90 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get testCodeUnavailable => 'Test code unavailable';
+
+  @override
+  String get attendanceIncomplete =>
+      'Record every student before finishing attendance.';
+
+  @override
+  String get attendanceSubmitNeedsSync =>
+      'Synchronize saved drafts before finishing attendance.';
+
+  @override
+  String get workflowSynced => 'Synchronized';
+
+  @override
+  String get attendanceArrival => 'Record arrival';
+
+  @override
+  String get workflowCorrectionPending => 'Correction pending review';
+
+  @override
+  String get workflowRequestCorrection => 'Request correction';
+
+  @override
+  String get dailyAttendance => 'Daily attendance';
+
+  @override
+  String get workflowDiscipline => 'Discipline';
+
+  @override
+  String get workflowFollowUp => 'Add follow-up';
+
+  @override
+  String get deadlineCompliance => 'Homework submission';
+
+  @override
+  String get deadlineMet => 'On time';
+
+  @override
+  String get deadlineLate => 'Late';
+
+  @override
+  String get deadlineMissed => 'Missed';
+
+  @override
+  String get deadlineExcused => 'Excused';
+
+  @override
+  String get attendancePresent => 'Present';
+
+  @override
+  String get attendanceAbsent => 'Absent';
+
+  @override
+  String get attendanceLate => 'Late';
+
+  @override
+  String get attendanceFinish => 'Finish';
+
+  @override
+  String get attendanceMarkRemaining => 'Mark remaining present';
+
+  @override
+  String get workflowReviseCorrection => 'Revise request';
+
+  @override
+  String get workflowIncidentTakenOver => 'Staff have taken over this incident';
+
+  @override
+  String get workflowIncidentTitle => 'Title';
+
+  @override
+  String get workflowIncidentFacts => 'Facts';
+
+  @override
+  String get workflowIncidentPositive => 'Positive';
+
+  @override
+  String get workflowIncidentMinor => 'Minor incident';
+
+  @override
+  String get workflowIncidentMajor => 'Major incident';
+
+  @override
+  String get workflowIncidentEmergency => 'Emergency';
+
+  @override
+  String get workflowTeacherExplanation => 'Teacher explanation';
 }

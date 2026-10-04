@@ -64,7 +64,10 @@ class TeacherOutboxDatabase extends _$TeacherOutboxDatabase {
             teacherOutboxRows,
             teacherOutboxRows.actorKind,
           );
-          await migrator.addColumn(teacherOutboxRows, teacherOutboxRows.actorId);
+          await migrator.addColumn(
+            teacherOutboxRows,
+            teacherOutboxRows.actorId,
+          );
           await migrator.addColumn(
             teacherOutboxRows,
             teacherOutboxRows.schoolId,

@@ -1,13 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum EdayaSyncStatus {
-  saved,
-  savedLocally,
-  pending,
-  syncing,
-  synced,
-  failed,
-}
+enum EdayaSyncStatus { saved, savedLocally, pending, syncing, synced, failed }
 
 class StatusBadge extends StatelessWidget {
   const StatusBadge({
@@ -56,13 +49,15 @@ class StatusBadge extends StatelessWidget {
             Icon(icon, size: 14, color: colors.foreground),
             const SizedBox(width: 4),
           ],
-          Flexible(child: Text(
-            label,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: colors.foreground,
-              fontWeight: FontWeight.w600,
+          Flexible(
+            child: Text(
+              label,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: colors.foreground,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          )),
+          ),
         ],
       ),
     );

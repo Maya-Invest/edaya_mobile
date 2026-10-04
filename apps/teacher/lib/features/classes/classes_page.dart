@@ -295,6 +295,18 @@ class _LiveClassRosterPage extends LScopedView<LiveRosterController> {
         fallbackRoute: '/classes',
         body: Column(
           children: [
+            TextButton(
+              onPressed: () => context.go('/classes/$classId/discipline'),
+              child: Text(context.tr.workflowDiscipline),
+            ),
+            if (controller.canRecordDaily.value)
+              Padding(
+                padding: const EdgeInsets.all(PrototypeSpacing.sm),
+                child: OutlinedButton(
+                  onPressed: () => context.go('/classes/$classId/attendance'),
+                  child: Text(context.tr.dailyAttendance),
+                ),
+              ),
             const TabBar(
               tabs: [
                 Tab(text: 'Élèves'),
@@ -342,8 +354,7 @@ class _LiveRosterList extends StatelessWidget {
       return ListView.separated(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         itemCount: students.length,
-        separatorBuilder: (_, _) =>
-            const SizedBox(height: PrototypeSpacing.xs),
+        separatorBuilder: (_, _) => const SizedBox(height: PrototypeSpacing.xs),
         itemBuilder: (context, i) {
           final s = students[i];
           return ListRow(
@@ -444,8 +455,7 @@ class _LiveClassLogbookTab extends LView<LiveClassWorkspaceController> {
       return ListView.separated(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         itemCount: entries.length,
-        separatorBuilder: (_, _) =>
-            const SizedBox(height: PrototypeSpacing.xs),
+        separatorBuilder: (_, _) => const SizedBox(height: PrototypeSpacing.xs),
         itemBuilder: (context, i) {
           final entry = entries[i];
           return ListRow(

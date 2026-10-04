@@ -27,7 +27,10 @@ LiveSessionController putLiveSessionController(
       schoolId: () => scope.find<AppSessionController>().grants.value?.schoolId,
       outboxContext: () => teacherOutboxContextForSession(
         session: scope.find<AppSessionController>(),
-        academicYearId: scope.find<AcademicYearController>().selectedYearId.value,
+        academicYearId: scope
+            .find<AcademicYearController>()
+            .selectedYearId
+            .value,
       ),
     ),
   );
@@ -179,7 +182,8 @@ class _LiveAttendancePage extends LScopedView<LiveSessionController> {
           fallbackRoute: '/session/$sessionId',
           body: const EmptyState(
             title: 'Présences',
-            message: 'La saisie des présences est réservée aux séances de cours.',
+            message:
+                'La saisie des présences est réservée aux séances de cours.',
           ),
         );
       }
@@ -195,26 +199,30 @@ class _LiveAttendancePage extends LScopedView<LiveSessionController> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: controller.markAllPresent,
+                      onPressed: controller.attendanceSubmitted.value
+                          ? null
+                          : controller.markAllPresent,
                       child: const Text('Tous présents'),
                     ),
                   ),
                   const SizedBox(width: PrototypeSpacing.sm),
                   Expanded(
                     child: FilledButton(
-                      onPressed: () async {
-                        await controller.completeAttendance();
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              controller.saveMessage.value.isEmpty
-                                  ? 'Présences enregistrées'
-                                  : controller.saveMessage.value,
-                            ),
-                          ),
-                        );
-                      },
+                      onPressed: controller.attendanceSubmitted.value
+                          ? null
+                          : () async {
+                              await controller.completeAttendance();
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    controller.saveMessage.value.isEmpty
+                                        ? 'Présences enregistrées'
+                                        : controller.saveMessage.value,
+                                  ),
+                                ),
+                              );
+                            },
                       child: const Text('Terminer'),
                     ),
                   ),
@@ -261,6 +269,43 @@ class _LiveAttendancePage extends LScopedView<LiveSessionController> {
                                   ],
                                 ),
                               ),
+                              if (controller.attendanceSubmitted.value &&
+                                  controller.arrivalWindowActive &&
+                                  record.status == AttendanceStatus.absent)
+                                TextButton(
+                                  onPressed: () => controller.recordArrival(
+                                    record.studentId,
+                                  ),
+                                  child: Text(context.tr.attendanceArrival),
+                                ),
+                              if (controller.attendanceSubmitted.value &&
+                                  record.status != null)
+                                IconButton(
+                                  tooltip: context.tr.workflowRequestCorrection,
+                                  icon: const Icon(Icons.edit_note),
+                                  onPressed: () async {
+                                    final exception =
+                                        await showAttendanceExceptionSheet(
+                                          context: context,
+                                          studentName: record.fullName,
+                                          initialStatus: record.status!,
+                                          initialReason: record.reason,
+                                          initialNotes: record.notes,
+                                          correction: true,
+                                        );
+                                    if (exception != null) {
+                                      await controller
+                                          .requestAttendanceCorrection(
+                                            record.studentId,
+                                            exception.status,
+                                            exception.correctionReason!,
+                                            notes: exception.notes,
+                                            teacherExplanation:
+                                                exception.reason,
+                                          );
+                                    }
+                                  },
+                                ),
                               DropdownButton<AttendanceStatus>(
                                 hint: const Text('À saisir'),
                                 value: record.status,
@@ -274,6 +319,29 @@ class _LiveAttendancePage extends LScopedView<LiveSessionController> {
                                 ],
                                 onChanged: (value) async {
                                   if (value == null) return;
+                                  if (controller.attendanceSubmitted.value) {
+                                    final exception =
+                                        await showAttendanceExceptionSheet(
+                                          context: context,
+                                          studentName: record.fullName,
+                                          initialStatus: value,
+                                          initialReason: record.reason,
+                                          initialNotes: record.notes,
+                                          correction: true,
+                                        );
+                                    if (exception != null) {
+                                      await controller
+                                          .requestAttendanceCorrection(
+                                            record.studentId,
+                                            exception.status,
+                                            exception.correctionReason!,
+                                            notes: exception.notes,
+                                            teacherExplanation:
+                                                exception.reason,
+                                          );
+                                    }
+                                    return;
+                                  }
                                   if (value == AttendanceStatus.present) {
                                     await controller.setAttendanceStatus(
                                       record.studentId,
@@ -316,11 +384,13 @@ class AttendanceExceptionResult {
     required this.status,
     this.reason,
     this.notes,
+    this.correctionReason,
   });
 
   final AttendanceStatus status;
   final String? reason;
   final String? notes;
+  final String? correctionReason;
 }
 
 Future<AttendanceExceptionResult?> showAttendanceExceptionSheet({
@@ -329,6 +399,7 @@ Future<AttendanceExceptionResult?> showAttendanceExceptionSheet({
   required AttendanceStatus initialStatus,
   String? initialReason,
   String? initialNotes,
+  bool correction = false,
 }) {
   return showModalBottomSheet<AttendanceExceptionResult>(
     context: context,
@@ -338,13 +409,13 @@ Future<AttendanceExceptionResult?> showAttendanceExceptionSheet({
       var status = initialStatus;
       final reason = TextEditingController(text: initialReason ?? '');
       final notes = TextEditingController(text: initialNotes ?? '');
+      final correctionReason = TextEditingController();
       return Padding(
         padding: EdgeInsets.only(
           left: PrototypeSpacing.md,
           right: PrototypeSpacing.md,
           top: PrototypeSpacing.md,
-          bottom:
-              MediaQuery.viewInsetsOf(context).bottom + PrototypeSpacing.md,
+          bottom: MediaQuery.viewInsetsOf(context).bottom + PrototypeSpacing.md,
         ),
         child: StatefulBuilder(
           builder: (context, setState) {
@@ -378,8 +449,8 @@ Future<AttendanceExceptionResult?> showAttendanceExceptionSheet({
                 const SizedBox(height: PrototypeSpacing.md),
                 TextField(
                   controller: reason,
-                  decoration: const InputDecoration(
-                    labelText: 'Motif',
+                  decoration: InputDecoration(
+                    labelText: context.tr.workflowTeacherExplanation,
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -393,17 +464,33 @@ Future<AttendanceExceptionResult?> showAttendanceExceptionSheet({
                   ),
                 ),
                 const SizedBox(height: PrototypeSpacing.md),
+                if (correction)
+                  TextField(
+                    controller: correctionReason,
+                    maxLines: 2,
+                    decoration: InputDecoration(
+                      labelText: context.tr.marksCorrectionReason,
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
                 FilledButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(
-                      AttendanceExceptionResult(
-                        status: status,
-                        reason: reason.text.trim(),
-                        notes: notes.text.trim(),
-                      ),
-                    );
-                  },
-                  child: const Text('Enregistrer'),
+                  onPressed: correction && correctionReason.text.trim().isEmpty
+                      ? null
+                      : () {
+                          Navigator.of(context).pop(
+                            AttendanceExceptionResult(
+                              status: status,
+                              reason: reason.text.trim(),
+                              notes: notes.text.trim(),
+                              correctionReason: correctionReason.text.trim(),
+                            ),
+                          );
+                        },
+                  child: Text(
+                    correction
+                        ? context.tr.workflowRequestCorrection
+                        : context.tr.save,
+                  ),
                 ),
               ],
             );

@@ -456,7 +456,10 @@ class _LiveEvaluationsPage extends LView<LiveEvaluationsController> {
                   for (final period in controller.periods.value)
                     DropdownMenuItem(
                       value: period['id'] as String,
-                      child: Text(academicPeriodLabel(period), overflow: TextOverflow.ellipsis),
+                      child: Text(
+                        academicPeriodLabel(period),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                 ],
                 onChanged: (value) {
@@ -1027,8 +1030,10 @@ class _LiveReportCardCommentPage
         studentName: controller.studentName.value,
         fields: fields,
         readOnly: controller.isReadOnly.value,
+        correctionRequired: controller.correctionRequired.value,
         message: controller.saveMessage.value,
-        onSave: controller.save,
+        onSave: (comments, reason) =>
+            controller.save(comments, correctionReason: reason),
       );
     });
   }
@@ -1041,6 +1046,7 @@ class _LiveCommentForm extends StatefulWidget {
     required this.studentName,
     required this.fields,
     required this.readOnly,
+    this.correctionRequired = false,
     required this.message,
     required this.onSave,
   });
@@ -1050,14 +1056,16 @@ class _LiveCommentForm extends StatefulWidget {
   final String studentName;
   final List<ReportCardCommentField> fields;
   final bool readOnly;
+  final bool correctionRequired;
   final String message;
-  final Future<bool> Function(Map<String, String>) onSave;
+  final Future<bool> Function(Map<String, String>, String?) onSave;
 
   @override
   State<_LiveCommentForm> createState() => _LiveCommentFormState();
 }
 
 class _LiveCommentFormState extends State<_LiveCommentForm> {
+  final _reason = TextEditingController();
   late final Map<String, TextEditingController> _controllers;
 
   @override
@@ -1071,6 +1079,7 @@ class _LiveCommentFormState extends State<_LiveCommentForm> {
 
   @override
   void dispose() {
+    _reason.dispose();
     for (final controller in _controllers.values) {
       controller.dispose();
     }
@@ -1100,27 +1109,47 @@ class _LiveCommentFormState extends State<_LiveCommentForm> {
             ),
             const SizedBox(height: PrototypeSpacing.md),
           ],
+          if (widget.correctionRequired)
+            TextField(
+              controller: _reason,
+              decoration: InputDecoration(
+                labelText: context.tr.marksCorrectionReason,
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
           if (widget.message.isNotEmpty) Text(widget.message),
           if (!widget.readOnly)
             FilledButton(
-              onPressed: () async {
-                final comments = {
-                  for (final entry in _controllers.entries)
-                    entry.key: entry.value.text,
-                };
-                final saved = await widget.onSave(comments);
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      saved
-                          ? 'Commentaire enregistré'
-                          : 'Enregistrement impossible',
-                    ),
-                  ),
-                );
-              },
-              child: const Text('Enregistrer'),
+              onPressed:
+                  widget.correctionRequired && _reason.text.trim().isEmpty
+                  ? null
+                  : () async {
+                      final comments = {
+                        for (final entry in _controllers.entries)
+                          entry.key: entry.value.text,
+                      };
+                      final saved = await widget.onSave(
+                        comments,
+                        widget.correctionRequired ? _reason.text.trim() : null,
+                      );
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            saved
+                                ? (widget.correctionRequired
+                                      ? context.tr.workflowCorrectionPending
+                                      : 'Commentaire enregistré')
+                                : 'Enregistrement impossible',
+                          ),
+                        ),
+                      );
+                    },
+              child: Text(
+                widget.correctionRequired
+                    ? context.tr.workflowRequestCorrection
+                    : context.tr.save,
+              ),
             ),
         ],
       ),

@@ -351,6 +351,48 @@ extension GeneratedSchoolClientCommands on SchoolClient {
   Future<Map<String, dynamic>> submitAssessmentMarks(Map<String, dynamic> payload) =>
       runCommand("submit-assessment-marks", payload);
 
+  Future<Map<String, dynamic>> saveTeacherAttendanceDraft(Map<String, dynamic> payload) =>
+      runCommand("save-teacher-attendance-draft", payload);
+
+  Future<Map<String, dynamic>> submitTeacherAttendance(Map<String, dynamic> payload) =>
+      runCommand("submit-teacher-attendance", payload);
+
+  Future<Map<String, dynamic>> recordTeacherAttendanceArrival(Map<String, dynamic> payload) =>
+      runCommand("record-teacher-attendance-arrival", payload);
+
+  Future<Map<String, dynamic>> reviseAssessmentMarksCorrection(Map<String, dynamic> payload) =>
+      runCommand("revise-assessment-marks-correction", payload);
+
+  Future<Map<String, dynamic>> requestTeacherCorrection(Map<String, dynamic> payload) =>
+      runCommand("request-teacher-correction", payload);
+
+  Future<Map<String, dynamic>> reviseTeacherCorrection(Map<String, dynamic> payload) =>
+      runCommand("revise-teacher-correction", payload);
+
+  Future<Map<String, dynamic>> approveTeacherCorrection(Map<String, dynamic> payload) =>
+      runCommand("approve-teacher-correction", payload);
+
+  Future<Map<String, dynamic>> rejectTeacherCorrection(Map<String, dynamic> payload) =>
+      runCommand("reject-teacher-correction", payload);
+
+  Future<Map<String, dynamic>> withdrawTeacherCorrection(Map<String, dynamic> payload) =>
+      runCommand("withdraw-teacher-correction", payload);
+
+  Future<Map<String, dynamic>> saveTeacherLogbook(Map<String, dynamic> payload) =>
+      runCommand("save-teacher-logbook", payload);
+
+  Future<Map<String, dynamic>> validateTeacherLogbook(Map<String, dynamic> payload) =>
+      runCommand("validate-teacher-logbook", payload);
+
+  Future<Map<String, dynamic>> editTeacherIncident(Map<String, dynamic> payload) =>
+      runCommand("edit-teacher-incident", payload);
+
+  Future<Map<String, dynamic>> takeOverTeacherIncident(Map<String, dynamic> payload) =>
+      runCommand("take-over-teacher-incident", payload);
+
+  Future<Map<String, dynamic>> appendIncidentFollowUp(Map<String, dynamic> payload) =>
+      runCommand("append-incident-follow-up", payload);
+
   Future<Map<String, dynamic>> requestAssessmentMarksCorrection(Map<String, dynamic> payload) =>
       runCommand("request-assessment-marks-correction", payload);
 
@@ -644,6 +686,18 @@ extension GeneratedSchoolClientCommands on SchoolClient {
 }
 
 extension GeneratedSchoolClientQueries on SchoolClient {
+  Future<Map<String, dynamic>> getTeacherAttendanceCall(Map<String, dynamic> payload) =>
+      runQuery("get-teacher-attendance-call", payload);
+
+  Future<Map<String, dynamic>> getTeacherWorkflowState(Map<String, dynamic> payload) =>
+      runQuery("get-teacher-workflow-state", payload);
+
+  Future<Map<String, dynamic>> listTeacherCorrections(Map<String, dynamic> payload) =>
+      runQuery("list-teacher-corrections", payload);
+
+  Future<Map<String, dynamic>> getTeacherCorrection(Map<String, dynamic> payload) =>
+      runQuery("get-teacher-correction", payload);
+
   Future<Map<String, dynamic>> getAssessmentMarksReview(Map<String, dynamic> payload) =>
       runQuery("get-assessment-marks-review", payload);
 

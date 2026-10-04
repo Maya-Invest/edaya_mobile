@@ -14,7 +14,10 @@ String formatDayOfMonth(DateTime date) {
 }
 
 String formatMonthAbbrev(DateTime date) {
-  final raw = DateFormat('MMM', 'fr_FR').format(date).replaceAll('.', '').trim();
+  final raw = DateFormat(
+    'MMM',
+    'fr_FR',
+  ).format(date).replaceAll('.', '').trim();
   if (raw.length <= 3) return raw;
   return raw.substring(0, 3);
 }

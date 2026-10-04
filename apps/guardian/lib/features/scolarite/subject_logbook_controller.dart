@@ -48,7 +48,9 @@ class SubjectLogbookController extends LevitController
           classLabel: classLabel,
           subjectFallback: systemL10n().subjectFallback,
         );
-        final option = options.where((o) => o.subjectName == subject).firstOrNull;
+        final option = options
+            .where((o) => o.subjectName == subject)
+            .firstOrNull;
         if (option == null) {
           entries(const []);
           return;

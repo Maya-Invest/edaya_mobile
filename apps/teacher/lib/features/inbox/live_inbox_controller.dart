@@ -7,8 +7,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../../live/entity_queries.dart';
 import 'inbox_delivery.dart';
 
-class LiveInboxController extends LevitController
-    with LevitReactiveTasksMixin {
+class LiveInboxController extends LevitController with LevitReactiveTasksMixin {
   LiveInboxController({
     required AppSessionController session,
     required SchoolClientFactory schoolClient,
@@ -100,7 +99,7 @@ class LiveInboxController extends LevitController
     final subjectId = _session.user.value!.id;
 
     errorMessage('');
-    final rowsFuture = _schoolClient().messageDeliveries.list(
+    final rowsFuture = _schoolClient().messageDeliveries.listAll(
       deliveriesForTeacher(
         subjectId: subjectId,
         teacherId: grants.actorId,
@@ -111,29 +110,29 @@ class LiveInboxController extends LevitController
       return;
     }
     try {
-        final rows = await rowsFuture;
-        if (_closed || generation != _generation || key != _inboxKey()) {
-          return;
-        }
-        final parsed = rows.map(InboxDelivery.fromJson).toList()
-          ..sort((a, b) {
-            final aTime = a.sortDate?.millisecondsSinceEpoch ?? 0;
-            final bTime = b.sortDate?.millisecondsSinceEpoch ?? 0;
-            return bTime.compareTo(aTime);
-          });
-        deliveries(parsed);
-      } on api.ApiError catch (error) {
-        if (_closed || generation != _generation || key != _inboxKey()) {
-          return;
-        }
-        errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
-        deliveries(const []);
-      } on Object catch (error) {
-        if (_closed || generation != _generation || key != _inboxKey()) {
-          return;
-        }
-        errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
-        deliveries(const []);
+      final rows = await rowsFuture;
+      if (_closed || generation != _generation || key != _inboxKey()) {
+        return;
       }
+      final parsed = rows.map(InboxDelivery.fromJson).toList()
+        ..sort((a, b) {
+          final aTime = a.sortDate?.millisecondsSinceEpoch ?? 0;
+          final bTime = b.sortDate?.millisecondsSinceEpoch ?? 0;
+          return bTime.compareTo(aTime);
+        });
+      deliveries(parsed);
+    } on api.ApiError catch (error) {
+      if (_closed || generation != _generation || key != _inboxKey()) {
+        return;
+      }
+      errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
+      deliveries(const []);
+    } on Object catch (error) {
+      if (_closed || generation != _generation || key != _inboxKey()) {
+        return;
+      }
+      errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
+      deliveries(const []);
+    }
   }
 }

@@ -2,54 +2,56 @@ name: Pull request
 
 on:
   pull_request:
-    branches: [main, master, staging]
   workflow_dispatch:
     inputs:
-      run_verify:
-        description: Run melos verify
-        type: boolean
-        default: true
-      run_integration:
-        description: Run API integration tests
-        type: boolean
-        default: true
+      backend_ref:
+        description: Explicit backend branch, tag or commit (otherwise matching branch then PR target)
+        type: string
+        default: ''
 
 concurrency:
   group: pr-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
-  actions: write
   contents: read
 
 jobs:
-  gate:
-    runs-on: ubuntu-latest
-    outputs:
-      run_verify: ${{ steps.plan.outputs.run_verify }}
-      run_integration: ${{ steps.plan.outputs.run_integration }}
-    steps:
-      - name: Plan jobs
-        id: plan
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "run_verify=${{ inputs.run_verify }}" >> "$GITHUB_OUTPUT"
-            echo "run_integration=${{ inputs.run_integration }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "run_verify=true" >> "$GITHUB_OUTPUT"
-            echo "run_integration=true" >> "$GITHUB_OUTPUT"
-          fi
-
   verify:
-    needs: gate
-    if: needs.gate.outputs.run_verify == 'true'
     uses: ./.github/workflows/_verify.yml
 
-  integration:
-    needs: [gate, verify]
-    if: >-
-      needs.gate.outputs.run_integration == 'true' &&
-      (needs.verify.result == 'success' || needs.verify.result == 'skipped')
-    uses: ./.github/workflows/_integration.yml
+  backend:
+    uses: ./.github/workflows/_backend-candidate.yml
+    with:
+      backend_ref: ${{ inputs.backend_ref || '' }}
     secrets:
       IDENTITY_CHECKOUT_TOKEN: ${{ secrets.IDENTITY_CHECKOUT_TOKEN }}
+
+  integration:
+    needs: backend
+    uses: ./.github/workflows/_integration.yml
+    with:
+      backend_sha: ${{ needs.backend.outputs.backend_sha }}
+    secrets:
+      IDENTITY_CHECKOUT_TOKEN: ${{ secrets.IDENTITY_CHECKOUT_TOKEN }}
+
+  qualification:
+    name: Full validation
+    needs: [verify, backend, integration]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      VERIFY_RESULT: ${{ needs.verify.result }}
+      BACKEND_RESULT: ${{ needs.backend.result }}
+      INTEGRATION_RESULT: ${{ needs.integration.result }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.13'
+      - name: Require every qualification job to succeed
+        run: python3 .github/scripts/ci_support.py gate verify="$VERIFY_RESULT" backend="$BACKEND_RESULT" integration="$INTEGRATION_RESULT"

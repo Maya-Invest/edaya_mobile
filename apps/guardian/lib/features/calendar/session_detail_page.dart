@@ -136,7 +136,9 @@ class _MockSessionDetailPage extends LScopedView<StoreBoundController> {
             HomeDayCategory.assessment => _MockAssessmentSection(
               assessment: assessment,
             ),
-            HomeDayCategory.activity => _MockActivitySection(activity: activity),
+            HomeDayCategory.activity => _MockActivitySection(
+              activity: activity,
+            ),
             HomeDayCategory.lesson => _LessonSection(
               logbook: logbook == null ? null : logbookEntryFromMock(logbook),
             ),

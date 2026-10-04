@@ -148,7 +148,9 @@ class _MockWeekSelector extends StatelessWidget {
                       Expanded(
                         child: SizedBox(
                           height: 12,
-                          child: i == 0 || weekDates[i].month != weekDates[i - 1].month
+                          child:
+                              i == 0 ||
+                                  weekDates[i].month != weekDates[i - 1].month
                               ? Text(
                                   DateFormat('MMM', 'fr_FR')
                                       .format(weekDates[i])

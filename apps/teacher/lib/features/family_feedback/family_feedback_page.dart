@@ -8,7 +8,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 class TeacherFamilyFeedbackController extends LevitController
     with LevitReactiveTasksMixin {
   TeacherFamilyFeedbackController({required SchoolClientFactory schoolClient})
-      : _schoolClient = schoolClient;
+    : _schoolClient = schoolClient;
 
   final SchoolClientFactory _schoolClient;
 
@@ -49,7 +49,8 @@ class TeacherFamilyFeedbackController extends LevitController
   }
 }
 
-class TeacherFamilyFeedbackPage extends LScopedView<TeacherFamilyFeedbackController> {
+class TeacherFamilyFeedbackPage
+    extends LScopedView<TeacherFamilyFeedbackController> {
   const TeacherFamilyFeedbackPage({super.key});
 
   @override
@@ -62,7 +63,10 @@ class TeacherFamilyFeedbackPage extends LScopedView<TeacherFamilyFeedbackControl
   }
 
   @override
-  Widget buildView(BuildContext context, TeacherFamilyFeedbackController controller) {
+  Widget buildView(
+    BuildContext context,
+    TeacherFamilyFeedbackController controller,
+  ) {
     return LWatch(
       () => DataState(
         status: controller.dataStatus,
@@ -122,17 +126,27 @@ class TeacherFamilyFeedbackResultPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(question.questionId, style: Theme.of(context).textTheme.titleSmall),
+                    Text(
+                      question.questionId,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
                     if (question.suppressed)
                       Text(context.tr.familyFeedbackInsufficient)
                     else
-                      Text('1–5: ${question.distribution[1]}/${question.distribution[2]}/${question.distribution[3]}/${question.distribution[4]}/${question.distribution[5]}'),
-                    Text('${context.tr.familyFeedbackCannotAssess}: ${question.nCannotAssess}'),
+                      Text(
+                        '1–5: ${question.distribution[1]}/${question.distribution[2]}/${question.distribution[3]}/${question.distribution[4]}/${question.distribution[5]}',
+                      ),
+                    Text(
+                      '${context.tr.familyFeedbackCannotAssess}: ${question.nCannotAssess}',
+                    ),
                   ],
                 ),
               ),
             if (result.themes != null && result.themes!.isNotEmpty) ...[
-              Text(context.tr.familyFeedbackThemes, style: Theme.of(context).textTheme.titleSmall),
+              Text(
+                context.tr.familyFeedbackThemes,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
               Text(result.themes!),
             ],
           ],
@@ -192,7 +206,12 @@ class TeacherFamilyFeedbackResultRouteController extends LevitController
     errorMessage('');
     await runTask(() async {
       try {
-        result(await getTeacherFamilyFeedbackResult(_schoolClient(), routeArgs.campaignId));
+        result(
+          await getTeacherFamilyFeedbackResult(
+            _schoolClient(),
+            routeArgs.campaignId,
+          ),
+        );
       } catch (error) {
         errorMessage(error.toString());
       }

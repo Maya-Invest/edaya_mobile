@@ -23,11 +23,7 @@ class PrototypeAppRoot extends StatelessWidget {
     return LScope(
       name: store == null ? 'guardian-prototype' : 'guardian-prototype-test',
       dependencyFactory: (scope) {
-        registerPrototypeDependencies(
-          scope,
-          store: store,
-          live: store == null,
-        );
+        registerPrototypeDependencies(scope, store: store, live: store == null);
         if (store != null && authenticated && !store!.isAuthenticated) {
           store!.signIn();
         }

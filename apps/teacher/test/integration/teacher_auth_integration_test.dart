@@ -168,21 +168,59 @@ Future<void> main() async {
         await tester.ensureVisible(find.text('Sécurité du compte'));
         await tester.tap(find.text('Sécurité du compte'));
         await until(tester, find.byType(AccountSecurityPage));
-        await until(tester, find.byKey(const Key('auth-link-contact')));
         final security = tester
-            .element(find.byKey(const Key('auth-link-contact')))
+            .element(
+              find
+                  .descendant(
+                    of: find.byType(AccountSecurityPage),
+                    matching: find.byType(ListView),
+                  )
+                  .first,
+            )
             .levit
             .find<AccountSecurityController>();
         final ready = DateTime.now().add(const Duration(seconds: 15));
-        while (!security.delivery.phoneAvailable.value &&
+        while ((security.identifiers.value.isEmpty ||
+                !security.delivery.phoneAvailable.value) &&
             DateTime.now().isBefore(ready)) {
           await tester.pump(const Duration(milliseconds: 100));
         }
+        expect(security.identifiers.value, isNotEmpty);
+        expect(security.delivery.phoneAvailable.value, isTrue);
+        await tester.scrollUntilVisible(
+          find.byKey(const Key('auth-link-channel')),
+          200,
+          scrollable: find
+              .descendant(
+                of: find.byType(AccountSecurityPage),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        );
         await tester.ensureVisible(find.byKey(const Key('auth-link-channel')));
+        await until(
+          tester,
+          find.byKey(const Key('auth-link-channel')).hitTestable(),
+        );
         await tester.tap(find.byKey(const Key('auth-link-channel')));
         await tester.pump(const Duration(milliseconds: 300));
-        await tester.tap(find.text('Téléphone').last);
+        await until(tester, find.text('Téléphone').hitTestable());
+        await tester.tap(find.text('Téléphone').hitTestable().last);
         await tester.pump(const Duration(milliseconds: 300));
+        await tester.scrollUntilVisible(
+          find.byKey(const Key('auth-link-contact')),
+          100,
+          scrollable: find
+              .descendant(
+                of: find.byType(AccountSecurityPage),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        );
+        await until(
+          tester,
+          find.byKey(const Key('auth-link-contact')).hitTestable(),
+        );
         await tester.enterText(
           find.byKey(const Key('auth-link-contact')),
           phone,
@@ -265,12 +303,14 @@ Future<void> main() async {
           'teacher',
         );
         expect((await auth.getSession()).data?.user.id, isNotEmpty);
+        final linked = (await auth.identifiers()).data!;
         expect(
-          (await auth.identifiers()).data?.any(
-            (identifier) => identifier['value'] == phone,
-          ),
+          linked.any((identifier) => identifier['value'] == phone),
           isTrue,
         );
+        final identifier = linked.singleWhere((row) => row['value'] == phone);
+        final removed = await auth.unlinkIdentifier(identifier['id'] as String);
+        expect(removed.isSuccess, isTrue);
       },
     );
   }

@@ -57,11 +57,7 @@ class FeesSummaryCard extends StatelessWidget {
 }
 
 class _Metric extends StatelessWidget {
-  const _Metric({
-    required this.label,
-    required this.value,
-    this.valueStyle,
-  });
+  const _Metric({required this.label, required this.value, this.valueStyle});
 
   final String label;
   final String value;
@@ -74,7 +70,10 @@ class _Metric extends StatelessWidget {
       children: [
         Text(label, style: Theme.of(context).textTheme.labelSmall),
         const SizedBox(height: 4),
-        Text(value, style: valueStyle ?? Theme.of(context).textTheme.titleMedium),
+        Text(
+          value,
+          style: valueStyle ?? Theme.of(context).textTheme.titleMedium,
+        ),
       ],
     );
   }

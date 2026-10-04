@@ -250,7 +250,9 @@ class LiveReportCardCommentController extends LevitController
   final errorMessage = LxVar('');
   final saveMessage = LxVar('');
   final isReadOnly = LxVar(false);
+  final correctionRequired = LxVar(false);
   Map<String, dynamic>? _resultRow;
+  Map<String, dynamic>? _eligibility;
 
   @override
   void onInit() {
@@ -260,6 +262,7 @@ class LiveReportCardCommentController extends LevitController
     autoDispose(errorMessage);
     autoDispose(saveMessage);
     autoDispose(isReadOnly);
+    autoDispose(correctionRequired);
     unawaited(load());
   }
 
@@ -281,9 +284,8 @@ class LiveReportCardCommentController extends LevitController
         }
         _resultRow = result;
         studentName(result['studentName'] as String? ?? studentId);
-        if (!reportCardCommentsEditable(result)) {
-          isReadOnly(true);
-        }
+        correctionRequired(result['status'] == 'published');
+        isReadOnly(false);
         final homeroomClassGroupIds = _teacherContext.assignments.value
             .where((assignment) => assignment.isHomeroom)
             .map((assignment) => assignment.classGroupId)
@@ -295,6 +297,24 @@ class LiveReportCardCommentController extends LevitController
           taughtClassSubjectIds: _teacherContext.taughtClassSubjectIds.value,
         );
         fields(editableFields);
+        if (correctionRequired.value) {
+          _eligibility = await client.runQuery('get-teacher-workflow-state', {
+            'proposal': {
+              'workflow': 'report_comments',
+              'targetId': result['id'],
+              'sections': [
+                for (final field in editableFields)
+                  if (!field.isHomeroom)
+                    {
+                      'sectionId': field.sectionId,
+                      'comment': field.initialComment,
+                    },
+              ],
+              if (editableFields.any((f) => f.isHomeroom))
+                'teacherComment': result['teacherComment'],
+            },
+          });
+        }
         await _restoreDraft(editableFields, result['id'] as String);
       } on Object catch (error) {
         errorMessage(systemL10n().couldNotLoadReportCardComments('$error'));
@@ -346,7 +366,10 @@ class LiveReportCardCommentController extends LevitController
     );
   }
 
-  Future<bool> save(Map<String, String> commentsBySectionId) async {
+  Future<bool> save(
+    Map<String, String> commentsBySectionId, {
+    String? correctionReason,
+  }) async {
     final result = _resultRow;
     if (result == null || isReadOnly.value) {
       return false;
@@ -354,6 +377,72 @@ class LiveReportCardCommentController extends LevitController
     saveMessage('');
     _outboxStore.bindContext(teacherOutboxContextForSession(session: _session));
     final resultId = result['id'] as String? ?? '';
+    if (correctionRequired.value) {
+      if (correctionReason?.trim().isEmpty ?? true) return false;
+      final proposal = <String, dynamic>{
+        'workflow': 'report_comments',
+        'targetId': resultId,
+        'sections': [
+          for (final entry in commentsBySectionId.entries)
+            if (entry.key != '__homeroom__')
+              {
+                'sectionId': entry.key,
+                'comment': entry.value.trim().isEmpty
+                    ? null
+                    : entry.value.trim(),
+              },
+        ],
+        if (commentsBySectionId.containsKey('__homeroom__'))
+          'teacherComment': commentsBySectionId['__homeroom__'],
+      };
+      try {
+        final eligibility = _eligibility;
+        if (eligibility == null) {
+          throw StateError(systemL10n().reportCardNotFound);
+        }
+        final pending =
+            (eligibility['corrections'] as List)
+                    .where((row) => (row as Map)['status'] == 'pending')
+                    .firstOrNull
+                as Map?;
+        final command = pending == null
+            ? 'request-teacher-correction'
+            : 'revise-teacher-correction';
+        final body = <String, dynamic>{
+          'requestId': newSchoolRequestId(),
+          'expectedVersion': pending?['version'] ?? eligibility['version'],
+          'proposal': proposal,
+          'reason': correctionReason,
+          if (pending != null) 'correctionId': pending['id'],
+        };
+        try {
+          final request = await _schoolClient().runCommand(command, body);
+          _eligibility = {
+            ...eligibility,
+            'corrections': [request],
+          };
+        } on Object catch (error) {
+          if (!isRetryableTeacherWriteFailure(error)) rethrow;
+          await _outboxStore.enqueue(
+            buildTeacherOutboxEntry(
+              id: body['requestId'] as String,
+              kind: TeacherOutboxKind.correction,
+              idempotencyKey: body['requestId'] as String,
+              payload: {'command': command, 'body': body},
+              lastError: '$error',
+            ),
+          );
+          saveMessage(systemL10n().attendanceSavedLocally);
+          return true;
+        }
+        saveMessage(systemL10n().workflowCorrectionPending);
+        return true;
+      } on Object catch (error) {
+        saveMessage(systemL10n().couldNotSaveMark('$error'));
+        return false;
+      }
+    }
+
     final requestId = newSchoolRequestId();
     final queued = (await _outboxStore.listPending())
         .where(

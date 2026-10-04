@@ -2,9 +2,6 @@ name: Branch push
 
 on:
   push:
-    branches-ignore:
-      - main
-      - master
   workflow_dispatch:
 
 concurrency:
@@ -12,7 +9,6 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  actions: write
   contents: read
 
 jobs:

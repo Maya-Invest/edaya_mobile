@@ -179,7 +179,10 @@ void registerPrototypeDependencies(
         schoolClient: scope.find<SchoolClientFactory>(),
         context: () => teacherOutboxContextForSession(
           session: scope.find<AppSessionController>(),
-          academicYearId: scope.find<AcademicYearController>().selectedYearId.value,
+          academicYearId: scope
+              .find<AcademicYearController>()
+              .selectedYearId
+              .value,
         ),
       ),
       permanent: true,

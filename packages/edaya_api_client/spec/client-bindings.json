@@ -1173,6 +1173,76 @@
       "requestSchemaName": "SubmitAssessmentMarksCommand",
       "responseSchemaName": "Assessment"
     },
+    "saveTeacherAttendanceDraft": {
+      "publicName": "save-teacher-attendance-draft",
+      "requestSchemaName": "SaveTeacherAttendanceDraftCommand",
+      "responseSchemaName": "TeacherWorkflowStateResponse"
+    },
+    "submitTeacherAttendance": {
+      "publicName": "submit-teacher-attendance",
+      "requestSchemaName": "SubmitTeacherAttendanceCommand",
+      "responseSchemaName": "TeacherWorkflowStateResponse"
+    },
+    "recordTeacherAttendanceArrival": {
+      "publicName": "record-teacher-attendance-arrival",
+      "requestSchemaName": "RecordTeacherAttendanceArrivalCommand",
+      "responseSchemaName": "TeacherWorkflowStateResponse"
+    },
+    "reviseAssessmentMarksCorrection": {
+      "publicName": "revise-assessment-marks-correction",
+      "requestSchemaName": "ReviseAssessmentMarksCorrectionCommand",
+      "responseSchemaName": "AssessmentMarksCorrectionResponse"
+    },
+    "requestTeacherCorrection": {
+      "publicName": "request-teacher-correction",
+      "requestSchemaName": "RequestTeacherCorrectionCommand",
+      "responseSchemaName": "TeacherCorrectionResponse"
+    },
+    "reviseTeacherCorrection": {
+      "publicName": "revise-teacher-correction",
+      "requestSchemaName": "ReviseTeacherCorrectionCommand",
+      "responseSchemaName": "TeacherCorrectionResponse"
+    },
+    "approveTeacherCorrection": {
+      "publicName": "approve-teacher-correction",
+      "requestSchemaName": "ApproveTeacherCorrectionCommand",
+      "responseSchemaName": "TeacherCorrectionResponse"
+    },
+    "rejectTeacherCorrection": {
+      "publicName": "reject-teacher-correction",
+      "requestSchemaName": "RejectTeacherCorrectionCommand",
+      "responseSchemaName": "TeacherCorrectionResponse"
+    },
+    "withdrawTeacherCorrection": {
+      "publicName": "withdraw-teacher-correction",
+      "requestSchemaName": "WithdrawTeacherCorrectionCommand",
+      "responseSchemaName": "TeacherCorrectionResponse"
+    },
+    "saveTeacherLogbook": {
+      "publicName": "save-teacher-logbook",
+      "requestSchemaName": "SaveTeacherLogbookCommand",
+      "responseSchemaName": "TeacherWorkflowStateResponse"
+    },
+    "validateTeacherLogbook": {
+      "publicName": "validate-teacher-logbook",
+      "requestSchemaName": "ValidateTeacherLogbookCommand",
+      "responseSchemaName": "TeacherWorkflowStateListResponse"
+    },
+    "editTeacherIncident": {
+      "publicName": "edit-teacher-incident",
+      "requestSchemaName": "EditTeacherIncidentCommand",
+      "responseSchemaName": "TeacherWorkflowStateResponse"
+    },
+    "takeOverTeacherIncident": {
+      "publicName": "take-over-teacher-incident",
+      "requestSchemaName": "TakeOverTeacherIncidentCommand",
+      "responseSchemaName": "TeacherWorkflowStateResponse"
+    },
+    "appendIncidentFollowUp": {
+      "publicName": "append-incident-follow-up",
+      "requestSchemaName": "AppendIncidentFollowUpCommand",
+      "responseSchemaName": "TeacherWorkflowStateResponse"
+    },
     "requestAssessmentMarksCorrection": {
       "publicName": "request-assessment-marks-correction",
       "requestSchemaName": "RequestAssessmentMarksCorrectionCommand",
@@ -1660,6 +1730,26 @@
     }
   },
   "queries": {
+    "getTeacherAttendanceCall": {
+      "publicName": "get-teacher-attendance-call",
+      "requestSchemaName": "GetTeacherAttendanceCallQuery",
+      "responseSchemaName": "TeacherAttendanceCallResponse"
+    },
+    "getTeacherWorkflowState": {
+      "publicName": "get-teacher-workflow-state",
+      "requestSchemaName": "GetTeacherWorkflowStateQuery",
+      "responseSchemaName": "TeacherWorkflowEligibilityResponse"
+    },
+    "listTeacherCorrections": {
+      "publicName": "list-teacher-corrections",
+      "requestSchemaName": "ListTeacherCorrectionsQuery",
+      "responseSchemaName": "TeacherCorrectionsResponse"
+    },
+    "getTeacherCorrection": {
+      "publicName": "get-teacher-correction",
+      "requestSchemaName": "GetTeacherCorrectionQuery",
+      "responseSchemaName": "TeacherCorrectionDetailResponse"
+    },
     "getAssessmentMarksReview": {
       "publicName": "get-assessment-marks-review",
       "requestSchemaName": "GetAssessmentMarksReviewQuery",

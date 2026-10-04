@@ -337,7 +337,9 @@
         "routes": [
           "/classes",
           "/classes/:classId",
-          "/classes/:classId/student/:studentId"
+          "/classes/:classId/student/:studentId",
+          "/classes/:classId/attendance",
+          "/classes/:classId/discipline"
         ],
         "actions": [
           {
@@ -351,6 +353,18 @@
             "id": "teacher.classes.list",
             "scenarios": [
               "teacher.classes.list"
+            ]
+          },
+          {
+            "id": "teacher.classes.daily-attendance",
+            "scenarios": [
+              "teacher.daily-attendance.submit"
+            ]
+          },
+          {
+            "id": "teacher.classes.discipline",
+            "scenarios": [
+              "teacher.discipline.correction"
             ]
           }
         ]

@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -58,18 +59,26 @@ class _MockLogbookPage extends LScopedView<StoreBoundController> {
       initialFamilySummary: '',
       initialProgress: existing?.progressPercent ?? 50,
       minProgress: 0,
-      onSave: (content, objectives, homework, familySummary, progress) async {
-        store.saveLogbook(
-          sessionId: sessionId,
-          content: content,
-          objectives: objectives,
-          homework: homework,
-          progressPercent: progress,
-        );
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Cahier enregistré')));
-      },
+      onSave:
+          (
+            content,
+            objectives,
+            homework,
+            familySummary,
+            progress,
+            reason,
+          ) async {
+            store.saveLogbook(
+              sessionId: sessionId,
+              content: content,
+              objectives: objectives,
+              homework: homework,
+              progressPercent: progress,
+            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Cahier enregistré')));
+          },
     );
   }
 }
@@ -122,6 +131,7 @@ class _LiveLogbookPage extends LScopedView<LiveSessionController> {
         initialFamilySummary: controller.familySummary.value,
         initialProgress: controller.progressPercent.value,
         minProgress: controller.minProgress,
+        requestCorrection: controller.logbookValidated.value,
         chapters: controller.subjectMatters.value,
         selectedChapterId: controller.selectedMatterId.value,
         onChapterSelected: controller.selectMatter,
@@ -136,29 +146,38 @@ class _LiveLogbookPage extends LScopedView<LiveSessionController> {
             ),
           );
         },
-        onSave: (content, objectives, homework, familySummary, progress) async {
-          final saved = await controller.saveLogbook(
-            contentText: content,
-            objectivesText: objectives,
-            homeworkText: homework,
-            familySummaryText: familySummary,
-            progress: progress,
-          );
-          if (!context.mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                saved
-                    ? (controller.saveMessage.value.isEmpty
-                          ? 'Cahier enregistré'
-                          : controller.saveMessage.value)
-                    : (controller.saveMessage.value.isEmpty
-                          ? 'Cahier non enregistré'
-                          : controller.saveMessage.value),
-              ),
-            ),
-          );
-        },
+        onSave:
+            (
+              content,
+              objectives,
+              homework,
+              familySummary,
+              progress,
+              reason,
+            ) async {
+              final saved = await controller.saveLogbook(
+                correctionReason: reason,
+                contentText: content,
+                objectivesText: objectives,
+                homeworkText: homework,
+                familySummaryText: familySummary,
+                progress: progress,
+              );
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    saved
+                        ? (controller.saveMessage.value.isEmpty
+                              ? 'Cahier enregistré'
+                              : controller.saveMessage.value)
+                        : (controller.saveMessage.value.isEmpty
+                              ? 'Cahier non enregistré'
+                              : controller.saveMessage.value),
+                  ),
+                ),
+              );
+            },
       );
     });
   }
@@ -177,6 +196,7 @@ class LogbookForm extends StatefulWidget {
     required this.minProgress,
     required this.onSave,
     this.onChanged,
+    this.requestCorrection = false,
     this.chapters = const [],
     this.selectedChapterId,
     this.onChapterSelected,
@@ -190,10 +210,12 @@ class LogbookForm extends StatefulWidget {
   final String initialFamilySummary;
   final int initialProgress;
   final int minProgress;
+  final bool requestCorrection;
   final List<SessionSubjectMatterOption> chapters;
   final String? selectedChapterId;
   final ValueChanged<String>? onChapterSelected;
-  final Future<void> Function(String, String, String, String, int) onSave;
+  final Future<void> Function(String, String, String, String, int, String?)
+  onSave;
   final void Function(String, String, String, String, int)? onChanged;
 
   @override
@@ -207,6 +229,7 @@ class _LogbookFormState extends State<LogbookForm> {
   late final TextEditingController _familySummary;
   late double _progress;
   Timer? _draftTimer;
+  final _correctionReason = TextEditingController();
 
   @override
   void initState() {
@@ -231,6 +254,7 @@ class _LogbookFormState extends State<LogbookForm> {
   @override
   void dispose() {
     _draftTimer?.cancel();
+    _correctionReason.dispose();
     _content.dispose();
     _objectives.dispose();
     _homework.dispose();
@@ -264,12 +288,16 @@ class _LogbookFormState extends State<LogbookForm> {
         children: [
           if (widget.chapters.length > 1)
             DropdownButtonFormField<String>(
-              initialValue: widget.selectedChapterId ?? widget.chapters.first.id,
+              initialValue:
+                  widget.selectedChapterId ?? widget.chapters.first.id,
               isExpanded: true,
               decoration: const InputDecoration(labelText: 'Chapitre'),
               items: [
                 for (final chapter in widget.chapters)
-                  DropdownMenuItem(value: chapter.id, child: Text(chapter.name, overflow: TextOverflow.ellipsis)),
+                  DropdownMenuItem(
+                    value: chapter.id,
+                    child: Text(chapter.name, overflow: TextOverflow.ellipsis),
+                  ),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -327,15 +355,34 @@ class _LogbookFormState extends State<LogbookForm> {
             },
           ),
           const SizedBox(height: PrototypeSpacing.md),
-          FilledButton(
-            onPressed: () => widget.onSave(
-              _content.text,
-              _objectives.text,
-              _homework.text,
-              _familySummary.text,
-              _progress.round(),
+          if (widget.requestCorrection)
+            TextField(
+              controller: _correctionReason,
+              decoration: InputDecoration(
+                labelText: context.tr.marksCorrectionReason,
+              ),
+              onChanged: (_) => setState(() {}),
             ),
-            child: const Text('Enregistrer'),
+          FilledButton(
+            onPressed:
+                widget.requestCorrection &&
+                    _correctionReason.text.trim().isEmpty
+                ? null
+                : () => widget.onSave(
+                    _content.text,
+                    _objectives.text,
+                    _homework.text,
+                    _familySummary.text,
+                    _progress.round(),
+                    widget.requestCorrection
+                        ? _correctionReason.text.trim()
+                        : null,
+                  ),
+            child: Text(
+              widget.requestCorrection
+                  ? context.tr.workflowRequestCorrection
+                  : context.tr.save,
+            ),
           ),
         ],
       ),

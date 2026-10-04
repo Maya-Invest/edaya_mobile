@@ -24,7 +24,8 @@ class ReportCardCommentDraft {
       commentsBySectionId: raw is Map
           ? raw.map((key, value) => MapEntry('$key', '$value'))
           : const {},
-      updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
+      updatedAt:
+          DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
           DateTime.now(),
     );
   }
@@ -63,7 +64,10 @@ abstract final class ReportCardCommentDraftStorage {
     required ReportCardCommentDraft draft,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_key(resultId, studentId), jsonEncode(draft.toJson()));
+    await prefs.setString(
+      _key(resultId, studentId),
+      jsonEncode(draft.toJson()),
+    );
   }
 
   static Future<void> clear({

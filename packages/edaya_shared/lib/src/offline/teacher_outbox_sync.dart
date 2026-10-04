@@ -8,7 +8,25 @@ Future<void> syncTeacherOutboxEntry(
   SchoolClient client,
   TeacherOutboxEntry entry,
 ) async {
+  final command = entry.payload['command'];
+  final body = entry.payload['body'];
+  const workflowCommands = {
+    'save-teacher-attendance-draft',
+    'record-teacher-attendance-arrival',
+    'save-teacher-logbook',
+    'request-teacher-correction',
+    'revise-teacher-correction',
+    'withdraw-teacher-correction',
+    'edit-teacher-incident',
+    'append-incident-follow-up',
+  };
+  if (command is String && workflowCommands.contains(command) && body is Map) {
+    await client.runCommand(command, Map<String, dynamic>.from(body));
+    return;
+  }
   switch (entry.kind) {
+    case TeacherOutboxKind.correction:
+      throw StateError('A correction must carry a supported named command');
     case TeacherOutboxKind.attendance:
       await client.recordAttendance(entry.payload);
     case TeacherOutboxKind.logbook:

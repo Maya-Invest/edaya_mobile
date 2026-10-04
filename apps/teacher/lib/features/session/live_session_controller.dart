@@ -24,6 +24,8 @@ class LiveSessionStudent {
     this.status,
     this.reason,
     this.notes,
+    this.workflowVersion = 0,
+    this.pendingCorrection,
   });
 
   final String studentId;
@@ -34,6 +36,8 @@ class LiveSessionStudent {
   final AttendanceStatus? status;
   final String? reason;
   final String? notes;
+  final int workflowVersion;
+  final Map<String, dynamic>? pendingCorrection;
 
   LiveSessionStudent copyWith({
     String? attendanceId,
@@ -47,6 +51,8 @@ class LiveSessionStudent {
       initials: initials,
       photoUrl: photoUrl,
       attendanceId: attendanceId ?? this.attendanceId,
+      workflowVersion: workflowVersion,
+      pendingCorrection: pendingCorrection,
       status: status ?? this.status,
       reason: reason ?? this.reason,
       notes: notes ?? this.notes,
@@ -70,7 +76,6 @@ class LiveSessionController extends LevitController
        _schoolClient = schoolClient,
        _outboxStore = outboxStore ?? openTeacherOutboxStore(),
        _teacherContext = teacherContext,
-       _schoolId = schoolId,
        _outboxContext = outboxContext;
 
   final String sessionId;
@@ -79,7 +84,6 @@ class LiveSessionController extends LevitController
   final SchoolClientFactory _schoolClient;
   final TeacherOutboxStore _outboxStore;
   final TeacherContextController? _teacherContext;
-  final String? Function()? _schoolId;
   final TeacherOutboxContext? Function()? _outboxContext;
 
   final session = LxVar<TeacherSession?>(null);
@@ -93,6 +97,12 @@ class LiveSessionController extends LevitController
   final errorMessage = LxVar('');
   final saveMessage = LxVar('');
   final pendingOutboxCount = LxVar(0);
+  final attendanceSubmitted = LxVar(false);
+  final logbookValidated = LxVar(false);
+  int _attendanceVersion = 0;
+  int _logbookVersion = 0;
+  Map<String, dynamic>? _logbookCorrection;
+  final Map<String, int> _sessionProgress = {};
 
   @override
   void onInit() {
@@ -109,6 +119,8 @@ class LiveSessionController extends LevitController
     autoDispose(errorMessage);
     autoDispose(saveMessage);
     autoDispose(pendingOutboxCount);
+    autoDispose(attendanceSubmitted);
+    autoDispose(logbookValidated);
     autoDispose(
       _calendar.sessions.stream.listen((_) {
         final refreshed = _calendar.sessionById(sessionId);
@@ -183,13 +195,7 @@ class LiveSessionController extends LevitController
 
   final selectedMatterId = LxVar<String?>(null);
 
-  int get minProgress {
-    final matter = _selectedMatter;
-    if (matter == null) {
-      return 0;
-    }
-    return minMatterProgressPercentage(matter);
-  }
+  int get minProgress => 0;
 
   void selectMatter(String matterId) {
     selectedMatterId(matterId);
@@ -230,37 +236,60 @@ class LiveSessionController extends LevitController
             .map((row) => row['studentId'] as String?)
             .whereType<String>()
             .toList();
-        final studentRows = studentIds.isEmpty
+        var studentRows = studentIds.isEmpty
             ? <Map<String, dynamic>>[]
             : await client.students.listAll(entitiesByIds(studentIds));
-        final attendanceRows = await listAttendanceForOccurrence(
+        var attendanceRows = await listAttendanceForOccurrence(
           client.attendance,
           kind: current.kind,
           occurrenceId: current.id,
         );
+        if (supportsAttendanceRecording) {
+          final call = await client.runQuery('get-teacher-attendance-call', {
+            'anchor': {'kind': 'lesson', 'lessonSessionId': current.id},
+          });
+          _attendanceVersion = (call['version'] as num).toInt();
+          attendanceSubmitted(call['submitted'] as bool);
+          final officialRoster = (call['students'] as List).cast<Map>();
+          studentRows = [
+            for (final student in officialRoster)
+              {
+                ...studentRows
+                        .where((row) => row['id'] == student['id'])
+                        .firstOrNull ??
+                    {},
+                ...Map<String, dynamic>.from(student),
+              },
+          ];
+          attendanceRows =
+              ((attendanceSubmitted.value ? call['records'] : call['entries'])
+                      as List)
+                  .map((row) => Map<String, dynamic>.from(row as Map))
+                  .toList();
+        }
         final attendanceByStudent = {
           for (final row in attendanceRows) row['studentId'] as String: row,
         };
-        final roster =
-            studentRows.map((row) {
-              final studentId = row['id'] as String;
-              final firstName = row['firstName'] as String? ?? '';
-              final lastName = row['lastName'] as String? ?? '';
-              final fullName = '$firstName $lastName'.trim();
-              final displayName = fullName.isEmpty ? studentId : fullName;
-              final attendance = attendanceByStudent[studentId];
-              return LiveSessionStudent(
-                studentId: studentId,
-                fullName: displayName,
-                initials: personInitials(displayName),
-                photoUrl: row['photoUrl'] as String?,
-                attendanceId: attendance?['id'] as String?,
-                status: _statusFromApi(attendance?['status'] as String?),
-                reason: attendance?['reason'] as String?,
-                notes: attendance?['notes'] as String?,
-              );
-            }).toList()
-              ..sort((a, b) => a.fullName.compareTo(b.fullName));
+        final roster = studentRows.map((row) {
+          final studentId = row['id'] as String;
+          final firstName = row['firstName'] as String? ?? '';
+          final lastName = row['lastName'] as String? ?? '';
+          final fullName = '$firstName $lastName'.trim();
+          final displayName = fullName.isEmpty ? studentId : fullName;
+          final attendance = attendanceByStudent[studentId];
+          return LiveSessionStudent(
+            studentId: studentId,
+            fullName: displayName,
+            initials: personInitials(displayName),
+            photoUrl: row['photoUrl'] as String?,
+            attendanceId: attendance?['id'] as String?,
+            status: _statusFromApi(attendance?['status'] as String?),
+            reason: attendance?['teacherExplanation'] as String?,
+            workflowVersion:
+                (attendance?['workflowVersion'] as num?)?.toInt() ?? 0,
+            notes: attendance?['notes'] as String?,
+          );
+        }).toList()..sort((a, b) => a.fullName.compareTo(b.fullName));
         students(roster);
 
         if (!supportsLogbook || current.classSubjectId == null) {
@@ -287,7 +316,30 @@ class LiveSessionController extends LevitController
         final progressRows = await client.classSubjectProgress.list(
           progressForLessonSessions([current.id]),
         );
+        _sessionProgress.clear();
+        for (final row in progressRows) {
+          _sessionProgress[row['classSubjectMatterId'] as String] =
+              (row['completedPercentage'] as num).toInt();
+        }
         final lesson = await client.lessonSessions.get(current.id);
+        final eligibility = await client.runQuery(
+          'get-teacher-workflow-state',
+          {
+            'proposal': {
+              'workflow': 'logbook',
+              'targetId': current.id,
+              'sessionNote': null,
+              'progress': [],
+            },
+          },
+        );
+        _logbookVersion = (eligibility['version'] as num).toInt();
+        logbookValidated(eligibility['locked'] as bool);
+        _logbookCorrection = (eligibility['corrections'] as List)
+            .cast<Map>()
+            .where((r) => r['status'] == 'pending')
+            .map((r) => Map<String, dynamic>.from(r))
+            .firstOrNull;
         subjectMatters(
           buildSessionSubjectMatters(
             matterLinks: matterLinks,
@@ -324,62 +376,185 @@ class LiveSessionController extends LevitController
       return;
     }
     saveMessage('');
-    _outboxStore.bindContext(_outboxContext?.call());
-    final attendanceId = row.attendanceId ?? '${row.studentId}-${current.id}';
-    final createdAt = DateTime.now().toUtc().toIso8601String();
-    final payload = attendanceRecordPayload(
-      kind: current.kind,
-      occurrenceId: current.id,
-      studentId: row.studentId,
-      attendanceId: attendanceId,
-      status: status.name,
-      createdAt: createdAt,
-      reason: reason,
-      notes: notes,
-    );
-    try {
-      await _schoolClient().recordAttendance(payload);
-      await _removeAttendanceOutbox(row.studentId);
-      _patchStudent(
-        studentId,
-        attendanceId: attendanceId,
-        status: status,
-        reason: reason,
-        notes: notes,
-      );
-      unawaited(_calendar.loadCalendarData());
-    } on Object catch (error) {
-      if (!isRetryableTeacherWriteFailure(error)) {
-        saveMessage(systemL10n().couldNotSaveMark('$error'));
-        return;
-      }
-      await _enqueueAttendanceFailure(
-        row: row,
-        status: status,
-        reason: reason,
-        notes: notes,
-        attendanceId: attendanceId,
-        createdAt: createdAt,
-        error: '$error',
-      );
+    if (attendanceSubmitted.value) {
+      saveMessage(systemL10n().marksCorrectionHint);
+      return;
     }
+    _patchStudent(studentId, status: status, reason: reason, notes: notes);
+    final body = <String, dynamic>{
+      'requestId': newSchoolRequestId(),
+      'expectedVersion': _attendanceVersion,
+      'anchor': {'kind': 'lesson', 'lessonSessionId': current.id},
+      'entries': [
+        for (final student in students.value)
+          if (student.status != null)
+            {
+              'studentId': student.studentId,
+              'status': student.status!.name,
+              'notes': student.notes,
+              'teacherExplanation': student.reason,
+            },
+      ],
+    };
+    final result = await _workflowCommand(
+      'save-teacher-attendance-draft',
+      body,
+      TeacherOutboxKind.attendance,
+      'attendance-call-${current.id}',
+    );
+    if (result != null) _attendanceVersion = (result['version'] as num).toInt();
   }
 
   Future<void> markAllPresent() async {
-    for (final row in students.value) {
-      if (row.status == AttendanceStatus.present) {
-        continue;
-      }
-      await setAttendanceStatus(row.studentId, AttendanceStatus.present);
+    if (attendanceSubmitted.value) return;
+    final remaining = students.value
+        .where((row) => row.status == null)
+        .toList();
+    if (remaining.isEmpty) return;
+    for (final row in remaining) {
+      _patchStudent(row.studentId, status: AttendanceStatus.present);
     }
+    await setAttendanceStatus(
+      remaining.first.studentId,
+      AttendanceStatus.present,
+    );
   }
 
   Future<void> completeAttendance() async {
-    for (final row in students.value) {
-      if (row.status != null) {
-        continue;
+    if (attendanceSubmitted.value) return;
+    if (!attendanceComplete) {
+      saveMessage(systemL10n().attendanceIncomplete);
+      return;
+    }
+    await syncPendingOutbox();
+    final pending = await _outboxStore.listPending();
+    if (pending.any((entry) => entry.id == 'attendance-call-$sessionId')) {
+      saveMessage(systemL10n().attendanceSubmitNeedsSync);
+      return;
+    }
+    try {
+      final client = _schoolClient();
+      final call = await client.runQuery('get-teacher-attendance-call', {
+        'anchor': {'kind': 'lesson', 'lessonSessionId': sessionId},
+      });
+      if (call['submitted'] == true) {
+        attendanceSubmitted(true);
+        return;
       }
-      await setAttendanceStatus(row.studentId, AttendanceStatus.present);
+      final result = await client.runCommand('submit-teacher-attendance', {
+        'requestId': newSchoolRequestId(),
+        'expectedVersion': call['version'],
+        'anchor': {'kind': 'lesson', 'lessonSessionId': sessionId},
+        'entries': [],
+      });
+      _attendanceVersion = (result['version'] as num).toInt();
+      attendanceSubmitted(true);
+      await load();
+    } on Object catch (error) {
+      saveMessage(systemL10n().couldNotSaveMark('$error'));
+    }
+  }
+
+  bool get arrivalWindowActive {
+    final current = session.value, now = DateTime.now();
+    return current != null &&
+        now.isAfter(current.startsAt) &&
+        now.isBefore(current.endsAt);
+  }
+
+  Future<void> requestAttendanceCorrection(
+    String studentId,
+    AttendanceStatus status,
+    String reason, {
+    String? notes,
+    String? teacherExplanation,
+  }) async {
+    final row = students.value
+        .where((s) => s.studentId == studentId)
+        .firstOrNull;
+    if (row?.attendanceId == null) return;
+    final proposal = <String, dynamic>{
+      'workflow': 'attendance',
+      'targetId': row!.attendanceId,
+      'status': status.name,
+      'notes': notes ?? row.notes,
+      'teacherExplanation': teacherExplanation ?? row.reason,
+    };
+    final result = await _workflowCommand(
+      row.pendingCorrection == null
+          ? 'request-teacher-correction'
+          : 'revise-teacher-correction',
+      {
+        'requestId': newSchoolRequestId(),
+        if (row.pendingCorrection != null)
+          'correctionId': row.pendingCorrection!['id'],
+        'expectedVersion':
+            row.pendingCorrection?['version'] ?? row.workflowVersion,
+        'reason': reason,
+        'proposal': proposal,
+      },
+      TeacherOutboxKind.correction,
+      'attendance-correction-${row.attendanceId}',
+    );
+    if (result != null) await load();
+  }
+
+  Future<void> recordArrival(String studentId) async {
+    final row = students.value
+        .where((s) => s.studentId == studentId)
+        .firstOrNull;
+    if (row?.attendanceId == null) return;
+    final result = await _workflowCommand(
+      'record-teacher-attendance-arrival',
+      {
+        'requestId': newSchoolRequestId(),
+        'recordId': row!.attendanceId,
+        'expectedVersion': row.workflowVersion,
+        'occurredAt': DateTime.now().toUtc().toIso8601String(),
+      },
+      TeacherOutboxKind.attendance,
+      'arrival-${row.attendanceId}',
+    );
+    if (result != null) await load();
+  }
+
+  Future<Map<String, dynamic>?> _workflowCommand(
+    String command,
+    Map<String, dynamic> body,
+    TeacherOutboxKind kind,
+    String id,
+  ) async {
+    _outboxStore.bindContext(_outboxContext?.call());
+    try {
+      final result = await _schoolClient().runCommand(command, body);
+      await _outboxStore.remove(id);
+      saveMessage(
+        kind == TeacherOutboxKind.correction
+            ? systemL10n().workflowCorrectionPending
+            : systemL10n().workflowSynced,
+      );
+      return result;
+    } on Object catch (error) {
+      final retryable = isRetryableTeacherWriteFailure(error);
+      await _outboxStore.enqueue(
+        buildTeacherOutboxEntry(
+          id: id,
+          kind: kind,
+          idempotencyKey: id,
+          payload: {'command': command, 'body': body},
+          lastError: '$error',
+          state: retryable
+              ? TeacherOutboxState.pending
+              : TeacherOutboxState.conflict,
+        ),
+      );
+      pendingOutboxCount(await _outboxStore.pendingCount());
+      saveMessage(
+        retryable
+            ? systemL10n().attendanceSavedLocally
+            : systemL10n().couldNotSaveMark('$error'),
+      );
+      return null;
     }
   }
 
@@ -389,6 +564,7 @@ class LiveSessionController extends LevitController
     required String homeworkText,
     required String familySummaryText,
     required int progress,
+    String? correctionReason,
   }) async {
     final current = session.value;
     if (current == null || !supportsLogbook || current.classSubjectId == null) {
@@ -408,11 +584,6 @@ class LiveSessionController extends LevitController
     final progressEntries = <LogbookProgressDraft>[];
     final matter = _selectedMatter;
     if (matter != null) {
-      final minimum = minMatterProgressPercentage(matter);
-      if (progress < minimum) {
-        saveMessage(systemL10n().progressMustNotDecrease(minimum));
-        return false;
-      }
       progressEntries.add(
         LogbookProgressDraft(
           matterId: matter.id,
@@ -424,50 +595,50 @@ class LiveSessionController extends LevitController
     saveMessage('');
     _outboxStore.bindContext(_outboxContext?.call());
     final encodedNote = encodeStructuredSessionNote(structured);
-    final matterById = {
-      for (final matter in subjectMatters.value) matter.id: matter,
+    final mergedProgress = {
+      ..._sessionProgress,
+      for (final entry in progressEntries)
+        entry.matterId: entry.completedPercentage,
     };
-    final recordedAt = DateTime.now();
-    final schoolId = _schoolId?.call();
-    final progressOps = progressOperationsForLogbook(
-      sessionId: current.id,
-      entries: progressEntries,
-      matterById: matterById,
-      recordedAt: recordedAt,
+    final proposal = <String, dynamic>{
+      'workflow': 'logbook',
+      'targetId': current.id,
+      'sessionNote': encodedNote,
+      'progress': [
+        for (final entry in mergedProgress.entries)
+          {'matterId': entry.key, 'completedPercentage': entry.value},
+      ],
+    };
+    if (logbookValidated.value && (correctionReason?.trim().isEmpty ?? true)) {
+      return false;
+    }
+    final command = logbookValidated.value
+        ? (_logbookCorrection == null
+              ? 'request-teacher-correction'
+              : 'revise-teacher-correction')
+        : 'save-teacher-logbook';
+    final body = <String, dynamic>{
+      'requestId': newSchoolRequestId(),
+      'expectedVersion': _logbookCorrection?['version'] ?? _logbookVersion,
+      if (_logbookCorrection != null) 'correctionId': _logbookCorrection!['id'],
+      'proposal': proposal,
+      if (logbookValidated.value) 'reason': correctionReason,
+    };
+    final result = await _workflowCommand(
+      command,
+      body,
+      logbookValidated.value
+          ? TeacherOutboxKind.correction
+          : TeacherOutboxKind.logbook,
+      'logbook-${current.id}',
     );
-    final offlineNote = offlineLessonSessionPayload(
-      session: current,
-      schoolId: schoolId,
-      sessionNote: encodedNote,
-    );
-    final client = _schoolClient();
-
-    try {
-      var notePayload = offlineNote;
-      try {
-        final lessonSession = await client.lessonSessions.get(current.id);
-        notePayload = lessonSessionNotePayload(
-          lessonSession: lessonSession,
-          sessionNote: encodedNote,
-          displayLabelFallback: current.title,
-        );
-      } on Object {
-        if (!_offlineLessonPayloadIsComplete(offlineNote)) {
-          rethrow;
-        }
-      }
-
-      await client.lessonSessions.save(notePayload);
-      for (final op in progressOps) {
-        final action = op['action'] as String;
-        final payload = op['payload'] as Map<String, dynamic>;
-        if (action == 'create') {
-          await client.recordLessonSessionProgress(payload);
-        } else {
-          await client.classSubjectProgress.save(payload);
-        }
-      }
-
+    if (result == null) return false;
+    if (logbookValidated.value) _logbookCorrection = result;
+    if (!logbookValidated.value) {
+      _logbookVersion = (result['version'] as num).toInt();
+      _sessionProgress
+        ..clear()
+        ..addAll(mergedProgress);
       content(contentText);
       objectives(objectivesText);
       homework(homeworkText);
@@ -478,24 +649,8 @@ class LiveSessionController extends LevitController
         context: _outboxContext?.call(),
       );
       unawaited(_calendar.loadCalendarData());
-      return true;
-    } on Object catch (error) {
-      if (!isRetryableTeacherWriteFailure(error) ||
-          !_offlineLessonPayloadIsComplete(offlineNote)) {
-        saveMessage(systemL10n().couldNotSaveMark('$error'));
-        return false;
-      }
-      return _enqueueLogbookFailure(
-        notePayload: offlineNote,
-        progressOps: progressOps,
-        error: '$error',
-        contentText: contentText,
-        objectivesText: objectivesText,
-        homeworkText: homeworkText,
-        familySummaryText: familySummaryText,
-        progress: progress,
-      );
     }
+    return true;
   }
 
   Future<void> persistDraft({
@@ -533,17 +688,26 @@ class LiveSessionController extends LevitController
     var syncedCount = 0;
     final client = _schoolClient();
     for (final entry in pending) {
+      final body = entry.payload['body'] as Map?;
+      final anchor = body?['anchor'] as Map?;
+      final proposal = body?['proposal'] as Map?;
       final lessonSessionId =
+          anchor?['lessonSessionId'] as String? ??
+          proposal?['targetId'] as String? ??
           entry.payload['lessonSessionId'] as String? ??
           (entry.payload['notePayload'] is Map
               ? (entry.payload['notePayload'] as Map)['id'] as String?
               : null);
       final matchesSession = switch (entry.kind) {
         TeacherOutboxKind.attendance =>
-          (entry.payload['lessonSessionId'] as String?) == sessionId &&
+          (lessonSessionId == sessionId ||
+                  students.value.any(
+                    (row) => row.attendanceId == body?['recordId'],
+                  )) &&
               supportsAttendanceRecording,
         TeacherOutboxKind.logbook =>
           lessonSessionId == sessionId && supportsLogbook,
+        TeacherOutboxKind.correction => lessonSessionId == sessionId,
         _ => false,
       };
       if (!matchesSession) {
@@ -603,7 +767,7 @@ class LiveSessionController extends LevitController
 
   void _patchStudent(
     String studentId, {
-    required String attendanceId,
+    String? attendanceId,
     required AttendanceStatus status,
     String? reason,
     String? notes,
@@ -620,110 +784,6 @@ class LiveSessionController extends LevitController
         else
           item,
     ]);
-  }
-
-  Future<void> _enqueueAttendanceFailure({
-    required LiveSessionStudent row,
-    required AttendanceStatus status,
-    required String? reason,
-    required String? notes,
-    required String attendanceId,
-    required String createdAt,
-    required String error,
-  }) async {
-    final current = session.value;
-    if (current == null) {
-      return;
-    }
-    final payload = attendanceRecordPayload(
-      kind: current.kind,
-      occurrenceId: current.id,
-      studentId: row.studentId,
-      attendanceId: attendanceId,
-      status: status.name,
-      createdAt: createdAt,
-      reason: reason,
-      notes: notes,
-    );
-    final now = DateTime.now();
-    await _outboxStore.enqueue(
-      TeacherOutboxEntry(
-        id: attendanceId,
-        kind: TeacherOutboxKind.attendance,
-        idempotencyKey: teacherAttendanceIdempotencyKey(
-          occurrenceId: current.id,
-          studentId: row.studentId,
-        ),
-        payload: payload,
-        state: TeacherOutboxState.pending,
-        attemptCount: 1,
-        lastError: error,
-        createdAt: now,
-        updatedAt: now,
-      ),
-    );
-    _patchStudent(
-      row.studentId,
-      attendanceId: attendanceId,
-      status: status,
-      reason: reason,
-      notes: notes,
-    );
-    saveMessage(systemL10n().attendanceSavedLocally);
-    pendingOutboxCount(await _outboxStore.pendingCount());
-  }
-
-  Future<void> _removeAttendanceOutbox(String studentId) async {
-    final pending = await _outboxStore.listPending();
-    for (final entry in pending) {
-      if (entry.kind == TeacherOutboxKind.attendance &&
-          entry.payload['studentId'] == studentId &&
-          entry.payload['lessonSessionId'] == sessionId) {
-        await _outboxStore.remove(entry.id);
-      }
-    }
-    pendingOutboxCount(await _outboxStore.pendingCount());
-  }
-
-  Future<bool> _enqueueLogbookFailure({
-    required Map<String, dynamic> notePayload,
-    required List<Map<String, dynamic>> progressOps,
-    required String error,
-    required String contentText,
-    required String objectivesText,
-    required String homeworkText,
-    required String familySummaryText,
-    required int progress,
-  }) async {
-    final current = session.value;
-    if (current == null) {
-      return false;
-    }
-    await _outboxStore.enqueue(
-      buildTeacherOutboxEntry(
-        id: 'logbook-${current.id}-${DateTime.now().millisecondsSinceEpoch}',
-        kind: TeacherOutboxKind.logbook,
-        idempotencyKey: teacherLogbookIdempotencyKey(
-          lessonSessionId: current.id,
-        ),
-        payload: {
-          'lessonSessionId': current.id,
-          ...logbookOutboxPayload(
-            notePayload: notePayload,
-            progressOps: progressOps,
-          ),
-        },
-        lastError: error,
-      ),
-    );
-    content(contentText);
-    objectives(objectivesText);
-    homework(homeworkText);
-    familySummary(familySummaryText);
-    progressPercent(progress);
-    saveMessage(systemL10n().attendanceSavedLocally);
-    pendingOutboxCount(await _outboxStore.pendingCount());
-    return true;
   }
 
   Future<TeacherSession?> _loadSessionById() async {
@@ -771,69 +831,11 @@ Map<String, dynamic> offlineLessonSessionPayload({
     'id': session.id,
     if (schoolId != null && schoolId.isNotEmpty) 'schoolId': schoolId,
     'classGroupId': session.classGroupId,
-    if (session.classSubjectId != null) 'classSubjectId': session.classSubjectId,
+    if (session.classSubjectId != null)
+      'classSubjectId': session.classSubjectId,
     'startsAt': session.startsAt.toUtc().toIso8601String(),
     'endsAt': session.endsAt.toUtc().toIso8601String(),
     'displayLabel': session.title,
     'sessionNote': normalizeSessionNote(sessionNote),
   };
-}
-
-bool _offlineLessonPayloadIsComplete(Map<String, dynamic> note) {
-  for (final key in const [
-    'schoolId',
-    'classGroupId',
-    'classSubjectId',
-    'startsAt',
-    'endsAt',
-  ]) {
-    final value = note[key];
-    if (value == null || (value is String && value.isEmpty)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-List<Map<String, dynamic>> progressOperationsForLogbook({
-  required String sessionId,
-  required List<LogbookProgressDraft> entries,
-  required Map<String, SessionSubjectMatterOption> matterById,
-  required DateTime recordedAt,
-}) {
-  final operations = <Map<String, dynamic>>[];
-  for (final entry in entries) {
-    final matter = matterById[entry.matterId];
-    if (matter == null) {
-      continue;
-    }
-    final existing = matter.sessionProgress;
-    if (isProgressCreate(existing)) {
-      operations.add({
-        'action': 'create',
-        'payload': recordLessonProgressPayload(
-          id: newProgressId(sessionId),
-          classSubjectMatterId: matter.id,
-          lessonSessionId: sessionId,
-          completedPercentage: entry.completedPercentage,
-          notes: entry.notes,
-          recordedAt: recordedAt,
-        ),
-      });
-      continue;
-    }
-    operations.add({
-      'action': 'update',
-      'payload': {
-        'id': existing!.id,
-        'classSubjectMatterId': matter.id,
-        'lessonSessionId': sessionId,
-        'completedPercentage': entry.completedPercentage,
-        'recordedAt': recordedAt.toUtc().toIso8601String(),
-        if (entry.notes != null && entry.notes!.trim().isNotEmpty)
-          'notes': entry.notes,
-      },
-    });
-  }
-  return operations;
 }

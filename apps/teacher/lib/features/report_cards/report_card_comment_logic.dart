@@ -24,11 +24,6 @@ List<ReportCardCommentField> extractWritableReportCardCommentFields({
   required Set<String> homeroomClassGroupIds,
   required Set<String> taughtClassSubjectIds,
 }) {
-  final status = result['status'] as String?;
-  if (status == 'published') {
-    return const [];
-  }
-
   final fields = <ReportCardCommentField>[];
   final isHomeroomTeacher = homeroomClassGroupIds.contains(classGroupId);
 

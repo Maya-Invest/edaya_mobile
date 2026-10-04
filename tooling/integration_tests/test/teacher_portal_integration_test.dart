@@ -271,7 +271,7 @@ void _teacherPortalSuite(TeacherPortalProfile profile) {
 
       test(
         profile.kind == TeacherPortalKind.subject
-            ? '[api.teacher.subject.attendance-save] recordAttendance persists and reads back'
+            ? '[api.teacher.subject.attendance-save] private full call submits and reads back'
             : '[api.teacher.homeroom.attendance-denied] recordAttendance is forbidden for homeroom on subject lessons',
         () async {
           final probe = sessionProbe;
@@ -288,9 +288,23 @@ void _teacherPortalSuite(TeacherPortalProfile profile) {
           );
 
           if (profile.kind == TeacherPortalKind.subject) {
+            final owner = await PortalSession.signIn(
+              config: config.withSchoolOwnerEmail(),
+              actorKind: 'staff',
+              academicYearId: profile.academicYearId,
+            );
+            final lesson = await owner.schoolClient.lessonSessions.get(
+              probe!.lessonSessionId,
+            );
+            final id = fixtureId('api-attendance-call');
+            await owner.schoolClient.lessonSessions.save({
+              ...lesson,
+              'id': id,
+              'sessionNote': null,
+            });
             await recordLessonAttendance(
               session.schoolClient,
-              lessonSessionId: probe!.lessonSessionId,
+              lessonSessionId: id,
               studentId: studentId!,
             );
             return;

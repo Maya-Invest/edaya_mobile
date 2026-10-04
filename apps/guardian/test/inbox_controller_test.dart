@@ -100,10 +100,48 @@ void main() {
         'recipientKind': 'guardian',
         'recipientId': 'guardian-a',
         'schoolId': 'school',
+        r'$limit': 100,
+        r'$offset': 0,
       });
       transport.pending.single.complete([delivery('a')]);
       await until(() => controller.deliveries.value.isNotEmpty);
       expect(controller.deliveries.value.single.id, 'a');
+    },
+  );
+
+  test(
+    'inbox loads later pages without losing recipient scope or recent messages',
+    () async {
+      final session = _Session();
+      final transport = _Transport();
+      final controller = InboxController(
+        session: session,
+        schoolClient: () => api.createSchoolClient(transport),
+        studentContext: _studentsFor(session, transport),
+      );
+      controller.onInit();
+      addTearDown(controller.onClose);
+      await until(() => transport.pending.length == 1);
+      transport.pending[0].complete(
+        List.generate(100, (i) => delivery('older-$i')),
+      );
+      await until(() => transport.pending.length == 2);
+      expect(transport.queries[1], {
+        'subjectId': 'person',
+        'recipientKind': 'guardian',
+        'recipientId': 'guardian-a',
+        'schoolId': 'school',
+        r'$limit': 100,
+        r'$offset': 100,
+      });
+      transport.pending[1].complete([
+        {
+          ...delivery('recent'),
+          'sentAt': DateTime.now().toUtc().toIso8601String(),
+        },
+      ]);
+      await until(() => controller.deliveries.value.length == 101);
+      expect(controller.deliveries.value.first.id, 'recent');
     },
   );
 

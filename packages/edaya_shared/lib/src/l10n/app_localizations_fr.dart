@@ -2016,4 +2016,90 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get testCodeUnavailable => 'Code de test indisponible';
+
+  @override
+  String get attendanceIncomplete =>
+      'Renseignez chaque élève avant de terminer l’appel.';
+
+  @override
+  String get attendanceSubmitNeedsSync =>
+      'Synchronisez les brouillons avant de terminer l’appel.';
+
+  @override
+  String get workflowSynced => 'Synchronisé';
+
+  @override
+  String get attendanceArrival => 'Enregistrer l’arrivée';
+
+  @override
+  String get workflowCorrectionPending => 'Correction en attente de validation';
+
+  @override
+  String get workflowRequestCorrection => 'Demander une correction';
+
+  @override
+  String get dailyAttendance => 'Appel du jour';
+
+  @override
+  String get workflowDiscipline => 'Discipline';
+
+  @override
+  String get workflowFollowUp => 'Ajouter un suivi';
+
+  @override
+  String get deadlineCompliance => 'Remise du devoir';
+
+  @override
+  String get deadlineMet => 'À temps';
+
+  @override
+  String get deadlineLate => 'En retard';
+
+  @override
+  String get deadlineMissed => 'Non rendu';
+
+  @override
+  String get deadlineExcused => 'Justifié';
+
+  @override
+  String get attendancePresent => 'Présent';
+
+  @override
+  String get attendanceAbsent => 'Absent';
+
+  @override
+  String get attendanceLate => 'En retard';
+
+  @override
+  String get attendanceFinish => 'Terminer';
+
+  @override
+  String get attendanceMarkRemaining => 'Marquer les autres présents';
+
+  @override
+  String get workflowReviseCorrection => 'Réviser la demande';
+
+  @override
+  String get workflowIncidentTakenOver => 'Incident pris en charge';
+
+  @override
+  String get workflowIncidentTitle => 'Titre';
+
+  @override
+  String get workflowIncidentFacts => 'Faits';
+
+  @override
+  String get workflowIncidentPositive => 'Positif';
+
+  @override
+  String get workflowIncidentMinor => 'Incident mineur';
+
+  @override
+  String get workflowIncidentMajor => 'Incident majeur';
+
+  @override
+  String get workflowIncidentEmergency => 'Urgence';
+
+  @override
+  String get workflowTeacherExplanation => 'Explication de l’enseignant';
 }

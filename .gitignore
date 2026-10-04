@@ -47,3 +47,6 @@ __MACOSX/
 .tmp-pub-cache
 /.integration-results/
 **/__pycache__/
+
+# Sanitized local/CI test evidence
+.ci-evidence/

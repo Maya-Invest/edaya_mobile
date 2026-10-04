@@ -84,7 +84,9 @@ class _MockProgressOverviewPage extends LScopedView<StoreBoundController> {
               ),
               onToggle: () {},
             ),
-            for (final topic in store.topicsForSubject(summaries[i].subject)) ...[
+            for (final topic in store.topicsForSubject(
+              summaries[i].subject,
+            )) ...[
               const SizedBox(height: PrototypeSpacing.xs),
               ListRow(
                 title: topic.title,

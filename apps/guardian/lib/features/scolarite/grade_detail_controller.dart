@@ -71,8 +71,8 @@ class GradeDetailController extends LevitController
           }
         }
 
-        var periodName = assessment['periodId'] as String? ??
-            systemL10n().periodFallback;
+        var periodName =
+            assessment['periodId'] as String? ?? systemL10n().periodFallback;
         if (yearId != null) {
           try {
             final periods = await client.academicPeriods.list(

@@ -130,33 +130,30 @@ void main() {
     },
   );
 
-  test(
-    'resolveGuardianAuthRedirect opens home when children are linked',
-    () {
-      expect(
-        resolveGuardianAuthRedirect(
-          isAuthenticated: true,
-          matchedLocation: '/login',
-          pendingInvitationToken: null,
-          hasSchoolSession: true,
-          linkedStudentsResolved: true,
-          hasLinkedStudents: true,
-        ),
-        '/home',
-      );
-      expect(
-        resolveGuardianAuthRedirect(
-          isAuthenticated: true,
-          matchedLocation: '/waiting',
-          pendingInvitationToken: null,
-          hasSchoolSession: true,
-          linkedStudentsResolved: true,
-          hasLinkedStudents: true,
-        ),
-        '/home',
-      );
-    },
-  );
+  test('resolveGuardianAuthRedirect opens home when children are linked', () {
+    expect(
+      resolveGuardianAuthRedirect(
+        isAuthenticated: true,
+        matchedLocation: '/login',
+        pendingInvitationToken: null,
+        hasSchoolSession: true,
+        linkedStudentsResolved: true,
+        hasLinkedStudents: true,
+      ),
+      '/home',
+    );
+    expect(
+      resolveGuardianAuthRedirect(
+        isAuthenticated: true,
+        matchedLocation: '/waiting',
+        pendingInvitationToken: null,
+        hasSchoolSession: true,
+        linkedStudentsResolved: true,
+        hasLinkedStudents: true,
+      ),
+      '/home',
+    );
+  });
 
   test(
     'resolveGuardianAuthRedirect keeps waiting when no children are linked',

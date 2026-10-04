@@ -43,6 +43,7 @@ class LiveRosterController extends LevitController
 
   final students = LxVar<List<LiveRosterStudent>>(const []);
   final errorMessage = LxVar('');
+  final canRecordDaily = LxVar(false);
 
   String get classLabel {
     for (final assigned in _teacherContext.assignedClasses.value) {
@@ -71,6 +72,7 @@ class LiveRosterController extends LevitController
     super.onInit();
     autoDispose(students);
     autoDispose(errorMessage);
+    autoDispose(canRecordDaily);
     unawaited(load());
   }
 
@@ -79,6 +81,13 @@ class LiveRosterController extends LevitController
     await runTask(() async {
       try {
         final client = _schoolClient();
+        final group = await client.classGroups.get(classGroupId);
+        canRecordDaily(
+          group['attendanceMode'] == 'daily' &&
+              _teacherContext.assignments.value.any(
+                (a) => a.isHomeroom && a.classGroupId == classGroupId,
+              ),
+        );
         final enrollmentRows = await client.enrollments.list(
           activeEnrollmentsForClass(
             classGroupId,

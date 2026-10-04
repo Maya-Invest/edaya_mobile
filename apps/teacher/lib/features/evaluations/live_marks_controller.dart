@@ -25,6 +25,7 @@ class LiveMarkRow {
     this.marksLocked = false,
     this.published = false,
     this.notes,
+    this.deadlineStatus,
     this.syncState = MarkSyncState.synced,
   });
 
@@ -38,6 +39,7 @@ class LiveMarkRow {
   final bool marksLocked;
   final bool published;
   final String? notes;
+  final String? deadlineStatus;
   final MarkSyncState syncState;
 
   static const Object _unset = Object();
@@ -64,6 +66,7 @@ class LiveMarkRow {
       marksLocked: marksLocked ?? this.marksLocked,
       published: published,
       notes: notes,
+      deadlineStatus: deadlineStatus,
       syncState: syncState ?? this.syncState,
     );
   }
@@ -224,6 +227,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
             marksLocked: marksStatus.value != 'draft',
             published: published.contains(result?['id']),
             notes: result?['notes'] as String?,
+            deadlineStatus: result?['status'] as String?,
           );
         }).toList()..sort((a, b) => a.fullName.compareTo(b.fullName));
         students(roster);
@@ -453,10 +457,11 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
 
   Future<bool> requestCorrection(
     List<Map<String, dynamic>> changes,
-    String reason,
-  ) async {
+    String reason, {
+    Map<String, dynamic>? correction,
+  }) async {
     if (_saving ||
-        !canRequestCorrection.value ||
+        (correction == null && !canRequestCorrection.value) ||
         reason.trim().isEmpty ||
         changes.isEmpty) {
       return false;
@@ -475,12 +480,30 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
     }
     _saving = true;
     try {
-      await _onlineCommand('request', {
-        'assessmentId': evaluationId,
-        'expectedRevision': _revision,
-        'reason': reason.trim(),
-        'changes': changes,
-      }, _schoolClient().requestAssessmentMarksCorrection);
+      if (correction == null) {
+        await _onlineCommand('request', {
+          'assessmentId': evaluationId,
+          'expectedRevision': _revision,
+          'reason': reason.trim(),
+          'changes': changes,
+        }, _schoolClient().requestAssessmentMarksCorrection);
+      } else {
+        await _onlineCommand(
+          'revise',
+          {
+            'correctionId': correction['id'],
+            'assessmentId': evaluationId,
+            'expectedRevision': _revision,
+            'expectedVersion': correction['version'],
+            'reason': reason.trim(),
+            'changes': changes,
+          },
+          (body) => _schoolClient().runCommand(
+            'revise-assessment-marks-correction',
+            body,
+          ),
+        );
+      }
       await load();
       saveMessage(systemL10n().marksCorrectionRequested);
       return true;

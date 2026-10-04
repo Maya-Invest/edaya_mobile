@@ -70,9 +70,7 @@ class _MockInboxPage extends LScopedView<StoreBoundController> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: Text(
-              showingAvis
-                  ? '0 ouvert(s)'
-                  : '${store.unreadCount} non lu(s)',
+              showingAvis ? '0 ouvert(s)' : '${store.unreadCount} non lu(s)',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),

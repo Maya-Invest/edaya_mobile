@@ -35,12 +35,7 @@ class PaymentDetailController extends LevitController
     await runTask(() async {
       try {
         final row = await _schoolClient().payments.get(paymentId);
-        payment(
-          PaymentRecord.fromJson(
-            row,
-            feeLabel: systemL10n().schoolFee,
-          ),
-        );
+        payment(PaymentRecord.fromJson(row, feeLabel: systemL10n().schoolFee));
       } on api.ApiError catch (error) {
         errorMessage(systemL10n().couldNotLoadFees(error.toString()));
         payment(null);

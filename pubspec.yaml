@@ -73,6 +73,7 @@ melos:
       description: Generate local Dart brand tokens from the versioned snapshot.
     verify:
       run: |
+        python3 -m unittest discover -s .github/scripts -p 'test_*.py' &&
         python3 scripts/release-contract.py --role mobile &&
         melos run brand:check &&
         melos run generated:check &&

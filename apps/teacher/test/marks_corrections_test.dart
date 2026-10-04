@@ -150,4 +150,42 @@ void main() {
       expect(retry.students.value.single.score, 12.75);
     },
   );
+  test(
+    'revision submits the displayed request version and homework status in one command',
+    () async {
+      final client = _Client();
+      final marks = controller(client, InMemoryTeacherOutboxStore());
+      await marks.load();
+      expect(
+        await marks.requestCorrection(
+          [
+            {
+              'resultId': 'mark',
+              'proposed': {
+                'score': 14,
+                'designation': 'scored',
+                'notes': 'Checked',
+                'status': 'met',
+              },
+            },
+          ],
+          'Checked submission',
+          correction: {'id': 'correction', 'version': 3},
+        ),
+        isTrue,
+      );
+      expect(
+        client.writes.single['command'],
+        'revise-assessment-marks-correction',
+      );
+      expect(client.writes.single['expectedVersion'], 3);
+      expect(client.writes.single['assessmentId'], 'assessment');
+      expect(client.writes.single['expectedRevision'], 2);
+      expect(
+        ((client.writes.single['changes'] as List).single as Map)['proposed'],
+        containsPair('status', 'met'),
+      );
+      expect(marks.students.value.single.score, 12.75);
+    },
+  );
 }

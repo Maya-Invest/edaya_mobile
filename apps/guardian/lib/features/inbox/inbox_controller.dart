@@ -37,7 +37,9 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
     autoDispose(_session.user.stream.listen((_) => unawaited(loadInbox())));
     autoDispose(_session.grants.stream.listen((_) => unawaited(loadInbox())));
     autoDispose(
-      _studentContext.activeStudent.stream.listen((_) => unawaited(loadInbox())),
+      _studentContext.activeStudent.stream.listen(
+        (_) => unawaited(loadInbox()),
+      ),
     );
 
     unawaited(loadInbox());
@@ -91,7 +93,7 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
     final subjectId = _session.user.value!.id;
 
     errorMessage('');
-    final rowsFuture = _schoolClient().messageDeliveries.list(
+    final rowsFuture = _schoolClient().messageDeliveries.listAll(
       deliveriesForGuardian(
         subjectId: subjectId,
         guardianId: grants.actorId,
@@ -102,49 +104,49 @@ class InboxController extends LevitController with LevitReactiveTasksMixin {
       return;
     }
     try {
-        final rows = await rowsFuture;
-        if (generation != _generation || key != _inboxKey()) {
-          return;
-        }
-        final parsed = rows.map(InboxDelivery.fromJson).toList()
-          ..sort((a, b) {
-            final aTime = a.sortDate?.millisecondsSinceEpoch ?? 0;
-            final bTime = b.sortDate?.millisecondsSinceEpoch ?? 0;
-            return bTime.compareTo(aTime);
-          });
-        deliveries(parsed);
-        try {
-          final items = await listGuardianFamilyFeedbackCampaigns(
-            _schoolClient(),
-          );
-          if (generation != _generation || key != _inboxKey()) {
-            return;
-          }
-          final studentId = _studentContext.activeStudentId;
-          campaigns(
-            studentId == null
-                ? items
-                : items.where((item) => item.studentId == studentId).toList(),
-          );
-        } on Object {
-          if (generation == _generation && key == _inboxKey()) {
-            campaigns(const []);
-          }
-        }
-      } on api.ApiError catch (error) {
-        if (generation != _generation || key != _inboxKey()) {
-          return;
-        }
-        errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
-        deliveries(const []);
-        campaigns(const []);
-      } on Object catch (error) {
-        if (generation != _generation || key != _inboxKey()) {
-          return;
-        }
-        errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
-        deliveries(const []);
-        campaigns(const []);
+      final rows = await rowsFuture;
+      if (generation != _generation || key != _inboxKey()) {
+        return;
       }
+      final parsed = rows.map(InboxDelivery.fromJson).toList()
+        ..sort((a, b) {
+          final aTime = a.sortDate?.millisecondsSinceEpoch ?? 0;
+          final bTime = b.sortDate?.millisecondsSinceEpoch ?? 0;
+          return bTime.compareTo(aTime);
+        });
+      deliveries(parsed);
+      try {
+        final items = await listGuardianFamilyFeedbackCampaigns(
+          _schoolClient(),
+        );
+        if (generation != _generation || key != _inboxKey()) {
+          return;
+        }
+        final studentId = _studentContext.activeStudentId;
+        campaigns(
+          studentId == null
+              ? items
+              : items.where((item) => item.studentId == studentId).toList(),
+        );
+      } on Object {
+        if (generation == _generation && key == _inboxKey()) {
+          campaigns(const []);
+        }
+      }
+    } on api.ApiError catch (error) {
+      if (generation != _generation || key != _inboxKey()) {
+        return;
+      }
+      errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
+      deliveries(const []);
+      campaigns(const []);
+    } on Object catch (error) {
+      if (generation != _generation || key != _inboxKey()) {
+        return;
+      }
+      errorMessage(systemL10n().couldNotLoadInbox(error.toString()));
+      deliveries(const []);
+      campaigns(const []);
+    }
   }
 }

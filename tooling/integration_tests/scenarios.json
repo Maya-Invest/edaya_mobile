@@ -121,6 +121,8 @@
     "teacher.subject.report-card.comment",
     "teacher.homeroom.report-card.comment",
     "teacher.auth.whatsapp",
-    "teacher.auth.sms-switch"
+    "teacher.auth.sms-switch",
+    "teacher.daily-attendance.submit",
+    "teacher.discipline.correction"
   ]
 }

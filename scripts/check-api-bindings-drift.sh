@@ -14,12 +14,17 @@ if [[ ! -f "$bindings_spec" ]]; then
   exit 1
 fi
 
-dart run "$generator" \
-  --bindings-input "$bindings_spec" \
-  --output-dir "$temp_dir"
+backend_spec="${EDAYA_OPENAPI_SPEC:-$repo_root/../edaya_backend/tooling/repo/fixtures/openapi.json}"
+if [[ -f "$backend_spec" ]]; then
+  dart run "$generator" --openapi "$backend_spec" --output-dir "$temp_dir"
+else
+  dart run "$generator" --bindings-input "$bindings_spec" --output-dir "$temp_dir"
+fi
 
 changed=()
-for file in client_bindings.dart school_client_surface.dart; do
+files=(client_bindings.dart school_client_surface.dart)
+if [[ -f "$backend_spec" ]]; then files+=(auth_contracts.dart); fi
+for file in "${files[@]}"; do
   if [[ ! -f "$package_root/lib/src/generated/$file" ]] \
     || ! cmp -s "$temp_dir/$file" "$package_root/lib/src/generated/$file"; then
     changed+=("$file")

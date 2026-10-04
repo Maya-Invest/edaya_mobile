@@ -27,10 +27,14 @@ extension SemanticToneColors on SemanticTone {
     return switch (this) {
       SemanticTone.neutral => (
         dark ? EdayaTokens.darkMuted : EdayaTokens.lightMuted,
-        dark ? EdayaTokens.darkMutedForeground : PrototypeColors.onSurfaceVariant,
+        dark
+            ? EdayaTokens.darkMutedForeground
+            : PrototypeColors.onSurfaceVariant,
       ),
       SemanticTone.info => (
-        dark ? EdayaTokens.darkPrimaryContainer : PrototypeColors.primaryContainer,
+        dark
+            ? EdayaTokens.darkPrimaryContainer
+            : PrototypeColors.primaryContainer,
         dark ? EdayaTokens.darkPrimary : PrototypeColors.primary,
       ),
       SemanticTone.success => (

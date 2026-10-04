@@ -37,7 +37,8 @@ class MockStore extends ChangeNotifier {
   static const guardianEmail = 'parent@demo.ci';
 
   String get guardianFullName => '$guardianFirstName $guardianLastName';
-  String get guardianInitials => '${guardianFirstName[0]}${guardianLastName[0]}';
+  String get guardianInitials =>
+      '${guardianFirstName[0]}${guardianLastName[0]}';
 
   final List<MockSchool> _schools = [];
   final List<MockStudent> _students = [];
@@ -69,7 +70,9 @@ class MockStore extends ChangeNotifier {
 
   static DateTime mondayOf(DateTime date) {
     final normalized = DateTime(date.year, date.month, date.day);
-    return normalized.subtract(Duration(days: normalized.weekday - DateTime.monday));
+    return normalized.subtract(
+      Duration(days: normalized.weekday - DateTime.monday),
+    );
   }
 
   List<MockStudent> get students => List.unmodifiable(_students);
@@ -97,7 +100,9 @@ class MockStore extends ChangeNotifier {
       for (final school in _schools)
         SchoolStudentGroup(
           school: school,
-          students: _students.where((student) => student.schoolId == school.id).toList(),
+          students: _students
+              .where((student) => student.schoolId == school.id)
+              .toList(),
         ),
     ].where((group) => group.students.isNotEmpty).toList();
   }
@@ -112,7 +117,9 @@ class MockStore extends ChangeNotifier {
 
   MockAcademicPeriod? get selectedAcademicPeriod {
     try {
-      return _academicPeriods.firstWhere((period) => period.id == selectedPeriodId);
+      return _academicPeriods.firstWhere(
+        (period) => period.id == selectedPeriodId,
+      );
     } on Object {
       return null;
     }
@@ -132,7 +139,8 @@ class MockStore extends ChangeNotifier {
   List<MockLogbookEntry> logbookForSubject(String subject) =>
       _logbook.where((entry) => entry.subject == subject).toList();
 
-  List<MockTopic> get topicsForSelectedSubject => topicsForSubject(selectedSubject);
+  List<MockTopic> get topicsForSelectedSubject =>
+      topicsForSubject(selectedSubject);
 
   List<MockLogbookEntry> get logbookForSelectedSubject =>
       logbookForSubject(selectedSubject);
@@ -152,8 +160,9 @@ class MockStore extends ChangeNotifier {
   }
 
   double get overallProgramProgress {
-    final subjectsWithProgramme =
-        subjects.where((subject) => topicsForSubject(subject).isNotEmpty);
+    final subjectsWithProgramme = subjects.where(
+      (subject) => topicsForSubject(subject).isNotEmpty,
+    );
     if (subjectsWithProgramme.isEmpty) return 0;
     final total = subjectsWithProgramme
         .map(progressForSubject)
@@ -175,15 +184,18 @@ class MockStore extends ChangeNotifier {
       subjectProgressSummaries.where((summary) => summary.hasProgramme).length;
 
   List<MockGrade> gradesForPeriod(String periodLabel) {
-    return _grades
-        .where((grade) => grade.period == periodLabel)
-        .toList()
+    return _grades.where((grade) => grade.period == periodLabel).toList()
       ..sort((a, b) => b.date.compareTo(a.date));
   }
 
-  List<MockGrade> gradesForSubjectAndPeriod(String subject, String periodLabel) {
+  List<MockGrade> gradesForSubjectAndPeriod(
+    String subject,
+    String periodLabel,
+  ) {
     return _grades
-        .where((grade) => grade.subject == subject && grade.period == periodLabel)
+        .where(
+          (grade) => grade.subject == subject && grade.period == periodLabel,
+        )
         .toList()
       ..sort((a, b) => b.date.compareTo(a.date));
   }
@@ -212,8 +224,7 @@ class MockStore extends ChangeNotifier {
         teacherName: meta.teacherName,
         teacherComment: meta.teacherComment,
       );
-    }).toList()
-      ..sort((a, b) => a.subject.compareTo(b.subject));
+    }).toList()..sort((a, b) => a.subject.compareTo(b.subject));
   }
 
   MockSubjectPeriodResults? subjectResultsFor(
@@ -221,8 +232,9 @@ class MockStore extends ChangeNotifier {
     String periodLabel,
   ) {
     try {
-      return subjectResultsForPeriod(periodLabel)
-          .firstWhere((result) => result.subject == subject);
+      return subjectResultsForPeriod(
+        periodLabel,
+      ).firstWhere((result) => result.subject == subject);
     } on Object {
       return null;
     }
@@ -251,6 +263,7 @@ class MockStore extends ChangeNotifier {
     if (period == null) return reportCards;
     return _reportCards.where((card) => card.period == period.label).toList();
   }
+
   List<MockGrade> get grades => List.unmodifiable(_grades);
   List<MockReportCard> get reportCards => List.unmodifiable(_reportCards);
   List<MockFeeLine> get feeLines => List.unmodifiable(_feeLines);
@@ -274,11 +287,10 @@ class MockStore extends ChangeNotifier {
   }
 
   List<MockPayment> paymentsForFee(String feeLineId) {
-    return _payments
-        .where((payment) => payment.feeLineId == feeLineId)
-        .toList()
+    return _payments.where((payment) => payment.feeLineId == feeLineId).toList()
       ..sort((a, b) => b.date.compareTo(a.date));
   }
+
   List<MockMessage> get messages => List.unmodifiable(_messages);
   List<HomeDayItem> get upcomingAgenda {
     final sorted = List<HomeDayItem>.from(_upcomingAgenda)
@@ -290,7 +302,8 @@ class MockStore extends ChangeNotifier {
     return sorted.take(3).toList();
   }
 
-  List<HomeFinanceAlert> get homeFinanceAlerts => List.unmodifiable(_upcomingFees);
+  List<HomeFinanceAlert> get homeFinanceAlerts =>
+      List.unmodifiable(_upcomingFees);
 
   List<MockGrade> get latestGrades {
     final sorted = List<MockGrade>.from(_grades)
@@ -315,9 +328,8 @@ class MockStore extends ChangeNotifier {
   List<MockEvent> get eventsForSelectedDay =>
       _events.where((event) => event.occursOn(selectedCalendarDate)).toList();
 
-  List<MockEvent> get schoolEventsForSelectedDay => eventsForSelectedDay
-      .where((event) => !event.isNonSchoolDay)
-      .toList();
+  List<MockEvent> get schoolEventsForSelectedDay =>
+      eventsForSelectedDay.where((event) => !event.isNonSchoolDay).toList();
 
   List<MockSession> sessionsForDay(DateTime day) {
     return _sessions
@@ -346,7 +358,8 @@ class MockStore extends ChangeNotifier {
   DateTime dateForDayOffset(int dayOffset) =>
       todayDate.add(Duration(days: dayOffset));
 
-  int dayIndexForOffset(int dayOffset) => dateForDayOffset(dayOffset).weekday - 1;
+  int dayIndexForOffset(int dayOffset) =>
+      dateForDayOffset(dayOffset).weekday - 1;
 
   MockEvent? noSchoolDayForOffset(int dayOffset) {
     final date = dateForDayOffset(dayOffset);
@@ -422,7 +435,8 @@ class MockStore extends ChangeNotifier {
   }
 
   int get unreadCount => _messages.where((m) => !m.read).length;
-  int get overdueFeeCount => _feeLines.where((f) => f.status == 'En retard').length;
+  int get overdueFeeCount =>
+      _feeLines.where((f) => f.status == 'En retard').length;
 
   double get feeExpected => _feeLines.fold(0, (s, f) => s + f.expected);
   double get feePaid => _feeLines.fold(0, (s, f) => s + f.paid);
@@ -430,14 +444,15 @@ class MockStore extends ChangeNotifier {
 
   MockSession? get nextSessionToday {
     final nowHour = DateTime.now().hour;
-    final todaySessions = _sessions
-        .where(
-          (session) =>
-              _isSameCalendarDay(session.date, todayDate) &&
-              session.startHour >= nowHour,
-        )
-        .toList()
-      ..sort((a, b) => a.startHour.compareTo(b.startHour));
+    final todaySessions =
+        _sessions
+            .where(
+              (session) =>
+                  _isSameCalendarDay(session.date, todayDate) &&
+                  session.startHour >= nowHour,
+            )
+            .toList()
+          ..sort((a, b) => a.startHour.compareTo(b.startHour));
     return todaySessions.isEmpty ? null : todaySessions.first;
   }
 
@@ -616,4 +631,3 @@ class MockStore extends ChangeNotifier {
 bool _isSameCalendarDay(DateTime a, DateTime b) {
   return a.year == b.year && a.month == b.month && a.day == b.day;
 }
-

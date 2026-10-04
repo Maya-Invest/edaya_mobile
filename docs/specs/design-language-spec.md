@@ -241,3 +241,7 @@ The following must **not** be treated as design-language requirements:
 - Redefining chip `success` as green `successContainer` without changing §2
 - Card radius `lg` (20) as the default for attention or list cards (default remains `md` 16)
 - Progress track colored with `primaryLight` instead of `primaryContainer`
+
+## Correction workflow feedback
+
+Use existing detail scaffolds, surface cards, form controls and localized labels for correction workflows. Distinguish saved locally, synchronized, pending review, conflict and decision outcomes. The official value must remain visible while a proposal is pending. Daily attendance and discipline remain class detail workflows; they do not add primary navigation destinations.

@@ -220,7 +220,7 @@ melos exec --scope=edaya_auth -- flutter test
 
 Shared integration tests live in `tooling/integration_tests`. They use `edaya_auth` + `edaya_api_client` against a running API (local seed or staging).
 
-**PR CI** starts empty the unified API (`:9999`) from sibling checkouts, then runs `bun repo seed --skip-profile-photos --skip-attachments` (full demo-ci). Git refs follow the mobile head branch: `staging` → `@staging`, `main`/`master` → `@main`, anything else → `@dev`. The job needs repo secret `IDENTITY_CHECKOUT_TOKEN` (`contents:read` on `edaya_backend`). Backend branches must match the selected candidate.
+**PR CI** resolves one backend SHA (explicit `backend_ref`, matching head branch, then PR target), verifies release contracts, starts the unified disposable API (`:9999`) and runs all three native suites. `IDENTITY_CHECKOUT_TOKEN` needs contents:read on `edaya_backend`. Artifacts contain sanitized summaries only. See [CI setup](docs/reference/ci-setup.md).
 
 Use the dedicated backend `bun run dev:test` server for local captured email, WhatsApp and SMS. Enable web `PUBLIC_TEST_OTP_ACCESS=true` or Flutter debug `--dart-define=TEST_OTP_ACCESS=true` for explicit Show test code and Copy controls. CI uses that composition and a private captured mailbox; normal staging/production builds omit testing access.
 

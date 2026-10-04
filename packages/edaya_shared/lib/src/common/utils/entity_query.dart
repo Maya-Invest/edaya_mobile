@@ -5,10 +5,7 @@ typedef EntityQuery = Map<String, dynamic>;
 const catalogListPageSize = 500;
 
 EntityQuery catalogQuery(EntityQuery query) {
-  return {
-    ...query,
-    r'$limit': catalogListPageSize,
-  };
+  return {...query, r'$limit': catalogListPageSize};
 }
 
 EntityQuery entitiesByIds(List<String> ids) {

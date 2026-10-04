@@ -125,6 +125,45 @@ void main() {
     expect(entry.state, TeacherOutboxState.pending);
     expect(entry.kind, TeacherOutboxKind.mark);
   });
+  test(
+    'workflow outbox retries preserve captured arrival time and review versions',
+    () async {
+      final transport = _RecordingTransport();
+      final client = createSchoolClient(transport);
+      for (final command in [
+        'record-teacher-attendance-arrival',
+        'revise-teacher-correction',
+        'save-teacher-logbook',
+        'append-incident-follow-up',
+      ]) {
+        final body = {
+          'requestId': command,
+          'expectedVersion': 4,
+          'occurredAt': '2026-10-04T10:15:00Z',
+        };
+        final entry = buildTeacherOutboxEntry(
+          id: command,
+          kind: TeacherOutboxKind.correction,
+          idempotencyKey: command,
+          payload: {'command': command, 'body': body},
+        );
+        await syncTeacherOutboxEntry(client, entry);
+        await syncTeacherOutboxEntry(client, entry);
+        expect(transport.bodies[transport.bodies.length - 1], body);
+        expect(transport.bodies[transport.bodies.length - 2], body);
+      }
+      final invalid = buildTeacherOutboxEntry(
+        id: 'invalid',
+        kind: TeacherOutboxKind.correction,
+        idempotencyKey: 'invalid',
+        payload: {'command': 'save-entity', 'body': {}},
+      );
+      await expectLater(
+        syncTeacherOutboxEntry(client, invalid),
+        throwsStateError,
+      );
+    },
+  );
 }
 
 class _RecordingTransport implements Transport {

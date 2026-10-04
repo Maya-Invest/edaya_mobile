@@ -24,6 +24,5 @@ abstract final class TeacherRoutePaths {
     required String studentId,
   }) => '/evaluations/report-cards/$classGroupId/$periodId/$studentId';
 
-  static String classWorkspace(String classGroupId) =>
-      '/classes/$classGroupId';
+  static String classWorkspace(String classGroupId) => '/classes/$classGroupId';
 }

@@ -26,9 +26,7 @@ class SessionLogbookDraft {
       'objectives': objectives,
       'homework': homework,
       'familySummary': familySummary,
-      'progressEntries': [
-        for (final entry in progressEntries) entry.toJson(),
-      ],
+      'progressEntries': [for (final entry in progressEntries) entry.toJson()],
       'updatedAt': updatedAt.toUtc().toIso8601String(),
     };
   }
@@ -50,7 +48,8 @@ class SessionLogbookDraft {
                 )
                 .toList()
           : const [],
-      updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
+      updatedAt:
+          DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
           DateTime.now(),
     );
   }

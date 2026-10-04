@@ -68,7 +68,9 @@ class _ProfilePhotoCropPageState extends State<ProfilePhotoCropPage> {
             Expanded(
               child: Center(
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(EdayaTokens.radiusOverlay),
+                  borderRadius: BorderRadius.circular(
+                    EdayaTokens.radiusOverlay,
+                  ),
                   child: Transform.rotate(
                     angle: _turns * 1.5707963267948966,
                     child: Image.memory(

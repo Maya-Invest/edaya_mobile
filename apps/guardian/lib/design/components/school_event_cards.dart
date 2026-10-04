@@ -33,10 +33,16 @@ class NoSchoolDayBanner extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(event.title, style: Theme.of(context).textTheme.titleSmall),
+                Text(
+                  event.title,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
                 if (event.description.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Text(event.description, style: Theme.of(context).textTheme.bodySmall),
+                  Text(
+                    event.description,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ],
               ],
             ),
@@ -61,16 +67,26 @@ class SchoolEventRow extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.event_busy_outlined, color: PrototypeColors.error, size: 20),
+            Icon(
+              Icons.event_busy_outlined,
+              color: PrototypeColors.error,
+              size: 20,
+            ),
             const SizedBox(width: PrototypeSpacing.sm),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(event.title, style: Theme.of(context).textTheme.titleSmall),
+                  Text(
+                    event.title,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                   const SizedBox(height: 4),
                   Text(
-                    [event.kind, event.description].where((part) => part.isNotEmpty).join(' · '),
+                    [
+                      event.kind,
+                      event.description,
+                    ].where((part) => part.isNotEmpty).join(' · '),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],

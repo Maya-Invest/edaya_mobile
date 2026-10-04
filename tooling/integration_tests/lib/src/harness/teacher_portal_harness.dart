@@ -474,32 +474,50 @@ Future<TeacherEvaluationsProbe> loadTeacherEvaluations(
   );
 }
 
-/// Mirrors [SessionDetailController.recordAttendance] write + read-back.
+/// Saves a private full call, then submits it through the same teacher commands.
 Future<void> recordLessonAttendance(
   SchoolClient client, {
   required String lessonSessionId,
   required String studentId,
   String status = 'present',
 }) async {
-  final attendanceId = '$studentId-$lessonSessionId';
-  await client.recordAttendance({
-    'id': attendanceId,
-    'studentId': studentId,
-    'lessonSessionId': lessonSessionId,
-    'status': status,
-    'createdAt': DateTime.now().toUtc().toIso8601String(),
+  final anchor = {'kind': 'lesson', 'lessonSessionId': lessonSessionId};
+  final call = await client.runQuery('get-teacher-attendance-call', {
+    'anchor': anchor,
   });
-
+  final students = (call['students'] as List).cast<Map>();
+  final draft = await client.runCommand('save-teacher-attendance-draft', {
+    'requestId': 'attendance-${DateTime.now().microsecondsSinceEpoch}',
+    'expectedVersion': call['version'],
+    'anchor': anchor,
+    'entries': [
+      for (final student in students)
+        {
+          'studentId': student['id'],
+          'status': student['id'] == studentId ? status : 'present',
+        },
+    ],
+  });
+  final privateRows = await client.attendance.list(
+    attendanceForLessonSession(lessonSessionId),
+  );
+  if (privateRows.isNotEmpty) {
+    throw StateError('An unfinished call exposed attendance');
+  }
+  await client.runCommand('submit-teacher-attendance', {
+    'requestId': 'attendance-${DateTime.now().microsecondsSinceEpoch}',
+    'expectedVersion': draft['version'],
+    'anchor': anchor,
+    'entries': [],
+  });
   final rows = await client.attendance.list(
     attendanceForLessonSession(lessonSessionId),
   );
-  final saved = rows.any(
-    (row) => row['studentId'] == studentId && row['status'] == status,
-  );
-  if (!saved) {
-    throw StateError(
-      'attendance write did not persist for student $studentId on $lessonSessionId',
-    );
+  if (rows.length != students.length ||
+      !rows.any(
+        (row) => row['studentId'] == studentId && row['status'] == status,
+      )) {
+    throw StateError('The complete attendance call did not persist');
   }
 }
 

@@ -37,9 +37,7 @@ class EntityResource {
       }
       offset += page.length;
       if (offset >= maxRows) {
-        throw StateError(
-          'Entity list for $publicName exceeded $maxRows rows',
-        );
+        throw StateError('Entity list for $publicName exceeded $maxRows rows');
       }
     }
   }

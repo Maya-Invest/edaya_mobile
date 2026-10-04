@@ -202,9 +202,8 @@ GoRouter createRouter({
           ),
           GoRoute(
             path: '/scolarite/subject/:subject/cahier',
-            builder: (context, state) => SubjectLogbookPage(
-              subject: state.pathParameters['subject']!,
-            ),
+            builder: (context, state) =>
+                SubjectLogbookPage(subject: state.pathParameters['subject']!),
           ),
           GoRoute(
             path: '/scolarite/subject/:subject',

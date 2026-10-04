@@ -81,20 +81,15 @@ class SchoolClient {
     return EntityResource(_transport, publicName).get(id);
   }
 
-  Future<T> requestRoute<T>(
-    String method,
-    String path, {
-    Object? body,
-  }) {
+  Future<T> requestRoute<T>(String method, String path, {Object? body}) {
     return _transport.request<T>(
       method,
       path.startsWith('/') ? path : '/$path',
       options: body == null ? null : TransportRequestOptions(body: body),
     );
   }
-  Future<Map<String, dynamic>> getDownloadUrl({
-    required String attachmentId,
-  }) {
+
+  Future<Map<String, dynamic>> getDownloadUrl({required String attachmentId}) {
     return _transport.request<Map<String, dynamic>>(
       'GET',
       schoolApiPath(['files', attachmentId, 'download-url']),

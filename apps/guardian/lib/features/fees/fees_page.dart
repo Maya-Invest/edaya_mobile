@@ -52,7 +52,9 @@ class _MockFeesPage extends LScopedView<StoreBoundController> {
     final progress = store.feeExpected == 0
         ? 0.0
         : (store.feePaid / store.feeExpected).clamp(0.0, 1.0);
-    final currency = store.feeLines.isEmpty ? 'EUR' : store.feeLines.first.currency;
+    final currency = store.feeLines.isEmpty
+        ? 'EUR'
+        : store.feeLines.first.currency;
 
     return AdaptiveContent(
       child: ListView(

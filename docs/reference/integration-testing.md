@@ -1,6 +1,6 @@
 # Live integration testing
 
-`dart run melos run test:integration` runs the API, guardian and teacher suites independently and aggregates JSON outcomes. `dart run melos run test:integration:coverage` validates their current artifacts. CI gives each suite its own disposable stack and publishes `.integration-results` even on failure. A failed child never prevents the other local suites from executing.
+`dart run melos run test:integration` runs the API, guardian and teacher suites independently and aggregates JSON outcomes. `dart run melos run test:integration:coverage` validates their current artifacts. CI gives each suite its own disposable stack and publishes only sanitized `.ci-evidence/results.json` even on failure. A failed child never prevents the other local suites from executing.
 
 Feature/action contracts are in `tooling/integration_tests/features.json`; stable executable IDs are in `scenarios.json`. Route inventory tests walk the real registered GoRouter trees. Non-route actions and overlays must be registered explicitly. Update contract and assertions in the same feature PR. Reviewers verify behavioral meaning; an opened screen cannot prove a saved mutation.
 
@@ -11,3 +11,5 @@ Live Flutter widget tests use production controllers, routes and real local HTTP
 Mutable fixtures belong to their scenario. Reuse immutable school catalogs only. Dispose scopes, clear local session/settings state and reset outboxes between independent scenarios. Screenshot-generation suites remain separate from functional tests.
 
 Coverage limits: actual WhatsApp/SMS/email delivery, push delivery, camera, native file opening, native secure storage and future support-assisted recovery require separate validation.
+
+CI backend selection, credentials, required gates and evidence handling are described in [ci-setup.md](./ci-setup.md). All matrix jobs use one resolved backend SHA and matching release contracts.

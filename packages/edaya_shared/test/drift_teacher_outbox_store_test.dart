@@ -48,29 +48,34 @@ void main() {
     await database.close();
   });
 
-  test('DriftTeacherOutboxStore migrates legacy SharedPreferences rows', () async {
-    final legacyStore = SharedPrefsTeacherOutboxStore();
-    final now = DateTime(2026, 4, 1, 9);
-    await legacyStore.enqueue(
-      TeacherOutboxEntry(
-        id: 'legacy-1',
-        kind: TeacherOutboxKind.attendance,
-        idempotencyKey: 'attendance:ls-2:stu-2',
-        payload: const {'studentId': 'stu-2', 'status': 'late'},
-        state: TeacherOutboxState.pending,
-        attemptCount: 0,
-        createdAt: now,
-        updatedAt: now,
-      ),
-    );
+  test(
+    'DriftTeacherOutboxStore migrates legacy SharedPreferences rows',
+    () async {
+      final legacyStore = SharedPrefsTeacherOutboxStore();
+      final now = DateTime(2026, 4, 1, 9);
+      await legacyStore.enqueue(
+        TeacherOutboxEntry(
+          id: 'legacy-1',
+          kind: TeacherOutboxKind.attendance,
+          idempotencyKey: 'attendance:ls-2:stu-2',
+          payload: const {'studentId': 'stu-2', 'status': 'late'},
+          state: TeacherOutboxState.pending,
+          attemptCount: 0,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
 
-    final database = TeacherOutboxDatabase.forTesting(NativeDatabase.memory());
-    final store = DriftTeacherOutboxStore(database);
+      final database = TeacherOutboxDatabase.forTesting(
+        NativeDatabase.memory(),
+      );
+      final store = DriftTeacherOutboxStore(database);
 
-    final pending = await store.listPending();
-    expect(pending, hasLength(1));
-    expect(pending.first.payload['status'], 'late');
-    expect(await legacyStore.pendingCount(), 0);
-    await database.close();
-  });
+      final pending = await store.listPending();
+      expect(pending, hasLength(1));
+      expect(pending.first.payload['status'], 'late');
+      expect(await legacyStore.pendingCount(), 0);
+      await database.close();
+    },
+  );
 }

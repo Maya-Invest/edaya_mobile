@@ -66,6 +66,18 @@ class MarksCorrectionsPanel extends StatelessWidget {
                   if ((correction['allowedActions'] as Map?)?['withdraw'] ==
                       true)
                     TextButton(
+                      onPressed: () => showLevitDialog<void>(
+                        context: context,
+                        builder: (_) => _CorrectionForm(
+                          controller: controller,
+                          correction: correction,
+                        ),
+                      ),
+                      child: Text(context.tr.workflowReviseCorrection),
+                    ),
+                  if ((correction['allowedActions'] as Map?)?['withdraw'] ==
+                      true)
+                    TextButton(
                       onPressed: () =>
                           controller.withdrawCorrection(correction),
                       child: Text(context.tr.marksWithdrawCorrection),
@@ -83,11 +95,13 @@ class _CorrectionDraft {
   _CorrectionDraft(this.row)
     : score = TextEditingController(text: row.score?.toStringAsFixed(2) ?? ''),
       notes = TextEditingController(text: row.notes ?? ''),
-      designation = row.designation ?? 'scored';
+      designation = row.designation ?? 'scored',
+      deadlineStatus = row.deadlineStatus;
   final LiveMarkRow row;
   final TextEditingController score;
   final TextEditingController notes;
   String designation;
+  String? deadlineStatus;
   bool selected = false;
   void dispose() {
     score.dispose();
@@ -100,11 +114,13 @@ class _CorrectionDraft {
         : null,
     'designation': designation,
     'notes': notes.text.trim().isEmpty ? null : notes.text.trim(),
+    'status': deadlineStatus,
   };
 }
 
 class _CorrectionForm extends StatefulWidget {
-  const _CorrectionForm({required this.controller});
+  const _CorrectionForm({required this.controller, this.correction});
+  final Map<String, dynamic>? correction;
   final LiveMarksController controller;
   @override
   State<_CorrectionForm> createState() => _CorrectionFormState();
@@ -112,11 +128,22 @@ class _CorrectionForm extends StatefulWidget {
 
 class _CorrectionFormState extends State<_CorrectionForm> {
   late final rows = widget.controller.students.value
-      .where((row) => !row.published && row.resultId != null)
+      .where(
+        (row) =>
+            !row.published &&
+            row.resultId != null &&
+            !widget.controller.corrections.value.any(
+              (c) =>
+                  c['status'] == 'pending' &&
+                  c['id'] != widget.correction?['id'] &&
+                  (c['changes'] as List).any(
+                    (change) => (change as Map)['resultId'] == row.resultId,
+                  ),
+            ),
+      )
       .map(_CorrectionDraft.new)
       .toList();
   final reason = TextEditingController();
-  bool confirmed = false;
   bool busy = false;
   @override
   void dispose() {
@@ -127,14 +154,40 @@ class _CorrectionFormState extends State<_CorrectionForm> {
     super.dispose();
   }
 
-  void changed() => setState(() => confirmed = false);
+  @override
+  void initState() {
+    super.initState();
+    final correction = widget.correction;
+    if (correction == null) return;
+    reason.text = correction['reason'] as String;
+    for (final draft in rows) {
+      final change = (correction['changes'] as List)
+          .cast<Map>()
+          .where((c) => c['resultId'] == draft.row.resultId)
+          .firstOrNull;
+      if (change == null) continue;
+      final proposed = change['proposed'] as Map;
+      draft.selected = true;
+      draft.designation = proposed['designation'] as String;
+      draft.score.text = (proposed['score'] as num?)?.toString() ?? '';
+      draft.notes.text = proposed['notes'] as String? ?? '';
+      draft.deadlineStatus =
+          proposed['status'] as String? ?? draft.row.deadlineStatus;
+    }
+  }
+
+  void changed() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
     final selected = rows.where((row) => row.selected).toList();
     return AlertDialog(
       scrollable: true,
-      title: Text(context.tr.marksRequestCorrection),
+      title: Text(
+        widget.correction == null
+            ? context.tr.marksRequestCorrection
+            : context.tr.workflowReviseCorrection,
+      ),
       content: SizedBox(
         width: 520,
         child: Column(
@@ -200,6 +253,31 @@ class _CorrectionFormState extends State<_CorrectionForm> {
                     ),
                     onChanged: (_) => changed(),
                   ),
+                if (widget.controller.evaluation.value?.kind == 'homework')
+                  DropdownButtonFormField<String>(
+                    initialValue: draft.deadlineStatus,
+                    decoration: InputDecoration(
+                      labelText: context.tr.deadlineCompliance,
+                    ),
+                    items: [
+                      for (final status in ['met', 'late', 'missed', 'excused'])
+                        DropdownMenuItem(
+                          value: status,
+                          child: Text(switch (status) {
+                            'met' => context.tr.deadlineMet,
+                            'late' => context.tr.deadlineLate,
+                            'missed' => context.tr.deadlineMissed,
+                            _ => context.tr.deadlineExcused,
+                          }),
+                        ),
+                    ],
+                    onChanged: busy
+                        ? null
+                        : (value) {
+                            draft.deadlineStatus = value;
+                            changed();
+                          },
+                  ),
                 TextField(
                   controller: draft.notes,
                   enabled: !busy,
@@ -222,14 +300,6 @@ class _CorrectionFormState extends State<_CorrectionForm> {
               Text(
                 '${draft.row.fullName}: ${draft.row.score?.toStringAsFixed(2) ?? draft.row.designation ?? '—'} → ${draft.designation == 'scored' ? draft.score.text : draft.designation} · ${draft.notes.text}',
               ),
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              value: confirmed,
-              title: Text(context.tr.marksCorrectionConfirm),
-              onChanged: busy
-                  ? null
-                  : (value) => setState(() => confirmed = value ?? false),
-            ),
             LWatch(() => Text(widget.controller.saveMessage.value)),
           ],
         ),
@@ -240,11 +310,7 @@ class _CorrectionFormState extends State<_CorrectionForm> {
           child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
         ),
         FilledButton(
-          onPressed:
-              busy ||
-                  !confirmed ||
-                  selected.isEmpty ||
-                  reason.text.trim().isEmpty
+          onPressed: busy || selected.isEmpty || reason.text.trim().isEmpty
               ? null
               : () async {
                   setState(() => busy = true);
@@ -258,6 +324,7 @@ class _CorrectionFormState extends State<_CorrectionForm> {
                         )
                         .toList(),
                     reason.text,
+                    correction: widget.correction,
                   );
                   if (!context.mounted) return;
                   if (success) {

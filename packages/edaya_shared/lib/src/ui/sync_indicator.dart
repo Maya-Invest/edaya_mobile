@@ -4,11 +4,7 @@ import '../l10n/l10n_extension.dart';
 import 'status_badge.dart';
 
 class SyncIndicator extends StatelessWidget {
-  const SyncIndicator({
-    super.key,
-    required this.status,
-    this.compact = false,
-  });
+  const SyncIndicator({super.key, required this.status, this.compact = false});
 
   final EdayaSyncStatus status;
   final bool compact;
@@ -25,7 +21,8 @@ class SyncIndicator extends StatelessWidget {
       EdayaSyncStatus.failed => StatusBadgeTone.error,
     };
     final icon = switch (status) {
-      EdayaSyncStatus.saved || EdayaSyncStatus.synced => Icons.cloud_done_outlined,
+      EdayaSyncStatus.saved ||
+      EdayaSyncStatus.synced => Icons.cloud_done_outlined,
       EdayaSyncStatus.savedLocally => Icons.save_outlined,
       EdayaSyncStatus.pending => Icons.schedule_outlined,
       EdayaSyncStatus.syncing => Icons.cloud_upload_outlined,
@@ -33,10 +30,7 @@ class SyncIndicator extends StatelessWidget {
     };
 
     if (compact) {
-      return Semantics(
-        label: label,
-        child: Icon(icon, size: 18),
-      );
+      return Semantics(label: label, child: Icon(icon, size: 18));
     }
 
     return StatusBadge(label: label, icon: icon, tone: tone);

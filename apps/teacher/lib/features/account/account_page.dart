@@ -174,7 +174,10 @@ class SettingsPage extends LScopedView<SettingsController> {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute<void>(
-                    builder: (_) => LScope.capture(context, child: const edaya.SettingsPage()),
+                    builder: (_) => LScope.capture(
+                      context,
+                      child: const edaya.SettingsPage(),
+                    ),
                   ),
                 );
               },

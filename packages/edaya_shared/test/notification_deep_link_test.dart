@@ -30,30 +30,33 @@ void main() {
     expect(data['route'], '/inbox');
   });
 
-  test('parseNotificationDeepLink resolves family feedback open and publish', () {
-    expect(
-      parseNotificationDeepLink(
-        const RemoteMessage(data: {'type': 'family_feedback.opened'}),
-      )?.path,
-      '/academic/family-feedback',
-    );
-    expect(
-      parseNotificationDeepLink(
-        const RemoteMessage(data: {'type': 'family_feedback.reminder'}),
-      )?.path,
-      '/academic/family-feedback',
-    );
-    expect(
-      parseNotificationDeepLink(
-        const RemoteMessage(data: {'type': 'family_feedback.published'}),
-      )?.path,
-      '/teaching/family-feedback',
-    );
-    expect(
-      parseNotificationDeepLink(
-        const RemoteMessage(data: {'route': '/academic/family-feedback'}),
-      )?.path,
-      '/academic/family-feedback',
-    );
-  });
+  test(
+    'parseNotificationDeepLink resolves family feedback open and publish',
+    () {
+      expect(
+        parseNotificationDeepLink(
+          const RemoteMessage(data: {'type': 'family_feedback.opened'}),
+        )?.path,
+        '/academic/family-feedback',
+      );
+      expect(
+        parseNotificationDeepLink(
+          const RemoteMessage(data: {'type': 'family_feedback.reminder'}),
+        )?.path,
+        '/academic/family-feedback',
+      );
+      expect(
+        parseNotificationDeepLink(
+          const RemoteMessage(data: {'type': 'family_feedback.published'}),
+        )?.path,
+        '/teaching/family-feedback',
+      );
+      expect(
+        parseNotificationDeepLink(
+          const RemoteMessage(data: {'route': '/academic/family-feedback'}),
+        )?.path,
+        '/academic/family-feedback',
+      );
+    },
+  );
 }

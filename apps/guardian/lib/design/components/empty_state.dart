@@ -24,12 +24,24 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.inbox_outlined, size: 48, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            Icon(
+              Icons.inbox_outlined,
+              size: 48,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             const SizedBox(height: PrototypeSpacing.md),
-            Text(title, style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
             if (message != null) ...[
               const SizedBox(height: PrototypeSpacing.xs),
-              Text(message!, style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
+              Text(
+                message!,
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
             ],
             if (actionLabel != null) ...[
               const SizedBox(height: PrototypeSpacing.md),
@@ -41,4 +53,3 @@ class EmptyState extends StatelessWidget {
     );
   }
 }
-

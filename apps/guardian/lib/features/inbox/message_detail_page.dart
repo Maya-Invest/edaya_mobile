@@ -90,10 +90,7 @@ class _MockMessageDetailPage extends LScopedView<StoreBoundController> {
 }
 
 class _LiveMessageDetailPage extends LScopedView<MessageDetailController> {
-  const _LiveMessageDetailPage({
-    required this.messageId,
-    this.initialDelivery,
-  });
+  const _LiveMessageDetailPage({required this.messageId, this.initialDelivery});
 
   final String messageId;
   final InboxDelivery? initialDelivery;

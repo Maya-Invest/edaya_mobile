@@ -293,22 +293,24 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
       if (reportRows.isEmpty) {
         latestBulletin(null);
       } else {
-        final cards = reportRows
-            .map(
-              (row) => ReportCardSummary.fromJson(
-                row,
-                periodName:
-                    row['periodId'] as String? ?? systemL10n().periodFallback,
-              ),
-            )
-            .toList()
-          ..sort((a, b) {
-            final aDate =
-                a.publishedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-            final bDate =
-                b.publishedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-            return bDate.compareTo(aDate);
-          });
+        final cards =
+            reportRows
+                .map(
+                  (row) => ReportCardSummary.fromJson(
+                    row,
+                    periodName:
+                        row['periodId'] as String? ??
+                        systemL10n().periodFallback,
+                  ),
+                )
+                .toList()
+              ..sort((a, b) {
+                final aDate =
+                    a.publishedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+                final bDate =
+                    b.publishedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+                return bDate.compareTo(aDate);
+              });
         latestBulletin(cards.first);
       }
     } on Object {
@@ -343,7 +345,8 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
                     as String?] ??
                 systemL10n().subjectFallback,
             periodName:
-                assessment['periodId'] as String? ?? systemL10n().periodFallback,
+                assessment['periodId'] as String? ??
+                systemL10n().periodFallback,
           ),
         );
       }

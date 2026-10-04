@@ -20,7 +20,7 @@ SUITES = {
 
 def source_fingerprint():
     digest = hashlib.sha256()
-    paths = [ROOT / 'scripts/integration-runner.py', ROOT / 'tooling/integration_tests/features.json', ROOT / 'tooling/integration_tests/scenarios.json']
+    paths = [ROOT / 'scripts/integration-runner.py', ROOT / 'pubspec.lock', ROOT / 'release-contract.json', ROOT / '.github/scripts/ci-start-local-apis.sh', ROOT / 'tooling/integration_tests/features.json', ROOT / 'tooling/integration_tests/scenarios.json']
     for parent in ('apps', 'packages', 'tooling'):
         for package in (ROOT / parent).iterdir():
             if package.is_dir():
@@ -30,6 +30,14 @@ def source_fingerprint():
     for path in sorted(set(paths)):
         digest.update(str(path.relative_to(ROOT)).encode())
         digest.update(path.read_bytes())
+    backend = ROOT.parent / 'edaya_backend'
+    for name in ('bun.lock', 'release-contract.json'):
+        path = backend / name
+        if path.exists():
+            digest.update(name.encode())
+            digest.update(path.read_bytes())
+    if (backend / '.git').exists():
+        digest.update(subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=backend))
     return digest.hexdigest()
 
 

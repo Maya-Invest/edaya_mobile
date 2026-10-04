@@ -1,4 +1,4 @@
-enum TeacherOutboxKind { attendance, logbook, mark, comment }
+enum TeacherOutboxKind { attendance, logbook, mark, comment, correction }
 
 enum TeacherOutboxState {
   savedLocally,

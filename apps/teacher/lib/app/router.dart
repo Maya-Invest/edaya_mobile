@@ -1,3 +1,5 @@
+import '../features/classes/daily_attendance_page.dart';
+import '../features/classes/teacher_discipline_page.dart';
 import 'package:edaya_shared/edaya_shared.dart'
     hide AccountProfilePage, LoginPage, SettingsPage;
 import 'package:flutter/material.dart';
@@ -45,9 +47,8 @@ GoRouter createRouter({
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
       GoRoute(
         path: '/profiles',
-        builder: (context, state) => ProfilePickerPage(
-          onSelected: () => context.go('/home'),
-        ),
+        builder: (context, state) =>
+            ProfilePickerPage(onSelected: () => context.go('/home')),
       ),
       ShellRoute(
         builder: (context, state, child) => PrototypeShell(child: child),
@@ -115,6 +116,18 @@ GoRouter createRouter({
                 builder: (context, state) =>
                     ClassRosterPage(classId: state.pathParameters['classId']!),
                 routes: [
+                  GoRoute(
+                    path: 'discipline',
+                    builder: (context, state) => TeacherDisciplinePage(
+                      classId: state.pathParameters['classId']!,
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'attendance',
+                    builder: (context, state) => DailyAttendancePage(
+                      classId: state.pathParameters['classId']!,
+                    ),
+                  ),
                   GoRoute(
                     path: 'student/:studentId',
                     builder: (context, state) => StudentProfilePage(

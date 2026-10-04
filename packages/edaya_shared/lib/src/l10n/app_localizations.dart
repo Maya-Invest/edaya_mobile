@@ -3481,6 +3481,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Test code unavailable'**
   String get testCodeUnavailable;
+
+  /// No description provided for @attendanceIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Record every student before finishing attendance.'**
+  String get attendanceIncomplete;
+
+  /// No description provided for @attendanceSubmitNeedsSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronize saved drafts before finishing attendance.'**
+  String get attendanceSubmitNeedsSync;
+
+  /// No description provided for @workflowSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronized'**
+  String get workflowSynced;
+
+  /// No description provided for @attendanceArrival.
+  ///
+  /// In en, this message translates to:
+  /// **'Record arrival'**
+  String get attendanceArrival;
+
+  /// No description provided for @workflowCorrectionPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction pending review'**
+  String get workflowCorrectionPending;
+
+  /// No description provided for @workflowRequestCorrection.
+  ///
+  /// In en, this message translates to:
+  /// **'Request correction'**
+  String get workflowRequestCorrection;
+
+  /// No description provided for @dailyAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily attendance'**
+  String get dailyAttendance;
+
+  /// No description provided for @workflowDiscipline.
+  ///
+  /// In en, this message translates to:
+  /// **'Discipline'**
+  String get workflowDiscipline;
+
+  /// No description provided for @workflowFollowUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Add follow-up'**
+  String get workflowFollowUp;
+
+  /// No description provided for @deadlineCompliance.
+  ///
+  /// In en, this message translates to:
+  /// **'Homework submission'**
+  String get deadlineCompliance;
+
+  /// No description provided for @deadlineMet.
+  ///
+  /// In en, this message translates to:
+  /// **'On time'**
+  String get deadlineMet;
+
+  /// No description provided for @deadlineLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Late'**
+  String get deadlineLate;
+
+  /// No description provided for @deadlineMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed'**
+  String get deadlineMissed;
+
+  /// No description provided for @deadlineExcused.
+  ///
+  /// In en, this message translates to:
+  /// **'Excused'**
+  String get deadlineExcused;
+
+  /// No description provided for @attendancePresent.
+  ///
+  /// In en, this message translates to:
+  /// **'Present'**
+  String get attendancePresent;
+
+  /// No description provided for @attendanceAbsent.
+  ///
+  /// In en, this message translates to:
+  /// **'Absent'**
+  String get attendanceAbsent;
+
+  /// No description provided for @attendanceLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Late'**
+  String get attendanceLate;
+
+  /// No description provided for @attendanceFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get attendanceFinish;
+
+  /// No description provided for @attendanceMarkRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark remaining present'**
+  String get attendanceMarkRemaining;
+
+  /// No description provided for @workflowReviseCorrection.
+  ///
+  /// In en, this message translates to:
+  /// **'Revise request'**
+  String get workflowReviseCorrection;
+
+  /// No description provided for @workflowIncidentTakenOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff have taken over this incident'**
+  String get workflowIncidentTakenOver;
+
+  /// No description provided for @workflowIncidentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get workflowIncidentTitle;
+
+  /// No description provided for @workflowIncidentFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Facts'**
+  String get workflowIncidentFacts;
+
+  /// No description provided for @workflowIncidentPositive.
+  ///
+  /// In en, this message translates to:
+  /// **'Positive'**
+  String get workflowIncidentPositive;
+
+  /// No description provided for @workflowIncidentMinor.
+  ///
+  /// In en, this message translates to:
+  /// **'Minor incident'**
+  String get workflowIncidentMinor;
+
+  /// No description provided for @workflowIncidentMajor.
+  ///
+  /// In en, this message translates to:
+  /// **'Major incident'**
+  String get workflowIncidentMajor;
+
+  /// No description provided for @workflowIncidentEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency'**
+  String get workflowIncidentEmergency;
+
+  /// No description provided for @workflowTeacherExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Teacher explanation'**
+  String get workflowTeacherExplanation;
 }
 
 class _AppLocalizationsDelegate

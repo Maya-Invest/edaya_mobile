@@ -123,7 +123,8 @@ class FamilyFeedbackInstrument {
       commentPrompt: json['commentPrompt'] as String? ?? '',
       items: [
         for (final item in json['items'] as List? ?? const [])
-          if (item is Map<String, dynamic>) FamilyFeedbackInstrumentItem.fromJson(item),
+          if (item is Map<String, dynamic>)
+            FamilyFeedbackInstrumentItem.fromJson(item),
       ],
     );
   }
@@ -149,7 +150,9 @@ class GuardianFamilyFeedbackQuestionnaire {
     this.completedAt,
   });
 
-  factory GuardianFamilyFeedbackQuestionnaire.fromJson(Map<String, dynamic> json) {
+  factory GuardianFamilyFeedbackQuestionnaire.fromJson(
+    Map<String, dynamic> json,
+  ) {
     final receipt = json['receipt'];
     final context = json['context'];
     return GuardianFamilyFeedbackQuestionnaire(
@@ -162,9 +165,13 @@ class GuardianFamilyFeedbackQuestionnaire {
           ? FamilyFeedbackContext.fromJson(context)
           : null,
       instrument: json['instrument'] is Map<String, dynamic>
-          ? FamilyFeedbackInstrument.fromJson(json['instrument'] as Map<String, dynamic>)
+          ? FamilyFeedbackInstrument.fromJson(
+              json['instrument'] as Map<String, dynamic>,
+            )
           : null,
-      completedAt: receipt is Map<String, dynamic> ? receipt['completedAt'] as String? : null,
+      completedAt: receipt is Map<String, dynamic>
+          ? receipt['completedAt'] as String?
+          : null,
     );
   }
 
@@ -235,7 +242,8 @@ class TeacherFamilyFeedbackResult {
       overallSuppressed: json['overallSuppressed'] as bool? ?? true,
       questions: [
         for (final item in json['questions'] as List? ?? const [])
-          if (item is Map<String, dynamic>) FamilyFeedbackQuestionAggregate.fromJson(item),
+          if (item is Map<String, dynamic>)
+            FamilyFeedbackQuestionAggregate.fromJson(item),
       ],
       themes: json['themes'] as String?,
     );
@@ -250,28 +258,31 @@ class TeacherFamilyFeedbackResult {
   final String? themes;
 }
 
-Future<List<GuardianFamilyFeedbackCampaign>> listGuardianFamilyFeedbackCampaigns(
-  api.SchoolClient client,
-) async {
+Future<List<GuardianFamilyFeedbackCampaign>>
+listGuardianFamilyFeedbackCampaigns(api.SchoolClient client) async {
   final result = await client.requestRoute<dynamic>(
     'POST',
     '/core/queries/list-guardian-family-feedback-campaigns',
     body: const <String, dynamic>{},
   );
-  return unwrapFamilyFeedbackList(result).map(GuardianFamilyFeedbackCampaign.fromJson).toList();
+  return unwrapFamilyFeedbackList(
+    result,
+  ).map(GuardianFamilyFeedbackCampaign.fromJson).toList();
 }
 
-Future<GuardianFamilyFeedbackQuestionnaire> getGuardianFamilyFeedbackQuestionnaire(
+Future<GuardianFamilyFeedbackQuestionnaire>
+getGuardianFamilyFeedbackQuestionnaire(
   api.SchoolClient client, {
   required String campaignId,
   required String studentId,
   required String locale,
 }) async {
-  final result = await client.runQuery('get-guardian-family-feedback-questionnaire', {
-    'campaignId': campaignId,
-    'studentId': studentId,
-    'locale': locale == 'en' ? 'en' : 'fr',
-  });
+  final result = await client
+      .runQuery('get-guardian-family-feedback-questionnaire', {
+        'campaignId': campaignId,
+        'studentId': studentId,
+        'locale': locale == 'en' ? 'en' : 'fr',
+      });
   return GuardianFamilyFeedbackQuestionnaire.fromJson(result);
 }
 
@@ -299,7 +310,9 @@ Future<List<TeacherFamilyFeedbackResult>> listTeacherFamilyFeedbackResults(
     '/core/queries/list-teacher-family-feedback-results',
     body: const <String, dynamic>{},
   );
-  return unwrapFamilyFeedbackList(result).map(TeacherFamilyFeedbackResult.fromJson).toList();
+  return unwrapFamilyFeedbackList(
+    result,
+  ).map(TeacherFamilyFeedbackResult.fromJson).toList();
 }
 
 Future<TeacherFamilyFeedbackResult> getTeacherFamilyFeedbackResult(

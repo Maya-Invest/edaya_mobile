@@ -29,7 +29,9 @@ bool isRetryableTeacherWriteFailure(Object error) {
   if (error is ApiError) {
     return error.status == 408 || error.status == 429 || error.status >= 500;
   }
-  if (error is StateError || error is ArgumentError || error is FormatException) {
+  if (error is StateError ||
+      error is ArgumentError ||
+      error is FormatException) {
     return false;
   }
   final text = error.toString();

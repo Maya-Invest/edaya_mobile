@@ -73,7 +73,10 @@ class FeeDetailController extends LevitController with LevitReactiveTasksMixin {
     final studentId = this.studentId;
     final yearId = academicYearId;
     final current = charge.value;
-    if (schoolId == null || studentId == null || yearId == null || current == null) {
+    if (schoolId == null ||
+        studentId == null ||
+        yearId == null ||
+        current == null) {
       return Future.value(const DocumentJobResult.missing());
     }
     return downloadReadyIssuance(

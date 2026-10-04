@@ -4,21 +4,12 @@ final _defaultSchools = [
   const MockSchool(
     id: 'school-college',
     name: 'Collège Lumière d\'Abidjan',
-    years: [
-      '2025 — 2026',
-      '2024 — 2025',
-      '2023 — 2024',
-      '2022 — 2023',
-    ],
+    years: ['2025 — 2026', '2024 — 2025', '2023 — 2024', '2022 — 2023'],
   ),
   const MockSchool(
     id: 'school-lycee',
     name: 'Lycée Moderne de Cocody',
-    years: [
-      '2025 — 2026',
-      '2024 — 2025',
-      '2023 — 2024',
-    ],
+    years: ['2025 — 2026', '2024 — 2025', '2023 — 2024'],
   ),
 ];
 
@@ -230,8 +221,10 @@ List<MockAssessmentDetail> _buildDefaultAssessmentDetails() {
     MockAssessmentDetail(
       id: 'as-s6',
       title: 'Dictée n°3',
-      description: 'Dictée sur les homophones et les accords dans le groupe nominal.',
-      instructions: 'Aucune préparation spécifique — révision des règles vues en classe.',
+      description:
+          'Dictée sur les homophones et les accords dans le groupe nominal.',
+      instructions:
+          'Aucune préparation spécifique — révision des règles vues en classe.',
       period: 'Trimestre 1',
       score: 16,
       maxScore: 20,
@@ -439,7 +432,6 @@ final _defaultTopics = [
   ),
 ];
 
-
 final _defaultGrades = [
   MockGrade(
     id: 'g1',
@@ -508,9 +500,7 @@ const _subjectPeriodMeta = {
     'Mathématiques': MockSubjectPeriodMeta(
       state: MockResultsPublicationState.processed,
     ),
-    'Sciences': MockSubjectPeriodMeta(
-      state: MockResultsPublicationState.draft,
-    ),
+    'Sciences': MockSubjectPeriodMeta(state: MockResultsPublicationState.draft),
   },
 };
 

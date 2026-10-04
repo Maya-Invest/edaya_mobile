@@ -156,7 +156,9 @@ class _MockInboxPage extends LScopedView<StoreBoundController> {
                       : m.body,
                   unread: !m.read,
                   selected: selected,
-                  badge: m.read ? context.tr.inboxStatusRead : context.tr.inboxStatusNew,
+                  badge: m.read
+                      ? context.tr.inboxStatusRead
+                      : context.tr.inboxStatusNew,
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
@@ -268,8 +270,7 @@ class _LiveMessageDetailPage extends LScopedView<MessageDetailController> {
         body: ListView(
           padding: const EdgeInsets.all(PrototypeSpacing.md),
           children: [
-            if (controller.isMarkingRead.value)
-              const LinearProgressIndicator(),
+            if (controller.isMarkingRead.value) const LinearProgressIndicator(),
             SurfaceCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

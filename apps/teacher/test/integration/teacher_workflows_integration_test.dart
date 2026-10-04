@@ -11,8 +11,11 @@ import 'package:edaya_shared/src/features/settings/app_settings_models.dart';
 import 'package:edaya_shared/src/features/settings/app_settings_storage.dart';
 import 'package:edaya_teacher/features/calendar/calendar_page.dart';
 import 'package:edaya_teacher/features/classes/classes_page.dart';
+import 'package:edaya_teacher/features/classes/daily_attendance_page.dart';
+import 'package:edaya_teacher/features/classes/teacher_discipline_page.dart';
 import 'package:edaya_teacher/features/account/account_page.dart' as account;
 import 'package:edaya_teacher/features/evaluations/evaluations_page.dart';
+import 'package:edaya_teacher/features/evaluations/live_evaluations_controller.dart';
 import 'package:edaya_teacher/features/session/logbook_page.dart';
 import 'package:edaya_teacher/features/session/attendance_page.dart';
 import 'package:edaya_teacher/features/session/session_detail_page.dart';
@@ -63,6 +66,14 @@ Future<T> persisted<T>(
 Finder field(String label) => find.byWidgetPredicate(
   (widget) => widget is TextField && widget.decoration?.labelText == label,
 );
+
+T findController<T extends LevitController>(
+  WidgetTester tester,
+  Finder finder,
+) => tester
+    .element(find.descendant(of: finder, matching: find.byType(ListView)).first)
+    .levit
+    .find<T>();
 
 Future<void> main() async {
   LiveApiWidgetTestBinding();
@@ -123,31 +134,262 @@ Future<void> main() async {
       await mount(tester, '/session/$id/attendance');
       await until(tester, find.text('À saisir'));
       await tester.tap(find.text('Tous présents'));
+      await until(tester, find.text('Présent'));
+      expect(
+        await baseline.schoolClient.attendance.list({'lessonSessionId': id}),
+        isEmpty,
+      );
+      await tester.tap(find.text('Terminer'));
+      final call = await baseline.schoolClient.runQuery(
+        'get-teacher-attendance-call',
+        {
+          'anchor': {'kind': 'lesson', 'lessonSessionId': id},
+        },
+      );
+      final roster = call['students'] as List;
       final rows = await persisted(
         tester,
         () => baseline.schoolClient.attendance.list({'lessonSessionId': id}),
         (rows) =>
-            rows.isNotEmpty && rows.every((row) => row['status'] == 'present'),
-      );
-      final roster = await baseline.schoolClient.enrollments.list(
-        activeEnrollmentsForClass(
-          profile.primaryClassGroupId,
-          academicYearId: profile.academicYearId,
-        ),
-      );
-      await persisted(
-        tester,
-        () => baseline.schoolClient.attendance.list({'lessonSessionId': id}),
-        (rows) => rows.length == roster.length,
+            rows.length == roster.length &&
+            rows.every((row) => row['status'] == 'present'),
       );
       expect(rows.map((row) => row['studentId']).toSet().length, rows.length);
-      await tester.tap(find.text('Terminer'));
-      await until(tester, find.text('Présences enregistrées'));
       harness.scope.find<GoRouter>().go('/home');
       await gone(tester, AttendancePage);
       harness.scope.find<GoRouter>().go('/session/$id/attendance');
       await until(tester, find.text('Présent'));
       expect(find.text('À saisir'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    '[teacher.daily-attendance.submit] homeroom daily call stays private until Finish',
+    (tester) async {
+      harness = await TeacherLiveWidgetTestHarness.create(
+        profile: TeacherPortalProfile.homeroomTeacher,
+      );
+      final teacherId = harness.context.grants.actorId;
+      final original = await owner.schoolClient.classGroups.get('ci-6b');
+      final classId = fixtureId('daily-class');
+      await owner.schoolClient.classGroups.save({
+        ...original,
+        'id': classId,
+        'name': classId,
+        'attendanceMode': 'daily',
+      });
+      await owner.schoolClient.teacherAssignments.save({
+        'id': fixtureId('daily-assignment'),
+        'teacherId': teacherId,
+        'academicYearId': profile.academicYearId,
+        'classGroupId': classId,
+        'kind': 'homeroom',
+        'status': 'active',
+      });
+      final studentId = fixtureId('daily-student');
+      await owner.schoolClient.registerStudent({
+        'id': studentId,
+        'schoolId': harness.context.grants.schoolId,
+        'firstName': 'Integration',
+        'lastName': studentId,
+        'sendAccountInvitation': false,
+        'createdAt': '2026-09-01T00:00:00.000Z',
+      });
+      await owner.schoolClient.enrollStudent({
+        'id': fixtureId('daily-enrollment'),
+        'studentId': studentId,
+        'classGroupId': classId,
+        'createdAt': '2026-09-01T00:00:00.000Z',
+      });
+      await mount(tester, '/classes/$classId/attendance');
+      await until(tester, find.byType(DropdownButton<String>));
+      final controller = findController<DailyAttendanceController>(
+        tester,
+        find.byType(DailyAttendancePage),
+      );
+      await tester.tap(find.text('Marquer les autres présents'));
+      await until(tester, find.text('Présent'));
+      await persisted(
+        tester,
+        () async => controller.busy.value,
+        (busy) => !busy,
+      );
+      final call = await harness.portalSession.schoolClient.runQuery(
+        'get-teacher-attendance-call',
+        {'anchor': controller.anchor},
+      );
+      expect(call['submitted'], false);
+      expect(call['records'], isEmpty);
+      await tester.tap(find.text('Terminer'));
+      await persisted(
+        tester,
+        () => harness.portalSession.schoolClient.runQuery(
+          'get-teacher-attendance-call',
+          {'anchor': controller.anchor},
+        ),
+        (call) => call['submitted'] == true,
+      );
+      expect(find.byType(DailyAttendancePage), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    '[teacher.discipline.correction] takeover gates fact changes while follow-ups append immediately',
+    (tester) async {
+      final id = fixtureId('discipline');
+      final teacherId = harness.context.grants.actorId;
+      await owner.schoolClient.incidents.save({
+        'id': id,
+        'schoolId': harness.context.grants.schoolId,
+        'classGroupId': profile.primaryClassGroupId,
+        'reporterId': teacherId,
+        'title': id,
+        'description': 'Original facts',
+        'kind': 'minor_infraction',
+        'status': 'open',
+        'date': DateTime.now().toUtc().toIso8601String(),
+      });
+      final roster = await owner.schoolClient.enrollments.list(
+        activeEnrollmentsForClass(
+          profile.primaryClassGroupId,
+          academicYearId: profile.academicYearId,
+        ),
+      );
+      await owner.schoolClient.studentIncidentInvolvements.save({
+        'id': fixtureId('discipline-participant'),
+        'incidentId': id,
+        'studentId': roster.first['studentId'],
+        'role': 'subject',
+      });
+      final visibleIncidents = await baseline.schoolClient.incidents.list({
+        'classGroupId': profile.primaryClassGroupId,
+        'reporterId': teacherId,
+      });
+      expect(
+        visibleIncidents.any((row) => row['id'] == id),
+        true,
+        reason: 'Reported incident must be readable',
+      );
+      final visibleParticipants = await baseline
+          .schoolClient
+          .studentIncidentInvolvements
+          .list({'incidentId': id});
+      expect(visibleParticipants, isNotEmpty);
+      await baseline.schoolClient.runQuery('get-teacher-workflow-state', {
+        'proposal': {
+          'workflow': 'discipline',
+          'targetId': id,
+          'title': id,
+          'description': 'Original facts',
+          'kind': 'minor_infraction',
+          'studentIds': visibleParticipants
+              .map((row) => row['studentId'])
+              .toList(),
+        },
+      });
+      for (final row in visibleIncidents.where(
+        (row) => row['reporterId'] == teacherId,
+      )) {
+        final participants = await baseline
+            .schoolClient
+            .studentIncidentInvolvements
+            .list({'incidentId': row['id']});
+        try {
+          await baseline.schoolClient.runQuery('get-teacher-workflow-state', {
+            'proposal': {
+              'workflow': 'discipline',
+              'targetId': row['id'],
+              'title': row['title'],
+              'description': row['description'],
+              'kind': row['kind'],
+              'studentIds': participants.map((p) => p['studentId']).toList(),
+            },
+          });
+        } catch (error) {
+          throw StateError(
+            'Authored incident eligibility failed for ${row['title']}: $error',
+          );
+        }
+      }
+      await mount(tester, '/classes/${profile.primaryClassGroupId}/discipline');
+      await until(tester, find.byType(TeacherDisciplinePage));
+      final controller = findController<TeacherDisciplineController>(
+        tester,
+        find.byType(TeacherDisciplinePage),
+      );
+      await persisted(
+        tester,
+        () async => controller.busy.value,
+        (busy) => !busy,
+      );
+      expect(controller.teacherId, teacherId);
+      expect(controller.message.value, isEmpty);
+      var incident = controller.incidents.value.firstWhere(
+        (row) => row['id'] == id,
+      );
+      expect(
+        await controller.save(incident, {
+          ...incident['proposal'] as Map,
+          'description': 'Checked facts',
+        }),
+        true,
+      );
+      expect(
+        (await owner.schoolClient.incidents.get(id))['description'],
+        'Checked facts',
+      );
+      await owner.schoolClient.runCommand('take-over-teacher-incident', {
+        'requestId': fixtureId('takeover'),
+        'incidentId': id,
+      });
+      await controller.load();
+      incident = controller.incidents.value.firstWhere(
+        (row) => row['id'] == id,
+      );
+      expect(
+        await controller.save(incident, {
+          ...incident['proposal'] as Map,
+          'description': 'Corrected facts',
+        }, reason: 'Original account checked'),
+        true,
+      );
+      expect(
+        (await owner.schoolClient.incidents.get(id))['description'],
+        'Checked facts',
+      );
+      expect(await controller.followUp(id, 'Family contacted'), true);
+      final pending =
+          controller.incidents.value.firstWhere(
+                (row) => row['id'] == id,
+              )['eligibility']
+              as Map;
+      final correction = (pending['corrections'] as List).single as Map;
+      await owner.schoolClient.runCommand('approve-teacher-correction', {
+        'requestId': fixtureId('approval'),
+        'correctionId': correction['id'],
+        'expectedVersion': correction['version'],
+      });
+      await controller.load();
+      expect(
+        controller.incidents.value.firstWhere(
+          (row) => row['id'] == id,
+        )['description'],
+        'Corrected facts',
+      );
+      expect(
+        ((controller.incidents.value.firstWhere(
+                      (row) => row['id'] == id,
+                    )['eligibility']
+                    as Map)['history']
+                as List)
+            .any(
+              (event) =>
+                  event['action'] == 'follow_up' &&
+                  event['payload']['text'] == 'Family contacted',
+            ),
+        true,
+      );
+      expect(find.byType(TeacherDisciplinePage), findsOneWidget);
     },
   );
 
@@ -191,10 +433,30 @@ Future<void> main() async {
     (tester) async {
       final title = 'UI evaluation ${DateTime.now().microsecondsSinceEpoch}';
       await mount(tester, '/evaluations');
-      await until(tester, find.byType(DropdownButtonFormField<String>));
-      await tester.tap(find.byType(DropdownButtonFormField<String>).first);
+      final evaluations = harness.scope.find<LiveEvaluationsController>();
+      await persisted(
+        tester,
+        () async =>
+            !evaluations.isBusy.value &&
+            evaluations.classSubjects.value.isNotEmpty &&
+            evaluations.evaluations.value.isNotEmpty,
+        (ready) => ready,
+      );
+      final termPicker = find.byWidgetPredicate(
+        (widget) =>
+            widget is DropdownButtonFormField<String> &&
+            widget.decoration.labelText == 'Période',
+      );
+      await until(tester, termPicker.hitTestable());
+      await tester.tap(termPicker);
+      await tester.pump();
+      await tester.scrollUntilVisible(
+        find.text('Trimestre 2'),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
       await until(tester, find.text('Trimestre 2').hitTestable());
-      await tester.tap(find.text('Trimestre 2').last);
+      await tester.tap(find.text('Trimestre 2').hitTestable().last);
       await tester.pump();
       harness.scope.find<GoRouter>().go('/evaluations/create');
       await until(tester, field('Titre'));
@@ -207,6 +469,12 @@ Future<void> main() async {
         (rows) => rows.isNotEmpty,
       );
       expect(rows, hasLength(1));
+      expect(
+        rows.single['periodId'],
+        evaluations.periods.value.firstWhere(
+          (period) => period['name'] == 'Trimestre 2',
+        )['id'],
+      );
       final id = rows.single['id'] as String;
       harness.scope.find<GoRouter>().go('/evaluations/$id/marks');
       await until(
@@ -434,12 +702,13 @@ Future<void> main() async {
       );
       final lesson = await lessonFixture();
       final id = lesson['id'] as String;
-      final roster = await baseline.schoolClient.enrollments.list(
-        activeEnrollmentsForClass(
-          profile.primaryClassGroupId,
-          academicYearId: profile.academicYearId,
-        ),
+      final call = await baseline.schoolClient.runQuery(
+        'get-teacher-attendance-call',
+        {
+          'anchor': {'kind': 'lesson', 'lessonSessionId': id},
+        },
       );
+      final roster = call['students'] as List;
       await mount(tester, '/session/$id/attendance');
       await until(tester, find.text('À saisir'));
       transport.offline = true;
@@ -450,7 +719,7 @@ Future<void> main() async {
       await persisted(tester, () async {
         await outbox.refreshSummary();
         return outbox.summary.value.pendingCount;
-      }, (count) => count == roster.length);
+      }, (count) => count == 1);
       expect(transport.blockedWrites, greaterThan(0));
       expect(
         await baseline.schoolClient.attendance.list({'lessonSessionId': id}),
@@ -461,12 +730,22 @@ Future<void> main() async {
       transport.offline = false;
       await tester.ensureVisible(find.text('Synchroniser'));
       await tester.tap(find.text('Synchroniser'));
+      await persisted(
+        tester,
+        () async => outbox.summary.value.pendingCount,
+        (count) => count == 0,
+      );
+      expect(
+        await baseline.schoolClient.attendance.list({'lessonSessionId': id}),
+        isEmpty,
+      );
+      harness.scope.find<GoRouter>().go('/session/$id/attendance');
+      await until(tester, find.text('Présent'));
+      await tester.tap(find.text('Terminer'));
       final saved = await persisted(
         tester,
         () => baseline.schoolClient.attendance.list({'lessonSessionId': id}),
         (rows) => rows.length == roster.length,
-        // The outbox persists one request per student before draining the batch.
-        timeout: Duration(seconds: 20 + roster.length * 10),
       );
       await persisted(
         tester,
@@ -558,10 +837,30 @@ Future<void> main() async {
         'endsAt': starts.add(const Duration(hours: 1)).toIso8601String(),
       });
       await mount(tester, '/evaluations');
-      await until(tester, find.byType(DropdownButtonFormField<String>));
-      await tester.tap(find.byType(DropdownButtonFormField<String>).first);
+      final evaluations = harness.scope.find<LiveEvaluationsController>();
+      await persisted(
+        tester,
+        () async =>
+            !evaluations.isBusy.value &&
+            evaluations.classSubjects.value.isNotEmpty &&
+            evaluations.evaluations.value.isNotEmpty,
+        (ready) => ready,
+      );
+      final termPicker = find.byWidgetPredicate(
+        (widget) =>
+            widget is DropdownButtonFormField<String> &&
+            widget.decoration.labelText == 'Période',
+      );
+      await until(tester, termPicker.hitTestable());
+      await tester.tap(termPicker);
+      await tester.pump();
+      await tester.scrollUntilVisible(
+        find.text('Trimestre 2'),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
       await until(tester, find.text('Trimestre 2').hitTestable());
-      await tester.tap(find.text('Trimestre 2').last);
+      await tester.tap(find.text('Trimestre 2').hitTestable().last);
       await tester.pump();
       harness.scope.find<GoRouter>().go('/evaluations/$id/marks');
       await until(
@@ -610,20 +909,6 @@ Future<void> main() async {
       );
       await tester.enterText(reasonField, reason);
       tester.testTextInput.hide();
-      await tester.pump();
-      final confirm = find.text(
-        'Toutes les modifications proposées ont été vérifiées.',
-      );
-      await tester.scrollUntilVisible(
-        confirm.hitTestable(),
-        180,
-        scrollable: find
-            .descendant(of: dialog, matching: find.byType(Scrollable))
-            .last,
-      );
-      await Scrollable.ensureVisible(tester.element(confirm), alignment: 0.5);
-      await tester.pump();
-      await tester.tap(confirm);
       await tester.pump();
       final send = find.descendant(
         of: dialog,

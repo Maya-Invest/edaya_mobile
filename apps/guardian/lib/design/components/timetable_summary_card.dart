@@ -7,11 +7,7 @@ import 'status_chip.dart';
 import 'surface_card.dart';
 
 class TimetableSummaryCard extends StatelessWidget {
-  const TimetableSummaryCard({
-    super.key,
-    required this.summary,
-    this.onTap,
-  });
+  const TimetableSummaryCard({super.key, required this.summary, this.onTap});
 
   final TimetableDaySummary summary;
   final VoidCallback? onTap;
@@ -28,17 +24,27 @@ class TimetableSummaryCard extends StatelessWidget {
               color: PrototypeColors.primaryContainer,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.schedule_outlined, size: 20, color: Colors.blue),
+            child: const Icon(
+              Icons.schedule_outlined,
+              size: 20,
+              color: Colors.blue,
+            ),
           ),
           const SizedBox(width: PrototypeSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Emploi du temps', style: Theme.of(context).textTheme.titleSmall),
+                Text(
+                  'Emploi du temps',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
                 const SizedBox(height: PrototypeSpacing.xs),
                 if (summary.isEmpty)
-                  Text('Aucun cours prévu', style: Theme.of(context).textTheme.bodySmall)
+                  Text(
+                    'Aucun cours prévu',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  )
                 else
                   Wrap(
                     spacing: PrototypeSpacing.xs,
@@ -51,7 +57,11 @@ class TimetableSummaryCard extends StatelessWidget {
                         ),
                       if (summary.activityCount > 0)
                         StatusChip(
-                          label: _countLabel(summary.activityCount, 'activité', 'activités'),
+                          label: _countLabel(
+                            summary.activityCount,
+                            'activité',
+                            'activités',
+                          ),
                           tone: SemanticTone.success,
                         ),
                       if (summary.assessmentCount > 0)
