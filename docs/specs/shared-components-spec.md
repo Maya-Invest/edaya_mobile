@@ -51,3 +51,7 @@ Personal inboxes load all pages with their existing recipient and school scope b
 ## Conversation messaging
 
 `MessagingInbox`, `ConversationPage` and route-scoped `ConversationController` share guardian/teacher conversation presentation and transactional command interactions. `ConversationNotificationNavigation` retains an in-memory pending push destination and selects its authorized school/profile before opening. Current message previews are merged with announcements; conversation delivery alerts never create duplicate rows. Draft text and retry identities remain scoped to account/profile, recipient and thread. Failed sends preserve drafts; conflicts show fresh activity before an explicit retry. French and English labels, busy/error/empty states, large text, keyboard-safe scrolling and localized semantics are required.
+
+## Teacher signature profile extension
+
+`AccountProfilePage.profileActions` is an optional presentation slot for app-owned profile actions. Teacher Profile uses it to open the local `TeacherSignaturePage`; guardian Profile has no signature action. `TeacherSignatureController` follows the route-scoped Levit lifecycle. The signature editor uses the existing buttons, dialogs, busy indicators, EDAYA tokens and localization, with a white paper preview for dark signature ink. It stays in `apps/teacher/lib/features/signature` because no other product uses this flow.

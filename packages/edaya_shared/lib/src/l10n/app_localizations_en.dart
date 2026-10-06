@@ -2155,4 +2155,81 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get messagingConversations => 'Conversations';
+
+  @override
+  String get teacherSignatureTitle => 'Signature';
+
+  @override
+  String get teacherSignatureUsage =>
+      'Your signature is used automatically on new periodic and annual report cards and incident reports you create at this school.';
+
+  @override
+  String get teacherSignatureEmpty => 'No signature saved';
+
+  @override
+  String get teacherSignatureDraw => 'Draw';
+
+  @override
+  String get teacherSignatureChooseImage => 'Choose image';
+
+  @override
+  String get teacherSignatureTakePhoto => 'Take photo';
+
+  @override
+  String get teacherSignatureUndo => 'Undo';
+
+  @override
+  String get teacherSignatureClear => 'Clear';
+
+  @override
+  String get teacherSignatureUse => 'Use signature';
+
+  @override
+  String get teacherSignaturePreview => 'Signature preview';
+
+  @override
+  String get teacherSignatureDrawHint =>
+      'Sign inside the box with your finger or stylus.';
+
+  @override
+  String get teacherSignatureCropHint =>
+      'Drag over the image to select your signature. Rotate or reset the crop if needed.';
+
+  @override
+  String get teacherSignatureResetCrop => 'Reset crop';
+
+  @override
+  String get teacherSignatureRemove => 'Remove signature';
+
+  @override
+  String get teacherSignatureRemoveConfirm =>
+      'Remove your signature? It will no longer appear on new reports. Already requested and issued documents keep their signature.';
+
+  @override
+  String get teacherSignatureSaved => 'Signature saved';
+
+  @override
+  String get teacherSignatureRemoved => 'Signature removed';
+
+  @override
+  String get teacherSignatureSaveError =>
+      'Unable to save your signature. Check your connection and try again. Your saved signature is preserved.';
+
+  @override
+  String get teacherSignatureLoadError =>
+      'Unable to load your signature. Try again.';
+
+  @override
+  String get teacherSignatureImageError =>
+      'This image cannot be used. Choose a valid image up to 20 MB.';
+
+  @override
+  String get teacherSignatureTooLarge =>
+      'The signature must be smaller than 1 MB. Crop it more closely and try again.';
+
+  @override
+  String get teacherSignatureDiscard => 'Discard changes';
+
+  @override
+  String get teacherSignatureDraft => 'Preview before saving';
 }

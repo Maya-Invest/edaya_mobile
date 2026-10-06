@@ -125,6 +125,7 @@
     "teacher.auth.sms-switch",
     "teacher.daily-attendance.submit",
     "teacher.discipline.correction",
-    "teacher.messaging.reply"
+    "teacher.messaging.reply",
+    "teacher.account.signature"
   ]
 }

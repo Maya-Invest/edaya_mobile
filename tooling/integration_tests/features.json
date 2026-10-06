@@ -519,6 +519,12 @@
             "scenarios": [
               "teacher.settings.persist"
             ]
+          },
+          {
+            "id": "teacher.account.signature",
+            "scenarios": [
+              "teacher.account.signature"
+            ]
           }
         ]
       }

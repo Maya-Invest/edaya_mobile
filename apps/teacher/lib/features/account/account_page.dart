@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
+import '../signature/teacher_signature_page.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
 import '../../live/runtime.dart';
@@ -115,6 +116,22 @@ class AccountProfilePage extends StatelessWidget {
       return edaya.AccountProfilePage(
         session: context.levit.find<AppSessionController>(),
         schoolClient: context.levit.find<SchoolClientFactory>(),
+        profileActions: ListTile(
+          leading: const Icon(Icons.draw_outlined),
+          title: Text(context.tr.teacherSignatureTitle),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => LScope.capture(
+                context,
+                child: TeacherSignaturePage(
+                  session: context.levit.find<AppSessionController>(),
+                  schoolClient: context.levit.find<SchoolClientFactory>(),
+                ),
+              ),
+            ),
+          ),
+        ),
         onProfileSaved: (_) =>
             context.levit.find<TeacherContextController>().reloadContext(),
       );

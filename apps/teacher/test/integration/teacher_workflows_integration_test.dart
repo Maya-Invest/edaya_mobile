@@ -17,6 +17,8 @@ import 'package:edaya_teacher/features/account/account_page.dart' as account;
 import 'package:edaya_teacher/features/evaluations/evaluations_page.dart';
 import 'package:edaya_teacher/features/evaluations/live_evaluations_controller.dart';
 import 'package:edaya_teacher/features/session/logbook_page.dart';
+import 'package:edaya_teacher/features/signature/signature_editor_page.dart';
+import 'package:edaya_teacher/features/signature/teacher_signature_controller.dart';
 import 'package:edaya_teacher/features/session/attendance_page.dart';
 import 'package:edaya_teacher/features/session/session_detail_page.dart';
 import 'package:flutter/material.dart';
@@ -632,6 +634,81 @@ Future<void> main() async {
       await tester.tap(find.text('Sécurité du compte'));
       await until(tester, find.byType(AccountSecurityPage));
       await until(tester, find.text(profile.email));
+    },
+  );
+
+  testWidgets(
+    '[teacher.account.signature] draws, uploads, replaces, and removes a private signature',
+    (tester) async {
+      await mount(tester, '/account/profile');
+      await until(tester, find.text('Signature'));
+      await tester.tap(find.text('Signature'));
+      await until(tester, find.text('Dessiner'));
+      final teacherId = harness.context.grants.actorId;
+      Future<void> draw() async {
+        final drawButton = find.byWidgetPredicate(
+          (widget) =>
+              widget is OutlinedButton &&
+              widget.key == const ValueKey('signature-draw') &&
+              widget.onPressed != null,
+        );
+        await tester.scrollUntilVisible(
+          find.byKey(const ValueKey('signature-draw')),
+          -160,
+          scrollable: find.byType(Scrollable).last,
+        );
+        await until(tester, drawButton);
+        await tester.tap(drawButton);
+        final surface = find.byKey(const ValueKey('signature-editor-surface'));
+        await until(tester, surface);
+        await until(tester, surface.hitTestable());
+        await tester.drag(surface, const Offset(80, 24));
+        await tester.pump();
+        await tester.tap(find.text('Utiliser la signature'));
+        await gone(tester, SignatureEditorPage);
+        await until(tester, find.text('Aperçu avant enregistrement'));
+        await tester.scrollUntilVisible(
+          find.text('Enregistrer'),
+          160,
+          scrollable: find.byType(Scrollable).last,
+        );
+        final signatureController = tester
+            .element(find.text('Aperçu avant enregistrement'))
+            .levit
+            .find<TeacherSignatureController>();
+        await tester.tap(find.text('Enregistrer'));
+        final deadline = DateTime.now().add(const Duration(seconds: 20));
+        while (signatureController.saving.value &&
+            DateTime.now().isBefore(deadline)) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        expect(signatureController.error.value, isEmpty);
+        await until(tester, find.text(systemL10n().teacherSignatureSaved));
+      }
+
+      await draw();
+      final first = await baseline.schoolClient.teachers.get(teacherId);
+      final firstId = first['signatureAttachmentId'];
+      expect(firstId, isNotNull);
+      await draw();
+      final replaced = await baseline.schoolClient.teachers.get(teacherId);
+      expect(replaced['signatureAttachmentId'], isNot(firstId));
+      await tester.scrollUntilVisible(
+        find.text('Supprimer la signature'),
+        160,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.tap(find.text('Supprimer la signature'));
+      await until(tester, find.byType(AlertDialog));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.widgetWithText(FilledButton, 'Supprimer la signature'),
+        ),
+      );
+      await until(tester, find.text(systemL10n().teacherSignatureRemoved));
+      final cleared = await baseline.schoolClient.teachers.get(teacherId);
+      expect(cleared['signatureAttachmentId'], isNull);
     },
   );
 

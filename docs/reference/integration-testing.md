@@ -13,3 +13,5 @@ Mutable fixtures belong to their scenario. Reuse immutable school catalogs only.
 Coverage limits: actual WhatsApp/SMS/email delivery, push delivery, camera, native file opening, native secure storage and future support-assisted recovery require separate validation.
 
 CI backend selection, credentials, required gates and evidence handling are described in [ci-setup.md](./ci-setup.md). All matrix jobs use one resolved backend SHA and matching release contracts.
+
+`teacher.account.signature` draws a signature through the production editor, saves it using real private upload commands, verifies the teacher's stored attachment, replaces it with a new attachment and confirms removal. Unit/widget tests additionally cover alpha/proportions, rectangular cropping, invalid images, undo/clear/cancel, interrupted PUTs, failed completion/removal, receipt reuse and profile/sign-out races. Native gallery/camera selection and permission dialogs remain device validation; the editor and controller run in the Flutter test harness.

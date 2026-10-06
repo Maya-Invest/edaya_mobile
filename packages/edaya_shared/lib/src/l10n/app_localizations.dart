@@ -3793,6 +3793,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Conversations'**
   String get messagingConversations;
+
+  /// No description provided for @teacherSignatureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature'**
+  String get teacherSignatureTitle;
+
+  /// No description provided for @teacherSignatureUsage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your signature is used automatically on new periodic and annual report cards and incident reports you create at this school.'**
+  String get teacherSignatureUsage;
+
+  /// No description provided for @teacherSignatureEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No signature saved'**
+  String get teacherSignatureEmpty;
+
+  /// No description provided for @teacherSignatureDraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw'**
+  String get teacherSignatureDraw;
+
+  /// No description provided for @teacherSignatureChooseImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose image'**
+  String get teacherSignatureChooseImage;
+
+  /// No description provided for @teacherSignatureTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get teacherSignatureTakePhoto;
+
+  /// No description provided for @teacherSignatureUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get teacherSignatureUndo;
+
+  /// No description provided for @teacherSignatureClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get teacherSignatureClear;
+
+  /// No description provided for @teacherSignatureUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Use signature'**
+  String get teacherSignatureUse;
+
+  /// No description provided for @teacherSignaturePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature preview'**
+  String get teacherSignaturePreview;
+
+  /// No description provided for @teacherSignatureDrawHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign inside the box with your finger or stylus.'**
+  String get teacherSignatureDrawHint;
+
+  /// No description provided for @teacherSignatureCropHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag over the image to select your signature. Rotate or reset the crop if needed.'**
+  String get teacherSignatureCropHint;
+
+  /// No description provided for @teacherSignatureResetCrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset crop'**
+  String get teacherSignatureResetCrop;
+
+  /// No description provided for @teacherSignatureRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove signature'**
+  String get teacherSignatureRemove;
+
+  /// No description provided for @teacherSignatureRemoveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove your signature? It will no longer appear on new reports. Already requested and issued documents keep their signature.'**
+  String get teacherSignatureRemoveConfirm;
+
+  /// No description provided for @teacherSignatureSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature saved'**
+  String get teacherSignatureSaved;
+
+  /// No description provided for @teacherSignatureRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature removed'**
+  String get teacherSignatureRemoved;
+
+  /// No description provided for @teacherSignatureSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save your signature. Check your connection and try again. Your saved signature is preserved.'**
+  String get teacherSignatureSaveError;
+
+  /// No description provided for @teacherSignatureLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load your signature. Try again.'**
+  String get teacherSignatureLoadError;
+
+  /// No description provided for @teacherSignatureImageError.
+  ///
+  /// In en, this message translates to:
+  /// **'This image cannot be used. Choose a valid image up to 20 MB.'**
+  String get teacherSignatureImageError;
+
+  /// No description provided for @teacherSignatureTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The signature must be smaller than 1 MB. Crop it more closely and try again.'**
+  String get teacherSignatureTooLarge;
+
+  /// No description provided for @teacherSignatureDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard changes'**
+  String get teacherSignatureDiscard;
+
+  /// No description provided for @teacherSignatureDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview before saving'**
+  String get teacherSignatureDraft;
 }
 
 class _AppLocalizationsDelegate

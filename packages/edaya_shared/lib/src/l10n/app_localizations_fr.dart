@@ -2178,4 +2178,81 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get messagingConversations => 'Conversations';
+
+  @override
+  String get teacherSignatureTitle => 'Signature';
+
+  @override
+  String get teacherSignatureUsage =>
+      'Votre signature est utilisée automatiquement sur les nouveaux bulletins périodiques et annuels et les rapports d’incident que vous créez dans cet établissement.';
+
+  @override
+  String get teacherSignatureEmpty => 'Aucune signature enregistrée';
+
+  @override
+  String get teacherSignatureDraw => 'Dessiner';
+
+  @override
+  String get teacherSignatureChooseImage => 'Choisir une image';
+
+  @override
+  String get teacherSignatureTakePhoto => 'Prendre une photo';
+
+  @override
+  String get teacherSignatureUndo => 'Annuler le dernier trait';
+
+  @override
+  String get teacherSignatureClear => 'Effacer';
+
+  @override
+  String get teacherSignatureUse => 'Utiliser la signature';
+
+  @override
+  String get teacherSignaturePreview => 'Aperçu de la signature';
+
+  @override
+  String get teacherSignatureDrawHint =>
+      'Signez dans le cadre avec votre doigt ou un stylet.';
+
+  @override
+  String get teacherSignatureCropHint =>
+      'Faites glisser votre doigt sur l’image pour sélectionner votre signature. Vous pouvez tourner l’image ou réinitialiser le recadrage.';
+
+  @override
+  String get teacherSignatureResetCrop => 'Réinitialiser le recadrage';
+
+  @override
+  String get teacherSignatureRemove => 'Supprimer la signature';
+
+  @override
+  String get teacherSignatureRemoveConfirm =>
+      'Supprimer votre signature ? Elle ne figurera plus sur les nouveaux rapports. Les documents déjà demandés ou émis conservent leur signature.';
+
+  @override
+  String get teacherSignatureSaved => 'Signature enregistrée';
+
+  @override
+  String get teacherSignatureRemoved => 'Signature supprimée';
+
+  @override
+  String get teacherSignatureSaveError =>
+      'Impossible d’enregistrer votre signature. Vérifiez votre connexion et réessayez. Votre signature enregistrée est conservée.';
+
+  @override
+  String get teacherSignatureLoadError =>
+      'Impossible de charger votre signature. Réessayez.';
+
+  @override
+  String get teacherSignatureImageError =>
+      'Cette image ne peut pas être utilisée. Choisissez une image valide de 20 Mo maximum.';
+
+  @override
+  String get teacherSignatureTooLarge =>
+      'La signature doit faire moins de 1 Mo. Recadrez-la plus précisément et réessayez.';
+
+  @override
+  String get teacherSignatureDiscard => 'Abandonner les modifications';
+
+  @override
+  String get teacherSignatureDraft => 'Aperçu avant enregistrement';
 }

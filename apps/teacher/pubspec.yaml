@@ -20,14 +20,19 @@ dependencies:
   edaya_shared:
     path: ../../packages/edaya_shared
   go_router: ^17.3.0
+  image: ^4.5.4
+  image_picker: ^1.2.0
+  http: ^1.6.0
   intl: any
   levit_flutter: ^0.0.9
   shared_preferences: ^2.5.5
   sqlite3_flutter_libs: ^0.5.42
   firebase_core: ^4.11.0
   firebase_messaging: ^16.4.1
+  signature: ^6.4.0
 
 dev_dependencies:
+  image_picker_platform_interface: ^2.11.1
   flutter_secure_storage: ^10.3.4
   flutter_test:
     sdk: flutter

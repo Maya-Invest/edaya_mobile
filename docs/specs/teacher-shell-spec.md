@@ -217,3 +217,11 @@ All other chrome and list widgets reuse the guardian design-language catalog.
 ## Guardian conversations
 
 The existing inbox merges notifications with guardian conversation previews. `/inbox/conversation/:conversationId` shows captured school/child/participants, chronological messages and an online reply composer. Explain authorized school oversight. Losing the original teaching relationship removes access; another teacher never inherits the thread. Unread positions belong to the selected profile. Poll only visible messaging surfaces in the foreground; refresh on resume and push.
+
+## Teacher signature in Account → Profile
+
+Profile exposes a Signature action for the current teacher and school. Its route-scoped controller shows the current private signature, optional draft preview, save progress and translated retry feedback. Draw supports undo/clear; gallery/camera images use a dedicated rectangular crop/rotation editor. Export preserves proportions and transparency in a PNG no larger than 1024 pixels per side or 1 MiB. A preview precedes explicit Save. Saving authorizes automatic use beside each subject/homeroom name on periodic/annual bulletins and the teacher author's name on incident reports. Signatures remain optional.
+
+Replacement creates a new private upload; failures preserve the saved signature and draft. Retry reuses the upload/command identity where safe. Removal requires confirmation explaining that already requested and issued documents retain their signatures. Profile/school changes and sign-out discard drafts, editor images and retry state and ignore late responses. Controls require French/English labels and semantics. Draw/crop editors belong to the teacher feature, rather than the shared portrait editor, which exports square JPEGs.
+
+The signature drawing editor uses the `signature` package and its controller for drawing, undo, clear, and transparent PNG export. Exported images pass through the shared signature bounds and size normalization before preview and save.

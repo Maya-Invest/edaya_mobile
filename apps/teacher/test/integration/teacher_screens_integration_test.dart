@@ -139,6 +139,12 @@ Future<void> main() async {
           expect(find.byType(AccountPage), findsOneWidget);
           harness.scope.find<GoRouter>().go('/account/profile');
           await until(tester, find.byType(AccountProfilePage));
+          await until(tester, find.text('Signature'));
+          await tester.scrollUntilVisible(
+            find.text(profile.email),
+            160,
+            scrollable: find.byType(Scrollable).first,
+          );
           await until(tester, find.text(profile.email));
         },
       );

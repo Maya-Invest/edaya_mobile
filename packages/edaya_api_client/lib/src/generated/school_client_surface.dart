@@ -568,6 +568,15 @@ extension GeneratedSchoolClientCommands on SchoolClient {
   Future<Map<String, dynamic>> refundAvailableBalance(Map<String, dynamic> payload) =>
       runCommand("refund-available-balance", payload);
 
+  Future<Map<String, dynamic>> createTeacherSignatureUpload(Map<String, dynamic> payload) =>
+      runCommand("create-teacher-signature-upload", payload);
+
+  Future<Map<String, dynamic>> completeTeacherSignatureUpload(Map<String, dynamic> payload) =>
+      runCommand("complete-teacher-signature-upload", payload);
+
+  Future<Map<String, dynamic>> clearTeacherSignature(Map<String, dynamic> payload) =>
+      runCommand("clear-teacher-signature", payload);
+
   Future<Map<String, dynamic>> createProfilePhotoUpload(Map<String, dynamic> payload) =>
       runCommand("create-profile-photo-upload", payload);
 

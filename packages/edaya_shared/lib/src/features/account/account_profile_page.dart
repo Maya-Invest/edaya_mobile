@@ -19,12 +19,16 @@ class AccountProfilePage extends LScopedView<AccountProfileController> {
     required this.schoolClient,
     this.onProfileSaved,
     this.embedded = false,
+    this.profileActions,
   });
 
   final AppSessionController session;
   final SchoolClientFactory schoolClient;
   final Future<void> Function(AccountContactProfile profile)? onProfileSaved;
   final bool embedded;
+
+  /// Additional actions owned by the selected portal app.
+  final Widget? profileActions;
 
   @override
   AccountProfileController onConfigScope(LevitScope scope) {
@@ -45,7 +49,12 @@ class AccountProfilePage extends LScopedView<AccountProfileController> {
         errorMessage: controller.errorMessage.value,
         emptyMessage: context.tr.accountProfileUnavailable,
         onRetry: controller.loadProfile,
-        child: LWatch(() => _ProfileForm(controller: controller)),
+        child: LWatch(
+          () => _ProfileForm(
+            controller: controller,
+            profileActions: profileActions,
+          ),
+        ),
       ),
     );
     if (embedded) return body;
@@ -57,9 +66,10 @@ class AccountProfilePage extends LScopedView<AccountProfileController> {
 }
 
 class _ProfileForm extends StatelessWidget {
-  const _ProfileForm({required this.controller});
+  const _ProfileForm({required this.controller, this.profileActions});
 
   final AccountProfileController controller;
+  final Widget? profileActions;
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +81,7 @@ class _ProfileForm extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
       children: [
+        ?profileActions,
         ListTile(
           title: Text(context.tr.accountSecurity),
           leading: const Icon(Icons.security),

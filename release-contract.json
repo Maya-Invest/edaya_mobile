@@ -1,27 +1,27 @@
 {
   "formatVersion": 1,
-  "schemaFingerprint": "e1355863dc025351911ee1a4b85190f14b398cf99e6d504384a99531e288cb7f",
-  "backendSourceRevision": "sha256:772439db9bc9e74f15f80ba8e91ba55b3fdcc50225039b2ebb38497cccba0286",
+  "schemaFingerprint": "206df0460d612ec83d65f7a33badd7b4122aa85e2515583f81b49f6864456a22",
+  "backendSourceRevision": "sha256:0c07285275044076cede3d6808b1fddc5e6f88524dd87c4eb4f713e79807d26c",
   "artifacts": {
     "backend": {
-      "package/api-client/src/openapi.json": "e1355863dc025351911ee1a4b85190f14b398cf99e6d504384a99531e288cb7f",
-      "package/api-client/src/schema.d.ts": "748fc80ee7bb713bc55edf7b64c61c48d130b6cbeca4aedb9bb474aa9f13beb6",
-      "package/api-client/src/generated/client-bindings.ts": "73a63183536d8bb802036c163b91410c40787a7c36ef5ab9f44a4105f70761f0",
+      "package/api-client/src/openapi.json": "206df0460d612ec83d65f7a33badd7b4122aa85e2515583f81b49f6864456a22",
+      "package/api-client/src/schema.d.ts": "556ff6293f6dde2eb22f55ee7dc7d58aae95b901622eaf21e50654297b42f3be",
+      "package/api-client/src/generated/client-bindings.ts": "8791c66b0cdc8ba75100cc4d255b16bb76eab6647619293314ae74fe133177bb",
       "package/api-client/src/generated/create-client.ts": "f14fafc90c584257573cce19f41fbe9598ce7434e1d6c8176c9ebaff0183d38a",
-      "tooling/repo/fixtures/openapi.json": "e1355863dc025351911ee1a4b85190f14b398cf99e6d504384a99531e288cb7f"
+      "tooling/repo/fixtures/openapi.json": "206df0460d612ec83d65f7a33badd7b4122aa85e2515583f81b49f6864456a22"
     },
     "web": {
-      "apps/webapp/node_modules/@maya-invest/edaya-api-client/src/openapi.json": "e1355863dc025351911ee1a4b85190f14b398cf99e6d504384a99531e288cb7f",
-      "apps/webapp/node_modules/@maya-invest/edaya-api-client/src/schema.d.ts": "748fc80ee7bb713bc55edf7b64c61c48d130b6cbeca4aedb9bb474aa9f13beb6",
-      "apps/webapp/node_modules/@maya-invest/edaya-api-client/src/generated/client-bindings.ts": "73a63183536d8bb802036c163b91410c40787a7c36ef5ab9f44a4105f70761f0",
+      "apps/webapp/node_modules/@maya-invest/edaya-api-client/src/openapi.json": "206df0460d612ec83d65f7a33badd7b4122aa85e2515583f81b49f6864456a22",
+      "apps/webapp/node_modules/@maya-invest/edaya-api-client/src/schema.d.ts": "556ff6293f6dde2eb22f55ee7dc7d58aae95b901622eaf21e50654297b42f3be",
+      "apps/webapp/node_modules/@maya-invest/edaya-api-client/src/generated/client-bindings.ts": "8791c66b0cdc8ba75100cc4d255b16bb76eab6647619293314ae74fe133177bb",
       "apps/webapp/node_modules/@maya-invest/edaya-api-client/src/generated/create-client.ts": "f14fafc90c584257573cce19f41fbe9598ce7434e1d6c8176c9ebaff0183d38a"
     },
     "mobile": {
-      "packages/edaya_api_client/spec/client-bindings.json": "8d0088a53849d0a09338795eaa9c9e8d46b286abcf90a1f5c23672529e0feeaa",
-      "packages/edaya_api_client/lib/src/generated/client_bindings.dart": "7163da6da7c199dc6df1e3e05c51ef97e1e11b71af0d16a490185d133051cf09",
-      "packages/edaya_api_client/lib/src/generated/school_client_surface.dart": "5341021f52f9420965d49455b7a05fa2677fe5f5898f492907e7f5e28145a556",
+      "packages/edaya_api_client/spec/client-bindings.json": "6cdfafefd1a2e425c1dd22d5d148035a287f9905083f86bb3a495764072b2e81",
+      "packages/edaya_api_client/lib/src/generated/client_bindings.dart": "55430f174dd0183f60539b34e98588ace8f859d36994c0ad8783bcf5547d4a32",
+      "packages/edaya_api_client/lib/src/generated/school_client_surface.dart": "698643d8ee9c67b5b7b43c08670e02c6f8006f033bbe797f0e10728aacce1d17",
       "packages/edaya_api_client/lib/src/generated/auth_contracts.dart": "6fc275a8d693ac859ca5cba9972da87f8c9c9382bdf70a6f44b1b67b5e0fb6fa"
     }
   },
-  "releaseId": "e44fb87d6ae514ed1324d536b94b4bd55e8c0b031a5237bcb0e4e5b22c31dce7"
+  "releaseId": "4109cd83926884e106fc30e3fb0e6bcbb8806ddeb891c0af86611b1ea10ab1ce"
 }
