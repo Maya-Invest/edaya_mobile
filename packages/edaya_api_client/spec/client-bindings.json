@@ -147,14 +147,14 @@
       "publicName": "staff-permission-assignments",
       "schemaName": "StaffPermissionAssignment",
       "publicOperations": {
-        "create": true,
-        "update": true,
-        "delete": true,
-        "batchCreate": true,
-        "batchUpdate": true,
-        "batchDelete": true
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
       },
-      "allowDirectSave": true
+      "allowDirectSave": false
     },
     "staffPermissionProfiles": {
       "publicName": "staff-permission-profiles",
@@ -172,6 +172,32 @@
     "staffPermissionProfileBindings": {
       "publicName": "staff-permission-profile-bindings",
       "schemaName": "StaffPermissionProfileBinding",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
+      "allowDirectSave": false
+    },
+    "staffManualPermissionAssignments": {
+      "publicName": "staff-manual-permission-assignments",
+      "schemaName": "StaffManualPermissionAssignment",
+      "publicOperations": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batchCreate": false,
+        "batchUpdate": false,
+        "batchDelete": false
+      },
+      "allowDirectSave": false
+    },
+    "staffPermissionScopeDefaults": {
+      "publicName": "staff-permission-scope-defaults",
+      "schemaName": "StaffPermissionScopeDefaults",
       "publicOperations": {
         "create": false,
         "update": false,
@@ -953,20 +979,30 @@
       "requestSchemaName": "AssignStaffToLessonSessionCommand",
       "responseSchemaName": "StaffAssignment"
     },
+    "configureStaffPermissionScopeDefaults": {
+      "publicName": "configure-staff-permission-scope-defaults",
+      "requestSchemaName": "ConfigureStaffPermissionScopeDefaultsCommand",
+      "responseSchemaName": "ConfigureStaffPermissionScopeDefaultsResponse"
+    },
+    "removeStaffPermission": {
+      "publicName": "remove-staff-permission",
+      "requestSchemaName": "RemoveStaffPermissionCommand",
+      "responseSchemaName": "RemoveStaffPermissionResponse"
+    },
     "assignStaffPermission": {
       "publicName": "assign-staff-permission",
       "requestSchemaName": "StaffPermissionAssignmentConfigCommand",
-      "responseSchemaName": "StaffPermissionAssignment"
+      "responseSchemaName": "AssignStaffPermissionResponse"
     },
     "configurePermissionProfile": {
       "publicName": "configure-permission-profile",
       "requestSchemaName": "ConfigurePermissionProfileCommand",
-      "responseSchemaName": "StaffPermissionProfile"
+      "responseSchemaName": "ConfigurePermissionProfileResponse"
     },
     "applyStaffPermissionProfile": {
       "publicName": "apply-staff-permission-profile",
       "requestSchemaName": "ApplyStaffPermissionProfileCommand",
-      "responseSchemaName": "StaffPermissionProfileBinding"
+      "responseSchemaName": "ApplyStaffPermissionProfileResponse"
     },
     "reorderStaffPermissionProfiles": {
       "publicName": "reorder-staff-permission-profiles",

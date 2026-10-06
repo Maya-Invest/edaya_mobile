@@ -34,6 +34,10 @@ extension GeneratedSchoolClientEntities on SchoolClient {
 
   EntityResource get staffPermissionProfileBindings => entities["staffPermissionProfileBindings"]!;
 
+  EntityResource get staffManualPermissionAssignments => entities["staffManualPermissionAssignments"]!;
+
+  EntityResource get staffPermissionScopeDefaults => entities["staffPermissionScopeDefaults"]!;
+
   EntityResource get attachments => entities["attachments"]!;
 
   EntityResource get resources => entities["resources"]!;
@@ -218,6 +222,12 @@ extension GeneratedSchoolClientCommands on SchoolClient {
 
   Future<Map<String, dynamic>> assignStaffToLessonSession(Map<String, dynamic> payload) =>
       runCommand("assign-staff-to-lesson-session", payload);
+
+  Future<Map<String, dynamic>> configureStaffPermissionScopeDefaults(Map<String, dynamic> payload) =>
+      runCommand("configure-staff-permission-scope-defaults", payload);
+
+  Future<Map<String, dynamic>> removeStaffPermission(Map<String, dynamic> payload) =>
+      runCommand("remove-staff-permission", payload);
 
   Future<Map<String, dynamic>> assignStaffPermission(Map<String, dynamic> payload) =>
       runCommand("assign-staff-permission", payload);

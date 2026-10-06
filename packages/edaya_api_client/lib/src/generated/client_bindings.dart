@@ -86,8 +86,8 @@ abstract final class ClientBindings {
     "staffPermissionAssignments": EntityBinding(
       publicName: "staff-permission-assignments",
       schemaName: "StaffPermissionAssignment",
-      allowDirectSave: true,
-      publicOperations: {"create": true, "update": true, "delete": true, "batchCreate": true, "batchUpdate": true, "batchDelete": true},
+      allowDirectSave: false,
+      publicOperations: {"create": false, "update": false, "delete": false, "batchCreate": false, "batchUpdate": false, "batchDelete": false},
     ),
     "staffPermissionProfiles": EntityBinding(
       publicName: "staff-permission-profiles",
@@ -98,6 +98,18 @@ abstract final class ClientBindings {
     "staffPermissionProfileBindings": EntityBinding(
       publicName: "staff-permission-profile-bindings",
       schemaName: "StaffPermissionProfileBinding",
+      allowDirectSave: false,
+      publicOperations: {"create": false, "update": false, "delete": false, "batchCreate": false, "batchUpdate": false, "batchDelete": false},
+    ),
+    "staffManualPermissionAssignments": EntityBinding(
+      publicName: "staff-manual-permission-assignments",
+      schemaName: "StaffManualPermissionAssignment",
+      allowDirectSave: false,
+      publicOperations: {"create": false, "update": false, "delete": false, "batchCreate": false, "batchUpdate": false, "batchDelete": false},
+    ),
+    "staffPermissionScopeDefaults": EntityBinding(
+      publicName: "staff-permission-scope-defaults",
+      schemaName: "StaffPermissionScopeDefaults",
       allowDirectSave: false,
       publicOperations: {"create": false, "update": false, "delete": false, "batchCreate": false, "batchUpdate": false, "batchDelete": false},
     ),
@@ -421,6 +433,8 @@ abstract final class ClientBindings {
     "assignStaffToClass": "assign-staff-to-class",
     "assignStaffToClassSubject": "assign-staff-to-class-subject",
     "assignStaffToLessonSession": "assign-staff-to-lesson-session",
+    "configureStaffPermissionScopeDefaults": "configure-staff-permission-scope-defaults",
+    "removeStaffPermission": "remove-staff-permission",
     "assignStaffPermission": "assign-staff-permission",
     "configurePermissionProfile": "configure-permission-profile",
     "applyStaffPermissionProfile": "apply-staff-permission-profile",
