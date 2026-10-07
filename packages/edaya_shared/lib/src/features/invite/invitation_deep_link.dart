@@ -58,6 +58,7 @@ String resolveGuardianPostAuthHome({
 
 bool _isGuardianIdentityOnlyRoute(String matchedLocation) {
   return matchedLocation == guardianWaitingRoute ||
+      matchedLocation == '/profiles' ||
       matchedLocation == '/settings' ||
       matchedLocation == '/account' ||
       matchedLocation.startsWith('/account/');

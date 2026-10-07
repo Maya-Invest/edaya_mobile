@@ -764,10 +764,15 @@ Future<void> main() async {
             : find.byType(TextField).first;
         final comment = 'Comment $id';
         await tester.enterText(input, comment);
+        FocusManager.instance.primaryFocus?.unfocus();
+        await tester.pump();
         await tester.scrollUntilVisible(
           find.text('Enregistrer'),
           200,
-          scrollable: find.byType(Scrollable).last,
+          scrollable: find.descendant(
+            of: find.byType(ListView),
+            matching: find.byType(Scrollable),
+          ).first,
         );
         await Scrollable.ensureVisible(
           tester.element(find.text('Enregistrer')),

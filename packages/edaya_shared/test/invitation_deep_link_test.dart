@@ -130,6 +130,24 @@ void main() {
     },
   );
 
+  test('profile selection stays mounted while school context reloads', () {
+    for (final hasSchoolSession in [false, true]) {
+      for (final needsProfileSelection in [false, true]) {
+        expect(
+          resolveGuardianAuthRedirect(
+            isAuthenticated: true,
+            matchedLocation: '/profiles',
+            pendingInvitationToken: null,
+            hasSchoolSession: hasSchoolSession,
+            linkedStudentsResolved: true,
+            needsProfileSelection: needsProfileSelection,
+          ),
+          isNull,
+        );
+      }
+    }
+  });
+
   test('resolveGuardianAuthRedirect opens home when children are linked', () {
     expect(
       resolveGuardianAuthRedirect(
