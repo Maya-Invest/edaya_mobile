@@ -41,33 +41,6 @@ melos:
     generated:check:
       run: bash scripts/check-api-bindings-drift.sh
       description: Verify committed Dart bindings match spec/client-bindings.json.
-    run:guardian:local:
-      run: cd apps/guardian && flutter run --dart-define=API_URL=http://10.0.2.2:9999
-      description: Run guardian app against local API (Android emulator).
-    run:guardian:legacy:local:
-      run: echo "guardian_legacy is not a current app" && exit 1
-      description: Removed legacy guardian app. Do not run.
-    run:teacher:local:
-      run: cd apps/teacher && flutter run --dart-define=API_URL=http://10.0.2.2:9999
-      description: Run teacher app against local API (Android emulator).
-    run:teacher:legacy:local:
-      run: echo "teacher_legacy is not a current app" && exit 1
-      description: Removed legacy teacher app. Do not run.
-    run:guardian:staging:
-      run: cd apps/guardian && flutter run
-      description: Run guardian app (default staging API).
-    run:guardian:legacy:staging:
-      run: echo "guardian_legacy is not a current app" && exit 1
-      description: Removed legacy guardian app. Do not run.
-    run:teacher:staging:
-      run: cd apps/teacher && flutter run
-      description: Run teacher app (default staging API).
-    run:teacher:legacy:staging:
-      run: echo "teacher_legacy is not a current app" && exit 1
-      description: Removed legacy teacher app. Do not run.
-    brand:check:
-      run: python3 scripts/brand-check.py
-      description: Verify EDAYA tokens, assets, contrast and visual literals.
     brand:generate:
       run: python3 scripts/brand-tokens.py
       description: Generate local Dart brand tokens from the versioned snapshot.
@@ -75,46 +48,10 @@ melos:
       run: |
         python3 -m unittest discover -s .github/scripts -p 'test_*.py' &&
         python3 scripts/release-contract.py --role mobile &&
-        melos run brand:check &&
+        python3 scripts/brand-check.py &&
         melos run generated:check &&
         melos run analyze &&
         melos run test &&
         node --test scripts/apk-signature.test.mjs &&
         python3 -m unittest discover -s scripts -p 'test_*.py'
-      description: Run generated drift check, analysis, and tests.
-    test:staging:
-      run: python3 scripts/staging-smoke.py
-      description: Smoke-test deployed staging using private native sessions, without OTP capture.
-    test:integration:
-      run: python3 scripts/integration-runner.py
-      description: Run all live suites independently and aggregate machine-readable outcomes.
-    test:integration:coverage:
-      run: python3 scripts/integration-runner.py --validate-only
-      description: Require complete successful execution results from every live suite.
-    screenshots:teacher:review:
-      run: bash scripts/teacher-design-review.sh
-      description: Generate teacher app screenshots for designer review (mock harness).
-    screenshots:teacher:legacy:review:
-      run: bash scripts/teacher-legacy-design-review.sh
-      description: Generate archived teacher IA screenshots (requires API).
-    screenshots:guardian:review:
-      run: bash scripts/guardian-design-review.sh
-      description: Generate guardian app screenshots for designer review.
-    screenshots:guardian:legacy:review:
-      run: bash scripts/guardian-legacy-design-review.sh
-      description: Generate archived guardian IA screenshots (requires API).
-    clean:flutter:
-      exec: flutter clean
-      description: Run flutter clean in all Flutter apps.
-    android:keystore:create:
-      run: bash scripts/create-android-keystore.sh
-      description: Create upload keystore and key.properties for Play Store signing.
-    build:play:aab:
-      run: bash scripts/build-play-aab.sh
-      description: Build release-signed AABs for guardian and teacher (Google Play).
-    build:guardian:play:
-      run: bash scripts/build-play-aab.sh guardian
-      description: Build guardian Play Store AAB.
-    build:teacher:play:
-      run: bash scripts/build-play-aab.sh teacher
-      description: Build teacher Play Store AAB.
+      description: Check release contracts, brand and generated drift, analysis, unit/widget tests, and CI/APK/Python tooling tests.

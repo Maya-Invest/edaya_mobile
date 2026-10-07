@@ -35,7 +35,7 @@ dart pub get --enforce-lockfile
 melos bootstrap
 melos run verify
 # With an owned, seeded unified fixture API and its private OTP capture configured:
-EDAYA_INTEGRATION_TESTS=1 EDAYA_API_URL=http://127.0.0.1:9999 melos run test:integration
+EDAYA_API_URL=http://127.0.0.1:9999 python3 scripts/integration-runner.py
 ```
 
 The backend coordinator runs this setup and all three suites for full release qualification. Every mobile branch, including main, runs unit verification on push. Native staging smoke uses private fixture sessions without deployed OTP access. Signed APK publication/build handling remains owned by the backend staging coordinator.

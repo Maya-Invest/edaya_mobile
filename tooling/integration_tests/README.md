@@ -27,10 +27,10 @@ Demo accounts: `m.kone@mail.ci` (children `ci-s1` + `ci-s10`), `k.yao@mail.ci` (
 
 Each inbox probe uses the seeded owner (`a.kone@ecole-ci.edaya.dev`) to create and publish a unique announcement targeted to that guardian. It waits for the notification workflow to materialize an unread delivery, then reads and marks it as the guardian. The director fixture has class-scoped send grants and cannot address direct recipients; delivery-history writes remain system-only. Run these write probes against disposable seeded data with local-log notification delivery.
 
-Run:
+Run from the repository root:
 
 ```bash
-melos run test:integration
+python3 scripts/integration-runner.py
 ```
 
 Optional env overrides:
@@ -38,7 +38,7 @@ Optional env overrides:
 ```bash
 EDAYA_GUARDIAN_EMAIL=m.kone@mail.ci \
 EDAYA_ACADEMIC_YEAR_ID=2025-ci \
-melos run test:integration
+python3 scripts/integration-runner.py
 ```
 
 Use the dedicated backend `bun run dev:test` server for local captured email, WhatsApp and SMS. Enable web `PUBLIC_TEST_OTP_ACCESS=true` or Flutter debug `--dart-define=TEST_OTP_ACCESS=true` for explicit Show test code and Copy controls. CI uses that composition and a private captured mailbox; normal staging/production builds omit testing access.
@@ -70,19 +70,19 @@ Coverage includes Accueil, agenda, classes, evaluations, inbox, account/settings
 Run with the rest of the integration suite:
 
 ```bash
-melos run test:integration
+python3 scripts/integration-runner.py
 ```
 
 Or only guardian widget integration tests:
 
 ```bash
-cd apps/guardian && EDAYA_INTEGRATION_TESTS=1 flutter test --tags integration
+python3 scripts/integration-runner.py --suite guardian
 ```
 
 Or only teacher widget integration tests:
 
 ```bash
-cd apps/teacher && EDAYA_INTEGRATION_TESTS=1 flutter test test/integration --tags integration
+python3 scripts/integration-runner.py --suite teacher
 ```
 
 Unit/widget runs (`melos run test`) exclude `@Tags(['integration'])` tests so CI verify does not require a running API.

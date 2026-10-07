@@ -2,10 +2,12 @@
 
 Play Store uploads require a release-signed Android App Bundle (`.aab`).
 
+Run commands below from the repository root.
+
 ## One-time setup
 
 ```bash
-melos run android:keystore:create
+bash scripts/create-android-keystore.sh
 ```
 
 This creates `edaya-upload.jks` in this directory and writes `key.properties` for both apps.
@@ -21,7 +23,8 @@ Set `keyAlias` to `guardian` or `teacher` respectively.
 ## Build release bundles
 
 ```bash
-melos run build:play:aab
+EDAYA_API_URL=https://api.edayaplus.com bash scripts/build-play-aab.sh
+# Append guardian or teacher to build just one app.
 ```
 
 Outputs:
@@ -29,5 +32,5 @@ Outputs:
 - `apps/guardian/build/app/outputs/bundle/release/app-release.aab`
 - `apps/teacher/build/app/outputs/bundle/release/app-release.aab`
 
-Staging URLs (`https://staging.api.edayaplus.com` and `https://staging.api.edayaplus.com`) are baked in via `--dart-define=API_URL=...`.
-Override with `EDAYA_API_URL` when building (for example production: `https://api.edayaplus.com` and `https://api.edayaplus.com`).
+`EDAYA_API_URL` is required and is baked in via `--dart-define=API_URL=...`.
+Use `https://staging.api.edayaplus.com` for staging or `https://api.edayaplus.com` for production. With no app argument, both apps are built.

@@ -6,25 +6,21 @@ Flutter app for guardians and parents — Accueil-first IA with live API, auth, 
 
 ## Run locally
 
+From the repository root:
+
 ```bash
 cd apps/guardian
-flutter pub get
 flutter run --dart-define=API_URL=http://10.0.2.2:9999
+# Or target staging:
+flutter run --dart-define=API_URL=https://staging.api.edayaplus.com
 ```
-
-From monorepo root:
-
-```bash
-melos run run:guardian:local
-melos run run:guardian:staging
-```
-
-Archived pre-cutover IA: `apps/guardian_legacy` (`melos run run:guardian:legacy:local`).
 
 ## Design review
 
+From the repository root:
+
 ```bash
-melos run screenshots:guardian:review
+bash scripts/design-review.sh guardian
 ```
 
 Output: `apps/guardian/design-review/index.html`.

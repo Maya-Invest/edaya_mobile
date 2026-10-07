@@ -2,15 +2,17 @@
 
 Flutter app for teachers — Accueil-first IA with live Identity OTP, school API, FCM, and offline outbox.
 
-Store identity: Android/iOS `com.softilab.edaya.staff`.
-
-Archived pre-cutover IA: `apps/teacher_legacy` (`melos run run:teacher:legacy:local`).
+Store identity: Android/iOS `ca.mayainvest.edaya.staff`.
 
 ## Run locally
 
+From the repository root:
+
 ```bash
-melos run run:teacher:local
-melos run run:teacher:staging
+cd apps/teacher
+flutter run --dart-define=API_URL=http://10.0.2.2:9999
+# Or target staging:
+flutter run --dart-define=API_URL=https://staging.api.edayaplus.com
 ```
 
 Requires the local API (`10.0.2.2:9999`) for emulator runs. Default demo email: `a.toure@ecole-ci.edaya.dev`.
@@ -19,7 +21,7 @@ Widget tests (mock harness, no API):
 
 ```bash
 cd apps/teacher
-flutter test --exclude-tags integration
+flutter test --exclude-tags 'integration || staging || design-review'
 ```
 
 ## Information architecture
@@ -44,8 +46,10 @@ Family feedback from Accueil opens `/home/avis/:id` (Accueil tab stays selected)
 
 ## Design review
 
+From the repository root:
+
 ```bash
-melos run screenshots:teacher:review
+bash scripts/design-review.sh teacher
 ```
 
 Output: `apps/teacher/design-review/index.html` (mock harness, no API).

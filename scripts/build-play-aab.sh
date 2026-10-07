@@ -17,7 +17,7 @@ require_key_properties() {
   local app="$1"
   local props="$ROOT/apps/$app/android/key.properties"
   if [[ ! -f "$props" ]]; then
-    echo "Missing $props — run: melos run android:keystore:create" >&2
+    echo "Missing $props — run: bash scripts/create-android-keystore.sh" >&2
     exit 1
   fi
 }

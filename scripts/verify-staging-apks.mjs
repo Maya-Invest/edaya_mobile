@@ -11,7 +11,7 @@ if (!sdk) throw new Error("Android SDK path is required for APK verification");
 const buildTools = resolve(sdk, "build-tools", readdirSync(resolve(sdk, "build-tools")).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })).at(-1));
 const run = (command, args, env = process.env) => execFileSync(command, args, { env, encoding: "utf8" });
 const records = [];
-for (const [app, applicationId] of [["guardian", "com.softilab.edaya.guardian"], ["teacher", "com.softilab.edaya.staff"]]) {
+for (const [app, applicationId] of [["guardian", "ca.mayainvest.edaya.guardian"], ["teacher", "ca.mayainvest.edaya.staff"]]) {
   const apk = resolve(root, `release-apks/edaya-${app}-staging.apk`);
   const android = resolve(root, `apps/${app}/android`);
   const properties = Object.fromEntries(readFileSync(resolve(android, "key.properties"), "utf8").split(/\r?\n/).filter(line => line.includes("=") && !line.startsWith("#")).map(line => [line.slice(0, line.indexOf("=")), line.slice(line.indexOf("=") + 1)]));

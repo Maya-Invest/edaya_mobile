@@ -14,7 +14,7 @@ This spec defines information architecture, shell chrome, teacher/class context,
 |------|-------------|
 | Audience | Teachers (subject and homeroom), French-first |
 | Tone | Staff classroom companion — polished like guardian, job-oriented |
-| Auth | Pre-shell email OTP against Identity (`sendEmailOtp` / `signInWithEmailOtp`). Success lands on `/home`. Widget tests may keep a mock OTP harness; the runnable product (`melos run run:teacher:local`) is live. |
+| Auth | Pre-shell email OTP against Identity (`sendEmailOtp` / `signInWithEmailOtp`). Success lands on `/home`. Widget tests may keep a mock OTP harness; the runnable product (`cd apps/teacher && flutter run --dart-define=API_URL=http://10.0.2.2:9999`) is live. |
 | Live after OTP | Shell teacher context (class / subject / year), Accueil tasks, family-feedback avis, inbox, and bulletin comments must read the school API. Do not ship real Identity in front of fake classrooms. |
 | Other hubs | Agenda sessions, class rosters, marks, attendance, logbook, evaluations, and report-card comments resolve live IDs. |
 | Context awareness | Active class/subject and school year must remain visible in the shell whenever chrome is shown |

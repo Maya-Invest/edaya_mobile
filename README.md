@@ -8,16 +8,14 @@ Flutter monorepo for the Edaya mobile apps, managed with [Melos](https://melos.i
 edaya_mobile/
 ├── apps/
 │   ├── guardian/              edaya_guardian — parent/guardian app (production)
-│   ├── guardian_legacy/       archived pre-cutover Guardian IA
-│   ├── teacher/               edaya_teacher — Accueil-first teacher app (production)
-│   └── teacher_legacy/        archived four-tab teacher IA
+│   └── teacher/               edaya_teacher — Accueil-first teacher app (production)
 ├── packages/
 │   ├── edaya_api_client/      domain-shaped Core API client
 │   ├── edaya_auth/            Better Auth HTTP client
 │   └── edaya_shared/          shared config, UI, auth scaffolding, and utilities
 ├── tooling/
 │   └── integration_tests/     live API integration tests (teacher portal, shared harness)
-├── scripts/                   OpenAPI binding generation helpers
+├── scripts/                   generation, integration, design-review and release tooling
 └── pubspec.yaml               workspace root (Melos config lives here)
 ```
 
@@ -25,10 +23,8 @@ edaya_mobile/
 
 | App | Package | Audience | Notes |
 |-----|---------|----------|-------|
-| Guardian | `edaya_guardian` | Parents and guardians | `com.softilab.edaya.guardian` — Accueil-first IA + live API; [design-language-spec](docs/specs/design-language-spec.md) |
-| Guardian legacy | `edaya_guardian_legacy` | Archived IA | Frozen pre-cutover Guardian |
-| Teacher | `edaya_teacher` | Teachers and staff | `com.softilab.edaya.staff` — Accueil-first IA + live OTP; [teacher-shell-spec](docs/specs/teacher-shell-spec.md) |
-| Teacher legacy | `edaya_teacher_legacy` | Archived IA | Frozen four-tab classroom app |
+| Guardian | `edaya_guardian` | Parents and guardians | `ca.mayainvest.edaya.guardian` — Accueil-first IA + live API; [design-language-spec](docs/specs/design-language-spec.md) |
+| Teacher | `edaya_teacher` | Teachers and staff | `ca.mayainvest.edaya.staff` — Accueil-first IA + live OTP; [teacher-shell-spec](docs/specs/teacher-shell-spec.md) |
 
 Both apps share auth, bootstrap, theme, and most UI primitives via `edaya_shared`. Each app keeps a thin layer for routes, domain features, and app-specific preferences.
 
@@ -153,14 +149,15 @@ The guardian inbox queries the selected guardian profile and school together wit
 
 ### API URL
 
-Default API URL depends on the app (no `--dart-define` needed for local dev):
+Both apps default to `https://staging.api.edayaplus.com`. For local development, select the machine-local API explicitly:
 
-| App | Default | Use when |
-|-----|---------|----------|
-| Guardian | `http://10.0.2.2:9999` | Android emulator → machine-local API |
-| Teacher | `http://localhost:9999` | iOS simulator / desktop → local API |
+| Target | API URL |
+|--------|---------|
+| Android emulator | `http://10.0.2.2:9999` |
+| iOS simulator / desktop | `http://localhost:9999` |
+| Staging | `https://staging.api.edayaplus.com` |
 
-Override at build time:
+Set the API URL at build time:
 
 ```bash
 flutter run --dart-define=API_URL=http://localhost:9999
@@ -168,12 +165,7 @@ flutter run --dart-define=API_URL=http://10.0.2.2:9999
 flutter run --dart-define=API_URL=https://staging.api.edayaplus.com
 ```
 
-Or use Melos shortcuts:
-
-```bash
-melos run run:guardian:local   # explicit Android emulator URL
-melos run run:teacher:local    # Identity + school API on Android emulator
-```
+Run these Flutter commands from `apps/guardian` or `apps/teacher`. Use an explicit staging URL when targeting staging.
 
 The login and account screens expose **Developer settings** in all build modes (including production) to change the API URL at runtime (persisted in `SharedPreferences`). Presets include local, staging, and production. Restart the app after saving.
 
@@ -189,25 +181,39 @@ Use the dedicated backend `bun run dev:test` server for local captured email, Wh
 ### Run an app
 
 ```bash
-cd apps/guardian && flutter run
-cd apps/teacher && flutter run
+(cd apps/guardian && flutter run --dart-define=API_URL=http://10.0.2.2:9999)
+(cd apps/teacher && flutter run --dart-define=API_URL=http://10.0.2.2:9999)
 ```
 
 ## Common commands
 
+Melos exposes workspace maintenance tasks:
+
 | Command | Description |
 |---------|-------------|
 | `melos run analyze` | Static analysis across all packages |
-| `melos run test` | Run tests in all packages/apps |
+| `melos run test` | Unit/widget tests, excluding integration, staging and design-review suites |
 | `melos run format` | Format Dart code |
+| `melos run fix` | Apply Dart fixes in package source and tests |
 | `melos run generated:update` | Regenerate bindings (`EDAYA_OPENAPI_URL` or `EDAYA_OPENAPI_SPEC`) |
-| `melos run generated:check` | Verify generated Dart matches `spec/client-bindings.json` |
-| `melos run verify` | `generated:check` + analyze + test |
-| `melos run test:integration` | Live API integration tests (`EDAYA_INTEGRATION_TESTS=1`) |
-| `melos run clean:flutter` | Run `flutter clean` in all apps |
-| `melos run android:keystore:create` | Create upload keystore for Play Store signing |
-| `melos run build:play:aab` | Build release AABs for guardian + teacher |
-| `melos list` | List workspace packages |
+| `melos run generated:check` | Check generated bindings and mobile contracts |
+| `melos run brand:generate` | Regenerate Dart tokens from the local brand snapshot |
+| `melos run verify` | Release contracts, brand/generated drift, analysis, unit/widget and tooling tests |
+
+Run specialized workflows directly from the repository root:
+
+| Command | Description |
+|---------|-------------|
+| `python3 scripts/integration-runner.py` | Run and validate all live integration suites |
+| `python3 scripts/integration-runner.py --suite api` | Run and validate only API integration tests |
+| `python3 scripts/integration-runner.py --validate-only` | Validate existing integration results, including freshness and completeness |
+| `python3 scripts/staging-smoke.py` | Staging smoke with provisioned private sessions; see [integration guidance](docs/reference/integration-testing.md) |
+| `bash scripts/design-review.sh guardian` | Generate guardian screenshots using mock fixtures; use `teacher` for the teacher app |
+| `python3 scripts/brand-check.py` | Check tokens, assets, contrast and visual literals |
+| `bash scripts/create-android-keystore.sh` | Create Play Store upload signing configuration |
+| `EDAYA_API_URL=https://api.edayaplus.com bash scripts/build-play-aab.sh` | Build release AABs for both apps; append `guardian` or `teacher` for one app |
+
+Use `flutter clean` from an app directory when needed. `melos list` lists workspace packages.
 
 Run package tests only:
 
@@ -226,10 +232,10 @@ Use the dedicated backend `bun run dev:test` server for local captured email, Wh
 
 ```bash
 # With local API on :9999 and demo teacher seeded
-melos run test:integration
+python3 scripts/integration-runner.py
 
-# Or via the legacy shell entrypoint
-./scripts/teacher-mobile-smoke.sh
+# Or run only the API suite
+python3 scripts/integration-runner.py --suite api
 ```
 
 Environment variables:
@@ -241,7 +247,7 @@ Environment variables:
 | `EDAYA_ACADEMIC_YEAR_ID` | `ACADEMIC_YEAR_ID` | `2025-ci` |
 | `EDAYA_CLASS_GROUP_ID` | `CLASS_GROUP_ID` | `ci-6a` |
 
-Set `EDAYA_INTEGRATION_TESTS=1` (done automatically by `melos run test:integration`). Unit test runs skip tagged integration tests.
+Set `EDAYA_INTEGRATION_TESTS=1` (done automatically by `python3 scripts/integration-runner.py`). Unit test runs skip tagged integration tests.
 
 Integration tests run against two demo-ci teacher profiles automatically:
 

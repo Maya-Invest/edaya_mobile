@@ -1,5 +1,5 @@
 # Copy to apps/<app>/android/key.properties and fill in values.
-# Generate the upload keystore with: melos run android:keystore:create
+# Generate the upload keystore with: bash scripts/create-android-keystore.sh
 #
 # storeFile is relative to apps/<app>/android/
 storePassword=YOUR_STORE_PASSWORD
