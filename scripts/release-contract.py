@@ -29,7 +29,7 @@ def artifact_hash(path):
 
 
 def source_fingerprint(root):
-    files = sorted([*root.glob('apps/api/src/**/*'), *root.glob('apps/api/src/identity/**/*'), *root.glob('apps/api/src/identity/testing/**/*'), *root.glob('package/*/src/**/*'), *root.glob('package/adaptor-postgres/drizzle/*.sql'), *root.glob('package/adaptor-account/drizzle/*.sql'), *root.glob('package/adaptor-auth/drizzle/*.sql')])
+    files = sorted([*root.glob('apps/api/src/**/*'), *root.glob('apps/api/configuration/**/*'), *root.glob('apps/api/config.*.jsonc'), *root.glob('apps/api/src/identity/**/*'), *root.glob('apps/api/src/identity/testing/**/*'), *root.glob('package/*/src/**/*'), *root.glob('package/adaptor-postgres/drizzle/*.sql'), *root.glob('package/adaptor-account/drizzle/*.sql'), *root.glob('package/adaptor-auth/drizzle/*.sql')])
     return digest(canonical({str(p.relative_to(root)): digest(p.read_bytes()) for p in files if p.is_file() and '.test.' not in p.name}))
 
 

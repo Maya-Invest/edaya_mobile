@@ -49,16 +49,12 @@ PY
 
 overlay_school_env() {
 	local file="$1"
-	upsert_env "$file" TRUSTED_ORIGINS "$TRUSTED_ORIGINS"
-	upsert_env "$file" WEBAPP_ORIGIN "$WEBAPP_ORIGIN"
-	upsert_env "$file" PORT "$API_PORT"
-	upsert_env "$file" API_ORIGIN "$API_ORIGIN"
-	upsert_env "$file" ALLOW_PUBLIC_SCHOOL_REGISTRATION true
-	upsert_env "$file" LOG_LEVEL error
-	upsert_env "$file" LOCAL_FILES_URL "http://127.0.0.1:$FILES_PORT"
-	upsert_env "$file" LOCAL_FILES_ROOT "$PID_DIR/files"
+	# Process overrides keep the temporary credential file secrets-only.
+	export TRUSTED_ORIGINS WEBAPP_ORIGIN API_ORIGIN
+	export PORT="$API_PORT" ALLOW_PUBLIC_SCHOOL_REGISTRATION=true LOG_LEVEL=error
+	export LOCAL_FILES_URL="http://127.0.0.1:$FILES_PORT"
+	export LOCAL_FILES_ROOT="$PID_DIR/files" LOCAL_FILES_PORT="$FILES_PORT"
 	upsert_env "$file" LOCAL_FILES_SECRET dev-local-files-secret
-	upsert_env "$file" LOCAL_FILES_PORT "$FILES_PORT"
 }
 
 dump_logs() {
@@ -116,10 +112,10 @@ case "$ACTION" in
 		# Disposable school configuration, leaving all checkout .env files intact.
 		cp "$BACKEND_ROOT/apps/api/.env.example" "$PID_DIR/school.env"
 		overlay_school_env "$PID_DIR/school.env"
-		upsert_env "$PID_DIR/school.env" DATABASE_URL "pglite:$PID_DIR/school-db"
+		export DATABASE_URL="pglite:$PID_DIR/school-db"
 
 		mkdir -p "$PID_DIR"
-		upsert_env "$PID_DIR/school.env" AUTH_DATABASE_URL "pglite:$PID_DIR/account-db"
+		export AUTH_DATABASE_URL="pglite:$PID_DIR/account-db"
 		(cd "$BACKEND_ROOT" && bun install --frozen-lockfile)
 
 		if [ -n "${GITHUB_ENV:-}" ]; then
