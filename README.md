@@ -171,7 +171,7 @@ The login and account screens expose **Developer settings** in all build modes (
 
 ### Dev credentials
 
-Use the dedicated backend `bun run dev:test` server for local captured email, WhatsApp and SMS. Enable web `PUBLIC_TEST_OTP_ACCESS=true` or Flutter debug `--dart-define=TEST_OTP_ACCESS=true` for explicit Show test code and Copy controls. CI uses that composition and a private captured mailbox; normal staging/production builds omit testing access.
+Use the backend `bun repo dev` server for local captured email, WhatsApp and SMS. Enable web `PUBLIC_TEST_OTP_ACCESS=true` or Flutter debug `--dart-define=TEST_OTP_ACCESS=true` for explicit Show test code and Copy controls. CI uses the separate internal testing composition and a private captured mailbox; normal staging/production builds omit testing access.
 
 | App | Email define | Default |
 |-----|--------------|---------|
@@ -228,7 +228,7 @@ Shared integration tests live in `tooling/integration_tests`. They use `edaya_au
 
 **PR CI** resolves one backend SHA (explicit `backend_ref`, matching head branch, then PR target), verifies release contracts, starts the unified disposable API (`:9999`) and runs all three native suites. `IDENTITY_CHECKOUT_TOKEN` needs contents:read on `edaya_backend`. Artifacts contain sanitized summaries only. See [CI setup](docs/reference/ci-setup.md).
 
-Use the dedicated backend `bun run dev:test` server for local captured email, WhatsApp and SMS. Enable web `PUBLIC_TEST_OTP_ACCESS=true` or Flutter debug `--dart-define=TEST_OTP_ACCESS=true` for explicit Show test code and Copy controls. CI uses that composition and a private captured mailbox; normal staging/production builds omit testing access.
+Use the backend `bun repo dev` server for local captured email, WhatsApp and SMS. Enable web `PUBLIC_TEST_OTP_ACCESS=true` or Flutter debug `--dart-define=TEST_OTP_ACCESS=true` for explicit Show test code and Copy controls. CI uses the separate internal testing composition and a private captured mailbox; normal staging/production builds omit testing access.
 
 ```bash
 # With local API on :9999 and demo teacher seeded
