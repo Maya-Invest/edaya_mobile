@@ -18,6 +18,10 @@ def dependencies(job):
 
 
 class WorkflowGates(unittest.TestCase):
+    def test_disposable_api_disables_external_delivery(self):
+        script = (ROOT / ".github/scripts/ci-start-local-apis.sh").read_text()
+        self.assertIn("export EMAIL_TRANSPORT=log SMS_TRANSPORT=log PHONE_AUTH_MODE=disabled", script)
+
     def test_full_pr_gate_requires_units_and_integration(self):
         file = ROOT / '.github/workflows/deploy_pr.yml'
         text = file.read_text()

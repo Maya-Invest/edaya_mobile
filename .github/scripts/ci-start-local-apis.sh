@@ -51,6 +51,8 @@ overlay_school_env() {
 	local file="$1"
 	# Process overrides keep the temporary credential file secrets-only.
 	export TRUSTED_ORIGINS WEBAPP_ORIGIN API_ORIGIN
+	# Captured identity fixtures must never inherit live delivery providers.
+	export EMAIL_TRANSPORT=log SMS_TRANSPORT=log PHONE_AUTH_MODE=disabled
 	export PORT="$API_PORT" ALLOW_PUBLIC_SCHOOL_REGISTRATION=true LOG_LEVEL=error
 	export LOCAL_FILES_URL="http://127.0.0.1:$FILES_PORT"
 	export LOCAL_FILES_ROOT="$PID_DIR/files" LOCAL_FILES_PORT="$FILES_PORT"
