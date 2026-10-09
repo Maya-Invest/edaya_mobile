@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Native staging smoke using already provisioned private sessions."""
+import argparse
 import importlib.util
 import json
 import os
@@ -32,22 +33,31 @@ def preflight(env):
     return errors
 
 
-def main():
-    errors = preflight(os.environ)
-    if errors:
-        print("\n".join(errors), file=sys.stderr)
-        return 1
+def load_runner():
     spec = importlib.util.spec_from_file_location("local_integration_runner", ROOT / "scripts/integration-runner.py")
     runner = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(runner)
-    result = subprocess.run(["dart", "-DTEST_OTP_ACCESS=false", "test", "test/staging", "--tags", "staging", "--reporter", "json"], cwd=ROOT / "tooling/integration_tests", env={**os.environ, "TEST_OTP_ACCESS": "false"}, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    return runner
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--validate-runner', action='store_true', help='Compile and discover all six cases without network requests or fixture sessions')
+    args = parser.parse_args()
+    errors = [] if args.validate_runner else preflight(os.environ)
+    if errors:
+        print("\n".join(errors), file=sys.stderr)
+        return 1
+    runner = load_runner()
+    result = subprocess.run(["dart", "-DTEST_OTP_ACCESS=false", "test", "test/staging", "--tags", "staging", "--reporter", "json"], cwd=ROOT / "tooling/integration_tests", env={**os.environ, "TEST_OTP_ACCESS": "false", "EDAYA_STAGING_VALIDATE_ONLY": "true" if args.validate_runner else "false"}, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     lines = [runner.redact_event(line) for line in result.stdout.splitlines(True)]
     report = runner.evaluate(lines, result.returncode, REQUIRED)
-    directory = Path(os.environ.get("RELEASE_ROOT", str(ROOT.parent))) / "release/mobile-staging-smoke"
+    directory = Path(os.environ.get("RELEASE_ROOT", str(ROOT.parent))) / ("release/mobile-staging-runner" if args.validate_runner else "release/mobile-staging-smoke")
     directory.mkdir(parents=True, exist_ok=True)
     (directory / "events.jsonl").write_text("".join(lines))
+    report["mode"] = "runner-validation" if args.validate_runner else "live-smoke"
     (directory / "summary.json").write_text(json.dumps(report, indent=2))
-    print("Staging native smoke passed" if report["ok"] else "Staging native smoke failed; see redacted release evidence")
+    print(("Staging runner validation passed (no live requests)" if args.validate_runner else "Staging native smoke passed") if report["ok"] else "Staging runner failed; see redacted release evidence")
     return 0 if report["ok"] else 1
 
 

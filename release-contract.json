@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "schemaFingerprint": "206df0460d612ec83d65f7a33badd7b4122aa85e2515583f81b49f6864456a22",
-  "backendSourceRevision": "sha256:653649bd45dcdb14f3200578a5d0c21ca45d57a0e712fc712e459253340aa192",
+  "backendSourceRevision": "sha256:437f82b14b731aa24f90c109a640fd427a4aa5fdfb9d604877bc94fd8dd6d3b2",
   "artifacts": {
     "backend": {
       "package/api-client/src/openapi.json": "206df0460d612ec83d65f7a33badd7b4122aa85e2515583f81b49f6864456a22",
@@ -23,5 +23,5 @@
       "packages/edaya_api_client/lib/src/generated/auth_contracts.dart": "6fc275a8d693ac859ca5cba9972da87f8c9c9382bdf70a6f44b1b67b5e0fb6fa"
     }
   },
-  "releaseId": "a094e192ecdb3050291b9468a4bd885ab6f3602a196d7f730153e2f87a8bf62a"
+  "releaseId": "bb57292dc74be1493b89ab3ecf553ac40e2896ae651c05df82d89ce5a82dfb87"
 }
