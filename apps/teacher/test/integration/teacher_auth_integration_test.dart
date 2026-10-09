@@ -21,6 +21,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'support/integration_test_lifecycle.dart';
 import 'support/live_api_test_binding.dart';
+import '../../../../packages/edaya_shared/test/support/enter_focused_text.dart';
 
 Future<void> until(WidgetTester tester, Finder finder) async {
   final deadline = DateTime.now().add(const Duration(seconds: 30));
@@ -131,7 +132,7 @@ Future<void> main() async {
       since,
     );
     await revealAndCopy(tester, code);
-    await tester.enterText(find.byKey(const Key('auth-code')), code);
+    await enterFocusedText(tester, find.byKey(const Key('auth-code')), code);
     await tester.tap(find.byKey(const Key('auth-submit')));
     await until(tester, find.byType(HomePage));
     expect(scope.find<AppSessionController>().hasSchoolSession, isTrue);
@@ -269,7 +270,11 @@ Future<void> main() async {
           expect(controller.delivery.remaining.value, greaterThan(110));
           if (channel == 'sms-switch') {
             expect(controller.delivery.canSms, isFalse);
-            await tester.enterText(find.byKey(const Key('auth-code')), code);
+            await enterFocusedText(
+              tester,
+              find.byKey(const Key('auth-code')),
+              code,
+            );
             await setIntegrationClockOffset(const Duration(seconds: 182));
             final deadline = DateTime.now().add(const Duration(seconds: 15));
             while (!controller.delivery.canSms &&
@@ -294,7 +299,11 @@ Future<void> main() async {
         }
         await tester.enterText(find.byKey(const Key('auth-code')), '');
         await revealAndCopy(tester, code);
-        await tester.enterText(find.byKey(const Key('auth-code')), code);
+        await enterFocusedText(
+          tester,
+          find.byKey(const Key('auth-code')),
+          code,
+        );
         await tester.ensureVisible(find.byKey(const Key('auth-submit')));
         await tester.tap(find.byKey(const Key('auth-submit')));
         await until(tester, find.byType(HomePage));

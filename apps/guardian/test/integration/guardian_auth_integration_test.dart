@@ -13,6 +13,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 import 'support/guardian_widget_test_harness.dart';
 import 'support/integration_test_lifecycle.dart';
 import 'support/live_api_test_binding.dart';
+import '../../../../packages/edaya_shared/test/support/enter_focused_text.dart';
 import 'support/pump_guardian_page.dart';
 import 'support/pump_until_found.dart';
 
@@ -164,7 +165,11 @@ Future<void> main() async {
           final oldChallenge = harness.scope
               .find<AuthClient>()
               .pendingChallenge;
-          await tester.enterText(find.byKey(const Key('auth-code')), code);
+          await enterFocusedText(
+            tester,
+            find.byKey(const Key('auth-code')),
+            code,
+          );
           try {
             await setIntegrationClockOffset(const Duration(seconds: 61));
             final deadline = DateTime.now().add(const Duration(seconds: 15));
@@ -194,7 +199,11 @@ Future<void> main() async {
         }
         await tester.enterText(find.byKey(const Key('auth-code')), '');
         await revealAndCopy(tester, code);
-        await tester.enterText(find.byKey(const Key('auth-code')), code);
+        await enterFocusedText(
+          tester,
+          find.byKey(const Key('auth-code')),
+          code,
+        );
         await tester.ensureVisible(find.byKey(const Key('auth-submit')));
         await tester.tap(find.byKey(const Key('auth-submit')));
         await pumpUntilFound(
