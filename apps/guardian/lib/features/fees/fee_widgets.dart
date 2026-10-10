@@ -36,7 +36,7 @@ class FeeAmountTrailing extends StatelessWidget {
             Text(
               amount,
               style: textTheme.titleSmall?.copyWith(
-                color: PrototypeColors.primary,
+                color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -45,7 +45,7 @@ class FeeAmountTrailing extends StatelessWidget {
               Icon(
                 Icons.chevron_right,
                 size: 20,
-                color: PrototypeColors.onSurfaceVariant,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ],
           ],
@@ -108,7 +108,7 @@ class ChargeDetailSummaryCard extends StatelessWidget {
                 Text(
                   'Échéance ${context.formatShortDate(charge.dueDate!)}',
                   style: textTheme.labelSmall?.copyWith(
-                    color: PrototypeColors.onSurfaceVariant,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
             ],
@@ -127,7 +127,7 @@ class ChargeDetailSummaryCard extends StatelessWidget {
                   label: 'Payé',
                   value: formatMoney(charge.allocatedAmount, charge.currency),
                   valueColor: charge.allocatedAmount > 0
-                      ? PrototypeColors.primary
+                      ? Theme.of(context).colorScheme.primary
                       : null,
                 ),
               ),
@@ -139,7 +139,7 @@ class ChargeDetailSummaryCard extends StatelessWidget {
                     charge.currency,
                   ),
                   valueColor: charge.remainingObligation > 0 && isOverdue
-                      ? PrototypeColors.error
+                      ? Theme.of(context).colorScheme.error
                       : null,
                 ),
               ),
@@ -151,7 +151,7 @@ class ChargeDetailSummaryCard extends StatelessWidget {
           Text(
             '${(progress * 100).round()} % réglé',
             style: textTheme.bodySmall?.copyWith(
-              color: PrototypeColors.onSurfaceVariant,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ],
@@ -180,13 +180,13 @@ class ChargeInstallmentCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: PrototypeColors.primaryContainer,
+              color: Theme.of(context).colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.event_outlined,
               size: 20,
-              color: PrototypeColors.primary,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
           const SizedBox(width: PrototypeSpacing.sm),

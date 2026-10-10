@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart' show PrototypeRadii, PrototypeSpacing;
 import '../../live/runtime.dart';
@@ -61,7 +60,7 @@ class _MockProgressOverviewPage extends LScopedView<StoreBoundController> {
                 Text(
                   'Moyenne indicative sur les matières suivies.',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: PrototypeColors.onSurfaceVariant,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -94,7 +93,7 @@ class _MockProgressOverviewPage extends LScopedView<StoreBoundController> {
                 trailing: Text(
                   '${(topic.progress * 100).round()} %',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: PrototypeColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ),
@@ -157,7 +156,7 @@ class _LiveProgressOverviewPage extends LScopedView<ProgressController> {
                 Text(
                   'Moyenne indicative sur les matières suivies.',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: PrototypeColors.onSurfaceVariant,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -185,7 +184,7 @@ class _LiveProgressOverviewPage extends LScopedView<ProgressController> {
                   trailing: Text(
                     '${(topic.progress * 100).round()} %',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: PrototypeColors.primary,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ),

@@ -90,6 +90,8 @@ Bundled, offline fonts. Logos are artwork, never UI text.
 | `labelLarge` | Inter | 14 | 600 |
 | `labelSmall` | Inter | 12 | 500 |
 
+Login canvas and card fills must use the active theme together with its text and control colors. Fixed light surfaces must explicitly use the color logo, including the white startup screen. Logo artwork keeps its requested width even inside a stretched column; clear space must not stretch the artwork. Login copy follows the selected language and advertised sign-in methods.
+
 Minimum logo widths: vertical 88, horizontal 128, symbol 32. Symbol on native splash and Flutter bootstrap; vertical on login, invite, and waiting. Do not place the logo on authenticated hub chrome.
 
 ---
@@ -245,3 +247,15 @@ The following must **not** be treated as design-language requirements:
 ## Correction workflow feedback
 
 Use existing detail scaffolds, surface cards, form controls and localized labels for correction workflows. Distinguish saved locally, synchronized, pending review, conflict and decision outcomes. The official value must remain visible while a proposal is pending. Daily attendance and discipline remain class detail workflows; they do not add primary navigation destinations.
+
+## Dark mode and large-text review
+
+Use the active `ColorScheme` for text, icons, highlights, progress, errors and surface fills; use the active scaffold background for page and shell chrome. Fixed brand-blue avatars with white initials and white signature paper are intentional paired-color exceptions. Do not combine light-only fills with dark-mode foregrounds.
+
+Calendar dates use `CalendarWeekStrip`: 48dp minimum targets, full-date screen-reader labels, selected semantics and horizontal scrolling when enlarged text cannot fit seven dates. Week navigation sits above the dates. Guardian date and attendance actions wrap as complete controls. Term toggles retain a 48dp minimum height. At 200% text, navigation grows vertically and uses short labels without losing its tooltip; student and teacher context stack to preserve identity and class/subject information.
+
+Run `EDAYA_DESIGN_REVIEW_THEME=dark bash scripts/design-review.sh teacher` and the same command for `guardian`. Repeat with `EDAYA_DESIGN_REVIEW_TEXT_SCALE=2` for 200% phone captures. Dark output is under each app's `design-review/dark/`; enlarged captures are in its `large-text/` directory. Fixture captures cover phone, medium and tablet layouts at normal text size. Phone captures record Flutter contrast, 48dp touch-target and accessible-label checks beside each PNG. The script fails on guideline or recorded layout failures by default; generated screenshots alone are not a passing accessibility result.
+
+## Conversation history
+
+Both apps use shared message bubbles: sent right on the blue container, received left on the neutral surface, with corresponding theme foregrounds. Retain author, selectable body and localized timestamp in that order. Direction, position and semantic labels supplement color; no receipt indicators. Follow the component registry's width and large-text contract.

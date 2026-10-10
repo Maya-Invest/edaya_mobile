@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../design/colors.dart';
 import '../design/components/components.dart';
 import '../design/spacing.dart';
 import '../di/prototype_module.dart';
@@ -27,7 +26,7 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
 
   final Widget child;
 
-  static const _destinations = [
+  List<NavigationDestination> _destinations(BuildContext context) => [
     NavigationDestination(
       icon: Icon(Icons.home_outlined),
       selectedIcon: Icon(Icons.home),
@@ -51,7 +50,10 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
     NavigationDestination(
       icon: Icon(Icons.inbox_outlined),
       selectedIcon: Icon(Icons.inbox),
-      label: 'Messages',
+      label: MediaQuery.textScalerOf(context).scale(1) > 1.3
+          ? context.tr.navInboxShort
+          : context.tr.navMessages,
+      tooltip: context.tr.navMessages,
     ),
   ];
 
@@ -125,10 +127,17 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
               backgroundColor: Theme.of(context).colorScheme.surface,
               body: SafeArea(bottom: false, child: hubBody),
               bottomNavigationBar: NavigationBar(
+                height:
+                    80 +
+                    40 *
+                        (MediaQuery.textScalerOf(context).scale(1) - 1).clamp(
+                          0,
+                          1,
+                        ),
                 selectedIndex: tabIndex,
                 onDestinationSelected: (i) =>
                     context.go(GuardianShellTabs.hubPathForIndex(i)),
-                destinations: _destinations,
+                destinations: _destinations(context),
               ),
             );
           } else {
@@ -144,7 +153,7 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
                         context.go(GuardianShellTabs.hubPathForIndex(i)),
                     labelType: NavigationRailLabelType.all,
                     destinations: [
-                      for (final d in _destinations)
+                      for (final d in _destinations(context))
                         NavigationRailDestination(
                           icon: d.icon,
                           selectedIcon: d.selectedIcon,
@@ -154,9 +163,9 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
                   ),
                   VerticalDivider(
                     width: 1,
-                    color: PrototypeColors.outlineVariant.withValues(
-                      alpha: 0.5,
-                    ),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outlineVariant.withValues(alpha: 0.5),
                   ),
                   Expanded(child: SafeArea(bottom: false, child: hubBody)),
                 ],
@@ -338,7 +347,10 @@ class _MockSchoolChildrenGroup extends StatelessWidget {
             title: Text(student.fullName),
             subtitle: Text(student.classLabel),
             trailing: store.activeStudentId == student.id
-                ? Icon(Icons.check_circle, color: PrototypeColors.primary)
+                ? Icon(
+                    Icons.check_circle,
+                    color: Theme.of(context).colorScheme.primary,
+                  )
                 : null,
             onTap: () {
               store.selectStudent(student.id);
@@ -550,7 +562,10 @@ class _SchoolChildrenGroup extends StatelessWidget {
                 ? Text(studentContext.classLabel.value!)
                 : null,
             trailing: studentContext.activeStudent.value?.id == student.id
-                ? Icon(Icons.check_circle, color: PrototypeColors.primary)
+                ? Icon(
+                    Icons.check_circle,
+                    color: Theme.of(context).colorScheme.primary,
+                  )
                 : null,
             onTap: () async {
               await studentContext.selectStudent(student.id);

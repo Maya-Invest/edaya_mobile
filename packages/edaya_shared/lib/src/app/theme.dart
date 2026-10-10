@@ -146,6 +146,10 @@ abstract final class AppTheme {
           backgroundColor: colorScheme.primary,
           foregroundColor: colorScheme.onPrimary,
           minimumSize: const Size(48, 48),
+          textStyle: EdayaTypography.textTheme(
+            base.textTheme,
+            colorScheme,
+          ).labelLarge,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(EdayaTokens.radiusControl),
           ),

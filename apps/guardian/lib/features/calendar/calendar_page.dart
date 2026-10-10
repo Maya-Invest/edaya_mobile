@@ -65,26 +65,26 @@ class _MockCalendarPage extends LScopedView<StoreBoundController> {
               PrototypeSpacing.md,
               0,
             ),
-            child: Row(
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Flexible(
-                  child: TextButton.icon(
-                    onPressed: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: store.selectedCalendarDate,
-                        firstDate: DateTime(2018),
-                        lastDate: DateTime(2030),
-                      );
-                      if (picked != null) store.selectCalendarDate(picked);
-                    },
-                    icon: const Icon(Icons.calendar_today_outlined, size: 18),
-                    label: Text(
-                      DateFormat(
-                        'd MMM yyyy',
-                        'fr_FR',
-                      ).format(store.selectedCalendarDate),
-                    ),
+                TextButton.icon(
+                  onPressed: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: store.selectedCalendarDate,
+                      firstDate: DateTime(2018),
+                      lastDate: DateTime(2030),
+                    );
+                    if (picked != null) store.selectCalendarDate(picked);
+                  },
+                  icon: const Icon(Icons.calendar_today_outlined, size: 18),
+                  label: Text(
+                    DateFormat(
+                      'd MMM yyyy',
+                      'fr_FR',
+                    ).format(store.selectedCalendarDate),
                   ),
                 ),
                 TextButton.icon(
@@ -117,111 +117,16 @@ class _MockWeekSelector extends StatelessWidget {
 
   final MockStore store;
 
-  static const _dayLabels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-
   @override
   Widget build(BuildContext context) {
-    final weekDates = List.generate(7, store.dateForWeekDay);
-    final selected = store.selectedCalendarDate;
-    final labelStyle = Theme.of(context).textTheme.labelSmall?.copyWith(
-      fontSize: 9,
-      height: 1,
-      color: PrototypeColors.onSurfaceVariant,
-    );
-
     return Padding(
       padding: const EdgeInsets.only(bottom: PrototypeSpacing.sm),
-      child: Row(
-        children: [
-          IconButton(
-            tooltip: 'Semaine précédente',
-            onPressed: store.goToPreviousWeek,
-            icon: const Icon(Icons.chevron_left),
-            visualDensity: VisualDensity.compact,
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    for (var i = 0; i < 7; i++)
-                      Expanded(
-                        child: SizedBox(
-                          height: 12,
-                          child:
-                              i == 0 ||
-                                  weekDates[i].month != weekDates[i - 1].month
-                              ? Text(
-                                  DateFormat('MMM', 'fr_FR')
-                                      .format(weekDates[i])
-                                      .replaceAll('.', '')
-                                      .substring(0, 3),
-                                  textAlign: TextAlign.center,
-                                  style: labelStyle,
-                                )
-                              : null,
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: PrototypeSpacing.xxs),
-                Row(
-                  children: [
-                    for (var i = 0; i < 7; i++)
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 2),
-                          child: FilledButton(
-                            style: FilledButton.styleFrom(
-                              backgroundColor:
-                                  weekDates[i].year == selected.year &&
-                                      weekDates[i].month == selected.month &&
-                                      weekDates[i].day == selected.day
-                                  ? PrototypeColors.primary
-                                  : PrototypeColors.surface,
-                              foregroundColor:
-                                  weekDates[i].year == selected.year &&
-                                      weekDates[i].month == selected.month &&
-                                      weekDates[i].day == selected.day
-                                  ? Colors.white
-                                  : PrototypeColors.onBackground,
-                              minimumSize: const Size(0, 48),
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                            ),
-                            onPressed: () =>
-                                store.selectCalendarDate(weekDates[i]),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  _dayLabels[i],
-                                  style: const TextStyle(fontSize: 10),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '${weekDates[i].day}',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            tooltip: 'Semaine suivante',
-            onPressed: store.goToNextWeek,
-            icon: const Icon(Icons.chevron_right),
-            visualDensity: VisualDensity.compact,
-          ),
-        ],
+      child: CalendarWeekStrip(
+        days: List.generate(7, store.dateForWeekDay),
+        selected: store.selectedCalendarDate,
+        onSelected: store.selectCalendarDate,
+        onPreviousWeek: store.goToPreviousWeek,
+        onNextWeek: store.goToNextWeek,
       ),
     );
   }
@@ -285,9 +190,11 @@ class _LiveCalendarPage extends LScopedView<CalendarController> {
               PrototypeSpacing.md,
               0,
             ),
-            child: Row(
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Flexible(child: _CalendarDatePicker(controller: controller)),
+                _CalendarDatePicker(controller: controller),
                 TextButton.icon(
                   onPressed: () => context.push('/attendance'),
                   icon: const Icon(Icons.list_alt_outlined, size: 18),
@@ -339,111 +246,16 @@ class _WeekSelector extends StatelessWidget {
 
   final CalendarController controller;
 
-  static const _dayLabels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-
-  bool _showsMonthLabel(List<DateTime> weekDates, int index) {
-    if (index == 0) return true;
-    final current = weekDates[index];
-    final previous = weekDates[index - 1];
-    return current.month != previous.month;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final weekDates = controller.weekDays;
-    final selected = controller.selectedDay.value;
-    final labelStyle = Theme.of(context).textTheme.labelSmall?.copyWith(
-      fontSize: 9,
-      height: 1,
-      color: PrototypeColors.onSurfaceVariant,
-    );
-
     return Padding(
       padding: const EdgeInsets.only(bottom: PrototypeSpacing.sm),
-      child: Row(
-        children: [
-          IconButton(
-            tooltip: 'Semaine précédente',
-            onPressed: () => controller.shiftWeek(-1),
-            icon: const Icon(Icons.chevron_left),
-            visualDensity: VisualDensity.compact,
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    for (var i = 0; i < 7; i++)
-                      Expanded(
-                        child: SizedBox(
-                          height: 12,
-                          child: _showsMonthLabel(weekDates, i)
-                              ? Text(
-                                  DateFormat('MMM', 'fr_FR')
-                                      .format(weekDates[i])
-                                      .replaceAll('.', '')
-                                      .substring(0, 3),
-                                  textAlign: TextAlign.center,
-                                  style: labelStyle,
-                                )
-                              : null,
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: PrototypeSpacing.xxs),
-                Row(
-                  children: [
-                    for (var i = 0; i < 7; i++)
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 2),
-                          child: FilledButton(
-                            style: FilledButton.styleFrom(
-                              backgroundColor:
-                                  isSameCalendarDay(weekDates[i], selected)
-                                  ? PrototypeColors.primary
-                                  : PrototypeColors.surface,
-                              foregroundColor:
-                                  isSameCalendarDay(weekDates[i], selected)
-                                  ? Colors.white
-                                  : PrototypeColors.onBackground,
-                              minimumSize: const Size(0, 48),
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                            ),
-                            onPressed: () => controller.selectDay(weekDates[i]),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  _dayLabels[i],
-                                  style: const TextStyle(fontSize: 10),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '${weekDates[i].day}',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            tooltip: 'Semaine suivante',
-            onPressed: () => controller.shiftWeek(1),
-            icon: const Icon(Icons.chevron_right),
-            visualDensity: VisualDensity.compact,
-          ),
-        ],
+      child: CalendarWeekStrip(
+        days: controller.weekDays,
+        selected: controller.selectedDay.value,
+        onSelected: controller.selectDay,
+        onPreviousWeek: () => controller.shiftWeek(-1),
+        onNextWeek: () => controller.shiftWeek(1),
       ),
     );
   }
@@ -502,7 +314,7 @@ class _MergedDayList extends StatelessWidget {
             child: Text(
               'Emploi du temps',
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: PrototypeColors.onSurfaceVariant,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -558,7 +370,7 @@ class _DayAgenda extends StatelessWidget {
             child: Text(
               'Emploi du temps',
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: PrototypeColors.onSurfaceVariant,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -587,11 +399,16 @@ class _NoSchoolBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SurfaceCard(
-      tint: PrototypeColors.errorContainer.withValues(alpha: 0.45),
+      tint: Theme.of(
+        context,
+      ).colorScheme.errorContainer.withValues(alpha: 0.45),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.event_busy_outlined, color: PrototypeColors.error),
+          Icon(
+            Icons.event_busy_outlined,
+            color: Theme.of(context).colorScheme.error,
+          ),
           const SizedBox(width: PrototypeSpacing.sm),
           Expanded(
             child: Column(
@@ -600,7 +417,7 @@ class _NoSchoolBanner extends StatelessWidget {
                 Text(
                   'Pas d\'école',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: PrototypeColors.error,
+                    color: Theme.of(context).colorScheme.error,
                   ),
                 ),
                 const SizedBox(height: 4),

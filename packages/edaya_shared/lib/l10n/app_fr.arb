@@ -1,4 +1,11 @@
 {
+  "navInboxShort": "Boîte",
+  "navEvaluationsShort": "Éval.",
+  "navMessages": "Messages",
+  "teacherSpace": "Espace enseignant",
+  "guardianSpace": "Espace famille",
+  "signInContactSubtitle": "Connectez-vous avec votre e-mail ou votre numéro de téléphone.",
+  "signInEmailSubtitle": "Connectez-vous avec votre adresse e-mail.",
   "@@locale": "fr",
   "appTitleGuardian": "Edaya",
   "appTitleTeacher": "Edaya Staff",
@@ -652,5 +659,27 @@
   "teacherSignatureImageError": "Cette image ne peut pas être utilisée. Choisissez une image valide de 20 Mo maximum.",
   "teacherSignatureTooLarge": "La signature doit faire moins de 1 Mo. Recadrez-la plus précisément et réessayez.",
   "teacherSignatureDiscard": "Abandonner les modifications",
-  "teacherSignatureDraft": "Aperçu avant enregistrement"
+  "teacherSignatureDraft": "Aperçu avant enregistrement",
+  "messagingSentDescription": "Envoyé par {author}, {timestamp}",
+  "@messagingSentDescription": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      },
+      "timestamp": {
+        "type": "String"
+      }
+    }
+  },
+  "messagingReceivedDescription": "Reçu de {author}, {timestamp}",
+  "@messagingReceivedDescription": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      },
+      "timestamp": {
+        "type": "String"
+      }
+    }
+  }
 }

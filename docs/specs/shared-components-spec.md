@@ -5,9 +5,10 @@ Normative for the current Guardian and Teacher apps. Extend these components bef
 | Component | Source | Reuse contract |
 |---|---|---|
 | AppTheme / EdayaColors / EdayaTypography | shared `lib/src/app/` | Existing light/dark/system entry points; generated tokens and bundled fonts |
-| EdayaBrandLogo | shared `lib/src/ui/` | Supplied color/white horizontal, vertical, symbol artwork; minimum size and clear space |
+| EdayaBrandLogo | shared `lib/src/ui/` | Supplied color/white horizontal, vertical, symbol artwork; minimum size and clear space; artwork width remains bounded in stretched layouts |
+| CalendarWeekStrip | shared `lib/src/ui/` | Theme-aware day buttons, 48dp targets, full-date labels and selected semantics; scrolling at large text; preserves caller selection and week callbacks |
 | ResponsiveMetrics | shared `lib/src/ui/` | Wrap existing metric values by width/text scale; never compute domain totals |
-| PersonAvatar | shared `lib/src/ui/` | Preserve names/initials/photo fallback and operational identity |
+| PersonAvatar | shared `lib/src/ui/` | Preserve names/initials/photo fallback and operational identity; both app wrappers use the shared authenticated download-grant loader, including pending student portraits. Rewrite local storage hosts for emulators; authenticate same-origin memory storage and never forward API credentials to external storage |
 | Profile photo crop/upload | shared `lib/src/features/profile_photo/` | Camera/gallery fallback, rotate/export JPEG ≤ 1 MiB, named portrait commands |
 | DataState | shared `lib/src/common/widgets/` | Existing ready/loading/empty/error signals and retry callback |
 | AccountSheetBody / AccountProfileHeader | shared common/account widgets | Existing account/profile actions and semantics |
@@ -16,6 +17,7 @@ Normative for the current Guardian and Teacher apps. Extend these components bef
 | GuardianAppBar / TeacherAppBar | app `design/components/` (`PrototypeAppBar`) | Student/class/year context before decoration; current actions retained |
 | SessionTile / TeacherSessionTile | app calendar widgets | Current title, subject, class, kind and time; same detail navigation |
 | FeesSummaryCard / GradeSummaryCards | Guardian feature widgets | All totals and labels retained; responsive numeric presentation |
+| ConversationMessageBubble | shared `features/messaging/` | Sent/received alignment, selectable body, author and localized date; profile kind + ID classification |
 | InboxDeliveryTile | Guardian inbox widgets | Unread status, date, title and body with existing message route |
 | AttendanceRowTile | Teacher session widgets | Neutral identity, semantic status label, same edit/record callback |
 | MarkRowTile | Teacher evaluations widgets | Existing score and locked condition; edit disabled under the same rule |
@@ -27,6 +29,8 @@ Cover approved variants and default/selected/disabled/busy/error/empty states in
 ## Marks correction surfaces
 
 Submitted marks remain read-only in the teacher grading list. MarksCorrectionsPanel shows official versus proposed values and terminal review reasons, and opens a scoped batch proposal dialog. Published source marks cannot be selected. Correction requests and withdrawal run online only; author identity and scope are enforced by the backend. Draft outbox conflicts remain visible and must not replace submitted official values on screen.
+
+`SurfaceCard` in both apps defaults to the active theme surface, keeping text and input contrast consistent in light and dark mode. Login canvases follow the same theme. Shared login guidance uses translated email-only or email/phone copy according to server capabilities.
 
 ## Account authentication
 
@@ -55,3 +59,9 @@ Personal inboxes load all pages with their existing recipient and school scope b
 ## Teacher signature profile extension
 
 `AccountProfilePage.profileActions` is an optional presentation slot for app-owned profile actions. Teacher Profile uses it to open the local `TeacherSignaturePage`; guardian Profile has no signature action. `TeacherSignatureController` follows the route-scoped Levit lifecycle. The signature editor uses the existing buttons, dialogs, busy indicators, EDAYA tokens and localization, with a white paper preview for dark signature ink. It stays in `apps/teacher/lib/features/signature` because no other product uses this flow.
+
+### Conversation message bubbles
+
+`ConversationMessageBubble` is shared by Guardian and Teacher. `isOutgoingConversationMessage` matches both `authorKind` and `authorId` to the active profile; names never determine direction. Sent messages align right using `primaryContainer/onPrimaryContainer`, received left using `surface/onSurface`, with token surface radii and spacing. Keep authors (including the school staff prefix), selectable multiline bodies and smaller dates at the bottom. Dates use existing short-date/time preferences and timezone conversion. Localized semantic descriptions identify sent/received, author and timestamp without suggesting delivery/read receipts.
+
+Limit width to 90% below 600 logical pixels of available space, 75% above, capped at 560. At 200% text scale allow all available width up to the cap. Wrap long words/URLs, retain complete 10,000-character messages and chronological reading order. Composer, paging, polling, drafts and command behavior are unchanged. `conversation_message_bubble_test.dart` is the current screenshot fixture for both profiles, FR/EN, light/dark, compact/wide and 200% text; set `EDAYA_MESSAGE_CAPTURES` to save PNGs when running it.

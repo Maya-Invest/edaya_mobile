@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../app/formatters.dart';
-import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
 import '../../live/runtime.dart';
@@ -233,7 +232,7 @@ class _AccueilBody extends StatelessWidget {
               subtitle: currentSubtitle ?? '',
               leading: Icon(
                 Icons.play_circle_outline,
-                color: PrototypeColors.primary,
+                color: Theme.of(context).colorScheme.primary,
               ),
               onTap: currentRoute == null
                   ? null

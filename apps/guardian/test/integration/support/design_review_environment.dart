@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 FlutterExceptionHandler? _previousFlutterErrorHandler;
+final designReviewLayoutIssues = <String>[];
 
 /// Prepares widget-test rendering so design-review PNGs match the real app.
 Future<void> configureDesignReviewEnvironment() async {
@@ -13,6 +14,7 @@ Future<void> configureDesignReviewEnvironment() async {
   FlutterError.onError = (details) {
     final message = details.exceptionAsString();
     if (_isBenignDesignReviewRenderingIssue(message)) {
+      designReviewLayoutIssues.add(message);
       return;
     }
     _previousFlutterErrorHandler?.call(details);

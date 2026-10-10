@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../mock/mock_store.dart';
-import 'colors.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 
 abstract final class SessionCategoryVisuals {
   static IconData iconFor(HomeDayCategory category) {
@@ -12,19 +12,25 @@ abstract final class SessionCategoryVisuals {
     };
   }
 
-  static Color iconColorFor(HomeDayCategory category) {
+  static Color iconColorFor(HomeDayCategory category, ColorScheme scheme) {
     return switch (category) {
-      HomeDayCategory.lesson => Colors.blue,
-      HomeDayCategory.activity => Colors.green,
-      HomeDayCategory.assessment => Colors.orange,
+      HomeDayCategory.lesson => scheme.primary,
+      HomeDayCategory.activity =>
+        scheme.brightness == Brightness.dark
+            ? EdayaTokens.darkSuccess
+            : EdayaTokens.lightSuccess,
+      HomeDayCategory.assessment => scheme.onTertiaryContainer,
     };
   }
 
-  static Color backgroundFor(HomeDayCategory category) {
+  static Color backgroundFor(HomeDayCategory category, ColorScheme scheme) {
     return switch (category) {
-      HomeDayCategory.lesson => PrototypeColors.primaryContainer,
-      HomeDayCategory.activity => PrototypeColors.successContainer,
-      HomeDayCategory.assessment => PrototypeColors.accentContainer,
+      HomeDayCategory.lesson => scheme.primaryContainer,
+      HomeDayCategory.activity =>
+        scheme.brightness == Brightness.dark
+            ? EdayaTokens.darkSuccessSoft
+            : EdayaTokens.lightSuccessSoft,
+      HomeDayCategory.assessment => scheme.tertiaryContainer,
     };
   }
 }
@@ -46,13 +52,19 @@ class SessionCategoryIcon extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
-        color: SessionCategoryVisuals.backgroundFor(category),
+        color: SessionCategoryVisuals.backgroundFor(
+          category,
+          Theme.of(context).colorScheme,
+        ),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Icon(
         SessionCategoryVisuals.iconFor(category),
         size: size,
-        color: SessionCategoryVisuals.iconColorFor(category),
+        color: SessionCategoryVisuals.iconColorFor(
+          category,
+          Theme.of(context).colorScheme,
+        ),
       ),
     );
   }

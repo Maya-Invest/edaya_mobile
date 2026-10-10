@@ -26,3 +26,26 @@ String designReviewLocaleLabel(String localeSlug) {
     _ => localeSlug.toUpperCase(),
   };
 }
+
+/// Explicit palette for reproducible accessibility review captures.
+String designReviewTheme() {
+  final value = Platform.environment['EDAYA_DESIGN_REVIEW_THEME'] ?? 'light';
+  if (!['light', 'dark'].contains(value)) {
+    throw ArgumentError('EDAYA_DESIGN_REVIEW_THEME must be light or dark');
+  }
+  return value;
+}
+
+double designReviewTextScale() {
+  final value = Platform.environment['EDAYA_DESIGN_REVIEW_TEXT_SCALE'] ?? '1';
+  if (!['1', '2'].contains(value)) {
+    throw ArgumentError('EDAYA_DESIGN_REVIEW_TEXT_SCALE must be 1 or 2');
+  }
+  return double.parse(value);
+}
+
+String designReviewOutputPath() {
+  final theme = designReviewTheme();
+  final scale = designReviewTextScale();
+  return 'design-review${theme == 'dark' ? '/dark' : ''}${scale == 2 ? '/large-text' : ''}';
+}

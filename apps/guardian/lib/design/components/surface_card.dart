@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../colors.dart';
 import '../spacing.dart';
 
 class SurfaceCard extends StatelessWidget {
@@ -20,7 +19,7 @@ class SurfaceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = Padding(padding: padding, child: child);
-    final background = tint ?? PrototypeColors.surface;
+    final background = tint ?? Theme.of(context).colorScheme.surface;
     final radius = BorderRadius.circular(PrototypeRadii.md);
     final shadowOnly = BoxDecoration(
       borderRadius: radius,

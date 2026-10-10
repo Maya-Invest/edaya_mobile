@@ -36,9 +36,13 @@ class ListRow extends StatelessWidget {
     final effectiveTint =
         tint ??
         (selected
-            ? PrototypeColors.primaryContainer.withValues(alpha: 0.55)
+            ? Theme.of(
+                context,
+              ).colorScheme.primaryContainer.withValues(alpha: 0.55)
             : unread
-            ? PrototypeColors.primaryContainer.withValues(alpha: 0.35)
+            ? Theme.of(
+                context,
+              ).colorScheme.primaryContainer.withValues(alpha: 0.35)
             : null);
 
     return SurfaceCard(

@@ -1,11 +1,14 @@
 import 'dart:io';
+import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'design_review_environment.dart';
+import 'design_review_config.dart';
 import 'integration_test_lifecycle.dart';
 
 const designReviewRootKey = Key('guardian_prototype_design_review_root');
@@ -25,8 +28,53 @@ Future<void> captureDesignReviewShot(
   if (settleDelay > Duration.zero) {
     await tester.pump(settleDelay);
   }
+  for (final element in find.byType(Image).evaluate()) {
+    final image = element.widget as Image;
+    if (image.image is AssetImage) {
+      await tester.runAsync(() => precacheImage(image.image, element));
+    }
+  }
+  await tester.pump();
   drainBenignRenderingExceptions(tester);
 
+  if (logicalSize.width == 390 &&
+      Platform.environment['EDAYA_DESIGN_REVIEW_A11Y'] == '1') {
+    final report = <String, Object?>{};
+    for (final entry in {
+      'textContrast': textContrastGuideline,
+      'androidTapTargets': androidTapTargetGuideline,
+      'labeledTapTargets': labeledTapTargetGuideline,
+    }.entries) {
+      final result = await entry.value.evaluate(tester);
+      report[entry.key] = {'passed': result.passed, 'reason': result.reason};
+    }
+    outputFile.parent.createSync(recursive: true);
+    File(
+      '${outputFile.path}.a11y.json',
+    ).writeAsStringSync(const JsonEncoder.withIndent('  ').convert(report));
+    if (Platform.environment['EDAYA_DESIGN_REVIEW_STRICT'] == '1') {
+      for (final entry in report.entries) {
+        final result = entry.value as Map<String, Object?>;
+        expect(
+          result['passed'],
+          isTrue,
+          reason: '${outputFile.path}: ${entry.key}: ${result['reason']}',
+        );
+      }
+    }
+  }
+
+  if (designReviewLayoutIssues.isNotEmpty) {
+    outputFile.parent.createSync(recursive: true);
+    File(
+      '${outputFile.path}.layout.json',
+    ).writeAsStringSync(jsonEncode(designReviewLayoutIssues));
+    final issues = List<String>.of(designReviewLayoutIssues);
+    designReviewLayoutIssues.clear();
+    if (Platform.environment['EDAYA_DESIGN_REVIEW_STRICT'] == '1') {
+      fail('${outputFile.path}: ${issues.join('\n')}');
+    }
+  }
   final boundary = tester.renderObject<RenderRepaintBoundary>(
     find.byKey(designReviewRootKey),
   );
@@ -59,7 +107,7 @@ Future<void> captureDesignReviewShot(
 }
 
 Directory guardianPrototypeDesignReviewOutputDirectory() {
-  return Directory('design-review');
+  return Directory(designReviewOutputPath());
 }
 
 File designReviewShotFile(

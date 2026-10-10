@@ -22,6 +22,7 @@ class EdayaStartupScreen extends StatelessWidget {
               EdayaBrandLogo(
                 variant: EdayaLogoVariant.symbol,
                 width: 96,
+                white: false,
                 decorative: true,
               ),
               SizedBox(height: 32),

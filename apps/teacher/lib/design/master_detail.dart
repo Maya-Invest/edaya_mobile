@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'breakpoints.dart';
-import 'colors.dart';
 import 'shell_chrome.dart';
 
 /// Full-width [master] with an optional right overlay detail drawer.
@@ -64,7 +63,7 @@ class DetailDrawerScaffold extends StatelessWidget {
                 elevation: 12,
                 borderRadius: BorderRadius.zero,
                 clipBehavior: Clip.hardEdge,
-                color: PrototypeColors.background,
+                color: Theme.of(context).scaffoldBackgroundColor,
                 shadowColor: Colors.black26,
                 child: detail,
               ),
@@ -92,7 +91,7 @@ class DetailDrawerMasterColumn extends StatelessWidget {
       children: [
         if (appBar != null)
           Material(
-            color: PrototypeColors.background,
+            color: Theme.of(context).scaffoldBackgroundColor,
             child: SafeArea(
               bottom: false,
               child: SizedBox(

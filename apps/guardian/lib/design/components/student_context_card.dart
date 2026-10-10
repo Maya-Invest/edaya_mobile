@@ -38,57 +38,97 @@ class StudentContextCard extends StatelessWidget {
         PrototypeSpacing.xs,
         PrototypeSpacing.sm,
       ),
-      child: Row(
-        children: [
-          InkWell(
-            onTap: onOpenProfile,
-            borderRadius: BorderRadius.circular(24),
-            child: PersonAvatar(
-              initials: studentInitials,
-              photoUrl: photoUrl,
-              radius: 24,
+      child: MediaQuery.textScalerOf(context).scale(1) > 1.3
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    InkWell(
+                      onTap: onOpenProfile,
+                      child: PersonAvatar(
+                        initials: studentInitials,
+                        photoUrl: photoUrl,
+                        radius: PrototypeSpacing.xl,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      tooltip: 'Choisir un élève',
+                      icon: const Icon(Icons.expand_more),
+                      onPressed: onSelectStudent,
+                    ),
+                  ],
+                ),
+                InkWell(
+                  onTap: onOpenProfile,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(studentName, style: textTheme.titleSmall),
+                      Text(
+                        schoolName,
+                        style: textTheme.bodySmall,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(classYear, style: textTheme.bodySmall),
+                    ],
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                InkWell(
+                  onTap: onOpenProfile,
+                  borderRadius: BorderRadius.circular(24),
+                  child: PersonAvatar(
+                    initials: studentInitials,
+                    photoUrl: photoUrl,
+                    radius: PrototypeSpacing.xl,
+                  ),
+                ),
+                const SizedBox(width: PrototypeSpacing.sm),
+                Expanded(
+                  child: InkWell(
+                    onTap: onOpenProfile,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          studentName,
+                          style: textTheme.titleSmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          schoolName,
+                          style: textTheme.bodySmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          classYear,
+                          style: textTheme.bodySmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Choisir un élève',
+                  icon: const Icon(Icons.expand_more),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  onPressed: onSelectStudent,
+                ),
+              ],
             ),
-          ),
-          const SizedBox(width: PrototypeSpacing.sm),
-          Expanded(
-            child: InkWell(
-              onTap: onOpenProfile,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    studentName,
-                    style: textTheme.titleSmall,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    schoolName,
-                    style: textTheme.bodySmall,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    classYear,
-                    style: textTheme.bodySmall,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          IconButton(
-            tooltip: 'Choisir un élève',
-            icon: const Icon(Icons.expand_more),
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            onPressed: onSelectStudent,
-          ),
-        ],
-      ),
     );
   }
 }

@@ -53,57 +53,81 @@ class TeacherContextCard extends StatelessWidget {
             ),
             const SizedBox(width: PrototypeSpacing.sm),
             Expanded(
-              child: Column(
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
+              child: MediaQuery.textScalerOf(context).scale(1) > 1.3
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
                           classLabel,
                           style: Theme.of(context).textTheme.titleSmall,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      const SizedBox(width: PrototypeSpacing.sm),
-                      Expanded(
-                        child: Text(
-                          schoolName,
-                          style: Theme.of(context).textTheme.titleSmall,
-                          textAlign: TextAlign.right,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
+                        Text(
                           subjectLabel,
                           style: Theme.of(context).textTheme.bodySmall,
-                          maxLines: 1,
+                        ),
+                        Text(
+                          schoolName,
+                          style: Theme.of(context).textTheme.bodySmall,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      const SizedBox(width: PrototypeSpacing.sm),
-                      Expanded(
-                        child: Text(
+                        Text(
                           schoolYear,
                           style: Theme.of(context).textTheme.bodySmall,
-                          textAlign: TextAlign.right,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                      ],
+                    )
+                  : Column(
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                classLabel,
+                                style: Theme.of(context).textTheme.titleSmall,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: PrototypeSpacing.sm),
+                            Expanded(
+                              child: Text(
+                                schoolName,
+                                style: Theme.of(context).textTheme.titleSmall,
+                                textAlign: TextAlign.right,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                subjectLabel,
+                                style: Theme.of(context).textTheme.bodySmall,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: PrototypeSpacing.sm),
+                            Expanded(
+                              child: Text(
+                                schoolYear,
+                                style: Theme.of(context).textTheme.bodySmall,
+                                textAlign: TextAlign.right,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
             ),
             IconButton(
               tooltip: 'Changer de classe',

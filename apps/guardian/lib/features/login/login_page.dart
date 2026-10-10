@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
 import '../../live/runtime.dart';
@@ -59,13 +58,7 @@ class _LiveLoginPage extends LScopedView<LoginController> {
 
   @override
   Widget buildView(BuildContext context, LoginController controller) {
-    return _LoginChrome(
-      child: PasswordlessLoginForm(
-        controller: controller,
-        subtitle:
-            'Connectez-vous avec votre e-mail ou votre numéro de téléphone.',
-      ),
-    );
+    return _LoginChrome(child: PasswordlessLoginForm(controller: controller));
   }
 }
 
@@ -93,7 +86,7 @@ class _LoginChrome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: PrototypeColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -108,7 +101,7 @@ class _LoginChrome extends StatelessWidget {
                   ),
                   const SizedBox(height: PrototypeSpacing.xs),
                   Text(
-                    'Espace famille',
+                    context.tr.guardianSpace,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: PrototypeSpacing.xxl),

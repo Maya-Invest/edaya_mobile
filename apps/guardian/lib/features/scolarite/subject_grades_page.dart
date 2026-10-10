@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../app/formatters.dart';
-import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
 import '../../live/runtime.dart';
@@ -84,8 +83,10 @@ class _MockSubjectGradesPage extends LScopedView<StoreBoundController> {
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
                                 color: result?.hasAverage == true
-                                    ? PrototypeColors.primary
-                                    : PrototypeColors.onSurfaceVariant,
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
                                 fontWeight: FontWeight.w700,
                               ),
                         ),
@@ -118,7 +119,7 @@ class _MockSubjectGradesPage extends LScopedView<StoreBoundController> {
                 trailing: Text(
                   grade.scoreLabel,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: PrototypeColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 onTap: () => context.push('/grade/${grade.id}'),
@@ -189,8 +190,10 @@ class _LiveSubjectGradesPage extends LScopedView<SubjectGradesController> {
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
                                 color: controller.average.value != null
-                                    ? PrototypeColors.primary
-                                    : PrototypeColors.onSurfaceVariant,
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
                                 fontWeight: FontWeight.w700,
                               ),
                         ),
@@ -223,7 +226,7 @@ class _LiveSubjectGradesPage extends LScopedView<SubjectGradesController> {
                 trailing: Text(
                   grade.scoreLabel,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: PrototypeColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 onTap: () => context.push('/grade/${grade.id}'),

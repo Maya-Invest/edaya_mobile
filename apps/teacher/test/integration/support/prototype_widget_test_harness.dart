@@ -8,6 +8,7 @@ import 'package:edaya_teacher/di/prototype_module.dart';
 import 'package:edaya_teacher/mock/mock_store.dart';
 
 import 'design_review_capture.dart';
+import 'design_review_config.dart';
 
 class PrototypeWidgetTestHarness {
   PrototypeWidgetTestHarness();
@@ -60,9 +61,18 @@ class PrototypeWidgetTestHarness {
       child: Builder(
         builder: (context) {
           return MaterialApp.router(
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: TextScaler.linear(designReviewTextScale()),
+              ),
+              child: child!,
+            ),
             title: 'Edaya Teacher Prototype',
             theme: PrototypeTheme.light,
             darkTheme: PrototypeTheme.dark,
+            themeMode: designReviewTheme() == 'dark'
+                ? ThemeMode.dark
+                : ThemeMode.light,
             locale: const Locale('fr', 'FR'),
             supportedLocales: AppLocalizations.supportedLocales,
             localizationsDelegates: const [

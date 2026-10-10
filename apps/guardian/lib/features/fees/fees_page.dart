@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../app/formatters.dart' as proto;
-import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
 import '../../live/runtime.dart';
@@ -93,7 +92,7 @@ class _MockFeesPage extends LScopedView<StoreBoundController> {
                 Text(
                   '${(progress * 100).round()} % réglé',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: PrototypeColors.onSurfaceVariant,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
                 if (store.overdueFeeCount > 0) ...[
@@ -103,14 +102,16 @@ class _MockFeesPage extends LScopedView<StoreBoundController> {
                       Icon(
                         Icons.error_outline,
                         size: 16,
-                        color: PrototypeColors.error,
+                        color: Theme.of(context).colorScheme.error,
                       ),
                       const SizedBox(width: PrototypeSpacing.xxs),
                       Expanded(
                         child: Text(
                           '${store.overdueFeeCount} ligne de frais en retard',
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: PrototypeColors.error),
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
                         ),
                       ),
                     ],
@@ -127,16 +128,16 @@ class _MockFeesPage extends LScopedView<StoreBoundController> {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: fee.status == 'En retard'
-                      ? PrototypeColors.errorContainer
-                      : PrototypeColors.primaryContainer,
+                      ? Theme.of(context).colorScheme.errorContainer
+                      : Theme.of(context).colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   Icons.receipt_long_outlined,
                   size: 20,
                   color: fee.status == 'En retard'
-                      ? PrototypeColors.error
-                      : PrototypeColors.primary,
+                      ? Theme.of(context).colorScheme.error
+                      : Theme.of(context).colorScheme.primary,
                 ),
               ),
               title: fee.label,
@@ -148,7 +149,7 @@ class _MockFeesPage extends LScopedView<StoreBoundController> {
                 amount: proto.formatMoney(fee.balance, fee.currency),
                 label: fee.status,
                 labelColor: fee.status == 'En retard'
-                    ? PrototypeColors.error
+                    ? Theme.of(context).colorScheme.error
                     : null,
                 showChevron: true,
               ),
@@ -265,7 +266,7 @@ class _LiveFeesPage extends LScopedView<FeesController> {
                 Text(
                   '${(progress * 100).round()} % réglé',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: PrototypeColors.onSurfaceVariant,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
                 if (controller.overdueCount > 0) ...[
@@ -275,14 +276,16 @@ class _LiveFeesPage extends LScopedView<FeesController> {
                       Icon(
                         Icons.error_outline,
                         size: 16,
-                        color: PrototypeColors.error,
+                        color: Theme.of(context).colorScheme.error,
                       ),
                       const SizedBox(width: PrototypeSpacing.xxs),
                       Expanded(
                         child: Text(
                           '${controller.overdueCount} ligne de frais en retard',
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: PrototypeColors.error),
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
                         ),
                       ),
                     ],
@@ -304,16 +307,16 @@ class _LiveFeesPage extends LScopedView<FeesController> {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: fee.status == ChargeStatus.overdue
-                      ? PrototypeColors.errorContainer
-                      : PrototypeColors.primaryContainer,
+                      ? Theme.of(context).colorScheme.errorContainer
+                      : Theme.of(context).colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   Icons.receipt_long_outlined,
                   size: 20,
                   color: fee.status == ChargeStatus.overdue
-                      ? PrototypeColors.error
-                      : PrototypeColors.primary,
+                      ? Theme.of(context).colorScheme.error
+                      : Theme.of(context).colorScheme.primary,
                 ),
               ),
               title: fee.label,
@@ -325,7 +328,7 @@ class _LiveFeesPage extends LScopedView<FeesController> {
                 amount: formatMoney(fee.remainingObligation, fee.currency),
                 label: frenchChargeStatus(fee.status),
                 labelColor: fee.status == ChargeStatus.overdue
-                    ? PrototypeColors.error
+                    ? Theme.of(context).colorScheme.error
                     : null,
                 showChevron: true,
               ),

@@ -8,6 +8,7 @@ import 'package:edaya_guardian/mock/mock_store.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'design_review_capture.dart';
+import 'design_review_config.dart';
 
 class PrototypeWidgetTestHarness {
   PrototypeWidgetTestHarness();
@@ -61,8 +62,18 @@ class PrototypeWidgetTestHarness {
       child: Builder(
         builder: (context) {
           return MaterialApp.router(
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: TextScaler.linear(designReviewTextScale()),
+              ),
+              child: child!,
+            ),
             title: 'Edaya Guardian Prototype',
             theme: PrototypeTheme.light,
+            darkTheme: PrototypeTheme.dark,
+            themeMode: designReviewTheme() == 'dark'
+                ? ThemeMode.dark
+                : ThemeMode.light,
             locale: const Locale('fr', 'FR'),
             supportedLocales: AppLocalizations.supportedLocales,
             localizationsDelegates: const [

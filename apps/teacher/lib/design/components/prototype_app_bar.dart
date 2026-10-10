@@ -1,8 +1,6 @@
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 
-import '../colors.dart';
-
 class PrototypeAppBar extends StatelessWidget implements PreferredSizeWidget {
   const PrototypeAppBar({super.key, this.onProfileTap, this.onHelpTap});
 
@@ -21,7 +19,7 @@ class PrototypeAppBar extends StatelessWidget implements PreferredSizeWidget {
     final showHelp = onHelpTap != null;
 
     return AppBar(
-      backgroundColor: PrototypeColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       automaticallyImplyLeading: false,

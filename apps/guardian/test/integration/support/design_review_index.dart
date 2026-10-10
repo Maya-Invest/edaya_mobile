@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'design_review_config.dart';
 
 class DesignReviewShot {
   const DesignReviewShot({
@@ -24,6 +25,8 @@ void writeDesignReviewPack({
     ..writeln('Generated: $generatedAt')
     ..writeln('Data: mock fixtures (no API)')
     ..writeln('Locale: $localeLabel')
+    ..writeln('Theme: ${designReviewTheme()}')
+    ..writeln('Text scale: ${designReviewTextScale()}')
     ..writeln()
     ..writeln('Open `index.html` in a browser to browse screenshots.')
     ..writeln()

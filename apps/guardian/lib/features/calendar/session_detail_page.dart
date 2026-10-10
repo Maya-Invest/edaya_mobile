@@ -200,7 +200,7 @@ class _MockAssessmentSection extends StatelessWidget {
             child: Text(
               '${score.toStringAsFixed(0)}/${maxScore.toStringAsFixed(0)}',
               style: textTheme.titleLarge?.copyWith(
-                color: PrototypeColors.primary,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
           ),
@@ -380,7 +380,7 @@ class _LessonSection extends StatelessWidget {
                     Text(
                       'Progression : ${logbook!.progress} %',
                       style: textTheme.bodySmall?.copyWith(
-                        color: PrototypeColors.onSurfaceVariant,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -453,7 +453,7 @@ class _AssessmentSection extends StatelessWidget {
             child: Text(
               '${score.toStringAsFixed(0)}/${maxScore.toStringAsFixed(0)}',
               style: textTheme.titleLarge?.copyWith(
-                color: PrototypeColors.primary,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
           ),

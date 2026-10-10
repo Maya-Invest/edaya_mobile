@@ -50,12 +50,12 @@ class _MockResultsPage extends LScopedView<StoreBoundController> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: PrototypeColors.primaryContainer,
+                    color: Theme.of(context).colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.insights_outlined,
-                    color: Colors.blue,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 const SizedBox(width: PrototypeSpacing.sm),
@@ -99,17 +99,17 @@ class _MockResultsPage extends LScopedView<StoreBoundController> {
               ListRow(
                 title: 'Bulletin',
                 subtitle: 'Publié le ${formatDate(reportCard.publishedAt)}',
-                tint: PrototypeColors.primaryContainer,
+                tint: Theme.of(context).colorScheme.primaryContainer,
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: PrototypeColors.surface,
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.description_outlined,
                     size: 20,
-                    color: PrototypeColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 trailing: Column(
@@ -119,7 +119,7 @@ class _MockResultsPage extends LScopedView<StoreBoundController> {
                     Text(
                       reportCard.average,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: PrototypeColors.primary,
+                        color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -151,8 +151,8 @@ class _MockResultsPage extends LScopedView<StoreBoundController> {
                       result.averageLabel,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         color: result.hasAverage
-                            ? PrototypeColors.primary
-                            : PrototypeColors.onSurfaceVariant,
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -212,12 +212,12 @@ class _LiveResultsPage extends LScopedView<ResultsController> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: PrototypeColors.primaryContainer,
+                    color: Theme.of(context).colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.insights_outlined,
-                    color: Colors.blue,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 const SizedBox(width: PrototypeSpacing.sm),
@@ -260,17 +260,17 @@ class _LiveResultsPage extends LScopedView<ResultsController> {
                   subtitle: reportCard.publishedAt == null
                       ? 'Publié'
                       : 'Publié le ${formatDate(reportCard.publishedAt!)}',
-                  tint: PrototypeColors.primaryContainer,
+                  tint: Theme.of(context).colorScheme.primaryContainer,
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: PrototypeColors.surface,
+                      color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.description_outlined,
                       size: 20,
-                      color: PrototypeColors.primary,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                   trailing: Column(
@@ -284,7 +284,7 @@ class _LiveResultsPage extends LScopedView<ResultsController> {
                                   .toStringAsFixed(2)
                                   .replaceAll('.', ','),
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: PrototypeColors.primary,
+                          color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -316,8 +316,8 @@ class _LiveResultsPage extends LScopedView<ResultsController> {
                         result.averageLabel,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: result.hasAverage
-                              ? PrototypeColors.primary
-                              : PrototypeColors.onSurfaceVariant,
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -359,7 +359,10 @@ class _PeriodSectionHeader extends StatelessWidget {
       child: InkWell(
         onTap: onToggle,
         borderRadius: BorderRadius.circular(PrototypeRadii.sm),
-        child: Padding(
+        child: Container(
+          constraints: const BoxConstraints(
+            minHeight: kMinInteractiveDimension,
+          ),
           padding: const EdgeInsets.symmetric(vertical: PrototypeSpacing.xs),
           child: Row(
             children: [

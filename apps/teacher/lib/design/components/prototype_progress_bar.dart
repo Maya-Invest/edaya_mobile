@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../colors.dart';
 import '../spacing.dart';
 
 class PrototypeProgressBar extends StatelessWidget {
@@ -15,8 +14,8 @@ class PrototypeProgressBar extends StatelessWidget {
       child: LinearProgressIndicator(
         value: value.clamp(0, 1),
         minHeight: 8,
-        backgroundColor: PrototypeColors.primaryContainer,
-        color: PrototypeColors.primary,
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        color: Theme.of(context).colorScheme.primary,
       ),
     );
   }

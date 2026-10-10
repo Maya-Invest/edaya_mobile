@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:edaya_shared/edaya_shared.dart';
+import 'package:edaya_shared/src/features/messaging/conversation_message_bubble.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -66,6 +67,7 @@ Map<String, dynamic> thread({bool reply = true, int version = 1}) => {
       'id': 'm1',
       'sequence': 1,
       'authorKind': 'guardian',
+      'authorId': 'g1',
       'authorName': 'Sam Parent',
       'body': 'Which exercise?',
       'createdAt': '2026-10-04T12:00:00Z',
@@ -300,6 +302,7 @@ void main() {
           name: 'compose-test',
           dependencyFactory: (scope) {
             scope.put<AppSessionController>(() => session);
+            scope.put<AppSettingsController>(() => AppSettingsController());
             scope.put<SchoolClientFactory>(
               () =>
                   () => api.createSchoolClient(transport),
@@ -365,6 +368,7 @@ void main() {
         name: 'messaging-test',
         dependencyFactory: (scope) {
           scope.put<AppSessionController>(() => session);
+          scope.put<AppSettingsController>(() => AppSettingsController());
           scope.put<SchoolClientFactory>(
             () =>
                 () => api.createSchoolClient(transport),
@@ -384,6 +388,15 @@ void main() {
         await tester.pumpWidget(widget);
         await tester.pumpAndSettle();
         expect(find.text('Which exercise?'), findsOneWidget);
+        expect(
+          tester
+              .widget<ConversationMessageBubble>(
+                find.byType(ConversationMessageBubble),
+              )
+              .outgoing,
+          isTrue,
+        );
+        expect(find.textContaining('2026-10-04T'), findsNothing);
         expect(find.byType(TextField), findsNothing);
         expect(tester.takeException(), isNull);
         final semantics = tester.ensureSemantics();

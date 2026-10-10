@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../colors.dart';
 import '../spacing.dart';
 import 'surface_card.dart';
 
@@ -38,7 +37,10 @@ class AttentionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = _AttentionToneColors.resolve(tone);
+    final colors = _AttentionToneColors.resolve(
+      tone,
+      Theme.of(context).colorScheme,
+    );
     final textTheme = Theme.of(context).textTheme;
 
     return SurfaceCard(
@@ -67,7 +69,10 @@ class AttentionCard extends StatelessWidget {
               ],
             ),
           ),
-          Icon(Icons.chevron_right, color: PrototypeColors.onSurfaceVariant),
+          Icon(
+            Icons.chevron_right,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ],
       ),
     );
@@ -87,24 +92,24 @@ class _AttentionToneColors {
   final Color icon;
   final Color? title;
 
-  static _AttentionToneColors resolve(AttentionTone tone) {
+  static _AttentionToneColors resolve(AttentionTone tone, ColorScheme scheme) {
     return switch (tone) {
       AttentionTone.important => _AttentionToneColors(
-        surface: PrototypeColors.errorContainer.withValues(alpha: 0.55),
-        iconWell: PrototypeColors.surface,
-        icon: PrototypeColors.error,
-        title: PrototypeColors.error,
+        surface: scheme.errorContainer.withValues(alpha: 0.55),
+        iconWell: scheme.surface,
+        icon: scheme.error,
+        title: scheme.error,
       ),
-      AttentionTone.normal => const _AttentionToneColors(
-        surface: PrototypeColors.primaryContainer,
-        iconWell: PrototypeColors.surface,
-        icon: PrototypeColors.primary,
+      AttentionTone.normal => _AttentionToneColors(
+        surface: scheme.primaryContainer,
+        iconWell: scheme.surface,
+        icon: scheme.primary,
         title: null,
       ),
-      AttentionTone.message => const _AttentionToneColors(
-        surface: PrototypeColors.surface,
-        iconWell: PrototypeColors.primaryContainer,
-        icon: PrototypeColors.primary,
+      AttentionTone.message => _AttentionToneColors(
+        surface: scheme.surface,
+        iconWell: scheme.primaryContainer,
+        icon: scheme.primary,
         title: null,
       ),
     };

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
 import '../../live/runtime.dart';
@@ -54,7 +53,7 @@ class _MockClassesPage extends LScopedView<StoreBoundController> {
             selected: selected,
             leading: Icon(
               a.isHomeroom ? Icons.star_outline : Icons.groups_outlined,
-              color: PrototypeColors.primary,
+              color: Theme.of(context).colorScheme.primary,
             ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go('/classes/${a.classId}'),
@@ -250,7 +249,7 @@ class _LiveClassesPage extends LView<TeacherContextController> {
                     selected: selected,
                     leading: Icon(
                       a.isHomeroom ? Icons.star_outline : Icons.groups_outlined,
-                      color: PrototypeColors.primary,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => context.go('/classes/${a.classGroupId}'),

@@ -72,7 +72,7 @@ class _MockEvaluationsPage extends LScopedView<StoreBoundController> {
             subtitle: 'Nouveaux retours depuis Accueil, historique ici',
             leading: Icon(
               Icons.campaign_outlined,
-              color: PrototypeColors.primary,
+              color: Theme.of(context).colorScheme.primary,
             ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go('/evaluations/avis'),
@@ -86,7 +86,7 @@ class _MockEvaluationsPage extends LScopedView<StoreBoundController> {
               subtitle: '${rc.pendingComments} commentaires en attente',
               leading: Icon(
                 Icons.description_outlined,
-                color: PrototypeColors.primary,
+                color: Theme.of(context).colorScheme.primary,
               ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.go(
@@ -522,7 +522,7 @@ class _LiveEvaluationsPage extends LView<LiveEvaluationsController> {
               subtitle: 'Nouveaux retours depuis Accueil, historique ici',
               leading: Icon(
                 Icons.campaign_outlined,
-                color: PrototypeColors.primary,
+                color: Theme.of(context).colorScheme.primary,
               ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.go('/evaluations/avis'),
@@ -541,7 +541,7 @@ class _LiveEvaluationsPage extends LView<LiveEvaluationsController> {
                       : '${rc.pendingComments} commentaires en attente',
                   leading: Icon(
                     Icons.description_outlined,
-                    color: PrototypeColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: rc.generatedCount == 0

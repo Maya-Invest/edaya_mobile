@@ -9,10 +9,10 @@ class PasswordlessLoginForm extends StatelessWidget {
   const PasswordlessLoginForm({
     super.key,
     required this.controller,
-    required this.subtitle,
+    this.subtitle,
   });
   final LoginController controller;
-  final String subtitle;
+  final String? subtitle;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -25,7 +25,10 @@ class PasswordlessLoginForm extends StatelessWidget {
             : context.tr.signInTitle;
         final description = mode == LoginMode.verifyOtp
             ? context.tr.verificationContact(controller.email.value.trim())
-            : subtitle;
+            : subtitle ??
+                  (controller.delivery.phoneAvailable.value
+                      ? context.tr.signInContactSubtitle
+                      : context.tr.signInEmailSubtitle);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

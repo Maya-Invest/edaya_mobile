@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../breakpoints.dart';
-import '../colors.dart';
 
 class PrototypeDetailScaffold extends StatelessWidget {
   const PrototypeDetailScaffold({
@@ -37,7 +36,7 @@ class PrototypeDetailScaffold extends StatelessWidget {
         this.embedded ?? PrototypeBreakpoints.detailDrawerActive(context);
     if (embedded) {
       return ColoredBox(
-        color: PrototypeColors.background,
+        color: Theme.of(context).scaffoldBackgroundColor,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -69,9 +68,9 @@ class PrototypeDetailScaffold extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: PrototypeColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: PrototypeColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
         elevation: 0,

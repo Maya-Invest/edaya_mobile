@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../colors.dart';
 import '../spacing.dart';
 import 'person_avatar.dart';
 import 'surface_card.dart';
@@ -21,7 +20,7 @@ class ParentAccountCard extends StatelessWidget {
       child: SizedBox.square(
         dimension: side,
         child: SurfaceCard(
-          tint: PrototypeColors.primaryContainer,
+          tint: Theme.of(context).colorScheme.primaryContainer,
           padding: const EdgeInsets.all(PrototypeSpacing.xs),
           onTap: onTap,
           child: Center(child: PersonAvatar(initials: initials, radius: 22)),

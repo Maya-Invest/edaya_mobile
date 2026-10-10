@@ -2,7 +2,6 @@ import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
 import '../../live/runtime.dart';
@@ -63,7 +62,7 @@ class _MockReportCardDetailPage extends LScopedView<StoreBoundController> {
                 Text(
                   card.average,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: PrototypeColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 const SizedBox(height: PrototypeSpacing.md),
@@ -87,7 +86,7 @@ class _MockReportCardDetailPage extends LScopedView<StoreBoundController> {
               trailing: Text(
                 result.averageLabel,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: PrototypeColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
               subtitle: result.teacherComment,
@@ -163,7 +162,7 @@ class _LiveReportCardDetailPage extends LScopedView<ReportCardController> {
                 Text(
                   averageLabel,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: PrototypeColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 if ((card.teacherComment ?? '').isNotEmpty) ...[
@@ -213,7 +212,7 @@ class _LiveReportCardDetailPage extends LScopedView<ReportCardController> {
                 color:
                     controller.downloadStatus.value ==
                         ReportCardPdfStatus.failed
-                    ? PrototypeColors.error
+                    ? Theme.of(context).colorScheme.error
                     : null,
               ),
             ),
@@ -238,14 +237,14 @@ class _LiveReportCardDetailPage extends LScopedView<ReportCardController> {
                               .replaceAll('.', ',') ??
                           '—',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: PrototypeColors.primary,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                     if (subject.rank != null && card.classSize != null)
                       Text(
                         '${subject.rank}/${card.classSize}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: PrototypeColors.onSurfaceVariant,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                   ],

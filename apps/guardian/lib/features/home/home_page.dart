@@ -112,7 +112,9 @@ class _MockHomePage extends LScopedView<StoreBoundController> {
               trailing: Text(
                 formatMoney(alert.amount, alert.currency),
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: alert.isOverdue ? PrototypeColors.error : null,
+                  color: alert.isOverdue
+                      ? Theme.of(context).colorScheme.error
+                      : null,
                 ),
               ),
             ),
@@ -136,7 +138,7 @@ class _MockHomePage extends LScopedView<StoreBoundController> {
               trailing: Text(
                 '${grade.score.toStringAsFixed(2)}/${grade.maxScore.toStringAsFixed(2)}',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: PrototypeColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
               onTap: () => context.push('/grade/${grade.id}'),
@@ -322,7 +324,7 @@ class _LiveHomePage extends LScopedView<HomeController> {
               trailing: Text(
                 grade.scoreLabel,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: PrototypeColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
               onTap: () => context.push('/grade/${grade.id}'),
@@ -417,7 +419,9 @@ class _HomeDaySection extends StatelessWidget {
         else ...[
           if (plan!.noSchoolDay != null) ...[
             SurfaceCard(
-              tint: PrototypeColors.errorContainer.withValues(alpha: 0.45),
+              tint: Theme.of(
+                context,
+              ).colorScheme.errorContainer.withValues(alpha: 0.45),
               child: Text(plan!.noSchoolDay!.title),
             ),
             const SizedBox(height: PrototypeSpacing.sm),
@@ -472,7 +476,7 @@ class _FinanceAlertRow extends StatelessWidget {
       trailing: Text(
         fees.formatMoney(alert.amount, alert.currency),
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          color: alert.isOverdue ? PrototypeColors.error : null,
+          color: alert.isOverdue ? Theme.of(context).colorScheme.error : null,
         ),
       ),
     );

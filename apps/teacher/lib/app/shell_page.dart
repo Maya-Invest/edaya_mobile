@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../design/colors.dart';
 import '../design/components/components.dart';
 import '../design/spacing.dart';
 import '../di/prototype_module.dart';
@@ -47,12 +46,15 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
       NavigationDestination(
         icon: const Icon(Icons.assignment_outlined),
         selectedIcon: const Icon(Icons.assignment),
-        label: l10n.navEvaluations,
+        label: l10n.navEvaluationsShort,
       ),
       NavigationDestination(
         icon: const Icon(Icons.inbox_outlined),
         selectedIcon: const Icon(Icons.inbox),
-        label: l10n.navInbox,
+        label: MediaQuery.textScalerOf(context).scale(1) > 1.3
+            ? l10n.navInboxShort
+            : l10n.navMessages,
+        tooltip: l10n.navMessages,
       ),
     ];
   }
@@ -89,6 +91,7 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
           icon: d.icon,
           selectedIcon: d.icon,
           label: d.label,
+          tooltip: d.tooltip,
         ),
     ];
   }
@@ -215,17 +218,26 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
                             indicatorColor: Colors.transparent,
                             iconTheme: WidgetStateProperty.all(
                               IconThemeData(
-                                color: PrototypeColors.onSurfaceVariant,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                             ),
                             labelTextStyle: WidgetStateProperty.all(
                               Theme.of(context).textTheme.labelMedium?.copyWith(
-                                color: PrototypeColors.onSurfaceVariant,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                             ),
                           )
                         : const NavigationBarThemeData(),
                     child: NavigationBar(
+                      height:
+                          80 +
+                          40 *
+                              (MediaQuery.textScalerOf(context).scale(1) - 1)
+                                  .clamp(0, 1),
                       selectedIndex: index ?? 0,
                       onDestinationSelected: (i) => context.go(_tabs[i]),
                       destinations: _navDestinations(
@@ -284,7 +296,9 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
               ),
               VerticalDivider(
                 width: 1,
-                color: PrototypeColors.outlineVariant.withValues(alpha: 0.5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.outlineVariant.withValues(alpha: 0.5),
               ),
               Expanded(child: mainColumn),
             ],
@@ -345,7 +359,7 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
                     trailing: teacherContext.activeAssignmentId.value == a.id
                         ? Icon(
                             Icons.check_circle,
-                            color: PrototypeColors.primary,
+                            color: Theme.of(context).colorScheme.primary,
                           )
                         : null,
                     onTap: () {
@@ -385,7 +399,7 @@ class PrototypeShell extends LScopedView<PrototypeShellController> {
                     trailing: store.activeAssignmentId == a.id
                         ? Icon(
                             Icons.check_circle,
-                            color: PrototypeColors.primary,
+                            color: Theme.of(context).colorScheme.primary,
                           )
                         : null,
                     onTap: () {

@@ -179,6 +179,17 @@ Future<void> main() async {
         find.text('${student['firstName']} ${student['lastName']}'),
       );
       expect(find.text('Photo'), findsWidgets);
+      expect(student['photoUrl'], isNotEmpty);
+      await pumpUntilFound(
+        tester,
+        find.descendant(
+          of: find.byType(ChildProfilePage),
+          matching: find.byWidgetPredicate(
+            (widget) =>
+                widget is CircleAvatar && widget.backgroundImage is MemoryImage,
+          ),
+        ),
+      );
     },
   );
 

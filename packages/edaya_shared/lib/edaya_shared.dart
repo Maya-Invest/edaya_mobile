@@ -68,3 +68,5 @@ export 'src/features/messaging/conversation_widgets.dart';
 export 'src/features/messaging/conversation_controller.dart';
 export 'src/features/messaging/conversation_notification_navigation.dart';
 export 'src/features/messaging/messaging_events.dart';
+
+export 'src/ui/calendar_week_strip.dart';

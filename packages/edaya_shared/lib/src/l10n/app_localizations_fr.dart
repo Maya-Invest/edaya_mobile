@@ -9,6 +9,28 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
+  String get navInboxShort => 'Boîte';
+
+  @override
+  String get navEvaluationsShort => 'Éval.';
+
+  @override
+  String get navMessages => 'Messages';
+
+  @override
+  String get teacherSpace => 'Espace enseignant';
+
+  @override
+  String get guardianSpace => 'Espace famille';
+
+  @override
+  String get signInContactSubtitle =>
+      'Connectez-vous avec votre e-mail ou votre numéro de téléphone.';
+
+  @override
+  String get signInEmailSubtitle => 'Connectez-vous avec votre adresse e-mail.';
+
+  @override
   String get appTitleGuardian => 'Edaya';
 
   @override
@@ -2255,4 +2277,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get teacherSignatureDraft => 'Aperçu avant enregistrement';
+
+  @override
+  String messagingSentDescription(String author, String timestamp) {
+    return 'Envoyé par $author, $timestamp';
+  }
+
+  @override
+  String messagingReceivedDescription(String author, String timestamp) {
+    return 'Reçu de $author, $timestamp';
+  }
 }

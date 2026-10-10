@@ -5,7 +5,6 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../app/formatters.dart';
 import '../../app/shell_tabs.dart';
-import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
 import '../../live/runtime.dart';
@@ -102,23 +101,25 @@ class _MockInboxPage extends LScopedView<StoreBoundController> {
                           decoration: BoxDecoration(
                             color: m.read
                                 ? const Color(0xFFF1F5F9)
-                                : PrototypeColors.primaryContainer,
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.primaryContainer,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Icon(
                             Icons.mail_outline,
                             size: 20,
                             color: m.read
-                                ? PrototypeColors.onSurfaceVariant
-                                : PrototypeColors.primary,
+                                ? Theme.of(context).colorScheme.onSurfaceVariant
+                                : Theme.of(context).colorScheme.primary,
                           ),
                         ),
                         onTap: () => context.push(inboxMessagePath(m.id)),
                         trailing: Icon(
                           Icons.chevron_right,
                           color: selected
-                              ? PrototypeColors.primary
-                              : PrototypeColors.onSurfaceVariant,
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       );
                     },
@@ -278,7 +279,7 @@ class _CampaignList extends StatelessWidget {
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: PrototypeColors.primaryContainer,
+              color: Theme.of(context).colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(Icons.campaign_outlined, size: 20),

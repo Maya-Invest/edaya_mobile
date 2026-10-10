@@ -2,7 +2,6 @@ import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
 import '../../live/runtime.dart';
@@ -67,7 +66,7 @@ class _MockGradeDetailPage extends LScopedView<StoreBoundController> {
                 Text(
                   grade.scoreLabel,
                   style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                    color: PrototypeColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 const SizedBox(height: PrototypeSpacing.md),
@@ -146,7 +145,7 @@ class _LiveGradeDetailPage extends LScopedView<GradeDetailController> {
                 Text(
                   grade.scoreLabel,
                   style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                    color: PrototypeColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 const SizedBox(height: PrototypeSpacing.md),

@@ -98,6 +98,48 @@ abstract class AppLocalizations {
     Locale('fr'),
   ];
 
+  /// No description provided for @navInboxShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Inbox'**
+  String get navInboxShort;
+
+  /// No description provided for @navEvaluationsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Grades'**
+  String get navEvaluationsShort;
+
+  /// No description provided for @navMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get navMessages;
+
+  /// No description provided for @teacherSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Teacher space'**
+  String get teacherSpace;
+
+  /// No description provided for @guardianSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Family space'**
+  String get guardianSpace;
+
+  /// No description provided for @signInContactSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with your email or phone number.'**
+  String get signInContactSubtitle;
+
+  /// No description provided for @signInEmailSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with your email address.'**
+  String get signInEmailSubtitle;
+
   /// No description provided for @appTitleGuardian.
   ///
   /// In en, this message translates to:
@@ -3931,6 +3973,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Preview before saving'**
   String get teacherSignatureDraft;
+
+  /// No description provided for @messagingSentDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent by {author}, {timestamp}'**
+  String messagingSentDescription(String author, String timestamp);
+
+  /// No description provided for @messagingReceivedDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Received from {author}, {timestamp}'**
+  String messagingReceivedDescription(String author, String timestamp);
 }
 
 class _AppLocalizationsDelegate

@@ -1,9 +1,9 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../app/formatters.dart';
-import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
 import '../../live/runtime.dart';
@@ -93,8 +93,8 @@ class _MockCalendarPage extends LScopedView<StoreBoundController> {
                         trailing: Icon(
                           Icons.chevron_right,
                           color: selected
-                              ? PrototypeColors.primary
-                              : PrototypeColors.onSurfaceVariant,
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       );
                     },
@@ -184,8 +184,10 @@ class _LiveCalendarPage extends LView<LiveCalendarController> {
                           trailing: Icon(
                             Icons.chevron_right,
                             color: selected
-                                ? PrototypeColors.primary
-                                : PrototypeColors.onSurfaceVariant,
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                           ),
                         );
                       },
@@ -209,8 +211,6 @@ class _WeekSelector extends StatelessWidget {
   final DateTime selectedDay;
   final ValueChanged<DateTime> onSelectDay;
 
-  static const _dayLabels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -218,53 +218,11 @@ class _WeekSelector extends StatelessWidget {
         horizontal: PrototypeSpacing.md,
         vertical: PrototypeSpacing.sm,
       ),
-      child: Row(
-        children: [
-          for (var i = 0; i < 7; i++)
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () => onSelectDay(weekStart.add(Duration(days: i))),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      color: _isSelected(i)
-                          ? PrototypeColors.primaryContainer
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          _dayLabels[i],
-                          style: Theme.of(context).textTheme.labelSmall,
-                        ),
-                        Text(
-                          '${weekStart.add(Duration(days: i)).day}',
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                color: _isSelected(i)
-                                    ? PrototypeColors.primary
-                                    : null,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
+      child: CalendarWeekStrip(
+        days: List.generate(7, (i) => weekStart.add(Duration(days: i))),
+        selected: selectedDay,
+        onSelected: onSelectDay,
       ),
     );
-  }
-
-  bool _isSelected(int i) {
-    final day = weekStart.add(Duration(days: i));
-    return day.year == selectedDay.year &&
-        day.month == selectedDay.month &&
-        day.day == selectedDay.day;
   }
 }

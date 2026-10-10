@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../app/formatters.dart' as proto;
-import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
 import '../../live/runtime.dart';
@@ -79,7 +78,7 @@ class _MockPaymentDetailPage extends LScopedView<StoreBoundController> {
                 Text(
                   proto.formatMoney(payment.amount, payment.currency),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: PrototypeColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -168,7 +167,7 @@ class _LivePaymentDetailPage extends LScopedView<PaymentDetailController> {
                 Text(
                   formatMoney(payment.amount, payment.currency),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: PrototypeColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

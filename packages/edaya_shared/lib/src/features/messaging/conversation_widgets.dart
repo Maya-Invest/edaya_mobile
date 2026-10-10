@@ -6,6 +6,7 @@ import '../../access/school_client.dart';
 import '../../l10n/l10n_extension.dart';
 import '../auth/app_session_controller.dart';
 import 'conversation_controller.dart';
+import 'conversation_message_bubble.dart';
 
 String _enquiryStatus(BuildContext context, Object? status) => switch (status) {
   'awaiting_school' => context.tr.messagingAwaitingSchool,
@@ -268,25 +269,19 @@ class ConversationPage extends LScopedView<ConversationController> {
                       child: Text(context.tr.messagingLoadMore),
                     ),
                   for (final message in messages)
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${message['authorKind'] == 'staff' ? '${context.tr.messagingSchoolAuthor} · ' : ''}${message['authorName']}',
-                              style: Theme.of(context).textTheme.titleSmall,
-                            ),
-                            Text(
-                              message['createdAt'] as String,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            const SizedBox(height: 8),
-                            SelectableText(message['body'] as String),
-                          ],
-                        ),
+                    ConversationMessageBubble(
+                      key: ValueKey(message['id']),
+                      outgoing: isOutgoingConversationMessage(
+                        authorKind: message['authorKind'] as String,
+                        authorId: message['authorId'] as String? ?? '',
+                        viewerKind: controller.session.grants.value?.kind,
+                        viewerId: controller.session.grants.value?.actorId,
                       ),
+                      author:
+                          '${message['authorKind'] == 'staff' ? '${context.tr.messagingSchoolAuthor} · ' : ''}${message['authorName']}',
+                      body: message['body'] as String,
+                      timestamp:
+                          '${context.formatShortDate(DateTime.parse(message['createdAt'] as String))} · ${context.formatTimeOfDay(DateTime.parse(message['createdAt'] as String))}',
                     ),
                 ],
               ),

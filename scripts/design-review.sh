@@ -21,6 +21,8 @@ if pgrep -x flutter_tester >/dev/null 2>&1; then
 fi
 
 if ! EDAYA_DESIGN_REVIEW_LOCALE="$LOCALE" \
+  EDAYA_DESIGN_REVIEW_A11Y="${EDAYA_DESIGN_REVIEW_A11Y:-1}" \
+  EDAYA_DESIGN_REVIEW_STRICT="${EDAYA_DESIGN_REVIEW_STRICT:-1}" \
   flutter test "test/integration/${APP}_design_review_test.dart" \
     --tags design-review \
     --concurrency=1; then
@@ -28,7 +30,14 @@ if ! EDAYA_DESIGN_REVIEW_LOCALE="$LOCALE" \
   exit 1
 fi
 
+THEME="${EDAYA_DESIGN_REVIEW_THEME:-light}"
 INDEX="$ROOT/apps/$APP/design-review/index.html"
+if [[ "$THEME" == dark ]]; then
+  INDEX="$ROOT/apps/$APP/design-review/dark/index.html"
+fi
+if [[ "${EDAYA_DESIGN_REVIEW_TEXT_SCALE:-1}" == 2 ]]; then
+  INDEX="${INDEX%/index.html}/large-text/index.html"
+fi
 if [[ ! -f "$INDEX" ]]; then
   echo "error: expected output missing: $INDEX" >&2
   exit 1

@@ -31,13 +31,17 @@ class EdayaBrandLogo extends StatelessWidget {
       padding: EdgeInsets.all(
         size * (variant == EdayaLogoVariant.horizontal ? .1 : .2),
       ),
-      child: Image.asset(
-        'assets/brand/edaya-$name-${reversed ? 'blanc' : 'couleur'}.png',
-        package: 'edaya_shared',
-        width: size,
-        fit: BoxFit.contain,
-        semanticLabel: decorative ? null : 'EDAYA',
-        excludeFromSemantics: decorative,
+      child: Center(
+        widthFactor: 1,
+        heightFactor: 1,
+        child: Image.asset(
+          'assets/brand/edaya-$name-${reversed ? 'blanc' : 'couleur'}.png',
+          package: 'edaya_shared',
+          width: size,
+          fit: BoxFit.contain,
+          semanticLabel: decorative ? null : 'EDAYA',
+          excludeFromSemantics: decorative,
+        ),
       ),
     );
   }

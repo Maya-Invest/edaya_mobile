@@ -1,6 +1,6 @@
 # Teacher — design review pack
 
-Generated: 2026-09-25T05:07:22.507355Z
+Generated: 2026-10-10T00:28:39.990205Z
 Data: mock fixtures (no API)
 Locale: FR
 

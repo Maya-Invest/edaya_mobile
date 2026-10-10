@@ -16,11 +16,16 @@ class NoSchoolDayBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SurfaceCard(
-      tint: PrototypeColors.errorContainer.withValues(alpha: 0.45),
+      tint: Theme.of(
+        context,
+      ).colorScheme.errorContainer.withValues(alpha: 0.45),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.event_busy_outlined, color: PrototypeColors.error),
+          Icon(
+            Icons.event_busy_outlined,
+            color: Theme.of(context).colorScheme.error,
+          ),
           const SizedBox(width: PrototypeSpacing.sm),
           Expanded(
             child: Column(
@@ -29,7 +34,7 @@ class NoSchoolDayBanner extends StatelessWidget {
                 Text(
                   'Pas d\'école',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: PrototypeColors.error,
+                    color: Theme.of(context).colorScheme.error,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -63,13 +68,15 @@ class SchoolEventRow extends StatelessWidget {
   Widget build(BuildContext context) {
     if (event.isNonSchoolDay) {
       return SurfaceCard(
-        tint: PrototypeColors.errorContainer.withValues(alpha: 0.25),
+        tint: Theme.of(
+          context,
+        ).colorScheme.errorContainer.withValues(alpha: 0.25),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
               Icons.event_busy_outlined,
-              color: PrototypeColors.error,
+              color: Theme.of(context).colorScheme.error,
               size: 20,
             ),
             const SizedBox(width: PrototypeSpacing.sm),
@@ -104,10 +111,14 @@ class SchoolEventRow extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: PrototypeColors.accentContainer,
+          color: Theme.of(context).colorScheme.tertiaryContainer,
           borderRadius: BorderRadius.circular(10),
         ),
-        child: const Icon(Icons.event, size: 20, color: Colors.orange),
+        child: Icon(
+          Icons.event,
+          size: 20,
+          color: Theme.of(context).colorScheme.onTertiaryContainer,
+        ),
       ),
     );
   }

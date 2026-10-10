@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart' as shared;
 import 'package:flutter/material.dart';
 
 import '../colors.dart';
@@ -17,34 +18,18 @@ class PersonAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (photoUrl != null && photoUrl!.isNotEmpty) {
-      return ClipOval(
-        child: Image.network(
-          photoUrl!,
-          width: radius * 2,
-          height: radius * 2,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => _initialsAvatar(),
-        ),
-      );
-    }
-
-    return _initialsAvatar();
-  }
-
-  Widget _initialsAvatar() {
-    return CircleAvatar(
+    return shared.PersonAvatar(
+      name: initials,
+      initials: initials,
+      photoUrl: photoUrl,
       radius: radius,
       backgroundColor: PrototypeColors.primary,
-      child: Text(
-        initials,
-        style: TextStyle(
-          fontFamily: PrototypeTypography.uiFamily,
-          package: 'edaya_shared',
-          fontWeight: FontWeight.w600,
-          color: Colors.white,
-          fontSize: radius * 0.7,
-        ),
+      initialsStyle: TextStyle(
+        fontFamily: PrototypeTypography.uiFamily,
+        package: 'edaya_shared',
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+        fontSize: radius * 0.7,
       ),
     );
   }

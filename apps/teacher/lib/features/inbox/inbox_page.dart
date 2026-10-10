@@ -116,23 +116,23 @@ class _MockInboxPage extends LScopedView<StoreBoundController> {
                     decoration: BoxDecoration(
                       color: m.read
                           ? const Color(0xFFF1F5F9)
-                          : PrototypeColors.primaryContainer,
+                          : Theme.of(context).colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
                       Icons.mail_outline,
                       size: 20,
                       color: m.read
-                          ? PrototypeColors.onSurfaceVariant
-                          : PrototypeColors.primary,
+                          ? Theme.of(context).colorScheme.onSurfaceVariant
+                          : Theme.of(context).colorScheme.primary,
                     ),
                   ),
                   onTap: () => context.go(inboxMessagePath(m.id)),
                   trailing: Icon(
                     Icons.chevron_right,
                     color: selected
-                        ? PrototypeColors.primary
-                        : PrototypeColors.onSurfaceVariant,
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 );
               },

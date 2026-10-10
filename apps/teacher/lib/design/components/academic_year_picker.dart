@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../colors.dart';
-
 class AcademicYearPicker extends StatelessWidget {
   const AcademicYearPicker({
     super.key,
@@ -39,7 +37,11 @@ class AcademicYearPicker extends StatelessWidget {
           MenuItemButton(
             onPressed: () => onSelected(year),
             trailingIcon: year == selectedYear
-                ? Icon(Icons.check, size: 18, color: PrototypeColors.primary)
+                ? Icon(
+                    Icons.check,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.primary,
+                  )
                 : null,
             child: Text(year),
           ),

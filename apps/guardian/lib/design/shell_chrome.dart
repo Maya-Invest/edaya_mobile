@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'colors.dart';
-
 /// Provides shell chrome (app bar + student context) for pages and drawer hosts.
 class ShellChrome extends InheritedWidget {
   const ShellChrome({
@@ -52,7 +50,7 @@ class ShellChromeBody extends StatelessWidget {
       children: [
         if (appBar != null)
           Material(
-            color: PrototypeColors.background,
+            color: Theme.of(context).scaffoldBackgroundColor,
             child: SafeArea(
               bottom: false,
               child: SizedBox(
