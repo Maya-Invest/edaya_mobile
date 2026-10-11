@@ -1,0 +1,51 @@
+name: Deploy qualified artifacts
+on:
+  workflow_call:
+    inputs:
+      target:
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+  deployments: write
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.target }}
+    timeout-minutes: 90
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+      TARGET: ${{ inputs.target }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        with:
+          flutter-version: 3.44.8
+          channel: stable
+          cache: true
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Restore exact qualified source and artifacts
+        run: dart tooling/repo/bin/restore.dart
+      - run: dart pub get --enforce-lockfile
+      - name: Build signed artifacts
+        env:
+          ANDROID_SIGNING_BUNDLE: ${{ secrets.ANDROID_SIGNING_BUNDLE }}
+        run: dart run edaya_repo:repo ci deploy "$TARGET"
+      - name: Upload release evidence and artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: release-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+          include-hidden-files: true
+          path: .release/
+      - name: Remove restored signing credentials
+        if: always()
+        env:
+          ANDROID_SIGNING_BUNDLE: ${{ secrets.ANDROID_SIGNING_BUNDLE }}
+        run: dart run edaya_repo:repo ci signing-cleanup

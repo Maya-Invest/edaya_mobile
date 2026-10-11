@@ -64,8 +64,9 @@ Future<void> main(List<String> args) async {
       'format',
       '${outputDir.path}/auth_contracts.dart',
     ]);
-    if (formatted.exitCode != 0)
+    if (formatted.exitCode != 0) {
       throw StateError('Could not format auth contracts');
+    }
   }
   stdout.writeln('Dart API client bindings generated at ${outputDir.path}');
 }
@@ -658,12 +659,13 @@ String _generateAuthContracts(
   );
   String fieldType(Map schema) {
     final reference = schema[r'$ref'];
-    if (reference is String)
+    if (reference is String) {
       return reference
           .split('/')
           .last
           .replaceAll('AuthUser', 'AuthUserDto')
           .replaceAll('AuthSession', 'AuthSessionDto');
+    }
     return switch (schema['type']) {
       'string' => 'String',
       'boolean' => 'bool',
@@ -676,26 +678,31 @@ String _generateAuthContracts(
 
   String decode(Map schema, String expression) {
     final type = fieldType(schema);
-    if (schema[r'$ref'] != null)
+    if (schema[r'$ref'] != null) {
       return '$type.fromJson(Map<String, dynamic>.from($expression as Map))';
-    if (schema['type'] == 'array')
+    }
+    if (schema['type'] == 'array') {
       return '($expression as List).map((value) => ${decode(schema['items'] as Map, 'value')}).toList()';
-    if (schema['type'] == 'object')
+    }
+    if (schema['type'] == 'object') {
       return 'Map<String, dynamic>.from($expression as Map)';
+    }
     return '$expression as $type';
   }
 
   String encode(Map schema, String expression) {
     if (schema[r'$ref'] != null) return '$expression.toJson()';
-    if (schema['type'] == 'array')
+    if (schema['type'] == 'array') {
       return '$expression.map((value) => ${encode(schema['items'] as Map, 'value')}).toList()';
+    }
     return expression;
   }
 
   Map<String, dynamic> flatten(Map schema) {
     final reference = schema[r'$ref'];
-    if (reference is String)
+    if (reference is String) {
       return flatten(schemas[reference.split('/').last] as Map);
+    }
     if (schema['allOf'] is! List) return Map<String, dynamic>.from(schema);
     final parts = (schema['allOf'] as List).map((part) => flatten(part as Map));
     final properties = <String, dynamic>{};

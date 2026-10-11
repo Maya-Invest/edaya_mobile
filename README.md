@@ -15,7 +15,7 @@ edaya_mobile/
 │   └── edaya_shared/          shared config, UI, auth scaffolding, and utilities
 ├── tooling/
 │   └── integration_tests/     live API integration tests (teacher portal, shared harness)
-├── scripts/                   generation, integration, design-review and release tooling
+├── tooling/repo/              Dart generation, integration, design-review and release tooling
 └── pubspec.yaml               workspace root (Melos config lives here)
 ```
 
@@ -75,33 +75,16 @@ Mirrors the TypeScript `@edaya/api-client` package:
 - `HttpTransport` for origin-pinned Bearer requests against the API
 - Typed `EffectiveGrantsResponse` for `/core/authorization/effective-grants`
 
-Bindings are generated from the published OpenAPI document (`x-edaya-*` operation extensions on core routes).
+Bindings are generated from one immutable backend checkout, including school and authentication routes. Preparation is required before analysis or builds on a clean checkout:
 
-From a URL (CI-friendly — no `edaya` checkout required):
-
-```bash
-EDAYA_OPENAPI_URL=https://api.example.com/doc melos run generated:update
+```sh
+flutter pub get
+dart run edaya_repo:repo generate client staging
+flutter pub get --enforce-lockfile
+dart run edaya_repo:repo ci verify
 ```
 
-From a local OpenAPI file:
-
-```bash
-EDAYA_OPENAPI_SPEC=/path/to/openapi.json melos run generated:update
-```
-
-This updates `packages/edaya_api_client/spec/client-bindings.json` and the Dart files under `lib/src/generated/`. Commit all three when the API contract changes.
-
-Offline drift check (uses the committed bindings spec only):
-
-```bash
-melos run generated:check
-```
-
-Full workspace verification:
-
-```bash
-melos run verify
-```
+Use `--ref <branch-or-commit>` for explicit local validation or `--backend-root <clean-checkout>` for an existing detached backend. Generated Dart files and `.generated/client-bindings.json` are ignored build inputs. Do not commit snapshots. See [CI setup](docs/reference/ci-setup.md) for branch selection, independent releases and signing.
 
 ### `edaya_auth`
 
@@ -195,23 +178,23 @@ Melos exposes workspace maintenance tasks:
 | `melos run test` | Unit/widget tests, excluding integration, staging and design-review suites |
 | `melos run format` | Format Dart code |
 | `melos run fix` | Apply Dart fixes in package source and tests |
-| `melos run generated:update` | Regenerate bindings (`EDAYA_OPENAPI_URL` or `EDAYA_OPENAPI_SPEC`) |
+| `melos run generated:update` | Acquire backend staging and generate the ignored client |
 | `melos run generated:check` | Check generated bindings and mobile contracts |
 | `melos run brand:generate` | Regenerate Dart tokens from the local brand snapshot |
-| `melos run verify` | Release contracts, brand/generated drift, analysis, unit/widget and tooling tests |
+| `melos run verify` | Prepared client, brand integrity, analysis, unit/widget and tooling tests |
 
 Run specialized workflows directly from the repository root:
 
 | Command | Description |
 |---------|-------------|
-| `python3 scripts/integration-runner.py` | Run and validate all live integration suites |
-| `python3 scripts/integration-runner.py --suite api` | Run and validate only API integration tests |
-| `python3 scripts/integration-runner.py --validate-only` | Validate existing integration results, including freshness and completeness |
-| `python3 scripts/staging-smoke.py` | Staging smoke with provisioned private sessions; see [integration guidance](docs/reference/integration-testing.md) |
-| `bash scripts/design-review.sh guardian` | Generate guardian screenshots using mock fixtures; use `teacher` for the teacher app |
-| `python3 scripts/brand-check.py` | Check tokens, assets, contrast and visual literals |
-| `bash scripts/create-android-keystore.sh` | Create Play Store upload signing configuration |
-| `EDAYA_API_URL=https://api.edayaplus.com bash scripts/build-play-aab.sh` | Build release AABs for both apps; append `guardian` or `teacher` for one app |
+| `dart run edaya_repo:repo test integration` | Run and validate all live integration suites |
+| `dart run edaya_repo:repo test integration api` | Run and validate only API integration tests |
+| `dart run edaya_repo:repo ci validate-integration` | Validate existing integration results, including freshness and completeness |
+| `dart run edaya_repo:repo maintenance smoke` | Staging smoke with provisioned private sessions; see [integration guidance](docs/reference/integration-testing.md) |
+| `dart run edaya_repo:repo maintenance design-review guardian` | Generate guardian screenshots using mock fixtures; use `teacher` for the teacher app |
+| `dart run edaya_repo:repo check` | Check tokens, assets, contrast and visual literals |
+| `dart run edaya_repo:repo maintenance keystore` | Create Play Store upload signing configuration |
+| `dart run edaya_repo:repo build production` | Build release AABs for both apps; both applications are always required |
 
 Use `flutter clean` from an app directory when needed. `melos list` lists workspace packages.
 
@@ -226,16 +209,16 @@ melos exec --scope=edaya_auth -- flutter test
 
 Shared integration tests live in `tooling/integration_tests`. They use `edaya_auth` + `edaya_api_client` against a running API (local seed or staging).
 
-**PR CI** resolves one backend SHA (explicit `backend_ref`, matching head branch, then PR target), verifies release contracts, starts the unified disposable API (`:9999`) and runs all three native suites. `IDENTITY_CHECKOUT_TOKEN` needs contents:read on `edaya_backend`. Artifacts contain sanitized summaries only. See [CI setup](docs/reference/ci-setup.md).
+**PR CI** resolves one backend destination commit, generates both contracts, starts that exact backend and runs API, guardian and teacher integrations. `IDENTITY_CHECKOUT_TOKEN` needs backend contents:read. See [CI setup](docs/reference/ci-setup.md).
 
 Use the backend `bun repo dev` server for local captured email, WhatsApp and SMS. Enable web `PUBLIC_TEST_OTP_ACCESS=true` or Flutter debug `--dart-define=TEST_OTP_ACCESS=true` for explicit Show test code and Copy controls. CI uses the separate internal testing composition and a private captured mailbox; normal staging/production builds omit testing access.
 
 ```bash
 # With local API on :9999 and demo teacher seeded
-python3 scripts/integration-runner.py
+dart run edaya_repo:repo test integration
 
 # Or run only the API suite
-python3 scripts/integration-runner.py --suite api
+dart run edaya_repo:repo test integration api
 ```
 
 Environment variables:
@@ -247,7 +230,7 @@ Environment variables:
 | `EDAYA_ACADEMIC_YEAR_ID` | `ACADEMIC_YEAR_ID` | `2025-ci` |
 | `EDAYA_CLASS_GROUP_ID` | `CLASS_GROUP_ID` | `ci-6a` |
 
-Set `EDAYA_INTEGRATION_TESTS=1` (done automatically by `python3 scripts/integration-runner.py`). Unit test runs skip tagged integration tests.
+Set `EDAYA_INTEGRATION_TESTS=1` (done automatically by `dart run edaya_repo:repo test integration`). Unit test runs skip tagged integration tests.
 
 Integration tests run against two demo-ci teacher profiles automatically:
 

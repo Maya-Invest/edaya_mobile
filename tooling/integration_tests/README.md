@@ -30,7 +30,7 @@ Each inbox probe uses the seeded owner (`a.kone@ecole-ci.edaya.dev`) to create a
 Run from the repository root:
 
 ```bash
-python3 scripts/integration-runner.py
+dart run edaya_repo:repo test integration
 ```
 
 Optional env overrides:
@@ -38,7 +38,7 @@ Optional env overrides:
 ```bash
 EDAYA_GUARDIAN_EMAIL=m.kone@mail.ci \
 EDAYA_ACADEMIC_YEAR_ID=2025-ci \
-python3 scripts/integration-runner.py
+dart run edaya_repo:repo test integration
 ```
 
 Use the backend `bun repo dev` server for local captured email, WhatsApp and SMS. Enable web `PUBLIC_TEST_OTP_ACCESS=true` or Flutter debug `--dart-define=TEST_OTP_ACCESS=true` for explicit Show test code and Copy controls. CI uses the separate internal testing composition and a private captured mailbox; normal staging/production builds omit testing access.
@@ -70,19 +70,19 @@ Coverage includes Accueil, agenda, classes, evaluations, inbox, account/settings
 Run with the rest of the integration suite:
 
 ```bash
-python3 scripts/integration-runner.py
+dart run edaya_repo:repo test integration
 ```
 
 Or only guardian widget integration tests:
 
 ```bash
-python3 scripts/integration-runner.py --suite guardian
+dart run edaya_repo:repo test integration guardian
 ```
 
 Or only teacher widget integration tests:
 
 ```bash
-python3 scripts/integration-runner.py --suite teacher
+dart run edaya_repo:repo test integration teacher
 ```
 
 Unit/widget runs (`melos run test`) exclude `@Tags(['integration'])` tests so CI verify does not require a running API.

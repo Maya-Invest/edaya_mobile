@@ -1,16 +1,18 @@
-name: Branch push
-
+name: Branch checks
 on:
   push:
-  workflow_dispatch:
-
-concurrency:
-  group: branch-${{ github.ref_name }}
-  cancel-in-progress: true
-
+    branches-ignore: [main, staging]
 permissions:
   contents: read
-
+  deployments: read
+concurrency:
+  group: branch-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  verify:
-    uses: ./.github/workflows/_verify.yml
+  verification:
+    uses: ./.github/workflows/_qualify.yml
+    with:
+      target: staging
+      source_ref: ${{ github.sha }}
+      full: false
+    secrets: inherit

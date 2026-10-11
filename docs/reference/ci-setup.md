@@ -1,41 +1,80 @@
-# CI setup
+# Independent verification and releases
 
-Branch pushes run repository hygiene, unit/tooling tests and applicable builds. Every pull request, including PRs targeting development branches, runs complete integration qualification. Production release jobs and the staging coordinator require qualification before publication or live changes. Git hooks are unchanged.
+Each repository verifies and releases its own revision. Backend changes do not require synchronized consumer source changes, client package publication, or release manifests in sibling repositories. Cloudflare application deployments remain; no container publication is configured.
 
-## Required checks
+| Event | Required behavior |
+| --- | --- |
+| PR into `main` or `staging` | Full verification and integrations; no deployment |
+| Other branch push | Repository checks and unit/tooling tests |
+| Push to `staging` | Qualify that commit, release staging |
+| Push to `main` | Qualify that commit, release production |
+| Manual deployment | Select revision in the environment's deployment workflow; use the same qualification and deployment jobs |
+| Manual validation | Select environment, revision, and optionally a backend reference; never deploy |
 
-`verify / verify` is the unit check. `Full validation` requires successful verification and integration jobs, plus backend resolution for consumers. Failed, cancelled, missing or skipped required jobs fail this check. Manual PR dispatch runs the same full gates; test-skipping switches have been removed.
+Deployments are serialized per repository/environment without cancelling active deployments. They depend on successful qualification; failure, cancellation or skipped qualification cannot deploy. Artifact restoration selects the unique qualified artifact from the same run and attempt, checks out its recorded source commit, restores frozen dependencies, and verifies file checksums. Deployment never resolves another backend branch or generates another client.
 
-Ordinary staging pushes run unit checks. Staging release/validation is dispatched only through the backend **Full-stack staging release** coordinator. `validate_only=true` qualifies the three commits, performs dry runs and checks signed APKs without publishing, deploying or changing live data. Manifest schema 4 and APK provenance schema 3 remain unchanged.
+## Adoption gate
 
-## Backend revision and client contracts
+Replacement deployment jobs require repository variable `ENABLE_INDEPENDENT_RELEASES=true`. Leave it unset until full local verification, both destination builds, all integration suites, artifact handoff, and non-deploying GitHub rehearsals pass. The bootstrap API snapshot also needs review before the backend gate is enabled. No production release is implied by installing this tooling.
 
-Frontend/mobile resolve one immutable backend SHA before integration jobs. An explicit `backend_ref` wins; otherwise a matching consumer head branch is preferred, followed by the PR target branch when the matching branch is absent. Access failures do not fall back. Manual dispatch without a matching branch must supply `backend_ref`.
+Deploy the backend tooling changes to the destination branches before consumers qualify against those branches: consumer integration uses the backend's typed fixture command. Configure branch protection to require **qualification / Full validation** from the PR workflow (confirm the exact displayed check name on the first rehearsal). Remove obsolete coordinator/publication checks only after that required check succeeds. GitHub may display the caller workflow name as an additional prefix.
 
-The retained secret `IDENTITY_CHECKOUT_TOKEN` needs contents:read access to the private backend repository; the staging coordinator additionally needs web/mobile checkout access. Checkout credentials are not persisted. Consumer and backend release contracts must match, and the backend's generated artifacts and content-addressed source fingerprint must pass verification before fixture startup. Every mobile matrix job receives the same resolved SHA.
+Bun remains pinned to 1.3.14, Flutter to 3.44.8. Ubuntu CI and macOS development use native Git, archive tools and PostgreSQL binaries where needed. Validators are downloaded at pinned versions and verified against committed SHA-256 checksums. No first-party Python or Node operational runtime is required.
 
-Frontend unit/browser checks install the committed vendored API client with the frozen lockfile. They do not require a branch client to be published first. Production deployment uses `0.0.0-production.<qualified-backend-sha>` and checks the package's `edayaSourceCommit` and installed contract hashes. Missing or mismatched publication blocks deployment. Feature pushes never publish API clients.
+## Release evidence
 
-## Toolchains and evidence
+`.ci-evidence/qualification.json` records source identity and mandatory outcomes. `.release/manifest.json` records source commit, environment, tool version, API fingerprint, artifact hashes and status. Consumer evidence includes backend commit and generated-client checksums. Evidence is an output; it does not pin another repository's future release. Private fixtures are disposable and logs are sanitized before they become retained evidence.
 
-Jobs use Ubuntu 24.04, Node 22, Python 3.13, Bun 1.3.14, Flutter 3.44.8, Melos 8.0.0 and Java 17 where applicable. Actions are pinned to reviewed release commits with version comments. Dependency installations enforce committed locks. Workflow definitions are checked with actionlint 1.7.12, downloaded only after matching the pinned archive checksum; shell syntax is also checked.
+## Backend input
 
-Browser and mobile artifacts contain only `.ci-evidence/results.json`: revision, backend SHA, lock hash, fixed suite names, completion metadata and numeric counts. Fixture files, private sessions, OTP captures, screenshots and browser traces stay out of uploads. Failures still produce sanitized evidence. Staging uploads use a separate explicit file allowlist, including early configuration-preflight failures.
+Production resolves backend `main`; staging resolves backend `staging`. Resolve once and detach at that SHA. A moving branch cannot change an existing checkout or generated client. The selected branch identifies the source tested, not necessarily the currently deployed backend.
 
-Local evidence and GitHub results are distinct. A local green run does not establish GitHub success for a newer revision. GitHub's current plan rejects private-repository branch protection/ruleset checks; deployment/publication dependencies are enforced by workflows, while protected merge enforcement remains unavailable/unverified. No billing or visibility changes are made.
+Local preparation defaults to staging. `--ref <branch-or-commit>` is an explicit local override. `--backend-root <clean-checkout>` accepts an already resolved checkout. Ordinary CI selects only the destination branch; overrides are exposed by Manual validation. Integrations verify the backend checkout still equals the prepared client's commit and has no tracked edits before starting services.
 
-## Mobile qualification
+`IDENTITY_CHECKOUT_TOKEN` needs read-only contents access to `Maya-Invest/edaya_backend`. It is used only for source checkout. Package-registry credentials and write permissions are no longer needed. Cache identities include backend SHA, generator/runtime inputs and relevant lockfiles; invalid checksum entries are rebuilt. Generated inputs are transferred with qualification artifacts and checked again before release.
 
-`melos run verify` includes all unit/widget, APK tooling, Python runner and CI helper tests. PR/release integrations cover API, guardian and teacher; PR matrix jobs each own a disposable unified API, file service and seeded demo profiles. Generated school/auth contracts are checked against the pinned backend before integration. The runner validates scenario completeness and fresh source/dependency/backend evidence, independently of process exit code.
-
-Run verification and the local fixture integrations:
+## Mobile commands
 
 ```sh
-dart pub get --enforce-lockfile
-melos bootstrap
-melos run verify
-# With an owned, seeded unified fixture API and its private OTP capture configured:
-EDAYA_API_URL=http://127.0.0.1:9999 python3 scripts/integration-runner.py
+flutter pub get
+# The workspace includes tooling/repo.
+dart run edaya_repo:repo generate client staging
+flutter pub get --enforce-lockfile
+dart run edaya_repo:repo check
+dart run edaya_repo:repo ci verify
+dart run edaya_repo:repo ci integration
 ```
 
-The backend coordinator runs this setup and all three suites for full release qualification. Every mobile branch, including main, runs unit verification on push. Native staging smoke uses private fixture sessions without deployed OTP access. Signed APK publication/build handling remains owned by the backend staging coordinator.
+Dart generates school and authentication contracts from the acquired backend's tracked OpenAPI definition into ignored `packages/edaya_api_client/lib/src/generated`. Handwritten runtime code, generator and generator test fixtures remain tracked. Generated binding metadata is in `.generated/client-bindings.json`. A clean checkout must run preparation before application analysis, tests or builds. Bun is needed only when running backend integration services/tools.
+
+API, guardian and teacher integration suites are mandatory. Their machine-event gate rejects empty/incomplete discovery, missing or duplicate scenarios, skips, runner errors, stale results and unmapped routes. JSON output is sanitized. Run `dart run edaya_repo:repo ci validate-integration` to validate existing results without executing suites.
+
+## Android releases
+
+Use `dart run edaya_repo:repo build staging` for both signed APKs, or `build production` for both signed AABs. CI uses Java 17 and Flutter 3.44.8. Environment secret `ANDROID_SIGNING_BUNDLE` contains the existing keystore/apps bundle with guardian and teacher aliases/passwords and each Firebase configuration. Local builds can use existing private signing files. Missing credentials, debug certificates, app ID mismatches or signature verification errors block output.
+
+Signed builds use the qualified source and transferred generated client. APK verification uses apksigner/aapt; AAB verification uses jarsigner/keytool, with signing certificate provenance and SHA-256 artifact hashes in `.release/manifest.json`. CI uploads those exact files; it does not submit to a store or add iOS delivery. Restored private signing files are cleaned up on failure and success.
+
+Brand tokens, galleries, design review, keystore setup and SVG/native icon generation are Dart/Flutter commands under `generate` and `maintenance`. The asset generator runs through Flutter rendering; Node is no longer needed.
+
+## Entrypoint migration inventory
+
+| Previous entrypoints | Replacement or disposition |
+| --- | --- |
+| `generate-api-bindings.sh`, binding drift and mobile contract checks | Dart client acquisition/checks; ignored generated school/auth bindings |
+| `integration-runner.py`, `staging-smoke.py`, their Python tests | `tooling/repo/lib/src/integration.dart`, `smoke.dart`, Dart tests |
+| `brand-{tokens,check,gallery}.py`, Node `brand-assets.mjs` | Dart brand tools and Flutter SVG rendering |
+| `build-staging-apks.sh`, `build-play-aab.sh`, APK signature/provenance scripts | Dart Android build/signature/artifact pipeline |
+| `create-android-keystore.sh`, `dart-fix-package.sh`, `design-review.sh` | Explicit Dart maintenance commands |
+| `ci_support.py`, shell service/lint launchers and workflow tests | Dart evidence/workflow tools, backend owned fixture and pinned actionlint |
+| `release-contract.py`, committed generated binding snapshots | Removed; checksummed acquisition/release outputs |
+
+Application analysis and tests run only after explicit client preparation. Flutter commands use frozen workspace dependencies (`--no-pub` after setup). Native Gradle/Flutter platform wrappers remain supported.
+
+## Local migration rehearsal — 2026-10-11
+
+A clean, isolated checkout acquired the tracked API definition from one immutable backend snapshot, generated the ignored Dart inputs, and passed application analysis, unit/widget tests and all integration suites: API **47/47**, guardian **43/43**, teacher **33/33**. The backend snapshot was local rehearsal source, not a claim about a deployed backend revision. The final tooling and retained generator also pass Dart analysis; all **18** tooling tests pass. Generator formatting changes were checked to preserve every generated-client checksum.
+
+Both guardian and teacher staging APKs and production AABs were built locally with release signing. APK application identities, APK/AAB signatures, certificate fingerprints and output checksums were verified. Flutter asset rendering was exercised in a temporary output directory. No artifacts were published or submitted to stores.
+
+The exact CI workspace setup command, `dart pub get --enforce-lockfile`, also passed with the pinned Flutter SDK. The evidence artifact retains sanitized machine-readable integration diagnostics as well as suite counts. GitHub-hosted qualification, artifact handoff and environment/signing-secret configuration must still be rehearsed before enabling the adoption gate.

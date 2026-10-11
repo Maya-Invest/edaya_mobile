@@ -50,3 +50,14 @@ __MACOSX/
 
 # Sanitized local/CI test evidence
 .ci-evidence/
+
+# Prepared clients, isolated backend, release evidence
+.generated/
+.ci/
+.release/
+.ci-evidence/
+.cache/repo-tools/
+packages/edaya_api_client/lib/src/generated/
+packages/edaya_api_client/spec/client-bindings.json
+
+.cache/clients/

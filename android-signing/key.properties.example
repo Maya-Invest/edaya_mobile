@@ -1,5 +1,5 @@
 # Copy to apps/<app>/android/key.properties and fill in values.
-# Generate the upload keystore with: bash scripts/create-android-keystore.sh
+# Generate the upload keystore with: dart run edaya_repo:repo maintenance keystore
 #
 # storeFile is relative to apps/<app>/android/
 storePassword=YOUR_STORE_PASSWORD

@@ -1,6 +1,6 @@
 # Live integration testing
 
-`python3 scripts/integration-runner.py` runs the API, guardian and teacher suites independently and aggregates JSON outcomes. `python3 scripts/integration-runner.py --validate-only` validates their current artifacts. CI gives each suite its own disposable stack and publishes only sanitized `.ci-evidence/results.json` even on failure. A failed child never prevents the other local suites from executing.
+`dart run edaya_repo:repo test integration` runs the API, guardian and teacher suites independently and aggregates JSON outcomes. `dart run edaya_repo:repo ci validate-integration` validates their current artifacts. CI gives each suite its own disposable stack and publishes only sanitized `.ci-evidence/results.json` even on failure. A failed child never prevents the other local suites from executing.
 
 Run these commands from the repository root with an owned, disposable seeded local API and its private OTP capture configured. The runner enables `EDAYA_INTEGRATION_TESTS=1` automatically. Select a suite with `--suite api`, `--suite guardian`, or `--suite teacher`; combine `--validate-only --suite api` to validate only the API results.
 
@@ -19,7 +19,7 @@ Use already provisioned private fixture sessions, without OTP capture or a test 
 ```bash
 EDAYA_API_URL=https://staging.api.edayaplus.com \
 SEED_AUTH_SESSIONS_FILE=/absolute/path/to/private-sessions.json \
-python3 scripts/staging-smoke.py
+dart run edaya_repo:repo maintenance smoke
 ```
 
 The session file must have mode `0600` and contain sessions for the smoke suite's seeded teacher and guardian accounts. Leave `EDAYA_TEST_OTP_FILE` and `EDAYA_TEST_CLOCK_FILE` unset and `TEST_OTP_ACCESS` unset or `false`. Sanitized results are written under `$RELEASE_ROOT/release/mobile-staging-smoke` (the repository parent is the default release root).
@@ -28,7 +28,7 @@ The session file must have mode `0600` and contain sessions for the smoke suite'
 
 Feature/action contracts are in `tooling/integration_tests/features.json`; stable executable IDs are in `scenarios.json`. Route inventory tests walk the real registered GoRouter trees. Non-route actions and overlays must be registered explicitly. Update contract and assertions in the same feature PR. Reviewers verify behavioral meaning; an opened screen cannot prove a saved mutation.
 
-The gate rejects empty discovery, duplicate IDs, missing or removed scenarios, unmapped routes, fixture failures, blocked tests, unexpected skips, machine-reported errors even with exit zero, incomplete streams and stale source fingerprints. Edit first, then rerun the complete suites. `python3 scripts/test_integration_runner.py` verifies these failure modes.
+The gate rejects empty discovery, duplicate IDs, missing or removed scenarios, unmapped routes, fixture failures, blocked tests, unexpected skips, machine-reported errors even with exit zero, incomplete streams and stale source fingerprints. Edit first, then rerun the complete suites. `dart run edaya_repo:repo test tooling` verifies these failure modes.
 
 Live Flutter widget tests use production controllers, routes and real local HTTP services without a device or emulator. OTP is captured at the Identity delivery port; enrollment and verification still use the real identity application. The private mailbox, authenticator secrets and recovery codes must not be uploaded. The runner redacts JSON string values without corrupting machine events.
 

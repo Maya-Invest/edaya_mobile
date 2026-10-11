@@ -23,7 +23,7 @@ Set `keyAlias` to `guardian` or `teacher` respectively.
 ## Build release bundles
 
 ```bash
-EDAYA_API_URL=https://api.edayaplus.com bash scripts/build-play-aab.sh
+dart run edaya_repo:repo build production
 # Append guardian or teacher to build just one app.
 ```
 

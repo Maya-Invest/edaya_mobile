@@ -314,10 +314,9 @@ void _mariamKoneSuite() {
           location: inboxMessagePath(delivery!.id),
         );
         await pumpUntilFound(tester, find.byType(MessageDetailPage));
-        expect(
-          find.textContaining(delivery.title.split(' ').first),
-          findsWidgets,
-        );
+        final title = find.textContaining(delivery.title.split(' ').first);
+        await pumpUntilFound(tester, title);
+        expect(title, findsWidgets);
       },
     );
   });

@@ -1,0 +1,27 @@
+name: Manual validation
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        type: choice
+        options: [staging, production]
+        default: staging
+      source_ref:
+        description: Source revision (empty uses selected workflow revision)
+        type: string
+        default: ''
+      backend_ref:
+        description: Explicit backend revision override (empty uses destination branch)
+        type: string
+        default: ''
+permissions:
+  contents: read
+  deployments: read
+jobs:
+  qualify:
+    uses: ./.github/workflows/_qualify.yml
+    with:
+      target: ${{ inputs.target }}
+      source_ref: ${{ inputs.source_ref || github.sha }}
+      backend_ref: ${{ inputs.backend_ref }}
+    secrets: inherit
