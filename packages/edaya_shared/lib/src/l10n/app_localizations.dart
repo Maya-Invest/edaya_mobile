@@ -3985,6 +3985,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Received from {author}, {timestamp}'**
   String messagingReceivedDescription(String author, String timestamp);
+
+  /// No description provided for @gradingMention.
+  ///
+  /// In en, this message translates to:
+  /// **'Mention'**
+  String get gradingMention;
 }
 
 class _AppLocalizationsDelegate

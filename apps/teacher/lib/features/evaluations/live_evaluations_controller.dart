@@ -296,7 +296,10 @@ class LiveEvaluationsController extends LevitController
           if (isClosed) return;
           final gradedByAssessment = <String, int>{};
           for (final result in allResults) {
-            if (result['score'] == null) {
+            if (result['score'] == null &&
+                result['mentionId'] == null &&
+                result['designation'] != 'absent' &&
+                result['designation'] != 'exempt') {
               continue;
             }
             final assessmentId = result['assessmentId'] as String?;

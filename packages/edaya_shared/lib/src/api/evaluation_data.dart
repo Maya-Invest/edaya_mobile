@@ -13,6 +13,8 @@ Map<String, dynamic> assessmentResultPayload({
   required String requestId,
   required int expectedRevision,
   String? designation,
+  String? mentionId,
+  int? expectedGradingRevision,
   DateTime? createdAt,
 }) {
   final resolvedId = resultId ?? 'ar-$assessmentId-$studentId';
@@ -20,8 +22,11 @@ Map<String, dynamic> assessmentResultPayload({
     'id': resolvedId,
     'studentId': studentId,
     'assessmentId': assessmentId,
-    'score': ?score,
-    if (designation != null || score != null)
+    'score': score,
+    if (mentionId != null || expectedGradingRevision != null)
+      'mentionId': mentionId,
+    'expectedGradingRevision': ?expectedGradingRevision,
+    if (designation != null || score != null || mentionId != null)
       'designation': designation ?? 'scored',
     'requestId': requestId,
     'expectedRevision': expectedRevision,

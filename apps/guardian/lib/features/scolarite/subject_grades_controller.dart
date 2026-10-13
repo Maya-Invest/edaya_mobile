@@ -29,6 +29,7 @@ class SubjectGradesController extends LevitController
   final AcademicYearController _academicYear;
   final SchoolClientFactory _schoolClient;
 
+  GradingPolicyView? _gradingPolicy;
   final periodLabel = LxVar('');
   final grades = LxVar<List<GradeEntry>>(const []);
   final average = LxVar<double?>(null);
@@ -46,6 +47,7 @@ class SubjectGradesController extends LevitController
 
   String get averageLabel {
     final value = average.value;
+    if (_gradingPolicy != null) return _gradingPolicy!.display(value);
     if (value == null) return '—';
     final formatted = value % 1 == 0
         ? value.toInt().toString()
@@ -77,6 +79,7 @@ class SubjectGradesController extends LevitController
           subjectFallback: systemL10n().subjectFallback,
         );
 
+        _gradingPolicy = sources.gradingPolicy;
         final entries = <GradeEntry>[];
         for (final result in sources.results) {
           final assessment =
@@ -105,16 +108,7 @@ class SubjectGradesController extends LevitController
         });
         grades(entries);
 
-        average(
-          normalizedAverageOutOf20([
-            for (final entry in entries)
-              (
-                score: entry.score,
-                maxScore: entry.maxScore,
-                coefficient: entry.coefficient,
-              ),
-          ]),
-        );
+        average(averageGrades(entries, _gradingPolicy));
       } on api.ApiError catch (error) {
         errorMessage(systemL10n().couldNotLoadAcademicData(error.toString()));
       } on Object catch (error) {

@@ -20,7 +20,9 @@ class MarksCorrectionsPanel extends StatelessWidget {
         ? context.tr.marksAbsent
         : value['designation'] == 'exempt'
         ? context.tr.marksExempt
-        : (value['score'] as num?)?.toStringAsFixed(2) ?? '—';
+        : value['mentionId'] is String
+        ? controller.mentionLabel(value['mentionId'] as String)
+        : (value['score'] as num?)?.toString() ?? '—';
     String status(String value) => switch (value) {
       'approved' => context.tr.marksCorrectionApproved,
       'rejected' => context.tr.marksCorrectionRejected,
@@ -93,14 +95,16 @@ class MarksCorrectionsPanel extends StatelessWidget {
 
 class _CorrectionDraft {
   _CorrectionDraft(this.row)
-    : score = TextEditingController(text: row.score?.toStringAsFixed(2) ?? ''),
+    : score = TextEditingController(text: row.score?.toString() ?? ''),
       notes = TextEditingController(text: row.notes ?? ''),
       designation = row.designation ?? 'scored',
+      mentionId = row.mentionId,
       deadlineStatus = row.deadlineStatus;
   final LiveMarkRow row;
   final TextEditingController score;
   final TextEditingController notes;
   String designation;
+  String? mentionId;
   String? deadlineStatus;
   bool selected = false;
   void dispose() {
@@ -109,7 +113,8 @@ class _CorrectionDraft {
   }
 
   Map<String, dynamic> get proposed => {
-    'score': designation == 'scored'
+    'mentionId': designation == 'scored' ? mentionId : null,
+    'score': designation == 'scored' && mentionId == null
         ? double.tryParse(score.text.trim().replaceAll(',', '.'))
         : null,
     'designation': designation,
@@ -169,6 +174,7 @@ class _CorrectionFormState extends State<_CorrectionForm> {
       final proposed = change['proposed'] as Map;
       draft.selected = true;
       draft.designation = proposed['designation'] as String;
+      draft.mentionId = proposed['mentionId'] as String?;
       draft.score.text = (proposed['score'] as num?)?.toString() ?? '';
       draft.notes.text = proposed['notes'] as String? ?? '';
       draft.deadlineStatus =
@@ -204,7 +210,7 @@ class _CorrectionFormState extends State<_CorrectionForm> {
                       ? context.tr.marksAbsent
                       : draft.row.designation == 'exempt'
                       ? context.tr.marksExempt
-                      : draft.row.score?.toStringAsFixed(2) ?? '—'}',
+                      : draft.row.mentionCode ?? draft.row.score?.toString() ?? '—'}',
                 ),
                 onChanged: busy
                     ? null
@@ -241,7 +247,39 @@ class _CorrectionFormState extends State<_CorrectionForm> {
                           changed();
                         },
                 ),
-                if (draft.designation == 'scored')
+                if (draft.designation == 'scored' &&
+                    widget.controller.mentionFirst)
+                  DropdownButtonFormField<String>(
+                    initialValue:
+                        widget.controller.mentions.any(
+                          (range) => range['id'] == draft.mentionId,
+                        )
+                        ? draft.mentionId
+                        : null,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: context.tr.gradingMention,
+                    ),
+                    items: [
+                      for (final range in widget.controller.mentions)
+                        DropdownMenuItem(
+                          value: range['id'] as String,
+                          child: Text(
+                            '${range['letter']} — ${range['interpretation']}',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                    ],
+                    onChanged: busy
+                        ? null
+                        : (value) {
+                            draft.mentionId = value;
+                            draft.score.clear();
+                            changed();
+                          },
+                  ),
+                if (draft.designation == 'scored' &&
+                    !widget.controller.mentionFirst)
                   TextField(
                     controller: draft.score,
                     enabled: !busy,
@@ -298,7 +336,7 @@ class _CorrectionFormState extends State<_CorrectionForm> {
             ),
             for (final draft in selected)
               Text(
-                '${draft.row.fullName}: ${draft.row.score?.toStringAsFixed(2) ?? draft.row.designation ?? '—'} → ${draft.designation == 'scored' ? draft.score.text : draft.designation} · ${draft.notes.text}',
+                '${draft.row.fullName}: ${draft.row.mentionCode ?? draft.row.score?.toString() ?? draft.row.designation ?? '—'} → ${draft.designation == 'scored' ? (draft.mentionId == null ? draft.score.text : widget.controller.mentionLabel(draft.mentionId!)) : draft.designation} · ${draft.notes.text}',
               ),
             LWatch(() => Text(widget.controller.saveMessage.value)),
           ],

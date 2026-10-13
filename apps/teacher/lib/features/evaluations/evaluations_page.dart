@@ -167,7 +167,7 @@ class _MockMarksEntryPage extends LScopedView<StoreBoundController> {
                         SizedBox(
                           width: 72,
                           child: TextFormField(
-                            initialValue: mark.score?.toStringAsFixed(2) ?? '',
+                            initialValue: mark.score?.toString() ?? '',
                             keyboardType: TextInputType.number,
                             decoration: const InputDecoration(
                               isDense: true,
@@ -611,7 +611,7 @@ class _LiveMarksEntryPage extends LScopedView<LiveMarksController> {
           padding: const EdgeInsets.all(PrototypeSpacing.md),
           children: [
             Text(
-              '${evaluation.classLabel} · ${evaluation.subjectLabel} · max ${evaluation.maxScore.toStringAsFixed(0)}',
+              '${evaluation.classLabel} · ${evaluation.subjectLabel} · ${controller.mentionFirst ? context.tr.gradingMention : 'max ${evaluation.maxScore}'}',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             Text(
@@ -636,10 +636,12 @@ class _LiveMarksEntryPage extends LScopedView<LiveMarksController> {
             Wrap(
               spacing: PrototypeSpacing.sm,
               children: [
-                OutlinedButton(
-                  onPressed: () => controller.fillUngraded(evaluation.maxScore),
-                  child: const Text('Remplir max'),
-                ),
+                if (!controller.mentionFirst)
+                  OutlinedButton(
+                    onPressed: () =>
+                        controller.fillUngraded(evaluation.maxScore),
+                    child: const Text('Remplir max'),
+                  ),
                 OutlinedButton(
                   onPressed: controller.clearUnlocked,
                   child: const Text('Effacer'),
@@ -695,25 +697,72 @@ class _LiveMarksEntryPage extends LScopedView<LiveMarksController> {
                           ),
                         ),
                       ),
-                      SizedBox(
-                        width: 72,
-                        child: TextFormField(
-                          key: ValueKey('${mark.studentId}-${mark.score}'),
-                          initialValue: mark.score?.toStringAsFixed(2) ?? '',
-                          enabled: !mark.marksLocked,
-                          keyboardType: TextInputType.number,
-                          textInputAction: TextInputAction.next,
-                          decoration: const InputDecoration(
-                            isDense: true,
-                            border: OutlineInputBorder(),
-                            hintText: '—',
+                      if (controller.mentionFirst)
+                        Flexible(
+                          child: DropdownButtonFormField<String>(
+                            key: ValueKey(
+                              '${mark.studentId}-${mark.mentionId}',
+                            ),
+                            isExpanded: true,
+                            initialValue:
+                                controller.mentions.any(
+                                  (range) => range['id'] == mark.mentionId,
+                                )
+                                ? mark.mentionId
+                                : null,
+                            decoration: InputDecoration(
+                              labelText: context.tr.gradingMention,
+                              helperText: mark.score != null
+                                  ? '${mark.score} / ${evaluation.maxScore}'
+                                  : !controller.mentions.any(
+                                      (range) => range['id'] == mark.mentionId,
+                                    )
+                                  ? mark.mentionCode
+                                  : null,
+                              isDense: true,
+                            ),
+                            items: [
+                              for (final range in controller.mentions)
+                                DropdownMenuItem(
+                                  value: range['id'] as String,
+                                  child: Text(
+                                    '${range['letter']} — ${range['interpretation']}',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                            ],
+                            onChanged: mark.marksLocked
+                                ? null
+                                : (id) => controller.saveScore(
+                                    mark.studentId,
+                                    null,
+                                    mentionId: id,
+                                  ),
                           ),
-                          onFieldSubmitted: (value) {
-                            controller.saveScoreText(mark.studentId, value);
-                          },
-                          onEditingComplete: () {},
+                        )
+                      else
+                        SizedBox(
+                          width: 72,
+                          child: TextFormField(
+                            key: ValueKey('${mark.studentId}-${mark.score}'),
+                            initialValue: mark.score?.toString() ?? '',
+                            enabled: !mark.marksLocked,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            textInputAction: TextInputAction.next,
+                            decoration: InputDecoration(
+                              isDense: true,
+                              border: const OutlineInputBorder(),
+                              hintText: '—',
+                              helperText: mark.mentionCode,
+                            ),
+                            onFieldSubmitted: (value) {
+                              controller.saveScoreText(mark.studentId, value);
+                            },
+                            onEditingComplete: () {},
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -954,7 +1003,7 @@ class _LiveReportCardRosterPage
                   return ListRow(
                     title: row.studentName,
                     subtitle: row.hasReportCard
-                        ? 'Moy. ${row.overallAverage?.toStringAsFixed(2) ?? '—'} · Rang ${row.rank ?? '—'}'
+                        ? '${row.aggregateLabel ?? 'Moy.'} ${row.averageLabel} · Rang ${row.rank ?? '—'}'
                         : 'Bulletin non généré',
                     badge: row.hasComment ? 'OK' : 'Commentaire',
                     badgeTone: row.hasComment

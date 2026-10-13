@@ -278,18 +278,14 @@ class _LiveResultsPage extends LScopedView<ResultsController> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        reportCard.overallAverage == null
-                            ? '—'
-                            : reportCard.overallAverage!
-                                  .toStringAsFixed(2)
-                                  .replaceAll('.', ','),
+                        reportCard.averageLabel,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                       Text(
-                        'Moyenne',
+                        reportCard.aggregateLabel ?? 'Moyenne',
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                     ],

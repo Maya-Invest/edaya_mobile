@@ -2287,4 +2287,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String messagingReceivedDescription(String author, String timestamp) {
     return 'Reçu de $author, $timestamp';
   }
+
+  @override
+  String get gradingMention => 'Mention';
 }

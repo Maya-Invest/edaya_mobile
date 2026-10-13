@@ -32,6 +32,7 @@ class SubjectPeriodResult {
     required this.gradeCount,
     this.average,
     this.maxScore = 20,
+    this.policy,
   });
 
   final String subject;
@@ -40,10 +41,12 @@ class SubjectPeriodResult {
   final int gradeCount;
   final double? average;
   final double maxScore;
+  final GradingPolicyView? policy;
 
   bool get hasAverage => average != null;
 
   String get averageLabel {
+    if (policy != null) return policy!.display(average);
     if (average == null) return '—';
     final formatted = average! % 1 == 0
         ? average!.toInt().toString()
@@ -68,6 +71,7 @@ class ResultsController extends LevitController with LevitReactiveTasksMixin {
   final AcademicYearController _academicYear;
   final SchoolClientFactory _schoolClient;
 
+  GradingPolicyView? _gradingPolicy;
   final periods = LxVar<List<ResultsPeriod>>(const []);
   final gradeGroups = LxVar<List<SubjectGradeGroup>>(const []);
   final reportCards = LxVar<List<ReportCardSummary>>(const []);
@@ -145,6 +149,8 @@ class ResultsController extends LevitController with LevitReactiveTasksMixin {
             periodId: periodId,
             periodLabel: period.label,
             gradeCount: entries.length,
+            policy: _gradingPolicy,
+            maxScore: _gradingPolicy?.maximum ?? 20,
             average: _weightedAverage(entries.where((e) => e.hasScore)),
           );
         })
@@ -224,6 +230,7 @@ class ResultsController extends LevitController with LevitReactiveTasksMixin {
             subjectFallback: systemL10n().subjectFallback,
           );
 
+          _gradingPolicy = sources.gradingPolicy;
           final entries = <GradeEntry>[];
           for (final result in sources.results) {
             final assessmentId = result['assessmentId'] as String?;
@@ -338,16 +345,8 @@ class ResultsController extends LevitController with LevitReactiveTasksMixin {
     }
   }
 
-  double? _weightedAverage(Iterable<GradeEntry> entries) {
-    return normalizedAverageOutOf20([
-      for (final entry in entries)
-        (
-          score: entry.score,
-          maxScore: entry.maxScore,
-          coefficient: entry.coefficient,
-        ),
-    ]);
-  }
+  double? _weightedAverage(Iterable<GradeEntry> entries) =>
+      averageGrades(entries, _gradingPolicy);
 
   List<ReportCardSummary> _dedupeReportCardsByPeriod(
     List<ReportCardSummary> cards,

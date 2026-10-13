@@ -446,6 +446,13 @@ class _AssessmentSection extends StatelessWidget {
             ],
           ),
         ),
+        if (controller.assessmentMention.value != null)
+          SurfaceCard(
+            child: Text(
+              controller.assessmentMention.value!,
+              style: textTheme.titleLarge,
+            ),
+          ),
         if (score != null && maxScore != null) ...[
           const SizedBox(height: PrototypeSpacing.md),
           const SectionHeader(title: 'Note de l\'élève'),

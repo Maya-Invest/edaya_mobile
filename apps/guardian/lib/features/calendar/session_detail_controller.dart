@@ -30,6 +30,7 @@ class SessionDetailController extends LevitController
   final assessmentTitle = LxVar<String?>(null);
   final assessmentDescription = LxVar<String?>(null);
   final assessmentInstructions = LxVar<String?>(null);
+  final assessmentMention = LxVar<String?>(null);
   final assessmentScore = LxVar<double?>(null);
   final assessmentMaxScore = LxVar<double?>(null);
   final assessmentCoefficient = LxVar<double?>(null);
@@ -46,6 +47,7 @@ class SessionDetailController extends LevitController
     autoDispose(assessmentDescription);
     autoDispose(assessmentInstructions);
     autoDispose(assessmentScore);
+    autoDispose(assessmentMention);
     autoDispose(assessmentMaxScore);
     autoDispose(assessmentCoefficient);
     autoDispose(activityNotes);
@@ -176,6 +178,12 @@ class SessionDetailController extends LevitController
         'assessmentId': resolved.id,
       });
       if (results.isNotEmpty) {
+        final entry = results.first['originalEntry'] as Map?;
+        assessmentMention(
+          entry?['kind'] == 'mention'
+              ? '${entry!['code']} — ${entry['label']}'
+              : null,
+        );
         final rawScore = results.first['score'];
         assessmentScore(
           rawScore is num

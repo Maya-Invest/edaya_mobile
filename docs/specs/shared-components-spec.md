@@ -65,3 +65,10 @@ Personal inboxes load all pages with their existing recipient and school scope b
 `ConversationMessageBubble` is shared by Guardian and Teacher. `isOutgoingConversationMessage` matches both `authorKind` and `authorId` to the active profile; names never determine direction. Sent messages align right using `primaryContainer/onPrimaryContainer`, received left using `surface/onSurface`, with token surface radii and spacing. Keep authors (including the school staff prefix), selectable multiline bodies and smaller dates at the bottom. Dates use existing short-date/time preferences and timezone conversion. Localized semantic descriptions identify sent/received, author and timestamp without suggesting delivery/read receipts.
 
 Limit width to 90% below 600 logical pixels of available space, 75% above, capped at 560. At 200% text scale allow all available width up to the cap. Wrap long words/URLs, retain complete 10,000-character messages and chronological reading order. Composer, paging, polling, drafts and command behavior are unchanged. `conversation_message_bubble_test.dart` is the current screenshot fixture for both profiles, FR/EN, light/dark, compact/wide and 200% text; set `EDAYA_MESSAGE_CAPTURES` to save PNGs when running it.
+
+
+## Grading policy readers
+
+`GradingPolicyView` and `gradingAverage` own shared numeric/mention display rules. Use full-precision calculated values with existing coefficients; round or truncate only the displayed result. Never normalize mention points into percentages. Suppress provisional averages when the policy is updating or input revisions differ. Legacy numeric records retain existing normalization.
+
+Teacher entry and corrections select stable mention IDs for mention-first policies and include the displayed grading revision in commands and offline payloads. Numeric editors retain the original decimal input. Guardian report views use captured published grading metadata and do not display revised drafts. No mobile scale editor is introduced.

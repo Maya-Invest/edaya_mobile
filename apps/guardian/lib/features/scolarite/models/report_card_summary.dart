@@ -6,6 +6,8 @@ class ReportCardSummary {
     required this.periodId,
     required this.periodName,
     this.overallAverage,
+    this.grading,
+    this.aggregateLabel,
     this.rank,
     this.classSize,
     this.publishedAt,
@@ -20,6 +22,8 @@ class ReportCardSummary {
       periodId: json['periodId'] as String,
       periodName: periodName,
       overallAverage: (json['overallAverage'] as num?)?.toDouble(),
+      grading: (json['grading'] as Map?)?.cast<String, dynamic>(),
+      aggregateLabel: json['aggregateLabel'] as String?,
       rank: json['rank'] as int?,
       classSize: json['classSize'] as int?,
       publishedAt: parseApiDateTime(json['publishedAt']),
@@ -30,6 +34,9 @@ class ReportCardSummary {
   final String periodId;
   final String periodName;
   final double? overallAverage;
+  final Map<String, dynamic>? grading;
+  final String? aggregateLabel;
+  String get averageLabel => formatCalculatedGrade(overallAverage, grading);
   final int? rank;
   final int? classSize;
   final DateTime? publishedAt;
@@ -39,6 +46,7 @@ class ReportCardSectionMark {
   const ReportCardSectionMark({
     required this.name,
     required this.average,
+    this.grading,
     this.comment,
     this.subjects = const [],
     this.groupComments = const [],
@@ -51,6 +59,7 @@ class ReportCardSectionMark {
     return ReportCardSectionMark(
       name: json['name'] as String? ?? 'Section',
       average: (json['average'] as num?)?.toDouble(),
+      grading: (json['grading'] as Map?)?.cast<String, dynamic>(),
       comment: json['comment'] as String?,
       groupComments: _collectGroupComments(json['subResults']),
       subjects: json['sectionKind'] == 'subject'
@@ -131,6 +140,8 @@ class ReportCardSectionMark {
 
   final String name;
   final double? average;
+  final Map<String, dynamic>? grading;
+  String get averageLabel => formatCalculatedGrade(average, grading);
   final String? comment;
   final List<ReportCardSubjectMark> subjects;
   final List<ReportCardGroupComment> groupComments;
@@ -146,6 +157,7 @@ class ReportCardSubjectMark {
   const ReportCardSubjectMark({
     required this.name,
     required this.average,
+    this.grading,
     this.rank,
     this.comment,
   });
@@ -160,6 +172,7 @@ class ReportCardSubjectMark {
           json['name'] as String? ??
           systemL10n().subjectFallback,
       average: (json['average'] as num?)?.toDouble(),
+      grading: (json['grading'] as Map?)?.cast<String, dynamic>(),
       rank: json['rank'] as int?,
       comment: json['comment'] as String?,
     );
@@ -167,6 +180,8 @@ class ReportCardSubjectMark {
 
   final String name;
   final double? average;
+  final Map<String, dynamic>? grading;
+  String get averageLabel => formatCalculatedGrade(average, grading);
   final int? rank;
   final String? comment;
 }
@@ -176,6 +191,8 @@ class ReportCardDetail {
     required this.id,
     required this.periodName,
     this.overallAverage,
+    this.grading,
+    this.aggregateLabel,
     this.rank,
     this.classSize,
     this.teacherComment,
@@ -222,6 +239,8 @@ class ReportCardDetail {
       id: json['id'] as String,
       periodName: periodName,
       overallAverage: (json['overallAverage'] as num?)?.toDouble(),
+      grading: (json['grading'] as Map?)?.cast<String, dynamic>(),
+      aggregateLabel: json['aggregateLabel'] as String?,
       rank: json['rank'] as int?,
       classSize: json['classSize'] as int?,
       teacherComment: json['teacherComment'] as String?,
@@ -234,6 +253,9 @@ class ReportCardDetail {
   final String id;
   final String periodName;
   final double? overallAverage;
+  final Map<String, dynamic>? grading;
+  final String? aggregateLabel;
+  String get averageLabel => formatCalculatedGrade(overallAverage, grading);
   final int? rank;
   final int? classSize;
   final String? teacherComment;

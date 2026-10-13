@@ -11,6 +11,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class _Evaluations extends Fake implements LiveEvaluationsController {
   @override
+  void patchGradedCount(String id, int count) {}
+  @override
   LiveEvaluationSummary? evaluationById(String id) => LiveEvaluationSummary(
     id: id,
     title: 'Math',
@@ -26,11 +28,17 @@ class _Evaluations extends Fake implements LiveEvaluationsController {
 
 class _Year extends Fake implements AcademicYearController {}
 
-class _Context extends Fake implements TeacherContextController {}
+class _Context extends Fake implements TeacherContextController {
+  @override
+  final taughtClassSubjectIds = LxVar<Set<String>>({});
+}
 
 class _Client extends Fake implements api.SchoolClient {
   final writes = <Map<String, dynamic>>[];
   bool failFirst = false;
+  bool mentionFirst = false;
+  bool numericAfterMention = false;
+  bool draft = false;
   @override
   Future<Map<String, dynamic>> runQuery(
     String name,
@@ -39,8 +47,30 @@ class _Client extends Fake implements api.SchoolClient {
     'assessment': {
       'id': 'assessment',
       'marksRevision': 2,
-      'marksStatus': 'submitted',
+      'marksStatus': draft ? 'draft' : 'submitted',
     },
+    if (mentionFirst)
+      'gradingPolicy': {
+        'revision': 2,
+        'mode': numericAfterMention ? 'numeric-first' : 'mention-first',
+        'status': 'completed',
+        'aggregateLabel': 'GPA',
+        'scale': {
+          'id': 'points',
+          'maxScore': 4,
+          'decimalPlaces': 2,
+          'ranges': [
+            {
+              'id': 'b',
+              'letter': 'B',
+              'interpretation': 'Good',
+              'minScore': 0,
+              'maxScore': 4,
+              'gpaValue': 3,
+            },
+          ],
+        },
+      },
     'allowedActions': {'submit': false, 'requestCorrection': true},
     'publishedResultIds': <String>[],
     'corrections': <Map<String, dynamic>>[],
@@ -51,7 +81,9 @@ class _Client extends Fake implements api.SchoolClient {
       {
         'id': 'mark',
         'studentId': 'student',
-        'score': 12.75,
+        'score': mentionFirst ? null : 12.75,
+        if (mentionFirst) 'mentionId': 'b',
+        if (mentionFirst) 'originalEntry': {'kind': 'mention', 'code': 'B'},
         'designation': 'scored',
         'revision': 1,
       },
@@ -186,6 +218,64 @@ void main() {
         containsPair('status', 'met'),
       );
       expect(marks.students.value.single.score, 12.75);
+    },
+  );
+  test(
+    'fill ungraded retains original mentions after a switch to numeric entry',
+    () async {
+      final client = _Client()
+        ..mentionFirst = true
+        ..numericAfterMention = true
+        ..draft = true;
+      final marks = controller(client, InMemoryTeacherOutboxStore());
+      await marks.load();
+      expect(marks.mentionFirst, isFalse);
+      expect(marks.students.value.single.score, isNull);
+      expect(marks.students.value.single.mentionCode, 'B');
+      await marks.fillUngraded(20);
+      expect(client.writes, isEmpty);
+      expect(marks.students.value.single.mentionId, 'b');
+    },
+  );
+
+  test(
+    'mention entry and corrections preserve identifiers and the displayed policy revision',
+    () async {
+      final client = _Client()
+        ..mentionFirst = true
+        ..draft = true;
+      final marks = controller(client, InMemoryTeacherOutboxStore());
+      await marks.load();
+      expect(marks.mentionFirst, isTrue);
+      expect(marks.mentionLabel('b'), 'B');
+      expect(marks.students.value.single.mentionCode, 'B');
+      marks.ungradedOnly(true);
+      expect(marks.visibleStudents, isEmpty);
+      await marks.saveScore('student', null, mentionId: 'b');
+      expect(client.writes.last['score'], isNull);
+      expect(client.writes.last['mentionId'], 'b');
+      expect(client.writes.last['expectedGradingRevision'], 2);
+      client.draft = false;
+      await marks.load();
+      expect(
+        await marks.requestCorrection([
+          {
+            'resultId': 'mark',
+            'proposed': {
+              'score': null,
+              'mentionId': 'b',
+              'designation': 'scored',
+              'notes': 'Checked',
+            },
+          },
+        ], 'Reviewed'),
+        isTrue,
+      );
+      expect(client.writes.last['expectedGradingRevision'], 2);
+      expect(
+        (client.writes.last['changes'] as List).single['proposed']['score'],
+        isNull,
+      );
     },
   );
 }

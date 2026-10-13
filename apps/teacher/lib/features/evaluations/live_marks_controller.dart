@@ -21,6 +21,8 @@ class LiveMarkRow {
     this.photoUrl,
     this.resultId,
     this.score,
+    this.mentionId,
+    this.mentionCode,
     this.designation,
     this.marksLocked = false,
     this.published = false,
@@ -35,6 +37,8 @@ class LiveMarkRow {
   final String? photoUrl;
   final String? resultId;
   final double? score;
+  final String? mentionId;
+  final String? mentionCode;
   final String? designation;
   final bool marksLocked;
   final bool published;
@@ -47,6 +51,7 @@ class LiveMarkRow {
   LiveMarkRow copyWith({
     Object? resultId = _unset,
     Object? score = _unset,
+    Object? mentionId = _unset,
     Object? designation = _unset,
     bool? marksLocked,
     MarkSyncState? syncState,
@@ -59,6 +64,10 @@ class LiveMarkRow {
       resultId: identical(resultId, _unset)
           ? this.resultId
           : resultId as String?,
+      mentionId: identical(mentionId, _unset)
+          ? this.mentionId
+          : mentionId as String?,
+      mentionCode: mentionCode,
       score: identical(score, _unset) ? this.score : score as double?,
       designation: identical(designation, _unset)
           ? this.designation
@@ -99,6 +108,19 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
   final ungradedOnly = LxVar(false);
   final errorMessage = LxVar('');
   final saveMessage = LxVar('');
+  String mentionLabel(String id) =>
+      (mentions.where((range) => range['id'] == id).firstOrNull?['letter']
+          as String?) ??
+      students.value
+          .where((row) => row.mentionId == id)
+          .firstOrNull
+          ?.mentionCode ??
+      id;
+
+  final gradingPolicy = LxVar<GradingPolicyView?>(null);
+  bool get mentionFirst => gradingPolicy.value?.mentionFirst ?? false;
+  List<Map<String, dynamic>> get mentions =>
+      gradingPolicy.value?.intervals ?? const [];
   final marksStatus = LxVar('draft');
   final canRequestCorrection = LxVar(false);
   final corrections = LxVar<List<Map<String, dynamic>>>(const []);
@@ -115,6 +137,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
     autoDispose(errorMessage);
     autoDispose(saveMessage);
     autoDispose(marksStatus);
+    autoDispose(gradingPolicy);
     autoDispose(canRequestCorrection);
     autoDispose(corrections);
     autoDispose(canSubmit);
@@ -131,6 +154,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
         .where(
           (row) =>
               row.score == null &&
+              row.mentionId == null &&
               row.designation != 'absent' &&
               row.designation != 'exempt',
         )
@@ -173,6 +197,13 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
             date: sheet['startsAt'] as String?,
           );
         }
+        gradingPolicy(
+          review['gradingPolicy'] is Map
+              ? GradingPolicyView(
+                  Map<String, dynamic>.from(review['gradingPolicy'] as Map),
+                )
+              : null,
+        );
         evaluation(summary);
         _revision = (sheet['marksRevision'] as num).toInt();
         marksStatus(sheet['marksStatus'] as String);
@@ -223,6 +254,8 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
             photoUrl: row['photoUrl'] as String?,
             resultId: result?['id'] as String?,
             score: (result?['score'] as num?)?.toDouble(),
+            mentionId: result?['mentionId'] as String?,
+            mentionCode: (result?['originalEntry'] as Map?)?['code'] as String?,
             designation: result?['designation'] as String?,
             marksLocked: marksStatus.value != 'draft',
             published: published.contains(result?['id']),
@@ -250,6 +283,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
             entry.payload['studentId'] as String,
             resultId: entry.payload['id'] as String?,
             score: (entry.payload['score'] as num?)?.toDouble(),
+            mentionId: entry.payload['mentionId'] as String?,
             designation: entry.payload['designation'] as String?,
             syncState: teacherOutboxEntryIsReplayable(entry)
                 ? MarkSyncState.pending
@@ -268,6 +302,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
     String studentId,
     double? score, {
     String? designation,
+    String? mentionId,
   }) async {
     if (isClosed || _saving || marksStatus.value != 'draft') return;
     final summary = evaluation.value;
@@ -295,6 +330,13 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
       saveMessage(systemL10n().couldNotSaveMark('403'));
       return;
     }
+    if (mentionFirst &&
+        (score != null ||
+            (mentionId != null &&
+                !mentions.any((range) => range['id'] == mentionId)))) {
+      saveMessage(systemL10n().marksInvalidNumber);
+      return;
+    }
     saveMessage('');
     _outboxStore.bindContext(_outboxContext?.call());
     final resultId = row.resultId ?? 'ar-${summary.id}-$studentId';
@@ -302,7 +344,9 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
       studentId,
       resultId: resultId,
       score: score,
-      designation: designation ?? (score != null ? 'scored' : null),
+      mentionId: mentionId,
+      designation:
+          designation ?? (score != null || mentionId != null ? 'scored' : null),
       syncState: MarkSyncState.pending,
     );
     final requestId = newSchoolRequestId();
@@ -311,10 +355,12 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
       assessmentId: summary.id,
       studentId: studentId,
       score: score,
+      mentionId: mentionId,
       designation: designation,
       resultId: resultId,
       requestId: requestId,
       expectedRevision: _revision,
+      expectedGradingRevision: gradingPolicy.value?.revision ?? 0,
     );
     _saving = true;
     try {
@@ -335,12 +381,23 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
         studentId,
         resultId: resultId,
         score: score,
-        designation: designation ?? (score != null ? 'scored' : null),
+        mentionId: mentionId,
+        designation:
+            designation ??
+            (score != null || mentionId != null ? 'scored' : null),
         syncState: MarkSyncState.synced,
       );
       _evaluations.patchGradedCount(
         summary.id,
-        students.value.where((item) => item.score != null).length,
+        students.value
+            .where(
+              (item) =>
+                  item.score != null ||
+                  item.mentionId != null ||
+                  item.designation == 'absent' ||
+                  item.designation == 'exempt',
+            )
+            .length,
       );
     } on Object catch (error) {
       if (isClosed) return;
@@ -363,7 +420,10 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
         studentId,
         resultId: resultId,
         score: score,
-        designation: designation ?? (score != null ? 'scored' : null),
+        mentionId: mentionId,
+        designation:
+            designation ??
+            (score != null || mentionId != null ? 'scored' : null),
         syncState: retryable ? MarkSyncState.pending : MarkSyncState.failed,
       );
       saveMessage(
@@ -381,6 +441,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
     for (final row in students.value) {
       if (isClosed) return;
       if (row.score != null ||
+          row.mentionId != null ||
           row.designation == 'absent' ||
           row.designation == 'exempt' ||
           row.marksLocked) {
@@ -394,7 +455,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
     if (isClosed) return;
     for (final row in students.value) {
       if (isClosed) return;
-      if (row.marksLocked || row.score == null) {
+      if (row.marksLocked || (row.score == null && row.mentionId == null)) {
         continue;
       }
       await saveScore(row.studentId, null);
@@ -406,6 +467,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
     String? resultId,
     double? score,
     String? designation,
+    String? mentionId,
     MarkSyncState? syncState,
   }) {
     students([
@@ -414,6 +476,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
           item.copyWith(
             resultId: resultId,
             score: score,
+            mentionId: mentionId,
             designation: designation,
             syncState: syncState,
           )
@@ -470,10 +533,12 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
       final proposed = change['proposed'] as Map;
       final score = proposed['score'] as num?;
       if (proposed['designation'] == 'scored' &&
-          (score == null ||
-              !score.isFinite ||
-              score < 0 ||
-              score > (evaluation.value?.maxScore ?? 0))) {
+          (mentionFirst
+              ? !mentions.any((range) => range['id'] == proposed['mentionId'])
+              : (score == null ||
+                    !score.isFinite ||
+                    score < 0 ||
+                    score > (evaluation.value?.maxScore ?? 0)))) {
         saveMessage(systemL10n().marksInvalidNumber);
         return false;
       }
@@ -484,6 +549,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
         await _onlineCommand('request', {
           'assessmentId': evaluationId,
           'expectedRevision': _revision,
+          'expectedGradingRevision': gradingPolicy.value?.revision ?? 0,
           'reason': reason.trim(),
           'changes': changes,
         }, _schoolClient().requestAssessmentMarksCorrection);
@@ -494,6 +560,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
             'correctionId': correction['id'],
             'assessmentId': evaluationId,
             'expectedRevision': _revision,
+            'expectedGradingRevision': gradingPolicy.value?.revision ?? 0,
             'expectedVersion': correction['version'],
             'reason': reason.trim(),
             'changes': changes,

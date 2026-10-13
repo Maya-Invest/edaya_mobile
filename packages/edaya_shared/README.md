@@ -9,3 +9,8 @@ Loading, empty, error and ready presentation continues through `DataState`. Its 
 Edit localization in `lib/l10n/*.arb` and regenerate using `flutter gen-l10n` in this package. Run repository `melos run verify` for generated/brand drift, static analysis, and isolated tests. Actual provider/device qualification is separate.
 
 `PersonAvatar` resolves protected `/core/files/{attachmentId}/content` portraits through the scoped `SchoolClientFactory` download grant, then fetches signed storage images without API credentials. Same-origin local memory-storage routes retain bearer authentication and one renewal retry, with redirects disabled. Local storage URLs follow the configured emulator host. It uses the scoped `AuthClient` HTTP transport and falls back to initials on denied or unavailable images. App wrappers can retain their brand presentation through `backgroundColor` and `initialsStyle`.
+
+
+### Grading policy readers
+
+`GradingPolicyView` reads a captured level/year policy, rounds or truncates at its configured precision, and matches continuous intervals. `gradingAverage` weights full-precision backend values directly; it returns no average for unfinished or mixed revisions. Legacy entries retain their existing /20 normalization. `formatCalculatedGrade` displays immutable report metadata without consulting a mutable scale. Teacher payloads accept stable mention IDs and the displayed policy revision; offline replay retains both.

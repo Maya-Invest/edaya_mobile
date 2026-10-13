@@ -4,10 +4,12 @@ import 'package:edaya_shared/edaya_shared.dart';
 class StudentGradeSources {
   const StudentGradeSources({
     required this.results,
+    this.gradingPolicy,
     required this.assessmentById,
     required this.subjectNameByClassSubjectId,
   });
 
+  final GradingPolicyView? gradingPolicy;
   final List<Map<String, dynamic>> results;
   final Map<String, Map<String, dynamic>> assessmentById;
   final Map<String, String> subjectNameByClassSubjectId;
@@ -61,7 +63,25 @@ Future<StudentGradeSources> fetchStudentGradeSources({
       assessment['id'] as String: assessment,
   };
 
+  GradingPolicyView? policy;
+  try {
+    final group = await client.classGroups.get(classGroupId);
+    final level = await client.gradeLevels.get(group['gradeLevelId'] as String);
+    final policies =
+        ((level['gradingPolicies'] as List?) ?? const [])
+            .whereType<Map>()
+            .where((row) => row['academicYearId'] == group['academicYearId'])
+            .toList()
+          ..sort(
+            (a, b) => (b['revision'] as num).compareTo(a['revision'] as num),
+          );
+    if (policies.isNotEmpty)
+      policy = GradingPolicyView(Map<String, dynamic>.from(policies.first));
+  } on Object {
+    // Configured results will not fall back to legacy /20 calculations.
+  }
   return StudentGradeSources(
+    gradingPolicy: policy,
     results: resultRows,
     assessmentById: assessmentById,
     subjectNameByClassSubjectId: subjectNameByClassSubjectId,

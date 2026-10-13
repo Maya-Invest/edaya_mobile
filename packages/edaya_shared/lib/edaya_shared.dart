@@ -70,3 +70,5 @@ export 'src/features/messaging/conversation_notification_navigation.dart';
 export 'src/features/messaging/messaging_events.dart';
 
 export 'src/ui/calendar_week_strip.dart';
+
+export 'src/academic/grading_policy.dart';

@@ -137,9 +137,7 @@ class _LiveReportCardDetailPage extends LScopedView<ReportCardController> {
       );
     }
 
-    final averageLabel = card.overallAverage == null
-        ? '—'
-        : card.overallAverage!.toStringAsFixed(2).replaceAll('.', ',');
+    final averageLabel = card.averageLabel;
 
     final downloading =
         controller.downloadStatus.value == ReportCardPdfStatus.downloading;
@@ -156,7 +154,7 @@ class _LiveReportCardDetailPage extends LScopedView<ReportCardController> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Moyenne générale',
+                  card.aggregateLabel ?? 'Moyenne générale',
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
                 Text(
@@ -232,10 +230,7 @@ class _LiveReportCardDetailPage extends LScopedView<ReportCardController> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      subject.average
-                              ?.toStringAsFixed(2)
-                              .replaceAll('.', ',') ??
-                          '—',
+                      subject.averageLabel,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                       ),
