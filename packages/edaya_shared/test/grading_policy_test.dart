@@ -12,6 +12,8 @@ GradingPolicyView policy({
   'scale': {
     'id': 'gpa',
     'maxScore': 4,
+    'minScore': 0,
+    'intervalConvention': 'continuous',
     'decimalPlaces': 2,
     'roundingMode': rounding,
     'ranges': [
@@ -27,6 +29,30 @@ void main() {
     expect(policy(rounding: 'truncate').mention(1.999)?['letter'], 'F');
     expect(policy().mention(4)?['letter'], 'A');
     expect(policy().display(3.333333), '3.33 / 4.0 · B');
+  });
+  test('thresholds reject out-of-range values before rounding', () {
+    for (final value in [-0.001, 4.001, double.nan, double.infinity]) {
+      expect(policy().mention(value), isNull);
+    }
+    expect(policy().mention(0)?['letter'], 'F');
+    expect(policy().mention(2)?['letter'], 'B');
+    expect(policy().mention(3.5)?['letter'], 'A');
+    final empty = policy();
+    empty.scale['ranges'] = <Map<String, dynamic>>[];
+    expect(empty.mention(2), isNull);
+  });
+  test('minimum thresholds and legacy snapshots use their own conventions', () {
+    final current = policy();
+    for (final row in current.scale['ranges'] as List) {
+      (row as Map).remove('maxScore');
+    }
+    expect(current.mention(2)?['letter'], 'B');
+    expect(current.mention(4)?['letter'], 'A');
+    final legacy = policy();
+    legacy.scale.remove('intervalConvention');
+    expect(legacy.mention(2)?['letter'], 'F');
+    (legacy.scale['ranges'] as List)[0]['maxScore'] = 1.9;
+    expect(legacy.mention(1.95), isNull);
   });
   test('averages raw points without replacing them with mention points', () {
     final entries = [

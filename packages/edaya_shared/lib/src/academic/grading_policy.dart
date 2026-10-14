@@ -27,14 +27,22 @@ class GradingPolicyView {
   }
 
   Map<String, dynamic>? mention(double value) {
+    final minimum = (scale['minScore'] as num?)?.toDouble() ?? 0;
+    if (!value.isFinite || value < minimum || value > maximum) return null;
     final reported = round(value);
-    final ranges = intervals;
-    for (var index = 0; index < ranges.length; index++) {
-      final range = ranges[index];
-      if (reported >= (range['minScore'] as num) &&
-          (reported < (range['maxScore'] as num) ||
-              (index == ranges.length - 1 && reported == maximum))) {
-        return range;
+    final ranges = intervals
+      ..sort((a, b) => (a['minScore'] as num).compareTo(b['minScore'] as num));
+    if (scale['intervalConvention'] == 'continuous') {
+      for (final range in ranges.reversed) {
+        if (reported >= (range['minScore'] as num)) return range;
+      }
+    } else {
+      // Old captured scales retain their closed upper bounds and gaps.
+      for (final range in ranges) {
+        if (reported >= (range['minScore'] as num) &&
+            reported <= (range['maxScore'] as num)) {
+          return range;
+        }
       }
     }
     return null;

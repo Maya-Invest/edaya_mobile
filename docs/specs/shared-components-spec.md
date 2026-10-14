@@ -72,3 +72,7 @@ Limit width to 90% below 600 logical pixels of available space, 75% above, cappe
 `GradingPolicyView` and `gradingAverage` own shared numeric/mention display rules. Use full-precision calculated values with existing coefficients; round or truncate only the displayed result. Never normalize mention points into percentages. Suppress provisional averages when the policy is updating or input revisions differ. Legacy numeric records retain existing normalization.
 
 Teacher entry and corrections select stable mention IDs for mention-first policies and include the displayed grading revision in commands and offline payloads. Numeric editors retain the original decimal input. Guardian report views use captured published grading metadata and do not display revised drafts. No mobile scale editor is introduced.
+
+Continuous grading policies match the greatest minimum threshold at or below the rounded value; the final interval includes the scale maximum. Empty scales, non-finite values and values outside the scale return no mention. Legacy captured scales continue to use closed upper bounds and preserve gaps. The server supplies derived upper bounds for older readers; policy/report snapshots remain immutable when the reusable catalog changes.
+
+School profile selection displays the server-provided persisted short name. Changing the full school name must not change this label; older responses without a short name retain the full-name fallback.
