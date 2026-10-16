@@ -1,6 +1,7 @@
 @Tags(['integration'])
 library;
 
+import 'package:edaya_api_client/edaya_api_client.dart';
 import 'package:edaya_guardian/app/shell_page.dart';
 import 'package:edaya_guardian/design/components/list_row.dart';
 import 'package:edaya_guardian/design/components/student_context_card.dart';
@@ -50,11 +51,17 @@ void _mariamKoneSuite() {
   late GuardianWidgetTestHarness harness;
   late GuardianProbeBundle probes;
   late PortalSession readSession;
+  late PortalSession owner;
 
   setUpAll(() async {
     harness = await GuardianWidgetTestHarness.create();
     probes = await GuardianProbeBundle.load(harness);
     readSession = harness.portalSession!;
+    owner = await PortalSession.signIn(
+      config: IntegrationConfig.fromEnvironment().withSchoolOwnerEmail(),
+      actorKind: 'staff',
+      academicYearId: harness.profile!.academicYearId,
+    );
   });
 
   setUp(() async {
@@ -305,18 +312,36 @@ void _mariamKoneSuite() {
     testWidgets(
       '[guardian.message-detail-page-shows-delivery-title-from-live-api] message detail page shows delivery title from live API',
       (tester) async {
-        final delivery = probes.firstInboxDelivery;
-        expect(delivery, isNotNull);
-
+        final delivery = await createInboxFixture(
+          owner,
+          subjectId: harness.context!.authUserId,
+          actorId: harness.context!.grants.actorId,
+          actorKind: 'guardian',
+        );
+        expect(delivery['readAt'], isNull);
+        final id = delivery['id'] as String;
         await pumpGuardianRoute(
           tester,
           harness,
-          location: inboxMessagePath(delivery!.id),
+          location: inboxMessagePath(id),
         );
         await pumpUntilFound(tester, find.byType(MessageDetailPage));
-        final title = find.textContaining(delivery.title.split(' ').first);
+        final title = find.text(delivery['title'] as String);
         await pumpUntilFound(tester, title);
         expect(title, findsWidgets);
+        await pumpUntilFound(tester, find.text('Integration message body'));
+        final deadline = DateTime.now().add(const Duration(seconds: 15));
+        Map<String, dynamic> persisted;
+        do {
+          await tester.pump(const Duration(milliseconds: 100));
+          persisted = await readSession.schoolClient.messageDeliveries.one({
+            'id': id,
+          });
+        } while (persisted['status'] != 'read' &&
+            DateTime.now().isBefore(deadline));
+        expect(persisted['status'], 'read');
+        expect(persisted['readAt'], isNotNull);
+        expect(persisted['recipientId'], harness.context!.grants.actorId);
       },
     );
   });

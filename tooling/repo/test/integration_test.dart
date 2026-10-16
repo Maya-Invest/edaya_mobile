@@ -72,6 +72,17 @@ void main() {
     'rejects incomplete run',
     () => expect(evaluate(events().take(2), 0, required)['ok'], isFalse),
   );
+  test('rejects nonzero child exit even with successful events', () {
+    expect(evaluate(events(), 1, required)['ok'], isFalse);
+  });
+  test('rejects a started scenario without a terminal result', () {
+    final report = evaluate([events().first, events().last], 0, required);
+    expect(report['ok'], isFalse);
+    expect((report['tests'] as List).single['status'], 'blocked');
+  });
+  test('rejects unregistered executed scenarios', () {
+    expect(evaluate(events(), 0, [])['ok'], isFalse);
+  });
   test(
     'rejects runner errors',
     () => expect(

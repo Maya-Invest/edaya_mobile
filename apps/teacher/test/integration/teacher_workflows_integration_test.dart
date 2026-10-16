@@ -554,7 +554,22 @@ Future<void> main() async {
       harness.scope.find<GoRouter>().go('/evaluations');
       await gone(tester, MarksEntryPage);
       harness.scope.find<GoRouter>().go('/evaluations/$id/marks');
-      await until(tester, find.text('20.00'));
+      await until(tester, find.text(title));
+      final scoreFields = find.descendant(
+        of: find.byType(MarksEntryPage),
+        matching: find.byType(TextFormField),
+      );
+      // Reopened inputs must contain the saved marks, independently of whether
+      // the numeric editor renders an integer, one decimal or two decimals.
+      final reopened = await persisted(
+        tester,
+        () async => tester
+            .widgetList<TextFormField>(scoreFields)
+            .map((field) => num.tryParse(field.initialValue ?? ''))
+            .toList(),
+        (scores) => scores.isNotEmpty && scores.every((score) => score == 20),
+      );
+      expect(reopened, everyElement(20));
       expect(find.byType(MarksEntryPage), findsOneWidget);
     },
   );
@@ -769,10 +784,12 @@ Future<void> main() async {
         await tester.scrollUntilVisible(
           find.text('Enregistrer'),
           200,
-          scrollable: find.descendant(
-            of: find.byType(ListView),
-            matching: find.byType(Scrollable),
-          ).first,
+          scrollable: find
+              .descendant(
+                of: find.byType(ListView),
+                matching: find.byType(Scrollable),
+              )
+              .first,
         );
         await Scrollable.ensureVisible(
           tester.element(find.text('Enregistrer')),
