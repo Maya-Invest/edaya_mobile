@@ -57,7 +57,7 @@ void main() {
     'retains action, provenance, academic year and validity in one grant',
     () {
       final grant = ActionGrant.fromJson({
-        'permission': 'GRADE_INPUT',
+        'permission': 'GRADE_MANAGE',
         'source': 'manual',
         'academicYearId': 'year',
         'scopes': [
@@ -71,7 +71,7 @@ void main() {
         'endsAt': '2026-12-31T00:00:00Z',
       });
       final roundTrip = ActionGrant.fromJson(grant.toJson());
-      expect(roundTrip.permission, 'GRADE_INPUT');
+      expect(roundTrip.permission, 'GRADE_MANAGE');
       expect(roundTrip.source, GrantSource.manual);
       expect(roundTrip.academicYearId, 'year');
       expect(roundTrip.startsAt, DateTime.utc(2026));

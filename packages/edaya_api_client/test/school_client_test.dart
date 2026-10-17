@@ -135,7 +135,7 @@ void main() {
         'assuranceLevel': 'standard',
         'grants': [
           {
-            'permission': 'QUERY_STUDENT_DETAIL_READ',
+            'permission': 'STUDENT_READ',
             'source': 'manual',
             'scopes': [
               {'kind': 'student', 'studentId': 'student-1'},
