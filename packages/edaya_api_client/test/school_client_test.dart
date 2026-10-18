@@ -57,34 +57,34 @@ void main() {
     final client = createSchoolClient(transport);
 
     await expectLater(
-      client.subjects.list({'schoolId': 'school-1'}),
+      client.subjectCategories.list({'schoolId': 'school-1'}),
       completion([
         {'id': 'subject-1', 'name': 'Mathematics'},
       ]),
     );
     await expectLater(
-      client.subjects.save({'id': 'subject-1', 'name': 'Mathematics'}),
+      client.subjectCategories.save({'id': 'subject-1', 'name': 'Mathematics'}),
       completion({'id': 'subject-1', 'name': 'Mathematics'}),
     );
     await expectLater(
-      client.subjects.delete(id: 'subject-1'),
+      client.subjectCategories.delete(id: 'subject-1'),
       completion({'message': 'deleted'}),
     );
 
     expect(transport.requests, [
       {
         'method': 'POST',
-        'path': '/core/entities/subjects/list',
+        'path': '/core/entities/subject-categories/list',
         'body': {'schoolId': 'school-1'},
       },
       {
         'method': 'POST',
-        'path': '/core/entities/subjects/save',
+        'path': '/core/entities/subject-categories/save',
         'body': {'id': 'subject-1', 'name': 'Mathematics'},
       },
       {
         'method': 'POST',
-        'path': '/core/entities/subjects/delete',
+        'path': '/core/entities/subject-categories/delete',
         'body': {'id': 'subject-1'},
       },
     ]);
@@ -118,6 +118,15 @@ void main() {
       );
       expect(
         () => client.enrollments.batchSave(entities: []),
+        throwsStateError,
+      );
+      await expectLater(
+        client.subjects.save({'id': 'subject'}),
+        throwsStateError,
+      );
+      expect(() => client.subjects.delete(id: 'subject'), throwsStateError);
+      await expectLater(
+        client.subjectMatters.save({'id': 'chapter'}),
         throwsStateError,
       );
       expect(transport.requests, isEmpty);
@@ -236,9 +245,9 @@ void main() {
               'academicYearId': 'year',
               'scopes': [
                 {
-                  'kind': 'class_subject',
+                  'kind': 'subject', 'gradeLevelId': 'grade',
                   'classGroupId': 'cg-1',
-                  'classSubjectId': 'cs-1',
+                  'subjectId': 'cs-1',
                 },
               ],
             },
@@ -250,9 +259,9 @@ void main() {
       expect(grants.grants.single.permission, 'ATTENDANCE_RECORD');
       expect(grants.grants.single.source, GrantSource.relationship);
       final scope =
-          grants.grants.single.scopes.single as ClassSubjectGrantScope;
+          grants.grants.single.scopes.single as SubjectGrantScope;
       expect(scope.classGroupId, 'cg-1');
-      expect(scope.classSubjectId, 'cs-1');
+      expect(scope.subjectId, 'cs-1');
       expect(grants.toJson().containsKey('scope'), isFalse);
     },
   );

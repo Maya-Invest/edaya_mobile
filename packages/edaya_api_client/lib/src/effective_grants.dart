@@ -29,36 +29,6 @@ class EffectiveGrantsResponse {
   final String assuranceLevel;
   final List<ActionGrant> grants;
 
-  TeacherPortalScope? get teacherScope {
-    if (kind != 'teacher') {
-      return null;
-    }
-    final classSubjectIds = <String>{};
-    final homeroomClassGroupIds = <String>{};
-    for (final grant in grants) {
-      for (final scope in grant.scopes) {
-        switch (scope) {
-          case ClassSubjectGrantScope(
-            :final classSubjectId,
-            :final classGroupId,
-          ):
-            if (classSubjectId != null) {
-              classSubjectIds.add(classSubjectId);
-            }
-            homeroomClassGroupIds.add(classGroupId);
-          case ClassGroupGrantScope(:final classGroupId):
-            homeroomClassGroupIds.add(classGroupId);
-          default:
-            break;
-        }
-      }
-    }
-    return TeacherPortalScope(
-      classSubjectIds: classSubjectIds.toList(),
-      homeroomClassGroupIds: homeroomClassGroupIds.toList(),
-    );
-  }
-
   GuardianPortalScope? get guardianScope {
     if (kind != 'guardian') {
       return null;
@@ -72,8 +42,8 @@ class EffectiveGrantsResponse {
             studentIds.add(studentId);
           case ClassGroupGrantScope(:final classGroupId):
             classGroupIds.add(classGroupId);
-          case ClassSubjectGrantScope(:final classGroupId):
-            classGroupIds.add(classGroupId);
+          case SubjectGrantScope(:final classGroupId):
+            if (classGroupId != null) classGroupIds.add(classGroupId);
           default:
             break;
         }
@@ -94,16 +64,6 @@ class EffectiveGrantsResponse {
   };
 }
 
-class TeacherPortalScope {
-  const TeacherPortalScope({
-    required this.classSubjectIds,
-    required this.homeroomClassGroupIds,
-  });
-
-  final List<String> classSubjectIds;
-  final List<String> homeroomClassGroupIds;
-}
-
 class GuardianPortalScope {
   const GuardianPortalScope({
     required this.studentIds,
@@ -118,9 +78,8 @@ enum GrantSource { manual, assignment, relationship, owner }
 
 enum GrantGrain {
   gradeLevel('grade_level'),
-  gradeLevelSubject('grade_level_subject'),
+  subject('subject'),
   classGroup('class_group'),
-  classSubject('class_subject'),
   activity('activity'),
   student('student');
 
@@ -203,26 +162,19 @@ sealed class GrantScope {
         return GradeLevelGrantScope(
           gradeLevelId: _identifier(json, 'gradeLevelId'),
         );
-      case 'grade_level_subject':
-        _fields(json, {'kind', 'gradeLevelId', 'gradeLevelSubjectId'});
-        return GradeLevelSubjectGrantScope(
+      case 'subject':
+        _fields(json, {'kind', 'gradeLevelId', 'subjectId', 'classGroupId'});
+        return SubjectGrantScope(
+          classGroupId: json.containsKey('classGroupId') ? _identifier(json, 'classGroupId') : null,
           gradeLevelId: _identifier(json, 'gradeLevelId'),
-          gradeLevelSubjectId: json.containsKey('gradeLevelSubjectId')
-              ? _identifier(json, 'gradeLevelSubjectId')
+          subjectId: json.containsKey('subjectId')
+              ? _identifier(json, 'subjectId')
               : null,
         );
       case 'class_group':
         _fields(json, {'kind', 'classGroupId'});
         return ClassGroupGrantScope(
           classGroupId: _identifier(json, 'classGroupId'),
-        );
-      case 'class_subject':
-        _fields(json, {'kind', 'classGroupId', 'classSubjectId'});
-        return ClassSubjectGrantScope(
-          classGroupId: _identifier(json, 'classGroupId'),
-          classSubjectId: json.containsKey('classSubjectId')
-              ? _identifier(json, 'classSubjectId')
-              : null,
         );
       case 'activity':
         _fields(json, {'kind', 'activityId', 'classGroupId'});
@@ -273,18 +225,21 @@ final class GradeLevelGrantScope extends GrantScope {
   };
 }
 
-final class GradeLevelSubjectGrantScope extends GrantScope {
-  const GradeLevelSubjectGrantScope({
+final class SubjectGrantScope extends GrantScope {
+  const SubjectGrantScope({
     required this.gradeLevelId,
-    this.gradeLevelSubjectId,
+    this.subjectId,
+    this.classGroupId,
   });
   final String gradeLevelId;
-  final String? gradeLevelSubjectId;
+  final String? subjectId;
+  final String? classGroupId;
   @override
   Map<String, dynamic> toJson() => {
-    'kind': 'grade_level_subject',
+    'kind': 'subject',
     'gradeLevelId': gradeLevelId,
-    if (gradeLevelSubjectId != null) 'gradeLevelSubjectId': gradeLevelSubjectId,
+    if (subjectId != null) 'subjectId': subjectId,
+    if (classGroupId != null) 'classGroupId': classGroupId,
   };
 }
 
@@ -295,21 +250,6 @@ final class ClassGroupGrantScope extends GrantScope {
   Map<String, dynamic> toJson() => {
     'kind': 'class_group',
     'classGroupId': classGroupId,
-  };
-}
-
-final class ClassSubjectGrantScope extends GrantScope {
-  const ClassSubjectGrantScope({
-    required this.classGroupId,
-    this.classSubjectId,
-  });
-  final String classGroupId;
-  final String? classSubjectId;
-  @override
-  Map<String, dynamic> toJson() => {
-    'kind': 'class_subject',
-    'classGroupId': classGroupId,
-    if (classSubjectId != null) 'classSubjectId': classSubjectId,
   };
 }
 

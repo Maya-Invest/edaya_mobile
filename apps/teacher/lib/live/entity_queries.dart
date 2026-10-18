@@ -1,4 +1,3 @@
-import 'package:edaya_api_client/edaya_api_client.dart' hide EntityQuery;
 import 'package:edaya_shared/edaya_shared.dart';
 
 class TeachingScope {
@@ -16,17 +15,6 @@ EntityQuery teacherAssignmentsForTeacherAndYear({
   required String academicYearId,
 }) {
   return {'teacherId': teacherId, 'academicYearId': academicYearId};
-}
-
-TeachingScope teachingScopeFromTeacherPortalScope(TeacherPortalScope? scope) {
-  if (scope == null) {
-    return const TeachingScope();
-  }
-
-  return TeachingScope(
-    classGroupIds: scope.homeroomClassGroupIds.toSet(),
-    classSubjectIds: scope.classSubjectIds.toSet(),
-  );
 }
 
 TeachingScope teachingScopeFromTeacherAssignments(
