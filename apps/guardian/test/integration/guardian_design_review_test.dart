@@ -61,8 +61,9 @@ Future<void> main() async {
             if (entry is Directory &&
                 ['dark', 'large-text'].contains(
                   entry.uri.pathSegments.where((s) => s.isNotEmpty).last,
-                ))
+                )) {
               continue;
+            }
             entry.deleteSync(recursive: true);
           }
         }

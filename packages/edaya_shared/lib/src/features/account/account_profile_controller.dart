@@ -72,7 +72,8 @@ class AccountProfileController extends LevitController
 
   bool get canSave {
     formRevision.value;
-    return firstNameController.text.trim().isNotEmpty &&
+    return (profileKind == 'guardian' ||
+            firstNameController.text.trim().isNotEmpty) &&
         lastNameController.text.trim().isNotEmpty &&
         !isSaving.value;
   }

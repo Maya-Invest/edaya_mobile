@@ -45,6 +45,44 @@ class ProfileTransport implements Transport {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  test(
+    'single-token guardians can save without a first name; teachers still require one',
+    () async {
+      final session = ProfileSession();
+      final transport = ProfileTransport();
+      final controller = AccountProfileController(
+        session: session,
+        schoolClient: () => createSchoolClient(transport),
+      );
+      controller.profile(
+        const AccountContactProfile(
+          id: 'guardian-a',
+          firstName: '',
+          lastName: 'Koné',
+        ),
+      );
+      controller.lastNameController.text = 'Koné';
+      expect(controller.canSave, isTrue);
+      expect(await controller.saveProfile(), isTrue);
+      expect(controller.profile.value!.firstName, '');
+      expect(transport.writes, 1);
+      controller.lastNameController.text = ' ';
+      expect(controller.canSave, isFalse);
+      controller.lastNameController.text = 'Koné';
+      session.grants(
+        const EffectiveGrantsResponse(
+          kind: 'teacher',
+          actorId: 'teacher-a',
+          schoolId: 'school-a',
+          assuranceLevel: 'standard',
+          grants: [],
+        ),
+      );
+      expect(controller.canSave, isFalse);
+      controller.onClose();
+    },
+  );
+
   for (final rejected in [false, true]) {
     test(
       rejected

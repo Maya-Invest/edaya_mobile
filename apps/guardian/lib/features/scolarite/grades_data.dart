@@ -75,8 +75,9 @@ Future<StudentGradeSources> fetchStudentGradeSources({
           ..sort(
             (a, b) => (b['revision'] as num).compareTo(a['revision'] as num),
           );
-    if (policies.isNotEmpty)
+    if (policies.isNotEmpty) {
       policy = GradingPolicyView(Map<String, dynamic>.from(policies.first));
+    }
   } on Object {
     // Configured results will not fall back to legacy /20 calculations.
   }

@@ -196,7 +196,7 @@ void main() {
     (tester) async {
       await tester.binding.setSurfaceSize(const Size(320, 700));
       addTearDown(() => tester.binding.setSurfaceSize(null));
-      final body = 'https://example.test/' + 'x' * 9979;
+      final body = 'https://example.test/${'x' * 9979}';
       await tester.pumpWidget(
         MaterialApp(
           theme: AppTheme.dark,

@@ -76,3 +76,5 @@ Teacher entry and corrections select stable mention IDs for mention-first polici
 Continuous grading policies match the greatest minimum threshold at or below the rounded value; the final interval includes the scale maximum. Empty scales, non-finite values and values outside the scale return no mention. Legacy captured scales continue to use closed upper bounds and preserve gaps. The server supplies derived upper bounds for older readers; policy/report snapshots remain immutable when the reusable catalog changes.
 
 School profile selection displays the server-provided persisted short name. Changing the full school name must not change this label; older responses without a short name retain the full-name fallback.
+
+The shared account profile editor permits an empty first name for guardian profiles with a nonblank last name. Teacher/staff name requirements remain unchanged. Saving contact changes must preserve a guardian’s single-token name.
