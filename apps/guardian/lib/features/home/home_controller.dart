@@ -70,6 +70,14 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
   final AppSessionController _session;
   final SchoolClientFactory _schoolClient;
 
+  int _dayPlanGeneration = 0;
+
+  @override
+  void onClose() {
+    _dayPlanGeneration++;
+    super.onClose();
+  }
+
   final overdueFeeCount = LxVar(0);
   final loadWarnings = LxVar<Set<String>>(const {});
   final feeBalance = LxVar(0);
@@ -362,9 +370,16 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
   }
 
   Future<void> _loadDayPlans() async {
-    final classGroupId = _studentContext.classGroupId.value;
+    final generation = ++_dayPlanGeneration;
+    final studentId = _studentContext.activeStudentId;
     final yearId = _academicYear.selectedYearId.value;
-    if (classGroupId == null || yearId == null) {
+    bool isCurrent() =>
+        generation == _dayPlanGeneration &&
+        studentId == _studentContext.activeStudentId &&
+        yearId == _academicYear.selectedYearId.value;
+    todayPlan(null);
+    tomorrowPlan(null);
+    if (studentId == null || yearId == null) {
       todayPlan(null);
       tomorrowPlan(null);
       return;
@@ -375,12 +390,12 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
       final today = defaultCalendarDay();
       final weekStart = startOfWeek(today);
       final range = planningDateRangeForWeek(weekStart);
-      final occurrences = await fetchClassTimetableOccurrences(
+      final occurrences = await fetchStudentTimetableOccurrences(
         client,
-        classGroupId,
+        studentId,
         range: range,
-        enrichStaffWorkspace: false,
       );
+      if (!isCurrent()) return;
       final sessions = occurrences
           .map(CalendarSession.fromOccurrence)
           .toList(growable: false);
@@ -395,9 +410,11 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
         events = const [];
       }
 
+      if (!isCurrent()) return;
       todayPlan(_planForOffset(0, today, sessions, events));
       tomorrowPlan(_planForOffset(1, today, sessions, events));
     } on Object {
+      if (!isCurrent()) return;
       todayPlan(null);
       tomorrowPlan(null);
     }

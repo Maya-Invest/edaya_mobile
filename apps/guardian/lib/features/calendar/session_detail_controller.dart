@@ -20,6 +20,14 @@ class SessionDetailController extends LevitController
   }) : _studentContext = studentContext,
        _schoolClient = schoolClient;
 
+  int _loadGeneration = 0;
+
+  @override
+  void onClose() {
+    _loadGeneration++;
+    super.onClose();
+  }
+
   final String sessionId;
   final StudentContextController _studentContext;
   final SchoolClientFactory _schoolClient;
@@ -52,23 +60,67 @@ class SessionDetailController extends LevitController
     autoDispose(assessmentCoefficient);
     autoDispose(activityNotes);
     autoDispose(errorMessage);
+    autoDispose(
+      _studentContext.activeStudent.stream.listen(
+        (_) => unawaited(loadDetails()),
+      ),
+    );
     unawaited(loadDetails());
   }
 
   Future<void> loadDetails() async {
+    final generation = ++_loadGeneration;
+    final studentId = _studentContext.activeStudentId;
+    bool isCurrent() =>
+        generation == _loadGeneration &&
+        studentId == _studentContext.activeStudentId;
+    session(null);
+    attendance(null);
+    logbook(null);
+    assessmentTitle(null);
+    assessmentDescription(null);
+    assessmentInstructions(null);
+    assessmentMention(null);
+    assessmentScore(null);
+    assessmentMaxScore(null);
+    assessmentCoefficient(null);
+    activityNotes(null);
+    errorMessage('');
+    if (studentId == null) return;
     await runTask(() async {
       try {
         final client = _schoolClient();
         final resolved = await _resolveSession(client);
-        session(resolved);
+
+        if (!isCurrent()) return;
         if (resolved == null) {
           errorMessage('Séance introuvable');
           return;
         }
 
-        final studentId = _studentContext.activeStudentId;
-        final classGroupId = _studentContext.classGroupId.value;
-        if (studentId != null && classGroupId != null) {
+        if (resolved.classSubjectId != null) {
+          // The student query preserves saved occurrences and isolates siblings.
+          final at = resolved.startsAt.toUtc();
+          final timetable = await client.getStudentTimetable({
+            'studentId': studentId,
+            'startDate': at.subtract(const Duration(days: 1)).toIso8601String(),
+            'endDate': at.add(const Duration(days: 1)).toIso8601String(),
+          });
+          if (!isCurrent()) return;
+          if (!(timetable['events'] as List).any(
+            (event) => event['id'] == resolved.id,
+          )) {
+            session(null);
+            errorMessage(
+              systemL10n().couldNotLoadSessionDetails(
+                'Subject participation required',
+              ),
+            );
+            return;
+          }
+        }
+        session(resolved);
+        {
           final attendanceRows = await client.attendance.list({
             ...attendanceForOccurrence(
               kind: resolved.kind,
@@ -76,6 +128,7 @@ class SessionDetailController extends LevitController
             ),
             'studentId': studentId,
           });
+          if (!isCurrent()) return;
           attendance(
             attendanceRows.isEmpty
                 ? null
@@ -83,17 +136,20 @@ class SessionDetailController extends LevitController
           );
         }
 
-        logbook(await _loadLogbook(client, resolved));
+        final entry = await _loadLogbook(client, resolved);
+        if (!isCurrent()) return;
+        logbook(entry);
 
         if (resolved.kind == 'assessment') {
-          await _loadAssessmentExtras(client, resolved);
+          await _loadAssessmentExtras(client, resolved, studentId, isCurrent);
         } else if (resolved.kind == 'activity') {
-          await _loadActivityExtras(client, resolved);
+          await _loadActivityExtras(client, resolved, isCurrent);
         }
       } on Object catch (error) {
+        if (!isCurrent()) return;
         errorMessage(systemL10n().couldNotLoadSessionDetails(error.toString()));
       }
-    }, id: 'load-session-details');
+    }, id: 'load-session-details:$generation');
   }
 
   Future<CalendarSession?> _resolveSession(SchoolClient client) async {
@@ -135,14 +191,15 @@ class SessionDetailController extends LevitController
 
     try {
       final assessment = await client.assessments.get(sessionId);
-      final startsAt =
-          parseApiDateTime(
-            assessment['startsAt'] ??
-                assessment['dueAt'] ??
-                assessment['date'] ??
-                assessment['metAt'],
-          ) ??
-          DateTime.now();
+      var startsAt = parseApiDateTime(
+        assessment['dueAt'] ?? assessment['startsAt'],
+      );
+      final lessonId = assessment['lessonSessionId'] as String?;
+      if (startsAt == null && lessonId != null) {
+        final lesson = await client.lessonSessions.get(lessonId);
+        startsAt = parseApiDateTime(lesson['startsAt']);
+      }
+      if (startsAt == null) return null;
       return CalendarSession(
         id: assessment['id'] as String,
         title: assessment['title'] as String? ?? 'Évaluation',
@@ -162,21 +219,23 @@ class SessionDetailController extends LevitController
   Future<void> _loadAssessmentExtras(
     SchoolClient client,
     CalendarSession resolved,
+    String studentId,
+    bool Function() isCurrent,
   ) async {
     try {
       final assessment = await client.assessments.get(resolved.id);
+      if (!isCurrent()) return;
       assessmentTitle(assessment['title'] as String?);
       assessmentDescription(assessment['description'] as String? ?? '');
       assessmentInstructions(assessment['instructions'] as String? ?? '');
       assessmentMaxScore((assessment['maxScore'] as num?)?.toDouble());
       assessmentCoefficient((assessment['coefficient'] as num?)?.toDouble());
 
-      final studentId = _studentContext.activeStudentId;
-      if (studentId == null) return;
       final results = await client.assessmentResults.list({
         'studentId': studentId,
         'assessmentId': resolved.id,
       });
+      if (!isCurrent()) return;
       if (results.isNotEmpty) {
         final entry = results.first['originalEntry'] as Map?;
         assessmentMention(
@@ -199,9 +258,11 @@ class SessionDetailController extends LevitController
   Future<void> _loadActivityExtras(
     SchoolClient client,
     CalendarSession resolved,
+    bool Function() isCurrent,
   ) async {
     try {
       final activity = await client.activitySessions.get(resolved.id);
+      if (!isCurrent()) return;
       activityNotes(activity['notes'] as String?);
     } on Object {
       // Optional.

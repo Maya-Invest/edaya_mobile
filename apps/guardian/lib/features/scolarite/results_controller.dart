@@ -70,6 +70,13 @@ class ResultsController extends LevitController with LevitReactiveTasksMixin {
   final StudentContextController _studentContext;
   final AcademicYearController _academicYear;
   final SchoolClientFactory _schoolClient;
+  int _progressGeneration = 0;
+
+  @override
+  void onClose() {
+    _progressGeneration++;
+    super.onClose();
+  }
 
   GradingPolicyView? _gradingPolicy;
   final periods = LxVar<List<ResultsPeriod>>(const []);
@@ -314,8 +321,12 @@ class ResultsController extends LevitController with LevitReactiveTasksMixin {
   }
 
   Future<void> loadProgressSummary() async {
+    final generation = ++_progressGeneration;
+    final studentId = _studentContext.activeStudentId;
     final classGroupId = _studentContext.classGroupId.value;
-    if (classGroupId == null) {
+    overallProgramProgress(0);
+    subjectsWithProgrammeCount(0);
+    if (studentId == null || classGroupId == null) {
       overallProgramProgress(0);
       subjectsWithProgrammeCount(0);
       return;
@@ -323,9 +334,18 @@ class ResultsController extends LevitController with LevitReactiveTasksMixin {
 
     try {
       final client = _schoolClient();
-      final classSubjects = await client.classSubjects.list(
-        classGroupScope(classGroupId),
+      final participation = await StudentSubjectParticipation.load(
+        client,
+        studentId,
       );
+      if (generation != _progressGeneration ||
+          studentId != _studentContext.activeStudentId ||
+          classGroupId != _studentContext.classGroupId.value)
+        return;
+      final classSubjects = participation
+          .currentSubjects()
+          .where((row) => row['classGroupId'] == classGroupId)
+          .toList();
       if (classSubjects.isEmpty) {
         overallProgramProgress(0);
         subjectsWithProgrammeCount(0);

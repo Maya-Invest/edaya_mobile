@@ -131,13 +131,19 @@ List<CurriculumLogEntry> buildCurriculumLogEntries({
 
 Future<List<CurriculumClassSubjectOption>> fetchClassSubjectOptions({
   required api.SchoolClient client,
+  required String studentId,
   required String classGroupId,
   required String classLabel,
   required String subjectFallback,
 }) async {
-  final classSubjectRows = await client.classSubjects.list(
-    classGroupScope(classGroupId),
+  final participation = await StudentSubjectParticipation.load(
+    client,
+    studentId,
   );
+  final classSubjectRows = participation
+      .currentSubjects()
+      .where((row) => row['classGroupId'] == classGroupId)
+      .toList();
   if (classSubjectRows.isEmpty) {
     return const [];
   }
@@ -189,6 +195,7 @@ Future<CurriculumProgressOverview> fetchCurriculumProgressOverview({
 }
 
 Future<List<CurriculumLogEntry>> fetchCurriculumLogEntries({
+  required String studentId,
   required api.SchoolClient client,
   required String classGroupId,
   required String classSubjectId,
@@ -196,10 +203,19 @@ Future<List<CurriculumLogEntry>> fetchCurriculumLogEntries({
   required String subjectLabel,
   required String matterFallback,
 }) async {
-  final lessonSessions = await client.lessonSessions.list({
+  final participation = await StudentSubjectParticipation.load(
+    client,
+    studentId,
+  );
+  final sessions = await client.lessonSessions.list({
     'classGroupId': classGroupId,
     'classSubjectId': classSubjectId,
   });
+  final lessonSessions = sessions.where((row) {
+    final at = _parseDateTime(row['startsAt']);
+    return at != null &&
+        participation.includes(row['classSubjectId'] as String?, at);
+  }).toList();
   if (lessonSessions.isEmpty) {
     return const [];
   }

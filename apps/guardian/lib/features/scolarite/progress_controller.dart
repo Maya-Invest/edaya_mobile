@@ -52,6 +52,13 @@ class ProgressController extends LevitController with LevitReactiveTasksMixin {
   final StudentContextController _studentContext;
   final AcademicYearController _academicYear;
   final SchoolClientFactory _schoolClient;
+  int _loadGeneration = 0;
+
+  @override
+  void onClose() {
+    _loadGeneration++;
+    super.onClose();
+  }
 
   final summaries = LxVar<List<SubjectProgressSummary>>(const []);
   final topicsBySubject = LxVar<Map<String, List<ProgressTopic>>>(const {});
@@ -93,9 +100,20 @@ class ProgressController extends LevitController with LevitReactiveTasksMixin {
       topicsBySubject.value[subject] ?? const [];
 
   Future<void> load() async {
+    final generation = ++_loadGeneration;
+    final studentId = _studentContext.activeStudentId;
     final classGroupId = _studentContext.classGroupId.value;
     final classLabel = _studentContext.classLabel.value;
-    if (classGroupId == null || classLabel == null) {
+    bool isCurrent() =>
+        generation == _loadGeneration &&
+        studentId == _studentContext.activeStudentId &&
+        classGroupId == _studentContext.classGroupId.value &&
+        classLabel == _studentContext.classLabel.value;
+    errorMessage('');
+    summaries(const []);
+    topicsBySubject(const {});
+    overallProgress(0);
+    if (studentId == null || classGroupId == null || classLabel == null) {
       summaries(const []);
       topicsBySubject(const {});
       overallProgress(0);
@@ -108,11 +126,13 @@ class ProgressController extends LevitController with LevitReactiveTasksMixin {
         final client = _schoolClient();
         final options = await fetchClassSubjectOptions(
           client: client,
+          studentId: studentId,
           classGroupId: classGroupId,
           classLabel: classLabel,
           subjectFallback: systemL10n().subjectFallback,
         );
 
+        if (!isCurrent()) return;
         final nextSummaries = <SubjectProgressSummary>[];
         final nextTopics = <String, List<ProgressTopic>>{};
         var progressSum = 0.0;
@@ -123,6 +143,7 @@ class ProgressController extends LevitController with LevitReactiveTasksMixin {
             classSubjectId: option.id,
             matterFallback: systemL10n().unitFallback,
           );
+          if (!isCurrent()) return;
           final pct = overview.classSubjectCompletedPercentage / 100.0;
           progressSum += pct;
           final topics = overview.matters
@@ -159,6 +180,7 @@ class ProgressController extends LevitController with LevitReactiveTasksMixin {
           options.isEmpty ? 0 : (progressSum / options.length).clamp(0, 1),
         );
       } on Object catch (error) {
+        if (!isCurrent()) return;
         errorMessage(systemL10n().couldNotLoadAcademicData(error.toString()));
         summaries(const []);
         topicsBySubject(const {});

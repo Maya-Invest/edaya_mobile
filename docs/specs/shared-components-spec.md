@@ -78,3 +78,11 @@ Continuous grading policies match the greatest minimum threshold at or below the
 School profile selection displays the server-provided persisted short name. Changing the full school name must not change this label; older responses without a short name retain the full-name fallback.
 
 The shared account profile editor permits an empty first name for guardian profiles with a nonblank last name. Teacher/staff name requirements remain unchanged. Saving contact changes must preserve a guardian’s single-token name.
+
+## Subject participation
+
+Guardian consumers resolve subject participation for the selected child. Shared family scopes may include siblings with different optional choices: never infer child participation from a class-wide list. Use the student timetable endpoint across historical placements and the shared `StudentSubjectParticipation` Annual/period selection helper for curriculum, homework and progress. Teacher attendance and marks use authoritative backend rosters and retain existing offline revision conflicts. Enrollment management is staff-web-only.
+
+Selected-child subject consumers must discard stale asynchronous responses after a child, class, year or timetable range change, and on controller disposal. Timetable, curriculum and lesson-detail controllers clear the previous child’s subject data while loading the new context.
+
+Current eligibility excludes soft-deleted selections and honors each period's activation and calendar bounds. Guardian lesson details use the child-specific timetable to retain saved historical access without leaking a sibling's subjects. Marks and report readers retain saved results independently of current selection. Teacher sheets include retained marks and attendance draft entries; stale offline versions must refresh before retry. No mobile enrollment management or restoration controls are introduced.

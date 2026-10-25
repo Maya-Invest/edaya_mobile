@@ -182,6 +182,13 @@ Future<void> main() async {
     (tester) async {
       final lesson = await lessonFixture();
       final id = lesson['id'] as String;
+      final initialCall = await baseline.schoolClient.runQuery(
+        'get-teacher-attendance-call',
+        {
+          'anchor': {'kind': 'lesson', 'lessonSessionId': id},
+        },
+      );
+      expect(initialCall['students'] as List, isNotEmpty);
       await mount(tester, '/session/$id/attendance');
       await until(tester, find.text('À saisir'));
       await tester.tap(find.text('Tous présents'));

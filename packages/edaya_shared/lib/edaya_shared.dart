@@ -72,3 +72,5 @@ export 'src/features/messaging/messaging_events.dart';
 export 'src/ui/calendar_week_strip.dart';
 
 export 'src/academic/grading_policy.dart';
+
+export 'src/api/student_subject_participation.dart';

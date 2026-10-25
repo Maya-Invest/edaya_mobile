@@ -24,6 +24,14 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
   final AcademicYearController _academicYear;
   final SchoolClientFactory _schoolClient;
 
+  int _loadGeneration = 0;
+
+  @override
+  void onClose() {
+    _loadGeneration++;
+    super.onClose();
+  }
+
   final view = LxVar(CalendarView.timetable);
   final weekStart = LxVar(startOfWeek(defaultCalendarDay()));
   final selectedDay = LxVar(defaultCalendarDay());
@@ -82,7 +90,9 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
     if (_studentContext.activeStudent.value == null) {
       return DataStatus.empty;
     }
-    if (!_studentContext.isEnrolled.value) {
+    if (!_studentContext.isEnrolled.value &&
+        sessions.value.isEmpty &&
+        events.value.isEmpty) {
       return DataStatus.empty;
     }
     return DataStatus.ready;
@@ -138,10 +148,19 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
   }
 
   Future<void> loadCalendarData() async {
-    final classGroupId = _studentContext.classGroupId.value;
+    final generation = ++_loadGeneration;
+    final studentId = _studentContext.activeStudentId;
+    final requestedWeek = weekStart.value;
     final yearId = _academicYear.selectedYearId.value;
 
-    if (classGroupId == null || yearId == null) {
+    bool isCurrent() =>
+        generation == _loadGeneration &&
+        studentId == _studentContext.activeStudentId &&
+        yearId == _academicYear.selectedYearId.value &&
+        requestedWeek == weekStart.value;
+    sessions(const []);
+    events(const []);
+    if (studentId == null || yearId == null) {
       sessions(const []);
       events(const []);
       errorMessage('');
@@ -151,26 +170,29 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
     errorMessage('');
     await runTask(() async {
       final client = _schoolClient();
-      final range = planningDateRangeForWeek(weekStart.value);
+      if (!isCurrent()) return;
+      final range = planningDateRangeForWeek(requestedWeek);
       Object? sessionsError;
       Object? eventsError;
 
       try {
-        final occurrences = await fetchClassTimetableOccurrences(
+        final occurrences = await fetchStudentTimetableOccurrences(
           client,
-          classGroupId,
+          studentId,
           range: range,
-          enrichStaffWorkspace: false,
         );
+        if (!isCurrent()) return;
         sessions(
           occurrences
               .map(CalendarSession.fromOccurrence)
               .toList(growable: false),
         );
       } on api.ApiError catch (error) {
+        if (!isCurrent()) return;
         sessionsError = error;
         sessions(const []);
       } on Object catch (error) {
+        if (!isCurrent()) return;
         sessionsError = error;
         sessions(const []);
       }
@@ -179,11 +201,14 @@ class CalendarController extends LevitController with LevitReactiveTasksMixin {
         final eventRows = await client.calendarEvents.list(
           academicYearScope(yearId),
         );
+        if (!isCurrent()) return;
         events(eventRows.map(SchoolEvent.fromJson).toList(growable: false));
       } on api.ApiError catch (error) {
+        if (!isCurrent()) return;
         eventsError = error;
         events(const []);
       } on Object catch (error) {
+        if (!isCurrent()) return;
         eventsError = error;
         events(const []);
       }

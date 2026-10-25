@@ -16,26 +16,20 @@ Future<Map<String, dynamic>> createReportCardFixture(
     throw StateError('Required report-card definition fixture missing');
   }
   final template = templates.first;
-  final school = await client.effectiveGrants();
-  final studentId = fixtureId('report-student');
-  await client.registerStudent({
-    'id': studentId,
-    'schoolId': school.schoolId,
-    'firstName': 'Integration',
-    'lastName': studentId,
-    'sendAccountInvitation': false,
-    'createdAt': '2026-09-01T00:00:00.000Z',
-  });
-  await client.enrollStudent({
-    'id': fixtureId('enrollment'),
-    'studentId': studentId,
-    'classGroupId': classGroupId,
-    'createdAt': '2026-09-01T00:00:00.000Z',
+  // A fresh reporting period isolates comments without changing frozen class rosters.
+  final period = await client.academicPeriods.get(
+    template['periodId'] as String,
+  );
+  final periodId = fixtureId('report-period');
+  await client.academicPeriods.save({
+    ...period,
+    'id': periodId,
+    'name': periodId,
   });
   return client.generateReportCardResult({
     'id': fixtureId('report'),
-    'studentId': studentId,
-    'periodId': template['periodId'],
+    'studentId': template['studentId'],
+    'periodId': periodId,
     'reportCardDefinitionId': template['reportCardDefinitionId'],
     'generatedAt': DateTime.now().toUtc().toIso8601String(),
   });

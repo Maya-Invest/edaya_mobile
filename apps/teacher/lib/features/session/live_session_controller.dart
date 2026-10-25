@@ -226,46 +226,58 @@ class LiveSessionController extends LevitController
 
       try {
         final client = _schoolClient();
-        final enrollmentRows = await client.enrollments.listAll(
-          activeEnrollmentsForClass(
-            current.classGroupId,
-            academicYearId: _academicYear.selectedYearId.value,
-          ),
-        );
-        final studentIds = enrollmentRows
-            .map((row) => row['studentId'] as String?)
-            .whereType<String>()
-            .toList();
-        var studentRows = studentIds.isEmpty
-            ? <Map<String, dynamic>>[]
-            : await client.students.listAll(entitiesByIds(studentIds));
-        var attendanceRows = await listAttendanceForOccurrence(
-          client.attendance,
-          kind: current.kind,
-          occurrenceId: current.id,
-        );
+        List<Map<String, dynamic>> studentRows;
+        List<Map<String, dynamic>> attendanceRows;
         if (supportsAttendanceRecording) {
           final call = await client.runQuery('get-teacher-attendance-call', {
             'anchor': {'kind': 'lesson', 'lessonSessionId': current.id},
           });
           _attendanceVersion = (call['version'] as num).toInt();
           attendanceSubmitted(call['submitted'] as bool);
-          final officialRoster = (call['students'] as List).cast<Map>();
-          studentRows = [
-            for (final student in officialRoster)
-              {
-                ...studentRows
-                        .where((row) => row['id'] == student['id'])
-                        .firstOrNull ??
-                    {},
-                ...Map<String, dynamic>.from(student),
-              },
-          ];
+          studentRows = (call['students'] as List)
+              .map((row) => Map<String, dynamic>.from(row as Map))
+              .toList();
+          if (studentRows.isNotEmpty) {
+            try {
+              final details = await client.students.listAll(
+                entitiesByIds(
+                  studentRows.map((row) => row['id'] as String).toList(),
+                ),
+              );
+              final photos = {
+                for (final row in details) row['id']: row['photoUrl'],
+              };
+              for (final row in studentRows) {
+                row['photoUrl'] = photos[row['id']];
+              }
+            } on Object {
+              // Portrait enrichment must not hide an authorized historical roster.
+            }
+          }
           attendanceRows =
               ((attendanceSubmitted.value ? call['records'] : call['entries'])
                       as List)
                   .map((row) => Map<String, dynamic>.from(row as Map))
                   .toList();
+        } else {
+          final enrollmentRows = await client.enrollments.listAll(
+            activeEnrollmentsForClass(
+              current.classGroupId,
+              academicYearId: _academicYear.selectedYearId.value,
+            ),
+          );
+          final studentIds = enrollmentRows
+              .map((row) => row['studentId'] as String?)
+              .whereType<String>()
+              .toList();
+          studentRows = studentIds.isEmpty
+              ? <Map<String, dynamic>>[]
+              : await client.students.listAll(entitiesByIds(studentIds));
+          attendanceRows = await listAttendanceForOccurrence(
+            client.attendance,
+            kind: current.kind,
+            occurrenceId: current.id,
+          );
         }
         final attendanceByStudent = {
           for (final row in attendanceRows) row['studentId'] as String: row,

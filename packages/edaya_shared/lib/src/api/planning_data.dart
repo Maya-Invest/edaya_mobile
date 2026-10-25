@@ -151,6 +151,38 @@ Future<List<TimetableOccurrence>> fetchTeacherTimetableOccurrences(
   }).toList();
 }
 
+/// Student participation is resolved by the server across historical class placements.
+Future<List<TimetableOccurrence>> fetchStudentTimetableOccurrences(
+  SchoolClient client,
+  String studentId, {
+  PlanningDateRange? range,
+}) async {
+  final dates = range ?? defaultPlanningDateRange();
+  final timetable = await client.getStudentTimetable({
+    'studentId': studentId,
+    'startDate': dates.startDate,
+    'endDate': dates.endDate,
+  });
+  return (timetable['events'] as List<dynamic>? ?? const [])
+      .whereType<Map<String, dynamic>>()
+      .where((row) => row['status'] != 'cancelled')
+      .map(
+        (event) => TimetableOccurrence(
+          id: event['id'] as String,
+          kind: event['kind'] as String,
+          title: event['title'] as String,
+          subjectLabel: (event['subjectLabel'] ?? event['title']) as String,
+          startsAt: parseApiDateTime(event['startsAt'])!,
+          endsAt: parseApiDateTime(event['endsAt'])!,
+          classGroupId: event['classGroupId'] as String,
+          classSubjectId: event['classSubjectId'] as String?,
+          status: event['status'] as String?,
+          teacherName: event['teacherName'] as String?,
+        ),
+      )
+      .toList();
+}
+
 Future<List<TimetableOccurrence>> fetchClassTimetableOccurrences(
   SchoolClient client,
   String classGroupId, {

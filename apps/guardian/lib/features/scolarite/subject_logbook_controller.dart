@@ -19,6 +19,13 @@ class SubjectLogbookController extends LevitController
   final String subject;
   final StudentContextController _studentContext;
   final SchoolClientFactory _schoolClient;
+  int _loadGeneration = 0;
+
+  @override
+  void onClose() {
+    _loadGeneration++;
+    super.onClose();
+  }
 
   final entries = LxVar<List<CurriculumLogEntry>>(const []);
   final errorMessage = LxVar('');
@@ -28,13 +35,28 @@ class SubjectLogbookController extends LevitController
     super.onInit();
     autoDispose(entries);
     autoDispose(errorMessage);
+    for (final stream in [
+      _studentContext.activeStudent.stream,
+      _studentContext.classGroupId.stream,
+    ]) {
+      autoDispose(stream.listen((_) => unawaited(load())));
+    }
     unawaited(load());
   }
 
   Future<void> load() async {
+    final generation = ++_loadGeneration;
+    final studentId = _studentContext.activeStudentId;
     final classGroupId = _studentContext.classGroupId.value;
     final classLabel = _studentContext.classLabel.value;
-    if (classGroupId == null || classLabel == null) {
+    bool isCurrent() =>
+        generation == _loadGeneration &&
+        studentId == _studentContext.activeStudentId &&
+        classGroupId == _studentContext.classGroupId.value &&
+        classLabel == _studentContext.classLabel.value;
+    errorMessage('');
+    entries(const []);
+    if (studentId == null || classGroupId == null || classLabel == null) {
       entries(const []);
       return;
     }
@@ -44,10 +66,12 @@ class SubjectLogbookController extends LevitController
         final client = _schoolClient();
         final options = await fetchClassSubjectOptions(
           client: client,
+          studentId: studentId,
           classGroupId: classGroupId,
           classLabel: classLabel,
           subjectFallback: systemL10n().subjectFallback,
         );
+        if (!isCurrent()) return;
         final option = options
             .where((o) => o.subjectName == subject)
             .firstOrNull;
@@ -57,6 +81,7 @@ class SubjectLogbookController extends LevitController
         }
 
         final logEntries = await fetchCurriculumLogEntries(
+          studentId: studentId,
           client: client,
           classGroupId: classGroupId,
           classSubjectId: option.id,
@@ -64,8 +89,10 @@ class SubjectLogbookController extends LevitController
           subjectLabel: option.subjectName,
           matterFallback: systemL10n().unitFallback,
         );
+        if (!isCurrent()) return;
         entries(logEntries.where((e) => e.hasContent).toList());
       } on Object catch (error) {
+        if (!isCurrent()) return;
         errorMessage(systemL10n().couldNotLoadAcademicData(error.toString()));
         entries(const []);
       }
