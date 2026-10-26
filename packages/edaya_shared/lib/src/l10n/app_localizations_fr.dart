@@ -2346,4 +2346,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get guardianDiscard => 'Abandonner';
+
+  @override
+  String get reportModuleExplicitWeight => 'Poids explicite';
+
+  @override
+  String get reportModuleCoefficientWeight => 'Coefficients contributifs';
+
+  @override
+  String get reportSubjectCoefficient => 'Coefficient';
 }

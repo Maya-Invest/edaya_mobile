@@ -1382,5 +1382,8 @@
   "guardianSmsNotifications": "SMS notifications",
   "guardianPushNotifications": "Push notifications",
   "guardianDiscardChanges": "Discard unsaved changes?",
-  "guardianDiscard": "Discard"
+  "guardianDiscard": "Discard",
+  "reportModuleExplicitWeight": "Explicit weight",
+  "reportModuleCoefficientWeight": "Contributing coefficients",
+  "reportSubjectCoefficient": "Coefficient"
 }

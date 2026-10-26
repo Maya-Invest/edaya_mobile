@@ -96,3 +96,7 @@ Changing the identifier, restarting authentication or changing the document/loca
 ## Guardian profile contacts
 
 The shared account profile form exposes the main phone, alternative phone and email with independent email, SMS and push switches for guardians. Guardian identity names remain read-only. SMS uses only the main phone; email uses only the saved address; in-app messages remain available. Saving a contact preserves every unedited preference and never updates login identifiers. The shared profile controller preserves failed drafts, guards dirty dismissal and ignores responses after profile/school changes or disposal.
+
+### Flat report modules
+
+Guardian report sections render published snapshot names, module weighting mode/effective weight, subject coefficients and captured grades. Modules have only subject children; ungrouped subjects remain root rows. Categories do not define result grouping. Teacher comment controls keep subject/homeroom permissions and stable `module:` / `subject:` identities. Local comment drafts carry format version 2 and the base report version; a changed report requires refresh before restoration. No template selector or mobile module administration is provided.

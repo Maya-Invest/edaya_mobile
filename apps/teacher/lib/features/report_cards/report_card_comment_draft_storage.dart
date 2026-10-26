@@ -6,21 +6,26 @@ class ReportCardCommentDraft {
   const ReportCardCommentDraft({
     required this.commentsBySectionId,
     required this.updatedAt,
+    required this.baseVersion,
   });
 
   final Map<String, String> commentsBySectionId;
   final DateTime updatedAt;
+  final int baseVersion;
 
   Map<String, dynamic> toJson() {
     return {
       'commentsBySectionId': commentsBySectionId,
       'updatedAt': updatedAt.toUtc().toIso8601String(),
+      'baseVersion': baseVersion,
+      'formatVersion': 2,
     };
   }
 
   factory ReportCardCommentDraft.fromJson(Map<String, dynamic> json) {
     final raw = json['commentsBySectionId'];
     return ReportCardCommentDraft(
+      baseVersion: (json['baseVersion'] as num).toInt(),
       commentsBySectionId: raw is Map
           ? raw.map((key, value) => MapEntry('$key', '$value'))
           : const {},
@@ -35,7 +40,7 @@ abstract final class ReportCardCommentDraftStorage {
   ReportCardCommentDraftStorage._();
 
   static String _key(String resultId, String studentId) =>
-      'teacher_report_comment_draft_${resultId}_$studentId';
+      'teacher_report_comment_v2_${resultId}_$studentId';
 
   static Future<ReportCardCommentDraft?> load({
     required String resultId,
@@ -49,7 +54,9 @@ abstract final class ReportCardCommentDraftStorage {
 
     try {
       final decoded = jsonDecode(raw);
-      if (decoded is! Map<String, dynamic>) {
+      if (decoded is! Map<String, dynamic> ||
+          decoded['formatVersion'] != 2 ||
+          decoded['baseVersion'] is! num) {
         return null;
       }
       return ReportCardCommentDraft.fromJson(decoded);

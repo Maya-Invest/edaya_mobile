@@ -14,7 +14,7 @@ class ReportCardCommentField {
   final String initialComment;
 
   bool get isHomeroom => kind == 'homeroom';
-  bool get isGroup => kind == 'group';
+  bool get isGroup => kind == 'module';
   bool get isSubject => kind == 'subject';
 }
 
@@ -77,7 +77,7 @@ List<ReportCardCommentField> _sectionCommentFields({
     final classSubjectId = section['classSubjectId'] as String?;
     final name = section['name'] as String? ?? sectionId;
 
-    final canEditGroup = isHomeroomTeacher && sectionKind == 'group';
+    final canEditGroup = isHomeroomTeacher && sectionKind == 'module';
     final canEditSubject =
         sectionKind == 'subject' &&
         classSubjectId != null &&
@@ -88,7 +88,7 @@ List<ReportCardCommentField> _sectionCommentFields({
         ReportCardCommentField(
           sectionId: sectionId,
           label: name,
-          kind: sectionKind == 'subject' ? 'subject' : 'group',
+          kind: sectionKind == 'subject' ? 'subject' : 'module',
           classSubjectId: classSubjectId,
           initialComment: section['comment'] as String? ?? '',
         ),

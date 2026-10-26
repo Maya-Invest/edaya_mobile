@@ -259,3 +259,7 @@ Run `EDAYA_DESIGN_REVIEW_THEME=dark dart run edaya_repo:repo maintenance design-
 ## Conversation history
 
 Both apps use shared message bubbles: sent right on the blue container, received left on the neutral surface, with corresponding theme foregrounds. Retain author, selectable body and localized timestamp in that order. Direction, position and semantic labels supplement color; no receipt indicators. Follow the component registry's width and large-text contract.
+
+### Report grouping labels
+
+Use Module / Module for result groups, and Coefficient / Coefficient for subject weights. Show an explicit module weight or sum-of-contributing-coefficients label beside the captured module result. Keep an unavailable grade distinct from a numeric zero. Report cards retain their existing shared card and typography treatment.

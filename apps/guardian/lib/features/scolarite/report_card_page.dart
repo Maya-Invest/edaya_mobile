@@ -218,6 +218,10 @@ class _LiveReportCardDetailPage extends LScopedView<ReportCardController> {
           for (final section in card.sections) ...[
             const SizedBox(height: PrototypeSpacing.md),
             SectionHeader(title: section.name),
+            if (section.weightingMode != null)
+              Text(
+                '${section.averageLabel} · ${section.weightingMode == 'explicit' ? systemL10n().reportModuleExplicitWeight : systemL10n().reportModuleCoefficientWeight}: ${section.weight ?? '—'}',
+              ),
             if (section.comment?.trim().isNotEmpty ?? false)
               Text(section.comment!),
             for (final group in section.groupComments)
@@ -244,7 +248,8 @@ class _LiveReportCardDetailPage extends LScopedView<ReportCardController> {
                       ),
                   ],
                 ),
-                subtitle: subject.comment,
+                subtitle:
+                    '${systemL10n().reportSubjectCoefficient}: ${subject.coefficient ?? '—'}${subject.comment == null ? '' : '\n${subject.comment}'}',
               ),
               const SizedBox(height: PrototypeSpacing.xs),
             ],

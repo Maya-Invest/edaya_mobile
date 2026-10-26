@@ -4093,6 +4093,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Discard'**
   String get guardianDiscard;
+
+  /// No description provided for @reportModuleExplicitWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Explicit weight'**
+  String get reportModuleExplicitWeight;
+
+  /// No description provided for @reportModuleCoefficientWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Contributing coefficients'**
+  String get reportModuleCoefficientWeight;
+
+  /// No description provided for @reportSubjectCoefficient.
+  ///
+  /// In en, this message translates to:
+  /// **'Coefficient'**
+  String get reportSubjectCoefficient;
 }
 
 class _AppLocalizationsDelegate

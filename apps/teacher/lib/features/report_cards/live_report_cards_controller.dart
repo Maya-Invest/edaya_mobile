@@ -340,6 +340,7 @@ class LiveReportCardCommentController extends LevitController
       studentId: studentId,
       draft: ReportCardCommentDraft(
         commentsBySectionId: commentsBySectionId,
+        baseVersion: (_resultRow?['version'] as num?)?.toInt() ?? 0,
         updatedAt: DateTime.now(),
       ),
     );
@@ -353,7 +354,8 @@ class LiveReportCardCommentController extends LevitController
       resultId: resultId,
       studentId: studentId,
     );
-    if (draft == null) {
+    if (draft == null ||
+        draft.baseVersion != (_resultRow?['version'] as num?)?.toInt()) {
       return;
     }
     fields(

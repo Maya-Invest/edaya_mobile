@@ -2322,4 +2322,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guardianDiscard => 'Discard';
+
+  @override
+  String get reportModuleExplicitWeight => 'Explicit weight';
+
+  @override
+  String get reportModuleCoefficientWeight => 'Contributing coefficients';
+
+  @override
+  String get reportSubjectCoefficient => 'Coefficient';
 }

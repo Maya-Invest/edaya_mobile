@@ -699,5 +699,8 @@
   "guardianSmsNotifications": "Notifications par SMS",
   "guardianPushNotifications": "Notifications push",
   "guardianDiscardChanges": "Abandonner les modifications ?",
-  "guardianDiscard": "Abandonner"
+  "guardianDiscard": "Abandonner",
+  "reportModuleExplicitWeight": "Poids explicite",
+  "reportModuleCoefficientWeight": "Coefficients contributifs",
+  "reportSubjectCoefficient": "Coefficient"
 }

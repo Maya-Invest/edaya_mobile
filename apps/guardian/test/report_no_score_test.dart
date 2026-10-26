@@ -14,30 +14,46 @@ void main() {
     expect(grade.designation, 'scored');
   });
 
-  test('nested group comments remain associated with their named section', () {
-    final report = ReportCardDetail.fromJson({
-      'id': 'report',
-      'sectionResults': [
-        {
-          'sectionId': 'root',
-          'sectionKind': 'group',
-          'name': 'Core',
-          'comment': 'Overall progress',
-          'subResults': [
-            {
-              'sectionId': 'nested',
-              'sectionKind': 'group',
-              'name': 'Languages',
-              'comment': 'Keep reading',
-              'subResults': [],
-            },
-          ],
-        },
-      ],
-    }, periodName: 'Term');
+  test('flat module snapshots retain weighting, names and comments', () {
+    final report = ReportCardDetail.fromJson(
+      {
+        'id': 'report',
+        'sectionResults': [
+          {
+            'sectionId': 'module:science',
+            'sectionKind': 'module',
+            'name': 'Sciences',
+            'comment': 'Overall progress',
+            'weightingMode': 'explicit',
+            'weight': 2.5,
+            'average': 14,
+            'subResults': [
+              {
+                'sectionId': 'subject:math',
+                'sectionKind': 'subject',
+                'classSubjectId': 'math',
+                'name': 'Published mathematics',
+                'coefficient': 3,
+                'average': 14,
+                'comment': 'Keep practicing',
+              },
+            ],
+          },
+        ],
+        'revisedDraft': {'sectionResults': []},
+      },
+      periodName: 'Term',
+      subjectNameByClassSubjectId: {'math': 'Renamed mathematics'},
+    );
     expect(report.sections.single.comment, 'Overall progress');
-    expect(report.sections.single.groupComments.single.name, 'Languages');
-    expect(report.sections.single.groupComments.single.comment, 'Keep reading');
+    expect(report.sections.single.weight, 2.5);
+    expect(report.sections.single.weightingMode, 'explicit');
+    expect(
+      report.sections.single.subjects.single.name,
+      'Published mathematics',
+    );
+    expect(report.sections.single.subjects.single.coefficient, 3);
+    expect(report.sections.single.subjects.single.comment, 'Keep practicing');
   });
 
   test(
@@ -48,7 +64,7 @@ void main() {
         'sectionResults': [
           {
             'sectionId': 'first',
-            'sectionKind': 'group',
+            'sectionKind': 'module',
             'name': 'Core',
             'comment': 'Absence',
             'subResults': [
@@ -63,7 +79,7 @@ void main() {
           },
           {
             'sectionId': 'second',
-            'sectionKind': 'group',
+            'sectionKind': 'module',
             'name': 'Core',
             'average': 0,
             'subResults': [

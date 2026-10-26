@@ -47,6 +47,8 @@ class ReportCardSectionMark {
     required this.name,
     required this.average,
     this.grading,
+    this.weight,
+    this.weightingMode,
     this.comment,
     this.subjects = const [],
     this.groupComments = const [],
@@ -60,6 +62,8 @@ class ReportCardSectionMark {
       name: json['name'] as String? ?? 'Section',
       average: (json['average'] as num?)?.toDouble(),
       grading: (json['grading'] as Map?)?.cast<String, dynamic>(),
+      weight: (json['weight'] as num?)?.toDouble(),
+      weightingMode: json['weightingMode'] as String?,
       comment: json['comment'] as String?,
       groupComments: _collectGroupComments(json['subResults']),
       subjects: json['sectionKind'] == 'subject'
@@ -81,7 +85,7 @@ class ReportCardSectionMark {
     if (nodes is! List) return const [];
     final comments = <ReportCardGroupComment>[];
     for (final node in nodes) {
-      if (node is! Map<String, dynamic> || node['sectionKind'] != 'group') {
+      if (node is! Map<String, dynamic> || node['sectionKind'] != 'module') {
         continue;
       }
       final comment = node['comment'] as String?;
@@ -128,7 +132,7 @@ class ReportCardSectionMark {
               resolvedName: subjectNameByClassSubjectId[classSubjectId],
             ),
           );
-        } else if (kind == 'group') {
+        } else if (kind == 'module') {
           visit(node['subResults']);
         }
       }
@@ -138,6 +142,8 @@ class ReportCardSectionMark {
     return subjects;
   }
 
+  final double? weight;
+  final String? weightingMode;
   final String name;
   final double? average;
   final Map<String, dynamic>? grading;
@@ -158,6 +164,7 @@ class ReportCardSubjectMark {
     required this.name,
     required this.average,
     this.grading,
+    this.coefficient,
     this.rank,
     this.comment,
   });
@@ -168,16 +175,18 @@ class ReportCardSubjectMark {
   }) {
     return ReportCardSubjectMark(
       name:
-          resolvedName ??
           json['name'] as String? ??
+          resolvedName ??
           systemL10n().subjectFallback,
       average: (json['average'] as num?)?.toDouble(),
       grading: (json['grading'] as Map?)?.cast<String, dynamic>(),
+      coefficient: (json['coefficient'] as num?)?.toDouble(),
       rank: json['rank'] as int?,
       comment: json['comment'] as String?,
     );
   }
 
+  final double? coefficient;
   final String name;
   final double? average;
   final Map<String, dynamic>? grading;
@@ -212,7 +221,7 @@ class ReportCardDetail {
     if (sectionResults is List) {
       for (final entry in sectionResults) {
         if (entry is! Map<String, dynamic> ||
-            !const ['group', 'subject'].contains(entry['sectionKind'])) {
+            !const ['module', 'subject'].contains(entry['sectionKind'])) {
           continue;
         }
         final sectionId = entry['sectionId'] as String?;
