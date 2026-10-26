@@ -48,6 +48,68 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
   final enrollmentSecret = LxVar('');
   final recoveryCodes = LxVar<List<String>>([]);
   AuthUser? _completedUser;
+  final terms = LxVar<AuthTerms?>(null);
+  final termsAccepted = LxVar(false);
+  final termsLoading = LxVar(true);
+  final termsLoadError = LxVar(false);
+  String? _termsLocale;
+  String? _acceptedIdentifier;
+  int _termsRequest = 0;
+  bool _closed = false;
+
+  bool get termsReady =>
+      terms.value != null &&
+      !termsLoading.value &&
+      !termsLoadError.value &&
+      (!terms.value!.enforced ||
+          (terms.value!.document != null &&
+              termsAccepted.value &&
+              _acceptedIdentifier == email.value.trim().toLowerCase()));
+
+  void setTermsAccepted(bool accepted) {
+    termsAccepted(accepted);
+    _acceptedIdentifier = accepted ? email.value.trim().toLowerCase() : null;
+  }
+
+  void setEmail(String value) {
+    if (value.trim().toLowerCase() != email.value.trim().toLowerCase()) {
+      setTermsAccepted(false);
+    }
+    email(value);
+  }
+
+  Future<void> loadTerms({String? locale}) async {
+    final selectedLocale =
+        locale ?? (systemL10n().localeName.startsWith('en') ? 'en' : 'fr');
+    final request = ++_termsRequest;
+    final previous = terms.value?.document;
+    if (_termsLocale != selectedLocale) setTermsAccepted(false);
+    _termsLocale = selectedLocale;
+    termsLoading(true);
+    termsLoadError(false);
+    final result = await _authClient.getTerms(locale: selectedLocale);
+    if (_closed || request != _termsRequest) return;
+    if (!result.isSuccess || result.data == null) {
+      terms(null);
+      setTermsAccepted(false);
+      termsLoadError(true);
+    } else {
+      final document = result.data!.document;
+      if (previous?.version != document?.version ||
+          previous?.documentHash != document?.documentHash) {
+        setTermsAccepted(false);
+      }
+      terms(result.data);
+    }
+    termsLoading(false);
+  }
+
+  void syncTermsLocale(String locale) {
+    if (!startWithEnrollment && _termsLocale != locale) {
+      loadTerms(locale: locale);
+    }
+  }
+
   final errorMessage = LxVar('');
   final mode = LxVar(LoginMode.enterEmail);
 
@@ -55,6 +117,11 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
   void onInit() {
     super.onInit();
     autoDispose(email);
+    autoDispose(terms);
+    autoDispose(termsAccepted);
+    autoDispose(termsLoading);
+    autoDispose(termsLoadError);
+    if (!startWithEnrollment) loadTerms();
     autoDispose(otp);
     autoDispose(enrollmentSecret);
     autoDispose(recoveryCodes);
@@ -69,6 +136,7 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
 
   @override
   void onClose() {
+    _closed = true;
     delivery.close();
     otpText.dispose();
     super.onClose();
@@ -86,6 +154,7 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
   }
 
   void showEmailEntry() {
+    setTermsAccepted(false);
     errorMessage('');
     _setOtp('');
     mode(LoginMode.enterEmail);
@@ -125,15 +194,46 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
       errorMessage(systemL10n().phoneUnavailable);
       return;
     }
+    if (!termsReady) {
+      errorMessage(
+        termsLoadError.value
+            ? systemL10n().termsUnavailable
+            : systemL10n().termsRequired,
+      );
+      return;
+    }
     await runTask(() async {
+      final document = terms.value?.document;
       final result = await _authClient.sendOtp(
+        termsAcceptance: terms.value!.enforced && document != null
+            ? AuthTermsAcceptance(
+                version: document.version,
+                locale: document.locale,
+                accepted: true,
+              )
+            : null,
         value: identifier.value,
         channel: identifier.kind,
         locale: systemL10n().localeName.startsWith('en') ? 'en' : 'fr',
       );
       delivery.refresh();
       if (!result.isSuccess) {
-        errorMessage(result.error?.message ?? systemL10n().otpSendFailed);
+        if (result.error?.code == 'terms_version_changed' ||
+            result.error?.code == 'terms_acceptance_required') {
+          setTermsAccepted(false);
+          await loadTerms();
+          errorMessage(
+            result.error?.code == 'terms_version_changed'
+                ? systemL10n().termsChanged
+                : systemL10n().termsRequired,
+          );
+        } else {
+          errorMessage(
+            result.error?.code == 'terms_unavailable'
+                ? systemL10n().termsUnavailable
+                : result.error?.message ?? systemL10n().otpSendFailed,
+          );
+        }
         return;
       }
       _setOtp('');
@@ -168,7 +268,22 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
           : await _authClient.resendOtp(action: action);
       delivery.refresh();
       if (!result.isSuccess) {
-        errorMessage(result.error?.message ?? systemL10n().otpSendFailed);
+        if (result.error?.code == 'terms_version_changed' ||
+            result.error?.code == 'terms_acceptance_required') {
+          setTermsAccepted(false);
+          await loadTerms();
+          errorMessage(
+            result.error?.code == 'terms_version_changed'
+                ? systemL10n().termsChanged
+                : systemL10n().termsRequired,
+          );
+        } else {
+          errorMessage(
+            result.error?.code == 'terms_unavailable'
+                ? systemL10n().termsUnavailable
+                : result.error?.message ?? systemL10n().otpSendFailed,
+          );
+        }
       } else {
         _setOtp('');
       }

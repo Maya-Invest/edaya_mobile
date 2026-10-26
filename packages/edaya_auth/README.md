@@ -11,3 +11,5 @@ A lost or unavailable HTTP response retains its request ID. `canRetryOtpRequest`
 Explicit test access uses `--dart-define=TEST_OTP_ACCESS=true` in debug builds only. `testingOtpAvailable()` discovers capabilities once; `revealTestOtp(challenge)` returns a transient capture without changing authentication. Normal builds return false/null without a testing request. Use the shared Show test code/Copy controls; never autofill, persist or log captured codes.
 
 `LoginIdentifier.detect` classifies and normalizes a login contact as an email or an international phone number, using the service's validation rules. Invalid input returns null. Country support remains a server policy.
+
+`AuthClient.getTerms(locale:)` loads the backend terms policy. `sendOtp(termsAcceptance:)` sends explicit acceptance of the displayed version; retries retain the original request and acceptance. Terms DTOs use generated API contracts. Loading errors must block the login UI; existing credential restoration and token renewal are unchanged.

@@ -29,6 +29,8 @@ void main() {
           final auth = AuthClient(
             baseUrl: 'http://localhost:9999',
             client: MockClient((request) async {
+              if (request.url.path.endsWith('/terms'))
+                return http.Response('{"enforced":false,"document":null}', 200);
               if (request.url.path.endsWith('/methods')) {
                 if (unavailable) throw StateError('unreachable');
                 return http.Response(

@@ -3991,6 +3991,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mention'**
   String get gradingMention;
+
+  /// No description provided for @termsConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get termsConfirm;
+
+  /// No description provided for @termsRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the Terms of Use'**
+  String get termsRead;
+
+  /// No description provided for @termsAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'I accept the Terms of Use'**
+  String get termsAccept;
+
+  /// No description provided for @termsLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading the Terms of Use…'**
+  String get termsLoading;
+
+  /// No description provided for @termsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The Terms of Use could not be loaded. Please retry to continue.'**
+  String get termsUnavailable;
+
+  /// No description provided for @termsRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry loading terms'**
+  String get termsRetry;
+
+  /// No description provided for @termsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept the Terms of Use before continuing.'**
+  String get termsRequired;
+
+  /// No description provided for @termsChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'The Terms of Use have changed. Read and accept the new version to continue.'**
+  String get termsChanged;
+
+  /// No description provided for @termsDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft preview — this text is awaiting approval and is not a published agreement.'**
+  String get termsDraft;
 }
 
 class _AppLocalizationsDelegate

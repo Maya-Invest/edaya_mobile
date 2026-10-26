@@ -1365,5 +1365,14 @@
       }
     }
   },
-  "gradingMention": "Mention"
+  "gradingMention": "Mention",
+  "termsConfirm": "Accept",
+  "termsRead": "Read the Terms of Use",
+  "termsAccept": "I accept the Terms of Use",
+  "termsLoading": "Loading the Terms of Use…",
+  "termsUnavailable": "The Terms of Use could not be loaded. Please retry to continue.",
+  "termsRetry": "Retry loading terms",
+  "termsRequired": "Accept the Terms of Use before continuing.",
+  "termsChanged": "The Terms of Use have changed. Read and accept the new version to continue.",
+  "termsDraft": "Draft preview — this text is awaiting approval and is not a published agreement."
 }

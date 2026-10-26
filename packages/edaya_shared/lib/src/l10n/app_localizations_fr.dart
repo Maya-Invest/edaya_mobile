@@ -2290,4 +2290,35 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get gradingMention => 'Mention';
+
+  @override
+  String get termsConfirm => 'Accepter';
+
+  @override
+  String get termsRead => 'Lire les conditions d’utilisation';
+
+  @override
+  String get termsAccept => 'J’accepte les conditions d’utilisation';
+
+  @override
+  String get termsLoading => 'Chargement des conditions d’utilisation…';
+
+  @override
+  String get termsUnavailable =>
+      'Impossible de charger les conditions d’utilisation. Réessayez pour continuer.';
+
+  @override
+  String get termsRetry => 'Recharger les conditions';
+
+  @override
+  String get termsRequired =>
+      'Acceptez les conditions d’utilisation avant de continuer.';
+
+  @override
+  String get termsChanged =>
+      'Les conditions d’utilisation ont changé. Lisez et acceptez la nouvelle version pour continuer.';
+
+  @override
+  String get termsDraft =>
+      'Aperçu du projet — ce texte attend une approbation et n’est pas un accord publié.';
 }

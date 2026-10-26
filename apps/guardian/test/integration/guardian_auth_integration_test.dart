@@ -14,6 +14,7 @@ import 'support/guardian_widget_test_harness.dart';
 import 'support/integration_test_lifecycle.dart';
 import 'support/live_api_test_binding.dart';
 import '../../../../packages/edaya_shared/test/support/enter_focused_text.dart';
+import '../../../../packages/edaya_shared/test/support/submit_auth.dart';
 import 'support/pump_guardian_page.dart';
 import 'support/pump_until_found.dart';
 
@@ -81,7 +82,7 @@ Future<void> main() async {
           find.byKey(const Key('auth-identifier')),
           '0712345678',
         );
-        await tester.tap(find.byKey(const Key('auth-submit')));
+        await submitAuth(tester);
         await tester.pump();
         expect(find.byKey(const Key('auth-code')), findsNothing);
         final invalidController = tester
@@ -114,7 +115,7 @@ Future<void> main() async {
         );
         var since = DateTime.now();
         await tester.ensureVisible(find.byKey(const Key('auth-submit')));
-        await tester.tap(find.byKey(const Key('auth-submit')));
+        await submitAuth(tester);
         await pumpUntilFound(tester, find.byKey(const Key('auth-code')));
         var code = await capturedOtp(
           destination,
@@ -125,7 +126,7 @@ Future<void> main() async {
         if (channel == 'email') {
           final invalid = code == '000000' ? '111111' : '000000';
           await tester.enterText(find.byKey(const Key('auth-code')), invalid);
-          await tester.tap(find.byKey(const Key('auth-submit')));
+          await submitAuth(tester);
           final controller = tester
               .element(find.byKey(const Key('auth-code')))
               .levit
@@ -205,7 +206,7 @@ Future<void> main() async {
           code,
         );
         await tester.ensureVisible(find.byKey(const Key('auth-submit')));
-        await tester.tap(find.byKey(const Key('auth-submit')));
+        await submitAuth(tester);
         await pumpUntilFound(
           tester,
           find.byType(channel == 'email' ? HomePage : WaitingForStudentsPage),

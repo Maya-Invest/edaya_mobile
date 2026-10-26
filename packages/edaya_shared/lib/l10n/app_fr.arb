@@ -682,5 +682,14 @@
       }
     }
   },
-  "gradingMention": "Mention"
+  "gradingMention": "Mention",
+  "termsConfirm": "Accepter",
+  "termsRead": "Lire les conditions d’utilisation",
+  "termsAccept": "J’accepte les conditions d’utilisation",
+  "termsLoading": "Chargement des conditions d’utilisation…",
+  "termsUnavailable": "Impossible de charger les conditions d’utilisation. Réessayez pour continuer.",
+  "termsRetry": "Recharger les conditions",
+  "termsRequired": "Acceptez les conditions d’utilisation avant de continuer.",
+  "termsChanged": "Les conditions d’utilisation ont changé. Lisez et acceptez la nouvelle version pour continuer.",
+  "termsDraft": "Aperçu du projet — ce texte attend une approbation et n’est pas un accord publié."
 }

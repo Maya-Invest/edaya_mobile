@@ -11,6 +11,24 @@ import 'auth_user.dart';
 import 'cookie_jar.dart';
 import 'http_client_factory.dart';
 
+/// Backend-owned, versioned terms shown before starting authentication.
+class AuthTerms {
+  const AuthTerms({required this.enforced, required this.document});
+  final bool enforced;
+  final contract.AuthTermsDocument? document;
+  factory AuthTerms.fromJson(Map<String, dynamic> json) {
+    final response = contract.AuthTerms.fromJson(json);
+    return AuthTerms(
+      enforced: response.enforced,
+      document: response.document == null
+          ? null
+          : contract.AuthTermsDocument.fromJson(response.document!),
+    );
+  }
+}
+
+typedef AuthTermsAcceptance = contract.AuthTermsAcceptance;
+
 typedef AuthBaseUrlProvider = String Function();
 
 class _ResourceTokenState {
@@ -225,11 +243,37 @@ class AuthClient {
         );
   }
 
+  /// Reads the currently published terms (or an explicitly enabled draft preview).
+  Future<AuthResult<AuthTerms>> getTerms({String locale = 'fr'}) async {
+    try {
+      final response = await _send(
+        'GET',
+        '/edaya/terms?locale=${Uri.encodeQueryComponent(locale)}',
+      );
+      final body = _decodeBody(response);
+      if (response.statusCode >= 400) {
+        return AuthResult.failure(_readError(body));
+      }
+      final terms = AuthTerms.fromJson(Map<String, dynamic>.from(body as Map));
+      if (terms.enforced && terms.document == null) {
+        return const AuthResult.failure(
+          AuthError(message: 'Terms unavailable', code: 'terms_unavailable'),
+        );
+      }
+      return AuthResult.success(terms);
+    } catch (_) {
+      return const AuthResult.failure(
+        AuthError(message: 'Terms unavailable', code: 'terms_unavailable'),
+      );
+    }
+  }
+
   /// Starts Email or Phone verification. WhatsApp is an initial legacy alias.
   Future<AuthResult<void>> sendOtp({
     required String value,
     String channel = 'email',
     String locale = 'fr',
+    AuthTermsAcceptance? termsAcceptance,
   }) async {
     if (!['email', 'phone', 'whatsapp'].contains(channel)) {
       return const AuthResult.failure(
@@ -245,6 +289,7 @@ class AuthClient {
         kind: channel == 'email' ? 'email' : 'phone',
         value: value,
         locale: locale,
+        termsAcceptance: termsAcceptance,
       ).toJson(),
     );
   }
@@ -575,9 +620,11 @@ class AuthClient {
       }
 
       final message = body['message'];
-      if (message is String) {
+      if (message is String || body['code'] is String) {
         return AuthError(
-          message: normalizeAuthErrorMessage(message),
+          message: normalizeAuthErrorMessage(
+            message is String ? message : body['code'] as String,
+          ),
           code: body['code'] as String?,
         );
       }

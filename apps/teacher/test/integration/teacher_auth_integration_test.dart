@@ -22,6 +22,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'support/integration_test_lifecycle.dart';
 import 'support/live_api_test_binding.dart';
 import '../../../../packages/edaya_shared/test/support/enter_focused_text.dart';
+import '../../../../packages/edaya_shared/test/support/submit_auth.dart';
 
 Future<void> until(WidgetTester tester, Finder finder) async {
   final deadline = DateTime.now().add(const Duration(seconds: 30));
@@ -124,7 +125,7 @@ Future<void> main() async {
       TeacherPortalProfile.subjectTeacher.email,
     );
     final since = DateTime.now();
-    await tester.tap(find.byKey(const Key('auth-submit')));
+    await submitAuth(tester);
     await until(tester, find.byKey(const Key('auth-code')));
     final code = await capturedOtp(
       TeacherPortalProfile.subjectTeacher.email,
@@ -133,7 +134,7 @@ Future<void> main() async {
     );
     await revealAndCopy(tester, code);
     await enterFocusedText(tester, find.byKey(const Key('auth-code')), code);
-    await tester.tap(find.byKey(const Key('auth-submit')));
+    await submitAuth(tester);
     await until(tester, find.byType(HomePage));
     expect(scope.find<AppSessionController>().hasSchoolSession, isTrue);
   }
@@ -264,7 +265,7 @@ Future<void> main() async {
           await setIntegrationClockOffset(const Duration(seconds: 61));
           since = DateTime.now();
           await tester.ensureVisible(find.byKey(const Key('auth-submit')));
-          await tester.tap(find.byKey(const Key('auth-submit')));
+          await submitAuth(tester);
           await until(tester, find.byKey(const Key('auth-code')));
           code = await capturedOtp(phone, 'whatsapp', since);
           expect(controller.delivery.remaining.value, greaterThan(110));
@@ -305,7 +306,7 @@ Future<void> main() async {
           code,
         );
         await tester.ensureVisible(find.byKey(const Key('auth-submit')));
-        await tester.tap(find.byKey(const Key('auth-submit')));
+        await submitAuth(tester);
         await until(tester, find.byType(HomePage));
         expect(
           scope.find<AppSessionController>().grants.value?.kind,

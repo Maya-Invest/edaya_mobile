@@ -3,6 +3,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../../l10n/l10n_extension.dart';
 import 'login_controller.dart';
 import 'otp_delivery_controls.dart';
+import 'terms_acceptance.dart';
 
 /// The complete account authentication flow shared by both branded apps.
 class PasswordlessLoginForm extends StatelessWidget {
@@ -81,7 +82,7 @@ class PasswordlessLoginForm extends StatelessWidget {
                       : null,
                   helperMaxLines: 3,
                 ),
-                onChanged: (value) => controller.email(value),
+                onChanged: controller.setEmail,
               ),
               const SizedBox(height: 16),
             ] else ...[
@@ -129,10 +130,17 @@ class PasswordlessLoginForm extends StatelessWidget {
         );
       }),
       LWatch(
+        () => controller.mode.value == LoginMode.enterEmail
+            ? TermsAcceptance(controller: controller)
+            : const SizedBox.shrink(),
+      ),
+      LWatch(
         () => FilledButton(
           key: const Key('auth-submit'),
           onPressed:
               controller.isBusy.value ||
+                  (controller.mode.value == LoginMode.enterEmail &&
+                      !controller.termsReady) ||
                   (controller.mode.value == LoginMode.verifyOtp &&
                       controller.delivery.status.value?.lifecycle != 'pending')
               ? null

@@ -2267,4 +2267,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gradingMention => 'Mention';
+
+  @override
+  String get termsConfirm => 'Accept';
+
+  @override
+  String get termsRead => 'Read the Terms of Use';
+
+  @override
+  String get termsAccept => 'I accept the Terms of Use';
+
+  @override
+  String get termsLoading => 'Loading the Terms of Use…';
+
+  @override
+  String get termsUnavailable =>
+      'The Terms of Use could not be loaded. Please retry to continue.';
+
+  @override
+  String get termsRetry => 'Retry loading terms';
+
+  @override
+  String get termsRequired => 'Accept the Terms of Use before continuing.';
+
+  @override
+  String get termsChanged =>
+      'The Terms of Use have changed. Read and accept the new version to continue.';
+
+  @override
+  String get termsDraft =>
+      'Draft preview — this text is awaiting approval and is not a published agreement.';
 }
