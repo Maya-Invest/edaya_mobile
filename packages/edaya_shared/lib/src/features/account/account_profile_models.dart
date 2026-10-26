@@ -5,6 +5,10 @@ class AccountContactProfile {
     required this.lastName,
     this.email,
     this.phone,
+    this.alternativePhone,
+    this.emailNotificationsEnabled = true,
+    this.smsNotificationsEnabled = true,
+    this.pushNotificationsEnabled = true,
     this.photoUrl,
     this.hasAccess = true,
   });
@@ -14,6 +18,10 @@ class AccountContactProfile {
   final String lastName;
   final String? email;
   final String? phone;
+  final String? alternativePhone;
+  final bool emailNotificationsEnabled;
+  final bool smsNotificationsEnabled;
+  final bool pushNotificationsEnabled;
   final String? photoUrl;
   final bool hasAccess;
 
@@ -36,6 +44,10 @@ class AccountContactProfile {
     String? lastName,
     String? email,
     String? phone,
+    String? alternativePhone,
+    bool? emailNotificationsEnabled,
+    bool? smsNotificationsEnabled,
+    bool? pushNotificationsEnabled,
     String? photoUrl,
     bool? hasAccess,
   }) {
@@ -45,6 +57,14 @@ class AccountContactProfile {
       lastName: lastName ?? this.lastName,
       email: email ?? this.email,
       phone: phone ?? this.phone,
+      alternativePhone: alternativePhone ?? this.alternativePhone,
+      emailNotificationsEnabled:
+          emailNotificationsEnabled ?? this.emailNotificationsEnabled,
+      smsNotificationsEnabled:
+          smsNotificationsEnabled ?? this.smsNotificationsEnabled,
+      pushNotificationsEnabled:
+          pushNotificationsEnabled ?? this.pushNotificationsEnabled,
+
       photoUrl: photoUrl ?? this.photoUrl,
       hasAccess: hasAccess ?? this.hasAccess,
     );

@@ -57,10 +57,42 @@ class AccountProfilePage extends LScopedView<AccountProfileController> {
         ),
       ),
     );
-    if (embedded) return body;
+    final guardedBody = LWatch(
+      () => PopScope(
+        canPop: !controller.isDirty && !controller.isSaving.value,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop || controller.isSaving.value) return;
+          final discard = await showDialog<bool>(
+            context: context,
+            builder: (dialogContext) => AlertDialog(
+              title: Text(context.tr.guardianDiscardChanges),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext, false),
+                  child: Text(
+                    MaterialLocalizations.of(context).cancelButtonLabel,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext, true),
+                  child: Text(context.tr.guardianDiscard),
+                ),
+              ],
+            ),
+          );
+          if (discard == true && context.mounted) {
+            controller.discardChanges();
+            await WidgetsBinding.instance.endOfFrame;
+            if (context.mounted) Navigator.of(context).pop();
+          }
+        },
+        child: body,
+      ),
+    );
+    if (embedded) return guardedBody;
     return Scaffold(
       appBar: AppBar(title: Text(context.tr.accountProfileTitle)),
-      body: body,
+      body: guardedBody,
     );
   }
 }
@@ -142,7 +174,9 @@ class _ProfileForm extends StatelessWidget {
         ],
         const SizedBox(height: 24),
         TextField(
+          enabled: !controller.isSaving.value,
           controller: controller.firstNameController,
+          readOnly: controller.isGuardian,
           decoration: InputDecoration(labelText: context.tr.firstNameLabel),
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.givenName],
@@ -150,7 +184,9 @@ class _ProfileForm extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         TextField(
+          enabled: !controller.isSaving.value,
           controller: controller.lastNameController,
+          readOnly: controller.isGuardian,
           decoration: InputDecoration(labelText: context.tr.lastNameLabel),
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.familyName],
@@ -158,6 +194,7 @@ class _ProfileForm extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         TextField(
+          enabled: !controller.isSaving.value,
           controller: controller.emailController,
           decoration: InputDecoration(labelText: context.tr.emailLabel),
           keyboardType: TextInputType.emailAddress,
@@ -170,12 +207,52 @@ class _ProfileForm extends StatelessWidget {
         if (controller.showsPhoneField) ...[
           const SizedBox(height: 16),
           TextField(
+            enabled: !controller.isSaving.value,
             controller: controller.phoneController,
-            decoration: InputDecoration(labelText: context.tr.phoneLabel),
+            decoration: InputDecoration(
+              labelText: controller.isGuardian
+                  ? context.tr.guardianMainPhone
+                  : context.tr.phoneLabel,
+            ),
             keyboardType: TextInputType.phone,
             textInputAction: TextInputAction.done,
             autofillHints: const [AutofillHints.telephoneNumber],
             onChanged: (_) => controller.markFormChanged(),
+          ),
+        ],
+        if (controller.isGuardian) ...[
+          const SizedBox(height: 16),
+          TextField(
+            enabled: !controller.isSaving.value,
+            controller: controller.alternativePhoneController,
+            decoration: InputDecoration(
+              labelText: context.tr.guardianAlternativePhone,
+            ),
+            keyboardType: TextInputType.phone,
+            onChanged: (_) => controller.markFormChanged(),
+          ),
+          const SizedBox(height: 16),
+          Text(context.tr.guardianNotificationDestinations),
+          SwitchListTile(
+            title: Text(context.tr.guardianEmailNotifications),
+            value: controller.emailNotificationsEnabled.value,
+            onChanged: controller.isSaving.value
+                ? null
+                : (value) => controller.emailNotificationsEnabled(value),
+          ),
+          SwitchListTile(
+            title: Text(context.tr.guardianSmsNotifications),
+            value: controller.smsNotificationsEnabled.value,
+            onChanged: controller.isSaving.value
+                ? null
+                : (value) => controller.smsNotificationsEnabled(value),
+          ),
+          SwitchListTile(
+            title: Text(context.tr.guardianPushNotifications),
+            value: controller.pushNotificationsEnabled.value,
+            onChanged: controller.isSaving.value
+                ? null
+                : (value) => controller.pushNotificationsEnabled(value),
           ),
         ],
         if (controller.saveMessage.value.isNotEmpty) ...[

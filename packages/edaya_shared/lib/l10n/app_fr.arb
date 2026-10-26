@@ -691,5 +691,13 @@
   "termsRetry": "Recharger les conditions",
   "termsRequired": "Acceptez les conditions d’utilisation avant de continuer.",
   "termsChanged": "Les conditions d’utilisation ont changé. Lisez et acceptez la nouvelle version pour continuer.",
-  "termsDraft": "Aperçu du projet — ce texte attend une approbation et n’est pas un accord publié."
+  "termsDraft": "Aperçu du projet — ce texte attend une approbation et n’est pas un accord publié.",
+  "guardianMainPhone": "Téléphone principal",
+  "guardianAlternativePhone": "Téléphone secondaire",
+  "guardianNotificationDestinations": "Les SMS utilisent votre téléphone principal et les e-mails votre adresse enregistrée. Les messages restent disponibles dans la boîte de réception de l’application.",
+  "guardianEmailNotifications": "Notifications par e-mail",
+  "guardianSmsNotifications": "Notifications par SMS",
+  "guardianPushNotifications": "Notifications push",
+  "guardianDiscardChanges": "Abandonner les modifications ?",
+  "guardianDiscard": "Abandonner"
 }

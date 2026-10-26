@@ -37,6 +37,14 @@ class AccountProfileController extends LevitController
   final lastNameController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
+  final alternativePhoneController = TextEditingController();
+  final emailNotificationsEnabled = LxVar(true);
+  final smsNotificationsEnabled = LxVar(true);
+  final pushNotificationsEnabled = LxVar(true);
+  bool _closed = false;
+  int _loadGeneration = 0;
+  String get _identity =>
+      "${_session.grants.value?.schoolId}:$profileKind:$actorId";
 
   @override
   void onInit() {
@@ -46,11 +54,17 @@ class AccountProfileController extends LevitController
     autoDispose(saveMessage);
     autoDispose(isSaving);
     autoDispose(formRevision);
+    autoDispose(emailNotificationsEnabled);
+    autoDispose(smsNotificationsEnabled);
+    autoDispose(pushNotificationsEnabled);
     unawaited(loadProfile());
   }
 
   @override
   void onClose() {
+    _closed = true;
+    _loadGeneration++;
+    alternativePhoneController.dispose();
     firstNameController.dispose();
     lastNameController.dispose();
     emailController.dispose();
@@ -61,6 +75,8 @@ class AccountProfileController extends LevitController
   String? get profileKind => _session.grants.value?.kind;
 
   String? get actorId => _session.grants.value?.actorId;
+
+  bool get isGuardian => profileKind == 'guardian';
 
   bool get showsPhoneField =>
       profileKind == 'guardian' || profileKind == 'teacher';
@@ -75,7 +91,34 @@ class AccountProfileController extends LevitController
     return (profileKind == 'guardian' ||
             firstNameController.text.trim().isNotEmpty) &&
         lastNameController.text.trim().isNotEmpty &&
+        profile.value?.id == actorId &&
         !isSaving.value;
+  }
+
+  bool get isDirty {
+    formRevision.value;
+    final current = profile.value;
+    if (current == null) return false;
+    return (!isGuardian &&
+            (firstNameController.text.trim() != current.firstName ||
+                lastNameController.text.trim() != current.lastName)) ||
+        emailController.text.trim() != (current.email ?? '') ||
+        phoneController.text.trim() != (current.phone ?? '') ||
+        (isGuardian &&
+            (alternativePhoneController.text.trim() !=
+                    (current.alternativePhone ?? '') ||
+                emailNotificationsEnabled.value !=
+                    current.emailNotificationsEnabled ||
+                smsNotificationsEnabled.value !=
+                    current.smsNotificationsEnabled ||
+                pushNotificationsEnabled.value !=
+                    current.pushNotificationsEnabled));
+  }
+
+  void discardChanges() {
+    final current = profile.value;
+    if (current != null) _bindForm(current);
+    markFormChanged();
   }
 
   void markFormChanged() {
@@ -98,6 +141,8 @@ class AccountProfileController extends LevitController
   Future<void> loadProfile() async {
     final kind = profileKind;
     final id = actorId;
+    final identity = _identity;
+    final generation = ++_loadGeneration;
     if (kind == null || id == null) {
       errorMessage(systemL10n().accountProfileUnavailable);
       return;
@@ -111,12 +156,16 @@ class AccountProfileController extends LevitController
           kind: kind,
           actorId: id,
         );
+        if (_closed || identity != _identity || generation != _loadGeneration)
+          return;
         profile(loaded);
         _bindForm(loaded);
       } on api.ApiError catch (error) {
-        errorMessage(systemL10n().accountProfileLoadError('$error'));
+        if (!_closed && identity == _identity && generation == _loadGeneration)
+          errorMessage(systemL10n().accountProfileLoadError('$error'));
       } on Object catch (error) {
-        errorMessage(systemL10n().accountProfileLoadError('$error'));
+        if (!_closed && identity == _identity && generation == _loadGeneration)
+          errorMessage(systemL10n().accountProfileLoadError('$error'));
       }
     });
   }
@@ -132,6 +181,7 @@ class AccountProfileController extends LevitController
       return false;
     }
 
+    final identity = _identity;
     saveMessage('');
     isSaving(true);
     try {
@@ -143,15 +193,24 @@ class AccountProfileController extends LevitController
         jpegBytes: jpegBytes,
       );
       final updated = current.copyWith(photoUrl: uploaded.photoUrl);
-      await saveAccountContactProfile(
-        _schoolClient(),
-        kind: kind,
-        profile: updated,
-      );
+      if (kind == 'guardian') {
+        await _schoolClient().updateGuardianProfile({
+          'guardianId': current.id,
+          'photoUrl': uploaded.photoUrl,
+        });
+      } else {
+        await saveAccountContactProfile(
+          _schoolClient(),
+          kind: kind,
+          profile: updated,
+        );
+      }
+      if (_closed || identity != _identity) return false;
       profile(updated);
       saveMessage(systemL10n().profilePhotoUpdateSuccess);
       return true;
     } on api.ApiError catch (error) {
+      if (_closed || identity != _identity) return false;
       saveMessage(
         mutationFailureMessage(
           error,
@@ -160,6 +219,7 @@ class AccountProfileController extends LevitController
       );
       return false;
     } on Object catch (error) {
+      if (_closed || identity != _identity) return false;
       saveMessage(
         mutationFailureMessage(
           error,
@@ -168,7 +228,7 @@ class AccountProfileController extends LevitController
       );
       return false;
     } finally {
-      isSaving(false);
+      if (!_closed) isSaving(false);
     }
   }
 
@@ -179,19 +239,30 @@ class AccountProfileController extends LevitController
       return false;
     }
 
+    final identity = _identity;
     saveMessage('');
     isSaving(true);
     try {
       final updated = AccountContactProfile(
         id: current.id,
-        firstName: firstNameController.text.trim(),
-        lastName: lastNameController.text.trim(),
+        firstName: isGuardian
+            ? current.firstName
+            : firstNameController.text.trim(),
+        lastName: isGuardian
+            ? current.lastName
+            : lastNameController.text.trim(),
         email: emailController.text.trim().isEmpty
             ? null
             : emailController.text.trim(),
         phone: showsPhoneField && phoneController.text.trim().isNotEmpty
             ? phoneController.text.trim()
             : null,
+        alternativePhone: alternativePhoneController.text.trim().isEmpty
+            ? null
+            : alternativePhoneController.text.trim(),
+        emailNotificationsEnabled: emailNotificationsEnabled.value,
+        smsNotificationsEnabled: smsNotificationsEnabled.value,
+        pushNotificationsEnabled: pushNotificationsEnabled.value,
         photoUrl: current.photoUrl,
         hasAccess: current.hasAccess,
       );
@@ -201,6 +272,7 @@ class AccountProfileController extends LevitController
         kind: kind,
         profile: updated,
       );
+      if (_closed || identity != _identity) return false;
       profile(updated);
       saveMessage(systemL10n().accountProfileUpdateSuccess);
       await refreshAfterMutation(() async {
@@ -208,6 +280,7 @@ class AccountProfileController extends LevitController
       }, showWarning: (message) => saveMessage(message));
       return true;
     } on api.ApiError catch (error) {
+      if (_closed || identity != _identity) return false;
       saveMessage(
         mutationFailureMessage(
           error,
@@ -216,6 +289,7 @@ class AccountProfileController extends LevitController
       );
       return false;
     } on Object catch (error) {
+      if (_closed || identity != _identity) return false;
       saveMessage(
         mutationFailureMessage(
           error,
@@ -224,7 +298,7 @@ class AccountProfileController extends LevitController
       );
       return false;
     } finally {
-      isSaving(false);
+      if (!_closed) isSaving(false);
     }
   }
 
@@ -233,5 +307,9 @@ class AccountProfileController extends LevitController
     lastNameController.text = loaded.lastName;
     emailController.text = loaded.email ?? '';
     phoneController.text = loaded.phone ?? '';
+    alternativePhoneController.text = loaded.alternativePhone ?? '';
+    emailNotificationsEnabled(loaded.emailNotificationsEnabled);
+    smsNotificationsEnabled(loaded.smsNotificationsEnabled);
+    pushNotificationsEnabled(loaded.pushNotificationsEnabled);
   }
 }

@@ -1374,5 +1374,13 @@
   "termsRetry": "Retry loading terms",
   "termsRequired": "Accept the Terms of Use before continuing.",
   "termsChanged": "The Terms of Use have changed. Read and accept the new version to continue.",
-  "termsDraft": "Draft preview — this text is awaiting approval and is not a published agreement."
+  "termsDraft": "Draft preview — this text is awaiting approval and is not a published agreement.",
+  "guardianMainPhone": "Main phone",
+  "guardianAlternativePhone": "Alternative phone",
+  "guardianNotificationDestinations": "SMS uses your main phone and email uses your saved address. Messages remain available in your app inbox.",
+  "guardianEmailNotifications": "Email notifications",
+  "guardianSmsNotifications": "SMS notifications",
+  "guardianPushNotifications": "Push notifications",
+  "guardianDiscardChanges": "Discard unsaved changes?",
+  "guardianDiscard": "Discard"
 }

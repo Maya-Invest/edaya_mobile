@@ -2,30 +2,6 @@ import 'package:edaya_api_client/edaya_api_client.dart';
 
 import 'account_profile_models.dart';
 
-List<Map<String, dynamic>> buildGuardianContactMethods({
-  required String email,
-  required String phone,
-}) {
-  return [
-    if (email.isNotEmpty)
-      {
-        'type': 'email',
-        'value': email,
-        'label': 'Email',
-        'isPrimary': true,
-        'allowsNotifications': true,
-      },
-    if (phone.isNotEmpty)
-      {
-        'type': 'phone',
-        'value': phone,
-        'label': 'Phone',
-        'isPrimary': email.isEmpty,
-        'allowsNotifications': true,
-      },
-  ];
-}
-
 Future<AccountContactProfile> loadAccountContactProfile(
   SchoolClient client, {
   required String kind,
@@ -40,6 +16,14 @@ Future<AccountContactProfile> loadAccountContactProfile(
         lastName: guardian['lastName'] as String? ?? '',
         email: guardian['email'] as String?,
         phone: guardian['phone'] as String?,
+        alternativePhone: guardian['alternativePhone'] as String?,
+        emailNotificationsEnabled:
+            guardian['emailNotificationsEnabled'] as bool? ?? true,
+        smsNotificationsEnabled:
+            guardian['smsNotificationsEnabled'] as bool? ?? true,
+        pushNotificationsEnabled:
+            guardian['pushNotificationsEnabled'] as bool? ?? true,
+
         photoUrl: guardian['photoUrl'] as String?,
         hasAccess: guardian['hasAccess'] as bool? ?? true,
       );
@@ -79,18 +63,16 @@ Future<void> saveAccountContactProfile(
 
   switch (kind) {
     case 'guardian':
-      await client.updateGuardianContactMethods({
+      await client.updateGuardianProfile({
         'guardianId': profile.id,
-        'firstName': firstName,
-        'lastName': lastName,
         'email': email.isEmpty ? null : email,
         'phone': phone.isEmpty ? null : phone,
-        'contactMethods': buildGuardianContactMethods(
-          email: email,
-          phone: phone,
-        ),
-        'hasAccess': profile.hasAccess,
-        if (profile.photoUrl != null) 'photoUrl': profile.photoUrl,
+        'alternativePhone': profile.alternativePhone?.trim().isNotEmpty == true
+            ? profile.alternativePhone!.trim()
+            : null,
+        'emailNotificationsEnabled': profile.emailNotificationsEnabled,
+        'smsNotificationsEnabled': profile.smsNotificationsEnabled,
+        'pushNotificationsEnabled': profile.pushNotificationsEnabled,
       });
       return;
     case 'staff':

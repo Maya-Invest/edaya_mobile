@@ -2297,4 +2297,29 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get termsDraft =>
       'Draft preview — this text is awaiting approval and is not a published agreement.';
+
+  @override
+  String get guardianMainPhone => 'Main phone';
+
+  @override
+  String get guardianAlternativePhone => 'Alternative phone';
+
+  @override
+  String get guardianNotificationDestinations =>
+      'SMS uses your main phone and email uses your saved address. Messages remain available in your app inbox.';
+
+  @override
+  String get guardianEmailNotifications => 'Email notifications';
+
+  @override
+  String get guardianSmsNotifications => 'SMS notifications';
+
+  @override
+  String get guardianPushNotifications => 'Push notifications';
+
+  @override
+  String get guardianDiscardChanges => 'Discard unsaved changes?';
+
+  @override
+  String get guardianDiscard => 'Discard';
 }

@@ -25,6 +25,7 @@ class ProfileSession implements AppSessionController {
 class ProfileTransport implements Transport {
   int writes = 0;
   Object? failure;
+  Future<void> Function()? beforeResponse;
   final bodies = <Object?>[];
 
   @override
@@ -34,9 +35,10 @@ class ProfileTransport implements Transport {
     TransportRequestOptions? options,
   }) async {
     expect(method, 'POST');
-    expect(path, contains('update-guardian-contact-methods'));
+    expect(path, contains('update-guardian-profile'));
     writes++;
     bodies.add(options?.body);
+    await beforeResponse?.call();
     if (failure != null) throw failure!;
     return <String, dynamic>{} as T;
   }
@@ -112,10 +114,7 @@ void main() {
         expect(saved, !rejected);
         expect(transport.writes, 1);
         expect((transport.bodies.single as Map)['guardianId'], 'guardian-a');
-        expect(
-          controller.profile.value!.firstName,
-          rejected ? 'Before' : 'After',
-        );
+        expect(controller.profile.value!.firstName, 'Before');
         expect(controller.firstNameController.text, 'After');
         expect(controller.isSaving.value, isFalse);
         expect(
@@ -128,4 +127,83 @@ void main() {
       },
     );
   }
+  test(
+    'guardian contacts and channel opt-outs save without identity or account fields',
+    () async {
+      final session = ProfileSession();
+      final transport = ProfileTransport();
+      final controller = AccountProfileController(
+        session: session,
+        schoolClient: () => createSchoolClient(transport),
+      );
+      controller.profile(
+        const AccountContactProfile(
+          id: 'guardian-a',
+          firstName: 'Original',
+          lastName: 'Name',
+          phone: '+22501020304',
+          alternativePhone: '+22505060708',
+          emailNotificationsEnabled: false,
+          smsNotificationsEnabled: false,
+          pushNotificationsEnabled: false,
+        ),
+      );
+      controller.firstNameController.text = 'Cannot change';
+      controller.lastNameController.text = 'Name';
+      controller.alternativePhoneController.text = '+22505060708';
+      controller.emailNotificationsEnabled(false);
+      controller.smsNotificationsEnabled(false);
+      controller.pushNotificationsEnabled(false);
+      expect(controller.isDirty, isTrue);
+      expect(await controller.saveProfile(), isTrue);
+      final body = transport.bodies.single as Map;
+      expect(body['phone'], isNull);
+      expect(body['alternativePhone'], '+22505060708');
+      expect(body['smsNotificationsEnabled'], isFalse);
+      expect(body['emailNotificationsEnabled'], isFalse);
+      expect(body['pushNotificationsEnabled'], isFalse);
+      expect(body.containsKey('hasAccess'), isFalse);
+      expect(body.containsKey('firstName'), isFalse);
+      expect(body.containsKey('contactMethods'), isFalse);
+      expect(controller.profile.value!.firstName, 'Original');
+      expect(controller.isDirty, isFalse);
+      controller.onClose();
+    },
+  );
+
+  test(
+    'a late save response cannot update a different selected profile',
+    () async {
+      final session = ProfileSession();
+      final transport = ProfileTransport();
+      final controller = AccountProfileController(
+        session: session,
+        schoolClient: () => createSchoolClient(transport),
+      );
+      controller.profile(
+        const AccountContactProfile(
+          id: 'guardian-a',
+          firstName: 'Original',
+          lastName: 'Name',
+        ),
+      );
+      controller.lastNameController.text = 'Name';
+      controller.phoneController.text = '+22501020304';
+      transport.beforeResponse = () async {
+        session.grants(
+          const EffectiveGrantsResponse(
+            kind: 'guardian',
+            actorId: 'guardian-b',
+            schoolId: 'school-b',
+            assuranceLevel: 'standard',
+            grants: [],
+          ),
+        );
+      };
+      expect(await controller.saveProfile(), isFalse);
+      expect(controller.profile.value!.phone, isNull);
+      expect(controller.saveMessage.value, isEmpty);
+      controller.onClose();
+    },
+  );
 }

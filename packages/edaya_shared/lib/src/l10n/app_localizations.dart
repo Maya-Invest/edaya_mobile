@@ -4045,6 +4045,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Draft preview — this text is awaiting approval and is not a published agreement.'**
   String get termsDraft;
+
+  /// No description provided for @guardianMainPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Main phone'**
+  String get guardianMainPhone;
+
+  /// No description provided for @guardianAlternativePhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Alternative phone'**
+  String get guardianAlternativePhone;
+
+  /// No description provided for @guardianNotificationDestinations.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS uses your main phone and email uses your saved address. Messages remain available in your app inbox.'**
+  String get guardianNotificationDestinations;
+
+  /// No description provided for @guardianEmailNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Email notifications'**
+  String get guardianEmailNotifications;
+
+  /// No description provided for @guardianSmsNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS notifications'**
+  String get guardianSmsNotifications;
+
+  /// No description provided for @guardianPushNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Push notifications'**
+  String get guardianPushNotifications;
+
+  /// No description provided for @guardianDiscardChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard unsaved changes?'**
+  String get guardianDiscardChanges;
+
+  /// No description provided for @guardianDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get guardianDiscard;
 }
 
 class _AppLocalizationsDelegate
