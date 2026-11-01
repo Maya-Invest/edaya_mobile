@@ -13,9 +13,9 @@ Each repository verifies and releases its own revision. Backend changes do not r
 
 Deployments are serialized per repository/environment without cancelling active deployments. They depend on successful qualification; failure, cancellation or skipped qualification cannot deploy. Artifact restoration selects the unique qualified artifact from the same run and attempt, checks out its recorded source commit, restores frozen dependencies, and verifies file checksums. Deployment never resolves another backend branch or generates another client.
 
-## Adoption gate
+## Deployment prerequisites
 
-Replacement deployment jobs require repository variable `ENABLE_INDEPENDENT_RELEASES=true`. Leave it unset until full local verification, both destination builds, all integration suites, artifact handoff, and non-deploying GitHub rehearsals pass. The bootstrap API snapshot also needs review before the backend gate is enabled. No production release is implied by installing this tooling.
+Release workflows proceed automatically after successful qualification. Deployment retains its configured GitHub environment approvals and protections. No additional repository opt-in variable is required.
 
 Deploy the backend tooling changes to the destination branches before consumers qualify against those branches: consumer integration uses the backend's typed fixture command. Configure branch protection to require **qualification / Full validation** from the PR workflow (confirm the exact displayed check name on the first rehearsal). Remove obsolete coordinator/publication checks only after that required check succeeds. GitHub may display the caller workflow name as an additional prefix.
 
@@ -77,4 +77,4 @@ A clean, isolated checkout acquired the tracked API definition from one immutabl
 
 Both guardian and teacher staging APKs and production AABs were built locally with release signing. APK application identities, APK/AAB signatures, certificate fingerprints and output checksums were verified. Flutter asset rendering was exercised in a temporary output directory. No artifacts were published or submitted to stores.
 
-The exact CI workspace setup command, `dart pub get --enforce-lockfile`, also passed with the pinned Flutter SDK. The evidence artifact retains sanitized machine-readable integration diagnostics as well as suite counts. GitHub-hosted qualification, artifact handoff and environment/signing-secret configuration must still be rehearsed before enabling the adoption gate.
+The exact CI workspace setup command, `dart pub get --enforce-lockfile`, also passed with the pinned Flutter SDK. The evidence artifact retains sanitized machine-readable integration diagnostics as well as suite counts. GitHub-hosted qualification, artifact handoff and environment/signing-secret configuration were not established by this local rehearsal; configured environment approvals and protections still govern releases.

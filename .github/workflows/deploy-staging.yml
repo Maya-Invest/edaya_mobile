@@ -23,7 +23,6 @@ jobs:
       source_ref: ${{ inputs.source_ref || github.sha }}
     secrets: inherit
   deploy:
-    if: vars.ENABLE_INDEPENDENT_RELEASES == 'true'
     needs: qualify
     uses: ./.github/workflows/_deploy.yml
     with:
