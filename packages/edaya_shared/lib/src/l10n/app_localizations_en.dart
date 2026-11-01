@@ -1452,6 +1452,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sendCodeButton => 'Send code';
 
   @override
+  String get noEmailAccount => 'No account exists for this email.';
+
+  @override
+  String get invitationGuidance =>
+      'Ask your school for an invitation to create an account.';
+
+  @override
+  String get createEmailAccount => 'Create account';
+
+  @override
+  String get useAnotherEmail => 'Use another email';
+
+  @override
+  String get emailSendUnconfirmed =>
+      'We couldn’t confirm whether the code was sent.';
+
+  @override
+  String get restartEmailVerification => 'Verify your email again to continue.';
+
+  @override
   String get otpSendFailed => 'Could not send a verification code.';
 
   @override

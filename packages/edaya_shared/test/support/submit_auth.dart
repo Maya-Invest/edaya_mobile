@@ -1,3 +1,5 @@
+import 'package:edaya_shared/src/features/auth/login_controller.dart';
+import 'package:edaya_shared/src/features/auth/passwordless_login_form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -18,7 +20,23 @@ Future<void> submitAuth(WidgetTester tester) async {
     if (tester.any(submit) &&
         tester.widget<FilledButton>(submit).onPressed != null) {
       await tester.ensureVisible(submit);
+      final form = find.byType(PasswordlessLoginForm);
+      final controller = tester.any(form)
+          ? tester.widget<PasswordlessLoginForm>(form).controller
+          : null;
+      final verifying = controller?.mode.value == LoginMode.verifyOtp;
       await tester.tap(submit);
+      if (verifying && controller != null) {
+        await tester.pump();
+        while (controller.isBusy.value && DateTime.now().isBefore(deadline)) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        if (controller.mode.value == LoginMode.register) {
+          expect(controller.registrationEligible.value, isTrue);
+          await tester.ensureVisible(submit);
+          await tester.tap(submit);
+        }
+      }
       return;
     }
     await tester.pump(const Duration(milliseconds: 100));

@@ -71,11 +71,17 @@ class PortalSession {
         code = peeked.otp;
       }
 
-      final signIn = await authClient.signInWithEmailOtp(
+      var signIn = await authClient.signInWithEmailOtp(
         email: config.email,
         otp: code,
       );
 
+      final offer = authClient.registration;
+      if (signIn.error?.code == 'registration_required' &&
+          offer != null &&
+          offer.eligible) {
+        signIn = await authClient.completeRegistration(offer, null);
+      }
       if (!signIn.isSuccess || signIn.data == null) {
         throw StateError(
           'Sign-in failed for ${config.email}: ${signIn.error?.message ?? 'unknown error'}',

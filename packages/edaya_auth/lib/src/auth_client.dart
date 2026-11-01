@@ -107,6 +107,8 @@ class AuthClient {
     pendingChallenge = null;
     pendingStep = null;
     primaryStatus = null;
+    registration = null;
+    emailRetryAt = 0;
     _otpRequests.clear();
     _uncertainOtpRequest = null;
     enrollmentSecret = null;
@@ -210,6 +212,12 @@ class AuthClient {
     }
   }
 
+  contract.AuthRegistrationOffer? registration;
+  int emailRetryAt = 0;
+  int get emailRetrySeconds =>
+      ((emailRetryAt - DateTime.now().millisecondsSinceEpoch) / 1000)
+          .ceil()
+          .clamp(0, 3600);
   String? pendingChallenge;
   String? pendingStep;
   String? enrollmentSecret;
@@ -274,6 +282,7 @@ class AuthClient {
     String channel = 'email',
     String locale = 'fr',
     AuthTermsAcceptance? termsAcceptance,
+    String? invitationToken,
   }) async {
     if (!['email', 'phone', 'whatsapp'].contains(channel)) {
       return const AuthResult.failure(
@@ -290,6 +299,7 @@ class AuthClient {
         value: value,
         locale: locale,
         termsAcceptance: termsAcceptance,
+        invitationToken: channel == 'email' ? invitationToken : null,
       ).toJson(),
     );
   }
@@ -344,7 +354,19 @@ class AuthClient {
     final body = _decodeBody(response);
     if (response.statusCode >= 400) {
       final error = _readError(body);
-      if (response.statusCode >= 500 || error.code == 'NETWORK_ERROR') {
+      if (error.code == 'delivery_unavailable') {
+        pendingChallenge = pendingStep = null;
+        primaryStatus = null;
+        if (body is Map &&
+            body['nextResendAt'] is num &&
+            body['serverNow'] is num) {
+          emailRetryAt =
+              DateTime.now().millisecondsSinceEpoch +
+              (body['nextResendAt'] - body['serverNow'] as num).toInt();
+        }
+      }
+      if (error.code != 'delivery_unavailable' &&
+          (response.statusCode >= 500 || error.code == 'NETWORK_ERROR')) {
         _uncertainOtpRequest = (path: path, payload: Map.of(payload));
       } else {
         _otpRequests.remove(key);
@@ -360,6 +382,7 @@ class AuthClient {
     }
     _otpRequests.remove(key);
     _uncertainOtpRequest = null;
+    emailRetryAt = 0;
     primaryStatus = OtpStatus.fromJson(Map<String, dynamic>.from(body as Map));
     pendingChallenge = primaryStatus!.challenge;
     pendingStep = 'primary_required';
@@ -442,6 +465,18 @@ class AuthClient {
     required String email,
     required String otp,
   }) => verifyOtp(otp);
+
+  Future<AuthResult<AuthUser>> completeRegistration(
+    contract.AuthRegistrationOffer offer,
+    AuthTermsAcceptance? acceptance,
+  ) => _postAuthUser(
+    '/edaya/registration/complete',
+    contract.AuthRegistrationInput(
+      challenge: offer.challenge,
+      proof: offer.proof,
+      termsAcceptance: acceptance,
+    ).toJson(),
+  );
 
   Future<AuthResult<AuthUser>> verifyOtp(String code) => _postAuthUser(
     '/edaya/otp/verify',
@@ -532,6 +567,19 @@ class AuthClient {
         return AuthResult.failure(_readError(body));
       }
 
+      if (body is Map && body['state'] == 'registration_required') {
+        registration = contract.AuthRegistrationOffer.fromJson(
+          Map<String, dynamic>.from(body),
+        );
+        primaryStatus = null;
+        pendingChallenge = null;
+        return const AuthResult.failure(
+          AuthError(
+            message: 'Explicit registration required',
+            code: 'registration_required',
+          ),
+        );
+      }
       if (body is Map &&
           (body['state'] == 'totp_required' ||
               body['state'] == 'enrollment_required')) {

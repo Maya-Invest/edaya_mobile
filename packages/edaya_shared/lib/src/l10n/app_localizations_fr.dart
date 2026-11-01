@@ -1468,6 +1468,28 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sendCodeButton => 'Envoyer le code';
 
   @override
+  String get noEmailAccount =>
+      'Aucun compte n’est associé à cette adresse e-mail.';
+
+  @override
+  String get invitationGuidance =>
+      'Demandez une invitation à votre établissement pour créer un compte.';
+
+  @override
+  String get createEmailAccount => 'Créer un compte';
+
+  @override
+  String get useAnotherEmail => 'Utiliser une autre adresse e-mail';
+
+  @override
+  String get emailSendUnconfirmed =>
+      'L’envoi du code n’a pas pu être confirmé.';
+
+  @override
+  String get restartEmailVerification =>
+      'Vérifiez de nouveau votre adresse e-mail pour continuer.';
+
+  @override
   String get otpSendFailed => 'Impossible d\'envoyer un code de vérification.';
 
   @override

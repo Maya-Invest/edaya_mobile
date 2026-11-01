@@ -24,7 +24,9 @@ class PasswordlessLoginForm extends StatelessWidget {
         final title = mode == LoginMode.verifyOtp
             ? context.tr.verifyContactTitle
             : context.tr.signInTitle;
-        final description = mode == LoginMode.verifyOtp
+        final description = mode == LoginMode.register
+            ? context.tr.noEmailAccount
+            : mode == LoginMode.verifyOtp
             ? context.tr.verificationContact(controller.email.value.trim())
             : subtitle ??
                   (controller.delivery.phoneAvailable.value
@@ -85,6 +87,19 @@ class PasswordlessLoginForm extends StatelessWidget {
                 onChanged: controller.setEmail,
               ),
               const SizedBox(height: 16),
+            ] else if (mode == LoginMode.register) ...[
+              if (!controller.registrationEligible.value)
+                Text(context.tr.invitationGuidance),
+              TextButton(
+                autofocus: !controller.registrationEligible.value,
+                onPressed: controller.isBusy.value
+                    ? null
+                    : () {
+                        controller.showEmailEntry();
+                        controller.setEmail('');
+                      },
+                child: Text(context.tr.useAnotherEmail),
+              ),
             ] else ...[
               if (mode == LoginMode.enrollTotp) ...[
                 Text(context.tr.authenticatorSetup),
@@ -123,44 +138,69 @@ class PasswordlessLoginForm extends StatelessWidget {
         }
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
-          child: Text(
-            message,
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          child: Semantics(
+            liveRegion: true,
+            child: Text(
+              message,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
           ),
         );
       }),
       LWatch(
-        () => controller.mode.value == LoginMode.enterEmail
+        () =>
+            controller.mode.value == LoginMode.enterEmail ||
+                (controller.mode.value == LoginMode.register &&
+                    controller.registrationEligible.value &&
+                    !controller.termsReady)
             ? TermsAcceptance(controller: controller)
             : const SizedBox.shrink(),
       ),
       LWatch(
-        () => FilledButton(
-          key: const Key('auth-submit'),
-          onPressed:
-              controller.isBusy.value ||
-                  (controller.mode.value == LoginMode.enterEmail &&
-                      !controller.termsReady) ||
-                  (controller.mode.value == LoginMode.verifyOtp &&
-                      controller.delivery.status.value?.lifecycle != 'pending')
-              ? null
-              : controller.submit,
-          child: controller.isBusy.value
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(
-                  controller.mode.value == LoginMode.saveRecoveryCodes
-                      ? context.tr.savedRecoveryCodes
-                      : controller.mode.value == LoginMode.enterEmail
-                      ? context.tr.sendCodeButton
-                      : context.tr.verifyCodeButton,
-                ),
-        ),
+        () =>
+            controller.mode.value == LoginMode.register &&
+                !controller.registrationEligible.value
+            ? const SizedBox.shrink()
+            : FilledButton(
+                autofocus: controller.mode.value == LoginMode.register,
+                key: const Key('auth-submit'),
+                onPressed:
+                    controller.isBusy.value ||
+                        ((controller.mode.value == LoginMode.enterEmail ||
+                                controller.mode.value == LoginMode.register) &&
+                            !controller.termsReady) ||
+                        (controller.mode.value == LoginMode.enterEmail &&
+                            controller.delivery.remaining.value > 0) ||
+                        (controller.mode.value == LoginMode.verifyOtp &&
+                            controller.delivery.status.value?.lifecycle !=
+                                'pending')
+                    ? null
+                    : controller.submit,
+                child: controller.isBusy.value
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(
+                        controller.mode.value == LoginMode.register
+                            ? context.tr.createEmailAccount
+                            : controller.mode.value ==
+                                  LoginMode.saveRecoveryCodes
+                            ? context.tr.savedRecoveryCodes
+                            : controller.mode.value == LoginMode.enterEmail
+                            ? context.tr.sendCodeButton
+                            : context.tr.verifyCodeButton,
+                      ),
+              ),
       ),
       LWatch(() {
+        if (controller.mode.value == LoginMode.enterEmail &&
+            controller.delivery.remaining.value > 0) {
+          return Text(
+            context.tr.resendCountdown(controller.delivery.remaining.value),
+          );
+        }
         if (controller.mode.value == LoginMode.verifyTotp) {
           return TextButton(
             key: const Key('auth-use-recovery'),

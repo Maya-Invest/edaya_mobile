@@ -2510,6 +2510,42 @@ abstract class AppLocalizations {
   /// **'Send code'**
   String get sendCodeButton;
 
+  /// No description provided for @noEmailAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'No account exists for this email.'**
+  String get noEmailAccount;
+
+  /// No description provided for @invitationGuidance.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask your school for an invitation to create an account.'**
+  String get invitationGuidance;
+
+  /// No description provided for @createEmailAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get createEmailAccount;
+
+  /// No description provided for @useAnotherEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Use another email'**
+  String get useAnotherEmail;
+
+  /// No description provided for @emailSendUnconfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn’t confirm whether the code was sent.'**
+  String get emailSendUnconfirmed;
+
+  /// No description provided for @restartEmailVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email again to continue.'**
+  String get restartEmailVerification;
+
   /// No description provided for @otpSendFailed.
   ///
   /// In en, this message translates to:

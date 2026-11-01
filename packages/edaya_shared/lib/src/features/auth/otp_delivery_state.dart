@@ -108,8 +108,8 @@ class OtpDeliveryState with WidgetsBindingObserver {
                     status.value!.clockOffset,
       );
       if (!canReveal || busy()) clearTestCode();
+      remaining(status.value?.secondsRemaining ?? auth.emailRetrySeconds);
       if (!active()) return;
-      remaining(status.value?.secondsRemaining ?? 0);
       final lifecycle = WidgetsBinding.instance.lifecycleState;
       if (++_ticks % 3 == 0 &&
           visible &&
@@ -143,7 +143,7 @@ class OtpDeliveryState with WidgetsBindingObserver {
     );
     if (!canReveal) clearTestCode();
     retryable(auth.canRetryOtpRequest);
-    remaining(status.value?.secondsRemaining ?? 0);
+    remaining(status.value?.secondsRemaining ?? auth.emailRetrySeconds);
   }
 
   Future<void> poll() async {

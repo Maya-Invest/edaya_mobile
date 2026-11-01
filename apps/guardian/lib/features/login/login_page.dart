@@ -50,6 +50,7 @@ class _LiveLoginPage extends LScopedView<LoginController> {
       () => LoginController(
         authClient: scope.find<AuthClient>(),
         session: scope.find<AppSessionController>(),
+        invitationToken: () => scope.find<PendingInvitationStore>().token,
         defaultEmail: defaultEmail,
         onSignInSuccess: onSignInSuccess,
       ),

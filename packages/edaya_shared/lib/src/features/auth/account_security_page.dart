@@ -63,6 +63,19 @@ class AccountSecurityController extends LevitController
     }
   }
 
+  void _deliveryError(AuthError? failure) {
+    if (failure?.code == 'delivery_unavailable') {
+      challengeSent(false);
+      code('');
+      codeText.clear();
+      error(systemL10n().otpSendFailed);
+    } else if (failure?.code == 'NETWORK_ERROR') {
+      error(systemL10n().emailSendUnconfirmed);
+    } else {
+      error(failure?.message ?? '');
+    }
+  }
+
   Future<void> link() async {
     if (isBusy.value) return;
     if (!challengeSent.value) {
@@ -89,7 +102,7 @@ class AccountSecurityController extends LevitController
             );
       delivery.refresh();
       if (!result.isSuccess) {
-        error(result.error?.message ?? '');
+        _deliveryError(result.error);
         return;
       }
       if (challengeSent.value) {
@@ -120,7 +133,7 @@ class AccountSecurityController extends LevitController
           : await auth.resendOtp(action: action);
       delivery.refresh();
       if (!result.isSuccess) {
-        error(result.error?.message ?? '');
+        _deliveryError(result.error);
       } else {
         code('');
         codeText.clear();
@@ -254,10 +267,17 @@ class AccountSecurityPage extends LScopedView<AccountSecurityController> {
               onChanged: controller.code.call,
               decoration: InputDecoration(labelText: context.tr.otpLabel),
             ),
+          if (!controller.challengeSent.value &&
+              controller.delivery.remaining.value > 0)
+            Text(
+              context.tr.resendCountdown(controller.delivery.remaining.value),
+            ),
           FilledButton(
             key: const Key('auth-link-submit'),
             onPressed:
                 controller.isBusy.value ||
+                    (!controller.challengeSent.value &&
+                        controller.delivery.remaining.value > 0) ||
                     (controller.challengeSent.value &&
                         controller.delivery.status.value?.lifecycle !=
                             'pending')

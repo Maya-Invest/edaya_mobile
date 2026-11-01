@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 import 'package:flutter/widgets.dart';
@@ -9,6 +10,7 @@ import 'app_session_controller.dart';
 enum LoginMode {
   enterEmail,
   verifyOtp,
+  register,
   verifyTotp,
   recovery,
   enrollTotp,
@@ -21,6 +23,7 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
     required AppSessionController session,
     required String defaultEmail,
     this.startWithEnrollment = false,
+    this.invitationToken,
     required Future<void> Function() onSignInSuccess,
   }) : _authClient = authClient,
        _session = session,
@@ -29,6 +32,14 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
   }
 
   final bool startWithEnrollment;
+  final String? Function()? invitationToken;
+  final registrationEligible = LxVar(false);
+  Timer? _proofExpiry;
+  void _discardProof() {
+    _proofExpiry?.cancel();
+    _authClient.registration = null;
+  }
+
   final AuthClient _authClient;
   final AppSessionController _session;
   final Future<void> Function() _onSignInSuccess;
@@ -74,6 +85,7 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
   void setEmail(String value) {
     if (value.trim().toLowerCase() != email.value.trim().toLowerCase()) {
       setTermsAccepted(false);
+      _discardProof();
     }
     email(value);
   }
@@ -117,6 +129,7 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
   void onInit() {
     super.onInit();
     autoDispose(email);
+    autoDispose(registrationEligible);
     autoDispose(terms);
     autoDispose(termsAccepted);
     autoDispose(termsLoading);
@@ -137,6 +150,7 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
   @override
   void onClose() {
     _closed = true;
+    _discardProof();
     delivery.close();
     otpText.dispose();
     super.onClose();
@@ -154,6 +168,7 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
   }
 
   void showEmailEntry() {
+    _discardProof();
     setTermsAccepted(false);
     errorMessage('');
     _setOtp('');
@@ -163,6 +178,8 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
   Future<void> submit() async {
     if (isBusy.value) return;
     switch (mode.value) {
+      case LoginMode.register:
+        await createAccount();
       case LoginMode.enterEmail:
         await sendCode();
       case LoginMode.verifyOtp:
@@ -205,6 +222,7 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
     await runTask(() async {
       final document = terms.value?.document;
       final result = await _authClient.sendOtp(
+        invitationToken: invitationToken?.call(),
         termsAcceptance: terms.value!.enforced && document != null
             ? AuthTermsAcceptance(
                 version: document.version,
@@ -218,6 +236,7 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
       );
       delivery.refresh();
       if (!result.isSuccess) {
+        if (_deliveryFailure(result.error?.code)) return;
         if (result.error?.code == 'terms_version_changed' ||
             result.error?.code == 'terms_acceptance_required') {
           setTermsAccepted(false);
@@ -268,6 +287,7 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
           : await _authClient.resendOtp(action: action);
       delivery.refresh();
       if (!result.isSuccess) {
+        if (_deliveryFailure(result.error?.code)) return;
         if (result.error?.code == 'terms_version_changed' ||
             result.error?.code == 'terms_acceptance_required') {
           setTermsAccepted(false);
@@ -299,12 +319,98 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
     }, id: 'verify-factor');
   }
 
+  bool _deliveryFailure(String? code) {
+    if (code == 'delivery_unavailable') {
+      showEmailEntry();
+      errorMessage(systemL10n().otpSendFailed);
+      return true;
+    }
+    if (code == 'NETWORK_ERROR') {
+      errorMessage(systemL10n().emailSendUnconfirmed);
+      return true;
+    }
+    return false;
+  }
+
+  Future<void> createAccount() async {
+    final offer = _authClient.registration;
+    if (offer == null || !registrationEligible.value || !termsReady) return;
+    await runTask(() async {
+      errorMessage('');
+      final document = terms.value?.document;
+      final accepted = terms.value?.enforced == true && document != null
+          ? AuthTermsAcceptance(
+              version: document.version,
+              locale: document.locale,
+              accepted: true,
+            )
+          : null;
+      final result = await _authClient.completeRegistration(offer, accepted);
+      if (_closed) return;
+      switch (result.error?.code) {
+        case 'terms_version_changed':
+        case 'terms_acceptance_required':
+          setTermsAccepted(false);
+          await loadTerms();
+          errorMessage(systemL10n().termsChanged);
+          return;
+        case 'registration_unavailable':
+          registrationEligible(false);
+          return;
+        case 'NETWORK_ERROR':
+        case 'authentication_unavailable':
+          final session = await _authClient.getSession();
+          if (_closed) return;
+          final user = session.data?.user;
+          if (user != null &&
+              user.email.toLowerCase() == email.value.trim().toLowerCase()) {
+            _discardProof();
+            await _completeSession(user);
+            return;
+          }
+          showEmailEntry();
+          errorMessage(systemL10n().restartEmailVerification);
+          return;
+        case 'registration_expired':
+          showEmailEntry();
+          errorMessage(systemL10n().restartEmailVerification);
+          return;
+      }
+      _discardProof();
+      await _finishAuth(result);
+    }, id: 'register');
+  }
+
   void useRecovery() {
     _setOtp('');
     mode(LoginMode.recovery);
   }
 
   Future<void> _finishAuth(AuthResult<AuthUser> result) async {
+    if (_closed) {
+      _discardProof();
+      return;
+    }
+    final offer = _authClient.registration;
+    if (result.error?.code == 'registration_required' && offer != null) {
+      _setOtp('');
+      registrationEligible(offer.eligible);
+      mode(LoginMode.register);
+      _proofExpiry?.cancel();
+      _proofExpiry = Timer(
+        Duration(
+          milliseconds:
+              offer.expiresAt.toInt() - DateTime.now().millisecondsSinceEpoch,
+        ),
+        () {
+          if (!_closed && mode.value == LoginMode.register && !isBusy.value) {
+            showEmailEntry();
+            errorMessage(systemL10n().restartEmailVerification);
+          }
+        },
+      );
+      return;
+    }
     if (result.error?.code == 'totp_required') {
       _setOtp('');
       mode(LoginMode.verifyTotp);
