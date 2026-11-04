@@ -2377,4 +2377,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get reportSubjectCoefficient => 'Coefficient';
+
+  @override
+  String get teacherQuickLogin => 'Connexion par code rapide';
+
+  @override
+  String get teacherQuickHint =>
+      'Saisissez le code transmis par votre établissement.';
+
+  @override
+  String get teacherQuickLabel => 'Code enseignant à 8 caractères';
+
+  @override
+  String get teacherQuickInvalid => 'Code invalide ou expiré.';
 }

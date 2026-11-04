@@ -478,6 +478,17 @@ class AuthClient {
     ).toJson(),
   );
 
+  Future<AuthResult<AuthUser>> teacherCode(
+    String code,
+    AuthTermsAcceptance? acceptance,
+  ) => _postAuthUser(
+    '/edaya/teacher-code',
+    contract.AuthTeacherCodeLogin(
+      code: code.trim(),
+      termsAcceptance: acceptance,
+    ).toJson(),
+  );
+
   Future<AuthResult<AuthUser>> verifyOtp(String code) => _postAuthUser(
     '/edaya/otp/verify',
     {'challenge': pendingChallenge, 'code': code},

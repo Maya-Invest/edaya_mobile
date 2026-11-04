@@ -13,7 +13,7 @@ Normative for the current Guardian and Teacher apps. Extend these components bef
 | DataState | shared `lib/src/common/widgets/` | Existing ready/loading/empty/error signals and retry callback |
 | AccountSheetBody / AccountProfileHeader | shared common/account widgets | Existing account/profile actions and semantics |
 | ModalBottomSheetPage | shared `lib/src/common/models/` | Existing modal navigation, safe area and dismissal behavior |
-| LoginPage | shared `lib/src/features/auth/` | Shared `PasswordlessLoginForm`: One contact field with automatic email/international-phone detection, WhatsApp first and explicit SMS fallback, TOTP and recovery; branded logo and existing session callbacks |
+| LoginPage | shared `lib/src/features/auth/` | Shared `PasswordlessLoginForm`: One contact field with automatic email/international-phone detection, WhatsApp first and explicit SMS fallback, a teacher-only eight-character quick-code option, TOTP and recovery; branded logo and existing session callbacks |
 | GuardianAppBar / TeacherAppBar | app `design/components/` (`PrototypeAppBar`) | Student/class/year context before decoration; current actions retained |
 | SessionTile / TeacherSessionTile | app calendar widgets | Current title, subject, class, kind and time; same detail navigation |
 | FeesSummaryCard / GradeSummaryCards | Guardian feature widgets | All totals and labels retained; responsive numeric presentation |

@@ -106,7 +106,12 @@ class _LiveLoginPage extends LScopedView<LoginController> {
 
   @override
   Widget buildView(BuildContext context, LoginController controller) {
-    return _LoginChrome(child: PasswordlessLoginForm(controller: controller));
+    return _LoginChrome(
+      child: PasswordlessLoginForm(
+        controller: controller,
+        teacherQuickLogin: true,
+      ),
+    );
   }
 }
 

@@ -2351,4 +2351,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportSubjectCoefficient => 'Coefficient';
+
+  @override
+  String get teacherQuickLogin => 'Sign in with a quick code';
+
+  @override
+  String get teacherQuickHint => 'Enter the code sent by your school.';
+
+  @override
+  String get teacherQuickLabel => '8-character teacher code';
+
+  @override
+  String get teacherQuickInvalid => 'Invalid or expired code.';
 }

@@ -7,6 +7,39 @@ import 'package:http/testing.dart';
 
 void main() {
   test(
+    'teacher code submits terms and persists only a completed session',
+    () async {
+      final client = AuthClient(
+        baseUrl: 'http://localhost:9999',
+        client: MockClient((request) async {
+          expect(request.url.path, '/auth/edaya/teacher-code');
+          expect(jsonDecode(request.body), {
+            'code': 'q7r4k2mx',
+            'termsAcceptance': {
+              'locale': 'en',
+              'accepted': true,
+              'version': 'v1',
+            },
+          });
+          return http.Response(
+            jsonEncode({
+              'state': 'complete',
+              'token': 'session-token',
+              'user': {'id': 'teacher'},
+            }),
+            200,
+          );
+        }),
+      );
+      final result = await client.teacherCode(
+        ' q7r4k2mx ',
+        const AuthTermsAcceptance(locale: 'en', accepted: true, version: 'v1'),
+      );
+      expect(result.isSuccess, isTrue);
+      expect(client.renewalCredential, 'session-token');
+    },
+  );
+  test(
     'OTP delivery reports network failure without creating a challenge',
     () async {
       final client = AuthClient(

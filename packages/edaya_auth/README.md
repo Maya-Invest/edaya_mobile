@@ -13,3 +13,5 @@ Explicit test access uses `--dart-define=TEST_OTP_ACCESS=true` in debug builds o
 `LoginIdentifier.detect` classifies and normalizes a login contact as an email or an international phone number, using the service's validation rules. Invalid input returns null. Country support remains a server policy.
 
 `AuthClient.getTerms(locale:)` loads the backend terms policy. `sendOtp(termsAcceptance:)` sends explicit acceptance of the displayed version; retries retain the original request and acceptance. Terms DTOs use generated API contracts. Loading errors must block the login UI; existing credential restoration and token renewal are unchanged.
+
+The teacher app calls `AuthClient.teacherCode(code, acceptance)` for school-issued reusable codes. The server pins the session to the issuing teacher and school. Only the session credential is saved on the device.

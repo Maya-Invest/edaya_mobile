@@ -1391,5 +1391,9 @@
   "guardianDiscard": "Discard",
   "reportModuleExplicitWeight": "Explicit weight",
   "reportModuleCoefficientWeight": "Contributing coefficients",
-  "reportSubjectCoefficient": "Coefficient"
+  "reportSubjectCoefficient": "Coefficient",
+  "teacherQuickLogin": "Sign in with a quick code",
+  "teacherQuickHint": "Enter the code sent by your school.",
+  "teacherQuickLabel": "8-character teacher code",
+  "teacherQuickInvalid": "Invalid or expired code."
 }

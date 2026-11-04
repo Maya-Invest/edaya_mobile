@@ -11,9 +11,11 @@ class PasswordlessLoginForm extends StatelessWidget {
     super.key,
     required this.controller,
     this.subtitle,
+    this.teacherQuickLogin = false,
   });
   final LoginController controller;
   final String? subtitle;
+  final bool teacherQuickLogin;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -24,7 +26,9 @@ class PasswordlessLoginForm extends StatelessWidget {
         final title = mode == LoginMode.verifyOtp
             ? context.tr.verifyContactTitle
             : context.tr.signInTitle;
-        final description = mode == LoginMode.register
+        final description = mode == LoginMode.teacherCode
+            ? context.tr.teacherQuickHint
+            : mode == LoginMode.register
             ? context.tr.noEmailAccount
             : mode == LoginMode.verifyOtp
             ? context.tr.verificationContact(controller.email.value.trim())
@@ -87,6 +91,36 @@ class PasswordlessLoginForm extends StatelessWidget {
                 onChanged: controller.setEmail,
               ),
               const SizedBox(height: 16),
+              if (teacherQuickLogin)
+                TextButton(
+                  onPressed: controller.isBusy.value
+                      ? null
+                      : () {
+                          controller.showEmailEntry();
+                          controller.mode(LoginMode.teacherCode);
+                        },
+                  child: Text(context.tr.teacherQuickLogin),
+                ),
+            ] else if (mode == LoginMode.teacherCode) ...[
+              TextFormField(
+                controller: controller.otpText,
+                maxLength: 8,
+                enabled: !controller.isBusy.value,
+                obscureText: true,
+                autocorrect: false,
+                enableSuggestions: false,
+                textCapitalization: TextCapitalization.characters,
+                decoration: InputDecoration(
+                  labelText: context.tr.teacherQuickLabel,
+                ),
+                onChanged: (value) => controller.otp(value),
+              ),
+              TextButton(
+                onPressed: controller.isBusy.value
+                    ? null
+                    : controller.showEmailEntry,
+                child: Text(context.tr.changeContact),
+              ),
             ] else if (mode == LoginMode.register) ...[
               if (!controller.registrationEligible.value)
                 Text(context.tr.invitationGuidance),
@@ -150,6 +184,7 @@ class PasswordlessLoginForm extends StatelessWidget {
       LWatch(
         () =>
             controller.mode.value == LoginMode.enterEmail ||
+                controller.mode.value == LoginMode.teacherCode ||
                 (controller.mode.value == LoginMode.register &&
                     controller.registrationEligible.value &&
                     !controller.termsReady)
@@ -166,7 +201,11 @@ class PasswordlessLoginForm extends StatelessWidget {
                 key: const Key('auth-submit'),
                 onPressed:
                     controller.isBusy.value ||
+                        (controller.mode.value == LoginMode.teacherCode &&
+                            controller.otp.value.trim().length != 8) ||
                         ((controller.mode.value == LoginMode.enterEmail ||
+                                controller.mode.value ==
+                                    LoginMode.teacherCode ||
                                 controller.mode.value == LoginMode.register) &&
                             !controller.termsReady) ||
                         (controller.mode.value == LoginMode.enterEmail &&

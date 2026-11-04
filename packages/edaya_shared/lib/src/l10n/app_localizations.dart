@@ -4147,6 +4147,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Coefficient'**
   String get reportSubjectCoefficient;
+
+  /// No description provided for @teacherQuickLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with a quick code'**
+  String get teacherQuickLogin;
+
+  /// No description provided for @teacherQuickHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code sent by your school.'**
+  String get teacherQuickHint;
+
+  /// No description provided for @teacherQuickLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'8-character teacher code'**
+  String get teacherQuickLabel;
+
+  /// No description provided for @teacherQuickInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid or expired code.'**
+  String get teacherQuickInvalid;
 }
 
 class _AppLocalizationsDelegate

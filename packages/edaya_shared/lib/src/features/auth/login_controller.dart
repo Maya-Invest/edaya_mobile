@@ -9,6 +9,7 @@ import 'app_session_controller.dart';
 
 enum LoginMode {
   enterEmail,
+  teacherCode,
   verifyOtp,
   register,
   verifyTotp,
@@ -178,6 +179,34 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
   Future<void> submit() async {
     if (isBusy.value) return;
     switch (mode.value) {
+      case LoginMode.teacherCode:
+        if (!termsReady) return;
+        await runTask(() async {
+          final document = terms.value?.document;
+          final result = await _authClient.teacherCode(
+            otp.value,
+            terms.value!.enforced && document != null
+                ? AuthTermsAcceptance(
+                    version: document.version,
+                    locale: document.locale,
+                    accepted: true,
+                  )
+                : null,
+          );
+          if (result.error?.code == 'terms_version_changed' ||
+              result.error?.code == 'terms_acceptance_required') {
+            setTermsAccepted(false);
+            await loadTerms();
+            errorMessage(systemL10n().termsChanged);
+            return;
+          }
+          if (result.error?.code == 'invalid_code') {
+            errorMessage(systemL10n().teacherQuickInvalid);
+            return;
+          }
+          _setOtp('');
+          await _finishAuth(result);
+        }, id: 'teacher-code');
       case LoginMode.register:
         await createAccount();
       case LoginMode.enterEmail:

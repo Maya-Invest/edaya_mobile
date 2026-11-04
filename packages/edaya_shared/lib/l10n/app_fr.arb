@@ -708,5 +708,9 @@
   "guardianDiscard": "Abandonner",
   "reportModuleExplicitWeight": "Poids explicite",
   "reportModuleCoefficientWeight": "Coefficients contributifs",
-  "reportSubjectCoefficient": "Coefficient"
+  "reportSubjectCoefficient": "Coefficient",
+  "teacherQuickLogin": "Connexion par code rapide",
+  "teacherQuickHint": "Saisissez le code transmis par votre établissement.",
+  "teacherQuickLabel": "Code enseignant à 8 caractères",
+  "teacherQuickInvalid": "Code invalide ou expiré."
 }
