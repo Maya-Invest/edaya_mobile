@@ -235,10 +235,10 @@
   },
   "myStudents": "My students",
   "noLinkedStudentsFound": "No linked students found.",
-  "matriculeLabel": "Matricule: {matricule}",
-  "@matriculeLabel": {
+  "identifierLabel": "Identifier: {identifier}",
+  "@identifierLabel": {
     "placeholders": {
-      "matricule": {
+      "identifier": {
         "type": "String"
       }
     }

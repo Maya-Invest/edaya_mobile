@@ -406,8 +406,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noLinkedStudentsFound => 'Aucun élève lié trouvé.';
 
   @override
-  String matriculeLabel(String matricule) {
-    return 'Matricule : $matricule';
+  String identifierLabel(String identifier) {
+    return 'Matricule : $identifier';
   }
 
   @override

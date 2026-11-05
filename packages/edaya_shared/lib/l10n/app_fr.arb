@@ -113,7 +113,7 @@
   "couldNotLoadEnrollment": "Impossible de charger l'inscription : {error}",
   "myStudents": "Mes élèves",
   "noLinkedStudentsFound": "Aucun élève lié trouvé.",
-  "matriculeLabel": "Matricule : {matricule}",
+  "identifierLabel": "Matricule : {identifier}",
   "statusLabel": "Statut : {status}",
   "couldNotLoadLinkedStudents": "Impossible de charger les élèves liés : {error}",
   "calendarViewTimetable": "Emploi du temps",

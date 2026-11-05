@@ -5,7 +5,7 @@ class LinkedStudent {
     required this.lastName,
     required this.status,
     this.schoolId = '',
-    this.matricule,
+    this.identifier,
     this.photoUrl,
   });
 
@@ -16,7 +16,7 @@ class LinkedStudent {
       lastName: json['lastName'] as String,
       status: json['status'] as String? ?? 'active',
       schoolId: json['schoolId'] as String? ?? '',
-      matricule: json['matricule'] as String?,
+      identifier: json['identifier'] as String?,
       photoUrl: json['photoUrl'] as String?,
     );
   }
@@ -26,7 +26,7 @@ class LinkedStudent {
   final String lastName;
   final String status;
   final String schoolId;
-  final String? matricule;
+  final String? identifier;
   final String? photoUrl;
 
   String get fullName => '$firstName $lastName';

@@ -776,11 +776,11 @@ abstract class AppLocalizations {
   /// **'No linked students found.'**
   String get noLinkedStudentsFound;
 
-  /// No description provided for @matriculeLabel.
+  /// No description provided for @identifierLabel.
   ///
   /// In en, this message translates to:
-  /// **'Matricule: {matricule}'**
-  String matriculeLabel(String matricule);
+  /// **'Identifier: {identifier}'**
+  String identifierLabel(String identifier);
 
   /// No description provided for @statusLabel.
   ///
