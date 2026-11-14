@@ -39,11 +39,9 @@ jobs:
             *) exit 1 ;;
           esac
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+      - uses: ./.github/actions/flutter
         with:
-          flutter-version: 3.44.8
-          channel: stable
-          cache: true
+          seed: ${{ inputs.release_mode }}
       - name: Select backend revision
         id: backend
         env:
@@ -68,7 +66,6 @@ jobs:
           echo "CI_SOURCE_SHA=$source_sha" >> "$GITHUB_ENV"
           echo "CI_BACKEND_SHA=$backend_sha" >> "$GITHUB_ENV"
           echo "Mobile \`$source_sha\`, backend \`$backend_sha\`." >> "$GITHUB_STEP_SUMMARY"
-      - run: dart pub get --enforce-lockfile
       - id: cache-key
         run: dart run edaya_repo:repo ci client-key .ci/edaya_backend
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9

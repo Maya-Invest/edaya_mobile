@@ -35,7 +35,6 @@ Future<void> execute(List<String> args) async {
           'quality',
           'unit',
           'signing-cleanup',
-          'integration',
           'validate-integration',
         ].contains(name) &&
         rest.isNotEmpty) {
@@ -297,6 +296,10 @@ Future<void> execute(List<String> args) async {
       return;
     }
     if (name == 'integration') {
+      if (rest.length > 1 ||
+          (rest.isNotEmpty && !integrationSuites.contains(rest.single))) {
+        throw ArgumentError('Expected one of ${integrationSuites.join(', ')}');
+      }
       checkClient();
       final backend = p.absolute(
         Platform.environment['BACKEND_ROOT'] ??
@@ -323,6 +326,7 @@ Future<void> execute(List<String> args) async {
           'edaya_repo:repo',
           'test',
           'integration',
+          ...rest,
         ],
         cwd: backend,
         env: {'EDAYA_FIXTURE_SEED': 'true'},

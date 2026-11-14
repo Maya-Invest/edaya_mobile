@@ -5,12 +5,14 @@ Each repository verifies and releases its own revision. Backend changes do not r
 | Entry point | Trigger | Stages |
 | --- | --- | --- |
 | `branche_check.yml` | Push outside staging/main | Prepare once, then quality and unit in parallel |
-| `pr_validation.yml` | PR into staging/main or manual validation | Prepare → quality, unit, Android and iOS builds. Integration waits for quality and unit. **Full validation** checks all six jobs. |
+| `pr_validation.yml` | PR into staging/main or manual validation | Prepare → quality, unit, Android and iOS builds. API, Guardian and Teacher integration jobs run in parallel after quality and unit. **Full validation** requires all eight upstream jobs. |
 | `deploy.yml` | Push or manual dispatch on staging/main | Same full graph using distribution signing, then independent Play and Apple publishing jobs |
 
 For branch pushes and PRs, prepare uses a matching backend branch (PR head branch), falling back to backend `dev` only if that branch is absent. PRs validate the proposed merge commit. Manual validation allows explicit revisions. Releases use the selected branch SHA and its matching backend destination. Manual release accepts no revision override.
 
 All stages restore the frozen client and lockfile for the same run and attempt. Signing credentials are passed to release build jobs only. Finalization checks source, backend, target, job results and artifact checksums. The publishers restore the qualified binaries, verify their checksums and submit them without rebuilding. Re-run all jobs to qualify a new attempt. A store failure preserves the platform build and any completed app receipts.
+
+Linux preparation and the macOS build seed the pinned Flutter SDK and lockfile-keyed Pub cache on release branches. PRs can restore their base branch caches. Android reuses Gradle User Home and enables task-output caching for validation builds. iOS reuses each app's Swift package downloads keyed by the Flutter SDK, Xcode build, app package pins and Pub lock. Signed binaries and qualification evidence are transferred as same-attempt artifacts.
 
 ## Remaining configuration for Guardian v2 and Teacher v2
 

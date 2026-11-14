@@ -36,8 +36,14 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
+        with:
+          # PR entries are isolated to that PR. Signed releases seed shared dependencies.
+          cache-read-only: ${{ !inputs.release_mode && github.event_name != 'pull_request' }}
       - name: Compile both apps with development signing
         if: ${{ !inputs.release_mode }}
+        env:
+          GRADLE_OPTS: -Dorg.gradle.caching=true
         run: dart run edaya_repo:repo ci native android "$TARGET"
       - name: Build and verify signed Android releases
         if: inputs.release_mode

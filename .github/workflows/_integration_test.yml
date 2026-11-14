@@ -2,6 +2,7 @@ name: Integration tests
 on:
   workflow_call:
     inputs:
+      suite: {type: string, required: true}
       target: {type: string, required: true}
       source_sha: {type: string, required: true}
       backend_sha: {type: string, required: true}
@@ -18,6 +19,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     env:
+      SUITE: ${{ inputs.suite }}
       CI: 'true'
       TARGET: ${{ inputs.target }}
       CI_SOURCE_SHA: ${{ inputs.source_sha }}
@@ -40,20 +42,20 @@ jobs:
           path: .ci/edaya_backend
           token: ${{ secrets.BACKEND_CHECKOUT_TOKEN }}
           persist-credentials: false
-      - name: Run API, Guardian and Teacher suites
+      - name: Run selected suite in its own seeded fixture
         env:
           COMPATIBILITY_BASE_SHA: ${{ inputs.baseline_sha }}
-        run: dart run edaya_repo:repo ci integration
+        run: dart run edaya_repo:repo ci integration "$SUITE"
       - name: Save integration diagnostics
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: integration-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          name: integration-evidence-${{ inputs.suite }}-${{ github.run_id }}-${{ github.run_attempt }}
           include-hidden-files: true
           path: |
-            .ci-evidence/results.json
+            .ci-evidence/integration/${{ inputs.suite }}.json
             .ci-evidence/backend-services.json
             .integration-results/*.json*
       - uses: ./.github/actions/stage
         with:
-          stage: integration
+          stage: integration_${{ inputs.suite }}

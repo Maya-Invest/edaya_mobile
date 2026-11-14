@@ -33,8 +33,28 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - uses: ./.github/actions/setup
+        id: setup
         with:
           native: true
+          seed-flutter: ${{ inputs.release_mode }}
+      - name: Identify Xcode build
+        id: xcode
+        run: |
+          build=$(xcodebuild -version | awk '/^Build version/ {print $3}')
+          test -n "$build"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+      - name: Restore Guardian Swift packages
+        id: swift-guardian
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: apps/guardian/build/ios/SourcePackages
+          key: swiftpm-guardian-${{ steps.setup.outputs.sdk-key }}-${{ steps.xcode.outputs.build }}-${{ hashFiles('apps/guardian/ios/**/Package.resolved', 'pubspec.lock') }}
+      - name: Restore Teacher Swift packages
+        id: swift-teacher
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: apps/teacher/build/ios/SourcePackages
+          key: swiftpm-teacher-${{ steps.setup.outputs.sdk-key }}-${{ steps.xcode.outputs.build }}-${{ hashFiles('apps/teacher/ios/**/Package.resolved', 'pubspec.lock') }}
       - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199
         with:
           ruby-version: '3.3'
@@ -51,6 +71,18 @@ jobs:
           IOS_SIGNING_BUNDLE: ${{ secrets.IOS_SIGNING_BUNDLE }}
         run: bundle exec fastlane ios build
         working-directory: tooling/apple
+      - name: Save Guardian Swift packages
+        if: (inputs.release_mode || github.event_name == 'pull_request') && steps.swift-guardian.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: apps/guardian/build/ios/SourcePackages
+          key: ${{ steps.swift-guardian.outputs.cache-primary-key }}
+      - name: Save Teacher Swift packages
+        if: (inputs.release_mode || github.event_name == 'pull_request') && steps.swift-teacher.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: apps/teacher/build/ios/SourcePackages
+          key: ${{ steps.swift-teacher.outputs.cache-primary-key }}
       - uses: ./.github/actions/stage
         with:
           stage: ios
