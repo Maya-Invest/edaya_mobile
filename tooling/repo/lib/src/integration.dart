@@ -4,6 +4,10 @@ import 'package:path/path.dart' as p;
 import 'runtime.dart';
 import 'client.dart';
 
+const integrationSuites = ['api', 'guardian_v2', 'teacher_v2'];
+String suiteEvidencePath(String suite) =>
+    '.ci-evidence/integration/$suite.json';
+
 Map<String, dynamic> evaluate(
   Iterable<String> lines,
   int exitCode,
@@ -308,23 +312,29 @@ Future<void> integration({String? suite, bool validateOnly = false}) async {
     stdout.writeln('$name: ${report['ok'] == true ? 'PASS' : 'FAIL'}');
   }
   final ok = summaries.values.every((row) => row['ok'] == true);
-  writeJson(p.join(directory.path, 'summary.json'), {
+  final summaryFile = selected == null
+      ? 'summary.json'
+      : '$selected.summary.json';
+  writeJson(p.join(directory.path, summaryFile), {
     'ok': ok,
     'suites': summaries,
   });
   final sanitized = <String, dynamic>{};
-  for (final name in suites) {
-    final row = summaries[name] as Map<String, dynamic>?;
-    final tests = (row?['tests'] as List?) ?? [];
+  for (final name in summaries.keys) {
+    final row = summaries[name] as Map<String, dynamic>;
+    final tests = row['tests'] as List;
     sanitized[name] = {
-      'passed': row?['ok'] == true,
+      'passed': row['ok'] == true,
       'counts': {
         'total': tests.length,
         'passed': tests.where((test) => test['status'] == 'passed').length,
       },
     };
   }
-  writeJson(p.join(root, '.ci-evidence/results.json'), {
+  final resultFile = selected == null
+      ? '.ci-evidence/results.json'
+      : suiteEvidencePath(selected);
+  writeJson(p.join(root, resultFile), {
     'schemaVersion': 1,
     'role': 'mobile',
     'commit': await run(['git', 'rev-parse', 'HEAD'], quiet: true),

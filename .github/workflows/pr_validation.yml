@@ -52,10 +52,36 @@ jobs:
       target: ${{ github.event_name == 'pull_request' && (github.base_ref == 'main' && 'production' || 'staging') || inputs.target }}
       source_sha: ${{ needs.preparation.outputs.source_sha }}
       backend_sha: ${{ needs.preparation.outputs.backend_sha }}
-  integration:
+  integration_api:
+    name: API integration
     needs: [preparation, quality, unit]
     uses: ./.github/workflows/_integration_test.yml
     with:
+      suite: api
+      target: ${{ github.event_name == 'pull_request' && (github.base_ref == 'main' && 'production' || 'staging') || inputs.target }}
+      source_sha: ${{ needs.preparation.outputs.source_sha }}
+      backend_sha: ${{ needs.preparation.outputs.backend_sha }}
+      baseline_sha: ${{ github.event.pull_request.base.sha || '' }}
+    secrets:
+      BACKEND_CHECKOUT_TOKEN: ${{ secrets.BACKEND_CHECKOUT_TOKEN }}
+  integration_guardian_v2:
+    name: Guardian integration
+    needs: [preparation, quality, unit]
+    uses: ./.github/workflows/_integration_test.yml
+    with:
+      suite: guardian_v2
+      target: ${{ github.event_name == 'pull_request' && (github.base_ref == 'main' && 'production' || 'staging') || inputs.target }}
+      source_sha: ${{ needs.preparation.outputs.source_sha }}
+      backend_sha: ${{ needs.preparation.outputs.backend_sha }}
+      baseline_sha: ${{ github.event.pull_request.base.sha || '' }}
+    secrets:
+      BACKEND_CHECKOUT_TOKEN: ${{ secrets.BACKEND_CHECKOUT_TOKEN }}
+  integration_teacher_v2:
+    name: Teacher integration
+    needs: [preparation, quality, unit]
+    uses: ./.github/workflows/_integration_test.yml
+    with:
+      suite: teacher_v2
       target: ${{ github.event_name == 'pull_request' && (github.base_ref == 'main' && 'production' || 'staging') || inputs.target }}
       source_sha: ${{ needs.preparation.outputs.source_sha }}
       backend_sha: ${{ needs.preparation.outputs.backend_sha }}
@@ -64,7 +90,7 @@ jobs:
       BACKEND_CHECKOUT_TOKEN: ${{ secrets.BACKEND_CHECKOUT_TOKEN }}
   qualification:
     if: always()
-    needs: [preparation, quality, unit, android, ios, integration]
+    needs: [preparation, quality, unit, android, ios, integration_api, integration_guardian_v2, integration_teacher_v2]
     uses: ./.github/workflows/_finalize.yml
     with:
       target: ${{ github.event_name == 'pull_request' && (github.base_ref == 'main' && 'production' || 'staging') || inputs.target }}

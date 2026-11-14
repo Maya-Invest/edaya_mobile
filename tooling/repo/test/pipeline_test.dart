@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:edaya_repo/src/pipeline.dart';
+import 'package:edaya_repo/src/integration.dart';
 import 'package:edaya_repo/src/runtime.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -43,34 +44,58 @@ void main() {
       );
     }
   });
-  test('fixture evidence requires both SHAs, client, lock and all suites', () {
-    final input = {
-      'sourceCommit': 'a',
-      'backendCommit': 'b',
-      'clientChecksum': 'c',
-      'dependencyLockChecksum': 'd',
-    };
-    final results = {
-      'commit': 'a',
-      'backendCommit': 'b',
-      'clientChecksum': 'c',
-      'lockSha256': 'd',
-      'suites': {
-        for (final name in ['api', 'guardian_v2', 'teacher_v2'])
-          name: {
+  test(
+    'each fixture report must match its assigned suite and pinned inputs',
+    () {
+      final input = {
+        'sourceCommit': 'a',
+        'backendCommit': 'b',
+        'clientChecksum': 'c',
+        'dependencyLockChecksum': 'd',
+      };
+      final results = {
+        'commit': 'a',
+        'backendCommit': 'b',
+        'clientChecksum': 'c',
+        'lockSha256': 'd',
+        'suites': {
+          'api': {
             'passed': true,
             'counts': {'passed': 1, 'total': 1},
           },
-      },
-    };
-    checkIntegration(results, input);
-    for (final key in results.keys) {
+        },
+      };
+      checkIntegration(results, input, 'api');
       expect(
-        () => checkIntegration({...results}..remove(key), input),
+        () => checkIntegration(results, input, 'guardian_v2'),
         throwsStateError,
       );
-    }
-  });
+      for (final counts in [
+        {'passed': 0, 'total': 0},
+        {'passed': 1, 'total': 2},
+      ]) {
+        expect(
+          () => checkIntegration(
+            {
+              ...results,
+              'suites': {
+                'api': {'passed': true, 'counts': counts},
+              },
+            },
+            input,
+            'api',
+          ),
+          throwsStateError,
+        );
+      }
+      for (final key in results.keys) {
+        expect(
+          () => checkIntegration({...results}..remove(key), input, 'api'),
+          throwsStateError,
+        );
+      }
+    },
+  );
   test('stage records bind attempt, target and binary contents', () {
     final files = {
       'bundle.aab': digest([1]),
@@ -110,11 +135,12 @@ void main() {
         for (final stage in ['quality', 'unit', 'android', 'ios']) {
           expect(jobs[stage]['needs'], 'preparation');
         }
-        expect(jobs['integration']['needs'], [
-          'preparation',
-          'quality',
-          'unit',
-        ]);
+        for (final suite in integrationSuites) {
+          final job = jobs['integration_$suite'];
+          expect(job['uses'], './.github/workflows/_integration_test.yml');
+          expect(job['with']['suite'], suite);
+          expect(job['needs'], ['preparation', 'quality', 'unit']);
+        }
         expect(jobs['qualification']['if'], 'always()');
         expect(
           jobs['qualification']['needs'],

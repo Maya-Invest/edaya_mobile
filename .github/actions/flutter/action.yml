@@ -1,0 +1,49 @@
+name: Set up locked Flutter workspace
+description: Restore the pinned SDK and Pub packages, then install the locked workspace dependencies.
+inputs:
+  seed:
+    description: Save cache misses on the verified staging or production release revision.
+    default: 'false'
+outputs:
+  sdk-key:
+    description: Flutter release, platform, architecture and revision.
+    value: ${{ steps.flutter.outputs.CACHE-KEY }}
+runs:
+  using: composite
+  steps:
+    - id: flutter
+      uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+      with:
+        flutter-version: 3.44.8
+        channel: stable
+        dry-run: true
+    - name: Restore Flutter SDK
+      id: sdk
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: ${{ steps.flutter.outputs.CACHE-PATH }}
+        key: ${{ steps.flutter.outputs.CACHE-KEY }}
+    - name: Restore Pub packages
+      id: pub
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: ${{ steps.flutter.outputs.PUB-CACHE-PATH }}
+        key: ${{ steps.flutter.outputs.PUB-CACHE-KEY }}-${{ hashFiles('pubspec.lock') }}
+    - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+      with:
+        flutter-version: ${{ steps.flutter.outputs.VERSION }}
+        channel: ${{ steps.flutter.outputs.CHANNEL }}
+    - run: dart pub get --enforce-lockfile
+      shell: bash
+    - name: Seed Flutter SDK
+      if: inputs.seed == 'true' && steps.sdk.outputs.cache-hit != 'true'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: ${{ steps.flutter.outputs.CACHE-PATH }}
+        key: ${{ steps.sdk.outputs.cache-primary-key }}
+    - name: Seed Pub packages
+      if: inputs.seed == 'true' && steps.pub.outputs.cache-hit != 'true'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: ${{ steps.flutter.outputs.PUB-CACHE-PATH }}
+        key: ${{ steps.pub.outputs.cache-primary-key }}

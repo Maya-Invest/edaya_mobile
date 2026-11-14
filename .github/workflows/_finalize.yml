@@ -25,7 +25,7 @@ jobs:
       - name: Require every qualification job to succeed
         env:
           RESULTS: ${{ inputs.job_results }}
-        run: echo "$RESULTS" | jq -e '. as $r | ["preparation","quality","unit","android","ios","integration"] | all(.[]; $r[.].result == "success")'
+        run: echo "$RESULTS" | jq -e '. as $r | ["preparation","quality","unit","android","ios","integration_api","integration_guardian_v2","integration_teacher_v2"] | all(.[]; $r[.].result == "success")'
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ inputs.source_sha }}

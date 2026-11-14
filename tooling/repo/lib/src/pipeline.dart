@@ -2,9 +2,16 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'client.dart';
+import 'integration.dart';
 import 'runtime.dart';
 
-const stages = ['quality', 'unit', 'android', 'ios', 'integration'];
+final stages = [
+  'quality',
+  'unit',
+  'android',
+  'ios',
+  for (final suite in integrationSuites) 'integration_$suite',
+];
 const preparedPath = '.ci-evidence/prepared.json';
 const qualifiedPath = '.ci-evidence/qualification.json';
 String fileHash(String path) =>
@@ -76,7 +83,9 @@ List<String> buildFiles(String stage, String target, bool release) {
 Map<String, String> stageFiles(String stage, String target, bool release) {
   final paths = switch (stage) {
     'android' || 'ios' => buildFiles(stage, target, release),
-    'integration' => ['.ci-evidence/results.json'],
+    _ when stages.contains(stage) && stage.startsWith('integration_') => [
+      suiteEvidencePath(stage.substring('integration_'.length)),
+    ],
     'quality' => ['.ci-evidence/staging-runner/summary.json'],
     'unit' => <String>[],
     _ => throw ArgumentError('Unknown qualification stage $stage'),
@@ -111,6 +120,7 @@ void requireSuccessfulJobs(Map<String, dynamic> jobs) {
 void checkIntegration(
   Map<String, dynamic> results,
   Map<String, dynamic> input,
+  String suite,
 ) {
   requireEqual(results['commit'], input['sourceCommit'], 'integration source');
   requireEqual(
@@ -128,15 +138,17 @@ void checkIntegration(
     input['dependencyLockChecksum'],
     'integration lock',
   );
-  for (final suite in ['api', 'guardian_v2', 'teacher_v2']) {
-    final result = results['suites']?[suite];
-    final counts = result?['counts'];
-    if (result?['passed'] != true ||
-        counts?['total'] is! int ||
-        counts['total'] <= 0 ||
-        counts['passed'] != counts['total']) {
-      throw StateError('Incomplete integration suite $suite');
-    }
+  final suites = results['suites'];
+  if (suites is! Map || suites.length != 1 || !suites.containsKey(suite)) {
+    throw StateError('Expected evidence for $suite only');
+  }
+  final result = suites[suite];
+  final counts = result?['counts'];
+  if (result?['passed'] != true ||
+      counts?['total'] is! int ||
+      counts['total'] <= 0 ||
+      counts['passed'] != counts['total']) {
+    throw StateError('Incomplete integration suite $suite');
   }
 }
 
@@ -163,7 +175,13 @@ Future<void> finalize(String target) async {
     validateStage(record, stage, input, files);
     if (stage == 'android' || stage == 'ios') artifacts[stage] = files;
   }
-  checkIntegration(jsonFile(p.join(root, '.ci-evidence/results.json')), input);
+  for (final suite in integrationSuites) {
+    checkIntegration(
+      jsonFile(p.join(root, suiteEvidencePath(suite))),
+      input,
+      suite,
+    );
+  }
   writeJson(p.join(root, qualifiedPath), {
     ...input,
     'checks': {'verification': true, 'integration': true},
