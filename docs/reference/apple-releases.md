@@ -11,7 +11,7 @@ Both stores now publish the v2 workspaces. Android keeps its existing package ID
 
 ## Pipeline
 
-**Deploy** qualifies the pushed commit and runs Android and iOS jobs independently. Apple builds use the same verified client and source, Flutter 3.44.8, Xcode 26.1.1 and the locked Fastlane and CocoaPods dependencies. The IPA check verifies the bundle ID, signing certificate, team, build number and distribution push entitlement.
+**Deploy** qualifies the pushed commit and builds each app/platform pair independently. Apple builds use the same verified client and source, Flutter 3.44.8, Xcode 26.1.1 and the locked Fastlane and CocoaPods dependencies. The IPA check verifies the bundle ID, signing certificate, team, build number and distribution push entitlement.
 
 | Branch | Compiled API | Delivery |
 | --- | --- | --- |
@@ -61,7 +61,7 @@ Marketing versions come from each v2 app's `pubspec.yaml` (for example `1.0.0`).
 
 If existing TestFlight builds already have larger build numbers for the same marketing version, increment the app's marketing version before onboarding this workflow. Public release versions must be newer than the current public version. The workflow never lets Xcode silently change the selected build number.
 
-The `stage-ios-<run_id>-<attempt>` artifact contains both signed IPAs and their manifest on release branches. The `qualified` artifact binds their hashes to the passed stages. The `receipts-ios` artifact records each successful upload and review submission.
+Each `stage-ios_<app>-<run_id>-<attempt>` artifact contains one signed IPA and its manifest on release branches. The `qualified` artifact binds their hashes to the passed stages. Separate `receipts-ios-<app>-<phase>-<run_id>-<attempt>` artifacts record each successful upload and review submission.
 
 If a delivery fails, inspect both apps in App Store Connect. Uploads and review submissions are per app. Resolve any existing review conflict before rerunning **all jobs** so qualification and release share the new attempt number. Apple must accept the marketing version for each app. A different build already in review for that version requires an operator decision in App Store Connect.
 

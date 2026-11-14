@@ -9,7 +9,7 @@ The current release targets are Guardian v2 (`ca.mayainvest.edaya.guardian`) and
 | `staging` | `https://staging.api.edayaplus.com` | Google Play internal testing, plus both signed APKs in GitHub |
 | `main` | `https://api.edayaplus.com` | Google Play production track, sent for review |
 
-**Deploy** qualifies the pushed commit and builds fresh signed bundles for both apps. It checks both AAB hashes and stages both edits before committing them to Play. After testing staging, merge the intended source into `main` to start production qualification. Each commit requests a completed release. Enable managed publishing for eligible apps in Play Console to hold an approved update for manual publication. Google controls first-release eligibility. [Google Play publishing controls](https://support.google.com/googleplay/android-developer/answer/9859654)
+**Deploy** qualifies the pushed commit and builds fresh signed bundles for both apps. Guardian and Teacher stage their Play edits in parallel. Each publishing job commits its own verified edit after both preparations pass. After testing staging, merge the intended source into `main` to start production qualification. Each commit requests a completed release. Enable managed publishing for eligible apps in Play Console to hold an approved update for manual publication. Google controls first-release eligibility. [Google Play publishing controls](https://support.google.com/googleplay/android-developer/answer/9859654)
 
 ## GitHub credentials
 

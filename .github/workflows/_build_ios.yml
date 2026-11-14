@@ -2,6 +2,7 @@ name: iOS build
 on:
   workflow_call:
     inputs:
+      app: {type: string, required: true}
       target: {type: string, required: true}
       source_sha: {type: string, required: true}
       backend_sha: {type: string, required: true}
@@ -18,6 +19,7 @@ jobs:
     environment: ${{ inputs.release_mode && inputs.target || '' }}
     timeout-minutes: 180
     env:
+      MOBILE_APP: ${{ inputs.app }}
       CI: 'true'
       TARGET: ${{ inputs.target }}
       CI_SOURCE_SHA: ${{ inputs.source_sha }}
@@ -35,8 +37,8 @@ jobs:
       - uses: ./.github/actions/setup
         id: setup
         with:
-          native: true
-          seed-flutter: ${{ inputs.release_mode }}
+          native-app: ${{ inputs.app }}
+          seed-flutter: ${{ inputs.release_mode && inputs.app == 'guardian' }}
       - name: Identify Xcode build
         id: xcode
         run: |
@@ -44,54 +46,38 @@ jobs:
           test -n "$build"
           echo "build=$build" >> "$GITHUB_OUTPUT"
       # Let Xcode resolve working checkouts from the app pins on every runner.
-      - name: Restore Guardian Swift packages
-        id: swift-guardian
+      - name: Restore Swift packages
+        id: swift
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
-            apps/guardian/build/ios/SourcePackages/repositories
-            apps/guardian/build/ios/SourcePackages/artifacts
-          key: swiftpm-guardian-${{ steps.setup.outputs.sdk-key }}-${{ steps.xcode.outputs.build }}-${{ hashFiles('apps/guardian/ios/**/Package.resolved', 'pubspec.lock') }}
-      - name: Restore Teacher Swift packages
-        id: swift-teacher
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: |
-            apps/teacher/build/ios/SourcePackages/repositories
-            apps/teacher/build/ios/SourcePackages/artifacts
-          key: swiftpm-teacher-${{ steps.setup.outputs.sdk-key }}-${{ steps.xcode.outputs.build }}-${{ hashFiles('apps/teacher/ios/**/Package.resolved', 'pubspec.lock') }}
+            apps/${{ inputs.app }}/build/ios/SourcePackages/repositories
+            apps/${{ inputs.app }}/build/ios/SourcePackages/artifacts
+          key: swiftpm-${{ inputs.app }}-${{ steps.setup.outputs.sdk-key }}-${{ steps.xcode.outputs.build }}-${{ hashFiles(format('apps/{0}/ios/**/Package.resolved', inputs.app), 'pubspec.lock') }}
       - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199
         with:
           ruby-version: '3.3'
           bundler-cache: true
           working-directory: tooling/apple
-      - name: Compile both iOS apps without distribution signing
+      - name: Compile iOS app without distribution signing
         if: ${{ !inputs.release_mode }}
         env:
           BUNDLE_GEMFILE: ${{ github.workspace }}/tooling/apple/Gemfile
         run: bundle exec dart run edaya_repo:repo ci native ios "$TARGET"
-      - name: Export and verify distribution IPAs
+      - name: Export and verify distribution IPA
         if: inputs.release_mode
         env:
           IOS_SIGNING_BUNDLE: ${{ secrets.IOS_SIGNING_BUNDLE }}
         run: bundle exec fastlane ios build
         working-directory: tooling/apple
-      - name: Save Guardian Swift packages
-        if: (inputs.release_mode || github.event_name == 'pull_request') && steps.swift-guardian.outputs.cache-hit != 'true'
+      - name: Save Swift packages
+        if: (inputs.release_mode || github.event_name == 'pull_request') && steps.swift.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
-            apps/guardian/build/ios/SourcePackages/repositories
-            apps/guardian/build/ios/SourcePackages/artifacts
-          key: ${{ steps.swift-guardian.outputs.cache-primary-key }}
-      - name: Save Teacher Swift packages
-        if: (inputs.release_mode || github.event_name == 'pull_request') && steps.swift-teacher.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: |
-            apps/teacher/build/ios/SourcePackages/repositories
-            apps/teacher/build/ios/SourcePackages/artifacts
-          key: ${{ steps.swift-teacher.outputs.cache-primary-key }}
+            apps/${{ inputs.app }}/build/ios/SourcePackages/repositories
+            apps/${{ inputs.app }}/build/ios/SourcePackages/artifacts
+          key: ${{ steps.swift.outputs.cache-primary-key }}
       - uses: ./.github/actions/stage
         with:
-          stage: ios
+          stage: ios_${{ inputs.app }}

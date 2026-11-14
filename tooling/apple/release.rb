@@ -11,6 +11,15 @@ module AppleRelease
   ROOT = File.expand_path('../..', __dir__)
   APPS = JSON.parse(File.read(File.join(__dir__, 'apps.json'))).freeze
 
+  def self.selected_apps
+    app = ENV['MOBILE_APP']
+    app ? {app => APPS.fetch(app)} : APPS
+  end
+
+  def self.release_path(app, name)
+    File.join(ROOT, '.release', app, name)
+  end
+
   def self.build_number(env)
     run = Integer(env.fetch('EDAYA_RELEASE_SEQUENCE') { env.fetch('GITHUB_RUN_NUMBER') }, 10)
     attempt = Integer(env.fetch('GITHUB_RUN_ATTEMPT'), 10)
@@ -23,7 +32,7 @@ module AppleRelease
     report = JSON.parse(File.read(File.join(ROOT, '.ci-evidence/qualification.json')))
     raise 'Qualified Apple artifacts required' unless evidence.all? { |k, v| report[k] == v } &&
       report.dig('checks', 'verification') == true && report.dig('checks', 'integration') == true &&
-      report.dig('artifacts', 'ios', '.release/apple-build.json') == Digest::SHA256.file(File.join(ROOT, '.release/apple-build.json')).hexdigest
+      selected_apps.keys.all? { |app| report.dig('artifacts', "ios_#{app}", ".release/#{app}/apple-build.json") == Digest::SHA256.file(release_path(app, 'apple-build.json')).hexdigest }
     evidence
   end
 
@@ -96,7 +105,7 @@ module AppleRelease
   end
 
   def self.record(mode, app, data)
-    path = File.join(ROOT, '.release', "apple-#{mode}.json")
+    path = release_path(app, "apple-#{mode}.json")
     FileUtils.mkdir_p(File.dirname(path))
     current = File.exist?(path) ? JSON.parse(File.read(path)) : { 'apps' => {} }
     current['apps'][app] = data
@@ -151,7 +160,7 @@ module AppleRelease
       run!('security', 'set-key-partition-list', '-S', 'apple-tool:,apple:', '-k', keychain_password, keychain)
       run!('security', 'list-keychains', '-d', 'user', '-s', keychain, *original_keychains)
 
-      profiles = APPS.to_h do |app, config|
+      profiles = selected_apps.to_h do |app, config|
         raw = Base64.strict_decode64(bundle.fetch('profiles').fetch(app))
         input = File.join(private_dir, "#{app}.mobileprovision")
         File.write(input, raw, mode: 'wb', perm: 0600)
@@ -165,7 +174,7 @@ module AppleRelease
         [app, profile]
       end
 
-      APPS.each do |app, config|
+      selected_apps.each do |app, config|
         app_root = File.join(ROOT, config.fetch('path'))
         project_path = File.join(app_root, 'ios/Runner.xcodeproj/project.pbxproj')
         projects[project_path] = File.binread(project_path)
@@ -213,7 +222,7 @@ module AppleRelease
         raise 'IPA is signed by the wrong team' unless entitlements['com.apple.developer.team-identifier'] == config.fetch('teamId')
         raise 'IPA application entitlement mismatch' unless entitlements['application-identifier'] == profiles.fetch(app).fetch('Entitlements').fetch('application-identifier')
         raise 'Distribution push entitlement missing' unless entitlements['aps-environment'] == 'production'
-        output = File.join(ROOT, '.release/ios', "edaya-#{app}-#{target}.ipa")
+        output = release_path(app, "ios/edaya-#{app}-#{target}.ipa")
         FileUtils.mkdir_p(File.dirname(output))
         FileUtils.cp(ipas.first, output)
         record('build', app, {
@@ -242,19 +251,20 @@ module AppleRelease
     end
   end
 
-  def self.testflight(context)
-    evidence = release_inputs
+  def self.signed_ipas(evidence)
     target = evidence.fetch('environment')
-    manifest = JSON.parse(File.read(File.join(ROOT, '.release/apple-build.json')))
-    # Validate both IPAs before either upload.
-    candidates = APPS.map do |app, config|
+    selected_apps.map do |app, config|
+      manifest = JSON.parse(File.read(release_path(app, 'apple-build.json')))
       row = manifest.fetch('apps').fetch(app)
-      file = File.join(ROOT, '.release/ios', "edaya-#{app}-#{target}.ipa")
+      file = release_path(app, "ios/edaya-#{app}-#{target}.ipa")
       validate_record(row, config, evidence, 'signed')
       raise 'IPA changed after signing verification' unless row.fetch('sha256') == Digest::SHA256.file(file).hexdigest
       [app, config, row, file]
     end
-    candidates.each do |app, config, row, file|
+  end
+
+  def self.testflight(context)
+    signed_ipas(release_inputs).each do |app, config, row, file|
       # Refresh the short-lived API JWT for each upload.
       context.upload_to_testflight(api_key: api_key(context), app_identifier: config.fetch('bundleId'),
         ipa: file, skip_waiting_for_build_processing: false, distribute_external: false, skip_submission: true)
@@ -263,15 +273,17 @@ module AppleRelease
   end
 
   def self.upload_records
-    JSON.parse(File.read(File.join(ROOT, '.release/apple-testflight.json'))).fetch('apps')
+    selected_apps.keys.to_h do |app|
+      [app, JSON.parse(File.read(release_path(app, 'apple-testflight.json'))).fetch('apps').fetch(app)]
+    end
   end
 
-  def self.submit(context)
+  def self.submit(context, check_only: false)
     evidence = release_inputs
     raise 'Production qualification required for App Review' unless evidence.fetch('environment') == 'production'
     uploads = upload_records
     api_key(context)
-    candidates = APPS.map do |app, config|
+    candidates = selected_apps.map do |app, config|
       row = uploads.fetch(app)
       validate_record(row, config, evidence, 'processed')
       version = row.fetch('version')
@@ -286,6 +298,7 @@ module AppleRelease
       decision = submission_decision(version, build, live: live, existing: existing)
       [app, config, version, number, decision, asc_app, existing]
     end
+    return if check_only
     candidates.each do |app, config, version, number, decision, asc_app, existing|
       if decision == :already_submitted
         record('submission', app, { 'bundleId' => config.fetch('bundleId'), 'version' => version,

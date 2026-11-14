@@ -1,9 +1,9 @@
 name: Restore prepared mobile inputs
 description: Verify the checkout, frozen lockfile and generated API client for this run.
 inputs:
-  native:
-    description: Generate platform plugin registrations for Guardian and Teacher.
-    default: 'false'
+  native-app:
+    description: App requiring native plugin registrations.
+    default: ''
   seed-flutter:
     description: Populate the shared macOS Flutter and Pub caches on release runs.
     default: 'false'
@@ -32,9 +32,11 @@ runs:
         # The previous deploy-staging.yml reached run 3 before the rename.
         echo "EDAYA_RELEASE_SEQUENCE=$((GITHUB_RUN_NUMBER + 3))" >> "$GITHUB_ENV"
     - name: Generate native plugin registrations
-      if: inputs.native == 'true'
+      if: inputs.native-app != ''
       shell: bash
+      env:
+        APP: ${{ inputs.native-app }}
       run: |
-        for app in guardian teacher; do
-          (cd "apps/$app" && flutter pub get --enforce-lockfile)
-        done
+        case "$APP" in guardian|teacher) ;; *) exit 1 ;; esac
+        cd "apps/$APP"
+        flutter pub get --enforce-lockfile

@@ -5,14 +5,14 @@ Each repository verifies and releases its own revision. Backend changes do not r
 | Entry point | Trigger | Stages |
 | --- | --- | --- |
 | `branche_check.yml` | Push outside staging/main | Prepare once, then quality and unit in parallel |
-| `pr_validation.yml` | PR into staging/main or manual validation | Prepare → quality, unit, Android and iOS builds. API, Guardian and Teacher integration jobs run in parallel after quality and unit. **Full validation** requires all eight upstream jobs. |
-| `deploy.yml` | Push or manual dispatch on staging/main | Same full graph using distribution signing, then independent Play and Apple publishing jobs |
+| `pr_validation.yml` | PR into staging/main or manual validation | Prepare → quality, unit and four independent builds (Guardian and Teacher on Android and iOS). API, Guardian and Teacher integration jobs run in parallel after quality and unit. **Full validation** requires all ten upstream jobs. |
+| `deploy.yml` | Push or manual dispatch on staging/main | Same full graph using distribution signing, then four independent app/store jobs |
 
 For branch pushes and PRs, prepare uses a matching backend branch (PR head branch), falling back to backend `dev` only if that branch is absent. PRs validate the proposed merge commit. Manual validation allows explicit revisions. Releases use the selected branch SHA and its matching backend destination. Manual release accepts no revision override.
 
-All stages restore the frozen client and lockfile for the same run and attempt. Signing credentials are passed to release build jobs only. Finalization checks source, backend, target, job results and artifact checksums. The publishers restore the qualified binaries, verify their checksums and submit them without rebuilding. Re-run all jobs to qualify a new attempt. A store failure preserves the platform build and any completed app receipts.
+All stages restore the frozen client and lockfile for the same run and attempt. Signing credentials are passed to release build jobs only. Finalization checks source, backend, target, job results and artifact checksums. The publishers restore the qualified binaries, verify their checksums and submit them without rebuilding. Re-run all jobs to qualify a new attempt. Each publisher downloads its own app/platform artifact. Both Play edits must pass before either commit. Production App Review submissions wait for both TestFlight uploads and eligibility checks. Staging and production deployments share a queue because their Play edits target the same packages.
 
-Linux preparation and the macOS build seed the pinned Flutter SDK and lockfile-keyed Pub cache on release branches. PRs can restore their base branch caches. Android reuses Gradle User Home and enables task-output caching for validation builds. iOS reuses each app's Swift package downloads keyed by the Flutter SDK, Xcode build, app package pins and Pub lock. Signed binaries and qualification evidence are transferred as same-attempt artifacts.
+Linux preparation and the Guardian macOS release build seed the pinned Flutter SDK and lockfile-keyed Pub cache on release branches. PRs can restore their base branch caches. Android reuses Gradle User Home and enables task-output caching for validation builds. iOS reuses each app's Swift package downloads keyed by the Flutter SDK, Xcode build, app package pins and Pub lock. Signed binaries and qualification evidence are transferred as same-attempt artifacts.
 
 ## Remaining configuration for Guardian v2 and Teacher v2
 
@@ -131,7 +131,7 @@ Bun remains pinned to 1.3.14, Flutter to 3.44.8. Ubuntu CI and macOS development
 
 ## Release evidence
 
-`.ci-evidence/qualification.json` records source identity and mandatory outcomes. `.release/manifest.json` records source commit, environment, tool version, API fingerprint, artifact hashes and status. Consumer evidence includes backend commit and generated-client checksums. Evidence is an output; it does not pin another repository's future release. Private fixtures are disposable and logs are sanitized before they become retained evidence.
+`.ci-evidence/qualification.json` records source identity and mandatory outcomes. `.release/<app>/manifest.json` records source commit, environment, tool version, API fingerprint, artifact hashes and status. Consumer evidence includes backend commit and generated-client checksums. Evidence is an output; it does not pin another repository's future release. Private fixtures are disposable and logs are sanitized before they become retained evidence.
 
 ## Backend input
 
@@ -161,7 +161,7 @@ The `api`, `guardian_v2` and `teacher_v2` integration suites are mandatory. Thei
 
 Use `dart run edaya_repo:repo build staging` for both apps' signed APKs and AABs, or `build production` for both signed v2 AABs. Release paths are `apps/guardian` and `apps/teacher`; logical app keys remain `guardian` and `teacher`. CI uses Java 17 and Flutter 3.44.8. Environment secret `ANDROID_SIGNING_BUNDLE` contains the existing keystore/apps bundle with guardian and teacher aliases/passwords and each Firebase configuration. Local builds can use existing private signing files. Missing credentials, debug certificates, app ID mismatches or signature verification errors block output.
 
-Signed builds use the pinned source and transferred generated client. APK verification uses apksigner/aapt; AAB verification uses jarsigner/keytool, with signing certificate provenance and SHA-256 artifact hashes in `.release/manifest.json`. Both release branches publish their qualified AABs to the matching Play track. Restored private signing files are cleaned up after the build. Apple build and publishing jobs exchange the signed IPAs verified by finalization. [Google Play releases](google-play-releases.md) · [Apple releases](apple-releases.md)
+Signed builds use the pinned source and transferred generated client. APK verification uses apksigner/aapt; AAB verification uses jarsigner/keytool, with signing certificate provenance and SHA-256 artifact hashes in `.release/<app>/manifest.json` on CI. Both release branches publish their qualified AABs to the matching Play track. Restored private signing files are cleaned up after the build. Apple build and publishing jobs exchange the signed IPAs verified by finalization. [Google Play releases](google-play-releases.md) · [Apple releases](apple-releases.md)
 
 Brand tokens, galleries, design review, keystore setup and SVG/native icon generation are Dart/Flutter commands under `generate` and `maintenance`. The asset generator runs through Flutter rendering; Node is no longer needed.
 

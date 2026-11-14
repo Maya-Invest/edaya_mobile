@@ -132,7 +132,7 @@ void main() {
       for (final name in ['pr_validation', 'deploy']) {
         final caller = workflow(name);
         final jobs = caller['jobs'] as YamlMap;
-        for (final stage in ['quality', 'unit', 'android', 'ios']) {
+        for (final stage in ['quality', 'unit', ...nativeStages.keys]) {
           expect(jobs[stage]['needs'], 'preparation');
         }
         for (final suite in integrationSuites) {
@@ -147,6 +147,10 @@ void main() {
           unorderedEquals(['preparation', ...stages]),
         );
         if (name == 'deploy') {
+          expect(caller['concurrency'], {
+            'group': 'mobile-store-release',
+            'queue': 'max',
+          });
           expect(
             caller['on']['push']['branches'],
             unorderedEquals(['staging', 'main']),
@@ -155,33 +159,78 @@ void main() {
             jobs['preparation']['with']['source_ref'],
             r'${{ github.sha }}',
           );
-          expect(jobs['deploy']['needs'], contains('qualification'));
-          expect(
-            (jobs['deploy']['secrets'] as YamlMap).keys,
-            unorderedEquals([
-              'GOOGLE_PLAY_SERVICE_ACCOUNT_JSON',
-              'APP_STORE_CONNECT_API_KEY_JSON',
-            ]),
-          );
-          expect((jobs['android']['secrets'] as YamlMap).keys, [
-            'ANDROID_SIGNING_BUNDLE',
+        }
+        for (final entry in nativeStages.entries) {
+          final build = entry.value;
+          final app = build.app;
+          final platform = build.platform;
+          final android = platform == 'android';
+          final job = jobs[entry.key];
+          expect(job['uses'], './.github/workflows/_build_$platform.yml');
+          expect(job['with']['app'], app);
+          if (name == 'pr_validation') {
+            expect(job['secrets'], isNull);
+            expect(
+              jobs.keys.where(
+                (id) => jobs[id]['uses'] == './.github/workflows/_deploy.yml',
+              ),
+              isEmpty,
+            );
+            continue;
+          }
+          expect((job['secrets'] as YamlMap).keys, [
+            android ? 'ANDROID_SIGNING_BUNDLE' : 'IOS_SIGNING_BUNDLE',
           ]);
-          expect((jobs['ios']['secrets'] as YamlMap).keys, [
-            'IOS_SIGNING_BUNDLE',
-          ]);
-        } else {
-          expect(jobs.containsKey('deploy'), isFalse);
-          expect(jobs['android']['secrets'], isNull);
-          expect(jobs['ios']['secrets'], isNull);
+          for (final phase
+              in android ? ['prepare', 'publish'] : ['upload', 'submit']) {
+            final deploy = jobs['${phase}_${platform}_$app'];
+            expect(deploy['uses'], './.github/workflows/_deploy.yml');
+            expect(deploy['with']['app'], app);
+            expect(deploy['with']['platform'], platform);
+            expect(deploy['with']['phase'], phase);
+            expect((deploy['secrets'] as YamlMap).keys, [
+              android
+                  ? 'GOOGLE_PLAY_SERVICE_ACCOUNT_JSON'
+                  : 'APP_STORE_CONNECT_API_KEY_JSON',
+            ]);
+            expect(
+              deploy['needs'],
+              unorderedEquals([
+                'preparation',
+                'qualification',
+                if (phase == 'publish') ...[
+                  'prepare_android_guardian',
+                  'prepare_android_teacher',
+                ],
+                if (phase == 'submit') ...[
+                  'upload_ios_guardian',
+                  'upload_ios_teacher',
+                ],
+              ]),
+            );
+            if (phase == 'submit') {
+              expect(deploy['if'], "github.ref == 'refs/heads/main'");
+            }
+          }
         }
       }
-      final publishers = workflow('_deploy')['jobs'];
-      expect(
-        publishers['ios']['steps'].singleWhere(
-          (s) => s['run'] == 'bundle exec fastlane ios submit',
-        )['if'],
-        "inputs.target == 'production'",
-      );
+    },
+  );
+  test(
+    'release stage files and validation evidence are unique to their app and platform',
+    () {
+      for (final release in [false, true]) {
+        final seen = <String>{};
+        for (final entry in nativeStages.entries) {
+          final files = buildFiles(entry.key, 'staging', release);
+          expect(files, isNotEmpty);
+          for (final file in files) {
+            expect(seen.add(file), isTrue, reason: file);
+            expect(file, contains(entry.value.app));
+          }
+        }
+      }
+      expect(() => releaseApps('../another-app'), throwsArgumentError);
     },
   );
 }
