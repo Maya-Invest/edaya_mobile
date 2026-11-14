@@ -1,6 +1,6 @@
 # Guardian v2 workspace
 
-This is the normative contract for `apps/guardian_v2`. It uses the EDAYA tokens and bundled Poppins/Inter typography.
+This is the normative contract for `apps/guardian`. It uses the EDAYA tokens and bundled Poppins/Inter typography.
 
 ## Navigation and child context
 

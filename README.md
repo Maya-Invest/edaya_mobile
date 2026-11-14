@@ -4,15 +4,15 @@ Flutter monorepo for the Edaya mobile apps, managed with [Melos](https://melos.i
 
 ## Releases
 
-Android and iOS releases build `apps/guardian_v2` and `apps/teacher_v2`. Production qualification feeds Google Play internal testing and Apple TestFlight; public releases use separate manual workflows. See [CI setup](docs/reference/ci-setup.md), [Google Play](docs/reference/google-play-releases.md), and [Apple release credentials](docs/reference/apple-releases.md).
+Android and iOS releases build `apps/guardian` and `apps/teacher`. Production qualification feeds Google Play internal testing and Apple TestFlight; public releases use separate manual workflows. See [CI setup](docs/reference/ci-setup.md), [Google Play](docs/reference/google-play-releases.md), and [Apple release credentials](docs/reference/apple-releases.md).
 
 ## Layout
 
 ```text
 edaya_mobile/
 ├── apps/
-│   ├── guardian_v2/           parent/guardian release app
-│   └── teacher_v2/            teacher release app
+│   ├── guardian/              parent/guardian release app
+│   └── teacher/               teacher release app
 ├── packages/
 │   ├── edaya_api_client/      domain-shaped Core API client
 │   ├── edaya_auth/            Better Auth HTTP client
@@ -152,7 +152,7 @@ flutter run --dart-define=API_URL=http://10.0.2.2:9999
 flutter run --dart-define=API_URL=https://staging.api.edayaplus.com
 ```
 
-Run these Flutter commands from `apps/guardian_v2` or `apps/teacher_v2`. Use an explicit staging URL when targeting staging.
+Run these Flutter commands from `apps/guardian` or `apps/teacher`. Use an explicit staging URL when targeting staging.
 
 The login and account screens expose **Developer settings** in all build modes (including production) to change the API URL at runtime (persisted in `SharedPreferences`). Presets include local, staging, and production. Restart the app after saving.
 
@@ -168,8 +168,8 @@ Use the backend `bun repo dev` server for local captured email, WhatsApp and SMS
 ### Run an app
 
 ```bash
-(cd apps/guardian_v2 && flutter run --dart-define=API_URL=http://10.0.2.2:9999)
-(cd apps/teacher_v2 && flutter run --dart-define=API_URL=http://10.0.2.2:9999)
+(cd apps/guardian && flutter run --dart-define=API_URL=http://10.0.2.2:9999)
+(cd apps/teacher && flutter run --dart-define=API_URL=http://10.0.2.2:9999)
 ```
 
 ## Common commands
@@ -245,4 +245,4 @@ Integration tests run against two demo-ci teacher profiles automatically:
 
 Covered API chains mirror the teacher app: bootstrap/context, calendar/timetable enrichment, evaluations, session detail (enrollments, students, attendance, logbook reads), and `recordAttendance` write-back. `EDAYA_TEACHER_EMAIL` only overrides the subject-teacher defaults when running a single profile manually.
 
-Guardian v2 is available in `apps/guardian_v2`, with a child picker, two Home menu groups and unified period results. See [its workspace specification](docs/specs/guardian-v2-workspace-spec.md).
+Guardian v2 is available in `apps/guardian`, with a child picker, two Home menu groups and unified period results. See [its workspace specification](docs/specs/guardian-v2-workspace-spec.md).

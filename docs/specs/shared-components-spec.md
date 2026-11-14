@@ -63,7 +63,7 @@ Personal inboxes load all pages with their existing recipient and school scope b
 
 ## Teacher signature profile extension
 
-`AccountProfilePage.profileActions` is an optional presentation slot for app-owned profile actions. Teacher Profile uses it to open the local `TeacherSignaturePage`; guardian Profile has no signature action. `TeacherSignatureController` follows the route-scoped Levit lifecycle. The signature editor uses the existing buttons, dialogs, busy indicators, EDAYA tokens and localization, with a white paper preview for dark signature ink. It stays in `apps/teacher_v2/lib/features/signature` because no other product uses this flow.
+`AccountProfilePage.profileActions` is an optional presentation slot for app-owned profile actions. Teacher Profile uses it to open the local `TeacherSignaturePage`; guardian Profile has no signature action. `TeacherSignatureController` follows the route-scoped Levit lifecycle. The signature editor uses the existing buttons, dialogs, busy indicators, EDAYA tokens and localization, with a white paper preview for dark signature ink. It stays in `apps/teacher/lib/features/signature` because no other product uses this flow.
 
 ### Conversation message bubbles
 
@@ -128,6 +128,6 @@ Draft and submitted evaluation rows share the same full-width card, name/result/
 
 ## Guardian v2 workspace components
 
-`apps/guardian_v2` follows [Guardian v2 workspace](guardian-v2-workspace-spec.md). `WorkspaceShell` owns page chrome; `ChildContextCard` and `ChildPicker` provide the selected child. `ChildWorkspace` owns captured request headers and child-specific page lifetimes. `ArchiveWorkspace` owns a local academic year for Results, Attendance and Fees. `GuardianSheetPage` provides routed Close sheets. `SurfaceCard` supplies a clipped Material/InkWell target with semantic theme colors. Period modules and expandable marks reuse `ExpansionTile`; published values use the shared grading formatter. The original Guardian shell primitives retain their original app scope.
+`apps/guardian` follows [Guardian v2 workspace](guardian-v2-workspace-spec.md). `WorkspaceShell` owns page chrome; `ChildContextCard` and `ChildPicker` provide the selected child. `ChildWorkspace` owns captured request headers and child-specific page lifetimes. `ArchiveWorkspace` owns a local academic year for Results, Attendance and Fees. `GuardianSheetPage` provides routed Close sheets. `SurfaceCard` supplies a clipped Material/InkWell target with semantic theme colors. Period modules and expandable marks reuse `ExpansionTile`; published values use the shared grading formatter. The original Guardian shell primitives retain their original app scope.
 
 Guardian v2's Home watch runs inside its layout builder and subscribes to menu highlights before deferred grid builds. Session, logbook and charge detail bodies retain their record headings when `PrototypeDetailScaffold` delegates chrome to the workspace. Routed sheet titles identify the destination; message-sheet dismissal refreshes the owning inbox.

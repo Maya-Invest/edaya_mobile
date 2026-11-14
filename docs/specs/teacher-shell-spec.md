@@ -1,6 +1,6 @@
 # Teacher Shell Spec
 
-> **Applies to:** Teacher Flutter production shell (`apps/teacher_v2`)
+> **Applies to:** Teacher Flutter production shell (`apps/teacher`)
 > **Audience:** Implementers and agents  
 > **Authority:** This document is normative for the teacher Accueil-first shell. Visual tokens live in [design-language-spec.md](design-language-spec.md). Shared widgets follow [guardian-shared-components-spec.md](guardian-shared-components-spec.md) unless a teacher-specific component is listed below.
 
@@ -228,7 +228,7 @@ The signature drawing editor uses the `signature` package and its controller for
 
 ## Teacher v2 navigation
 
-The copy in `apps/teacher_v2` uses the existing EDAYA tokens, Poppins/Inter and components. Home is the navigation root. Full destinations have **Retour**; records, forms and pickers use one bottom sheet with **Fermer**. Browser Back dismisses that sheet before leaving the destination. Sheet closure retains the invoking list, scroll position and focus. Dirty forms ask whether to continue or abandon the entry.
+The copy in `apps/teacher` uses the existing EDAYA tokens, Poppins/Inter and components. Home is the navigation root. Full destinations have **Retour**; records, forms and pickers use one bottom sheet with **Fermer**. Browser Back dismisses that sheet before leaving the destination. Sheet closure retains the invoking list, scroll position and focus. Dirty forms ask whether to continue or abandon the entry.
 
 ### Exact assignment context
 

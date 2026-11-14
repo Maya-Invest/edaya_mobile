@@ -5,8 +5,8 @@
       "name": "Teacher v2 · Full review data (iPad)",
       "type": "dart",
       "request": "launch",
-      "cwd": "${workspaceFolder}/apps/teacher_v2",
-      "program": "${workspaceFolder}/apps/teacher_v2/lib/main.dart",
+      "cwd": "${workspaceFolder}/apps/teacher",
+      "program": "${workspaceFolder}/apps/teacher/lib/main.dart",
       "flutterMode": "debug",
       "toolArgs": [
         "--dart-define=API_URL=http://127.0.0.1:19998",

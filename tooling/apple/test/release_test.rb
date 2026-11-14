@@ -63,7 +63,7 @@ class AppleReleaseTest < Minitest::Test
 
   def test_app_config_matches_v2_xcode_and_firebase_identities
     AppleRelease::APPS.each do |app, value|
-      assert_equal "apps/#{app}_v2", value.fetch('path')
+      assert_equal "apps/#{app}", value.fetch('path')
       root = File.join(AppleRelease::ROOT, value.fetch('path'))
       project = Xcodeproj::Project.open(File.join(root, 'ios/Runner.xcodeproj'))
       runner = project.targets.find { |target| target.name == 'Runner' }

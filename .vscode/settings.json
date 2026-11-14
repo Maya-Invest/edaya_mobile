@@ -1,8 +1,8 @@
 {
   "dart.analysisExcludedFolders": [
     "build",
-    "apps/guardian_v2/build",
-    "apps/teacher_v2/build",
+    "apps/guardian/build",
+    "apps/teacher/build",
     "packages/edaya_api_client/build",
     "packages/edaya_auth/build",
     "packages/edaya_shared/build",

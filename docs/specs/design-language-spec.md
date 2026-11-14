@@ -1,6 +1,6 @@
 # Design Language Spec
 
-> **Applies to:** Guardian (`apps/guardian_v2`) and Teacher (`apps/teacher_v2`)
+> **Applies to:** Guardian (`apps/guardian`) and Teacher (`apps/teacher`)
 > **Audience:** Implementers and agents  
 > **Authority:** This document is normative. Implementations must be cross-checked against it.
 

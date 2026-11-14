@@ -6,8 +6,8 @@ import 'process.dart';
 export 'process.dart';
 
 const applicationPaths = {
-  'guardian': 'apps/guardian_v2',
-  'teacher': 'apps/teacher_v2',
+  'guardian': 'apps/guardian',
+  'teacher': 'apps/teacher',
 };
 
 String get root {

@@ -29,7 +29,7 @@ Deployments are serialized per repository/environment without cancelling active 
 
 ### Credential and variable inventory
 
-The backend checkout secret is configured. The four release environments are absent. The table shows the intended credential scopes for the complete pipeline. [Actions secrets](https://github.com/Maya-Invest/edaya_mobile/settings/secrets/actions) · [Environments](https://github.com/Maya-Invest/edaya_mobile/settings/environments)
+As of 2026-11-14, `BACKEND_CHECKOUT_TOKEN`, `ANDROID_SIGNING_BUNDLE`, `IOS_SIGNING_BUNDLE` and `APP_STORE_CONNECT_API_KEY_JSON` are configured as repository Actions secrets. The four release environments are absent. The table shows the intended scopes when configuring environment-specific credentials. [Actions secrets](https://github.com/Maya-Invest/edaya_mobile/settings/secrets/actions) · [Environments](https://github.com/Maya-Invest/edaya_mobile/settings/environments)
 
 | Scope | Secret | Value and purpose |
 | --- | --- | --- |
@@ -52,7 +52,7 @@ Use a terminal on the Mac holding your existing signing keys. Run these commands
 export EDAYA_SIGNING_DIR="$(mktemp -d)"
 ```
 
-**Android.** Use the existing Play upload keystore, the signing properties for each alias, and the two v2 Firebase registrations. The fallback below supports the existing Teacher upload key stored under the original app directory.
+**Android.** Use the existing Play upload keystore, the signing properties for each alias, and the two v2 Firebase registrations.
 
 ```sh
 python3 - <<'PY'
@@ -63,7 +63,7 @@ os.umask(0o077)
 keystore = Path("android-signing/edaya-upload.jks").resolve()
 apps = {}
 for app in ("guardian", "teacher"):
-    android = Path(f"apps/{app}_v2/android")
+    android = Path(f"apps/{app}/android")
     props_file = android / "key.properties"
     props = dict(line.split("=", 1) for line in props_file.read_text().splitlines()
                  if "=" in line and not line.startswith("#"))
@@ -167,7 +167,7 @@ The `api`, `guardian_v2` and `teacher_v2` integration suites are mandatory. Thei
 
 ## Android releases
 
-Use `dart run edaya_repo:repo build staging` for both signed v2 APKs, or `build production` for both signed v2 AABs. Release paths are `apps/guardian_v2` and `apps/teacher_v2`; logical app keys remain `guardian` and `teacher`. CI uses Java 17 and Flutter 3.44.8. Environment secret `ANDROID_SIGNING_BUNDLE` contains the existing keystore/apps bundle with guardian and teacher aliases/passwords and each Firebase configuration. Local builds can use existing private signing files. Missing credentials, debug certificates, app ID mismatches or signature verification errors block output.
+Use `dart run edaya_repo:repo build staging` for both signed v2 APKs, or `build production` for both signed v2 AABs. Release paths are `apps/guardian` and `apps/teacher`; logical app keys remain `guardian` and `teacher`. CI uses Java 17 and Flutter 3.44.8. Environment secret `ANDROID_SIGNING_BUNDLE` contains the existing keystore/apps bundle with guardian and teacher aliases/passwords and each Firebase configuration. Local builds can use existing private signing files. Missing credentials, debug certificates, app ID mismatches or signature verification errors block output.
 
 Signed builds use the qualified source and transferred generated client. APK verification uses apksigner/aapt; AAB verification uses jarsigner/keytool, with signing certificate provenance and SHA-256 artifact hashes in `.release/manifest.json`. Production deployments publish those exact qualified AABs for Guardian and Teacher to Google Play **internal testing**. Staging remains APK artifact delivery. Restored private signing files are cleaned up on failure and success.
 

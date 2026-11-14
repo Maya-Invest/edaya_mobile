@@ -1,11 +1,11 @@
 {
   "guardian": {
-    "path": "apps/guardian_v2",
+    "path": "apps/guardian",
     "bundleId": "ca.maya-invest.edaya.guardian",
     "teamId": "SQFU4GGCX2"
   },
   "teacher": {
-    "path": "apps/teacher_v2",
+    "path": "apps/teacher",
     "bundleId": "ca.maya-invest.edaya.teacher",
     "teamId": "SQFU4GGCX2"
   }

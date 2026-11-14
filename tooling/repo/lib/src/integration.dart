@@ -170,7 +170,12 @@ Future<void> integration({String? suite, bool validateOnly = false}) async {
   final allIds = registry.values
       .expand((value) => (value as List).cast<String>())
       .toList();
-  final suites = {'api', ...applicationPaths.values.map(p.basename)};
+  // Suite IDs are part of the scenario registry and CLI, independent of folders.
+  final suitePaths = {
+    'api': 'tooling/integration_tests',
+    for (final app in applicationPaths.entries) '${app.key}_v2': app.value,
+  };
+  final suites = suitePaths.keys.toSet();
   if (registry.keys.toSet().difference(suites).isNotEmpty ||
       registry.length != suites.length ||
       registry.values.any((value) => (value as List).isEmpty) ||
@@ -184,11 +189,8 @@ Future<void> integration({String? suite, bool validateOnly = false}) async {
   final directory = Directory(p.join(root, '.integration-results'))
     ..createSync(recursive: true);
   final summaries = <String, dynamic>{};
-  final selected = applicationPaths[suite];
-  for (final name
-      in suite == null
-          ? registry.keys
-          : [selected == null ? suite : p.basename(selected)]) {
+  final selected = applicationPaths.containsKey(suite) ? '${suite}_v2' : suite;
+  for (final name in selected == null ? registry.keys : [selected]) {
     if (!registry.containsKey(name)) throw ArgumentError('Unknown suite');
     final log = File(p.join(directory.path, '$name.jsonl')),
         metadata = File(p.join(directory.path, '$name.run.json')),
@@ -221,10 +223,7 @@ Future<void> integration({String? suite, bool validateOnly = false}) async {
               if (name != 'teacher_v2') '--dart-define=TEST_OTP_ACCESS=true',
               '--machine',
             ];
-      final cwd = p.join(
-        root,
-        name == 'api' ? 'tooling/integration_tests' : 'apps/$name',
-      );
+      final cwd = p.join(root, suitePaths[name]!);
       var code = 0;
       // Capture machine events even when the runner fails, then validate completeness.
       final output = log.openWrite();

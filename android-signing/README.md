@@ -15,8 +15,8 @@ This creates `edaya-upload.jks` in this directory and writes `key.properties` fo
 
 To use your own keystore instead, copy `key.properties.example` to:
 
-- `apps/guardian_v2/android/key.properties`
-- `apps/teacher_v2/android/key.properties`
+- `apps/guardian/android/key.properties`
+- `apps/teacher/android/key.properties`
 
 Set `keyAlias` to `guardian` or `teacher` respectively.
 
@@ -29,7 +29,7 @@ dart run edaya_repo:repo build production
 
 Outputs:
 
-- `apps/guardian_v2/build/app/outputs/bundle/release/app-release.aab`
-- `apps/teacher_v2/build/app/outputs/bundle/release/app-release.aab`
+- `apps/guardian/build/app/outputs/bundle/release/app-release.aab`
+- `apps/teacher/build/app/outputs/bundle/release/app-release.aab`
 
 The build target selects the API URL: staging uses `https://staging.api.edayaplus.com`; production uses `https://api.edayaplus.com`. CI restores the existing upload keys from `ANDROID_SIGNING_BUNDLE`. Keep the `guardian` and `teacher` aliases and store identities; do not create replacement keys for the v2 migration.

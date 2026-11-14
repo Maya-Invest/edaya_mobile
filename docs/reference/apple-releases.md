@@ -4,10 +4,10 @@ Both stores now publish the v2 workspaces. Android keeps its existing package ID
 
 | App key | Workspace | iOS bundle ID | Apple team |
 | --- | --- | --- | --- |
-| `guardian` | `apps/guardian_v2` | `ca.maya-invest.edaya.guardian` | `SQFU4GGCX2` |
-| `teacher` | `apps/teacher_v2` | `ca.maya-invest.edaya.teacher` | `SQFU4GGCX2` |
+| `guardian` | `apps/guardian` | `ca.maya-invest.edaya.guardian` | `SQFU4GGCX2` |
+| `teacher` | `apps/teacher` | `ca.maya-invest.edaya.teacher` | `SQFU4GGCX2` |
 
-`tooling/apple/apps.json` is the Apple release configuration. The `guardian` and `teacher` keys are artifact/signing labels; they no longer select the original app directories. iOS bundle IDs intentionally differ from Android IDs.
+`tooling/apple/apps.json` is the Apple release configuration. Each app key maps to its workspace and selects its signing profile. iOS bundle IDs intentionally differ from Android IDs.
 
 ## Pipeline
 
@@ -23,7 +23,7 @@ Staging continues producing Android APK artifacts; it does not upload staging-ba
 
 ## Credentials
 
-Create the following GitHub **environment secrets**:
+GitHub has `IOS_SIGNING_BUNDLE` and `APP_STORE_CONNECT_API_KEY_JSON` as repository Actions secrets. Both release workflows read these names. The table shows where to set environment overrides when using separate upload and App Review credentials.
 
 | Environment | Secret | Contents |
 | --- | --- | --- |

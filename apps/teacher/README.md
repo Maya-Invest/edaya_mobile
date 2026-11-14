@@ -23,7 +23,7 @@ Keep the preparation task running to retain your review edits across app restart
 From the repository root:
 
 ```bash
-cd apps/teacher_v2
+cd apps/teacher
 # iOS Simulator debug (uses localhost:9999)
 flutter run
 # Android emulator with the local API
@@ -37,7 +37,7 @@ When the local API advertises test OTP support, the debug verification screen fi
 Widget tests (mock harness, no API):
 
 ```bash
-cd apps/teacher_v2
+cd apps/teacher
 flutter test --exclude-tags 'integration || staging || design-review'
 ```
 

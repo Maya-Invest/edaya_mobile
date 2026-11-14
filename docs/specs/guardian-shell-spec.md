@@ -306,4 +306,4 @@ Conversation details retain their captured school, participants and child indepe
 
 ## Separate Guardian v2 implementation
 
-The child-first Home and unified results workspace is implemented in `apps/guardian_v2`. Its normative contract is [Guardian v2 workspace](guardian-v2-workspace-spec.md). This document describes the retired shell.
+The child-first Home and unified results workspace is implemented in `apps/guardian`. Its normative contract is [Guardian v2 workspace](guardian-v2-workspace-spec.md). This document describes the retired shell.
