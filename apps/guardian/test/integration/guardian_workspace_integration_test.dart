@@ -86,6 +86,20 @@ Future<void> main() async {
     '[guardian-v2.workspace.menu] all menu destinations resolve with real data',
     (tester) async {
       final h = await GuardianWidgetTestHarness.create();
+      final profile = h.profile!;
+      final owner = await PortalSession.signIn(
+        config: IntegrationConfig.fromEnvironment().withSchoolOwnerEmail(),
+        actorKind: 'staff',
+        academicYearId: profile.academicYearId,
+      );
+      final feedback = await createFeedbackFixture(
+        owner,
+        teacherId: 'ci-t1',
+        classGroupId: profile.primaryClassGroupId,
+        academicYearId: profile.academicYearId,
+      );
+      final campaignId = feedback['id'] as String;
+      addTearDown(() => disposeFeedbackFixture(owner, campaignId));
       await pumpGuardianShellUntil<HomePage>(tester, h, initialRoute: '/home');
       for (final d in destinations) {
         final menuLabel = find
@@ -103,7 +117,7 @@ Future<void> main() async {
           '/attendance' => find.text('Appel du jour'),
           '/fees' => find.text('Attendu'),
           '/inbox' => find.text('Nouveau message'),
-          '/inbox/avis' => await campaignRow(tester, h),
+          '/inbox/avis' => await campaignRow(tester, h, campaignId),
           '/child' => find.text('Documents'),
           _ => throw StateError('Missing content check for ${d.path}'),
         };
@@ -286,10 +300,10 @@ Future<void> main() async {
   );
 }
 
-// An earlier journey may already have answered the selected child's survey.
 Future<Finder> campaignRow(
   WidgetTester tester,
   GuardianWidgetTestHarness harness,
+  String campaignId,
 ) async {
   final campaigns = await listGuardianFamilyFeedbackCampaigns(
     harness.portalSession!.schoolClient,
@@ -297,25 +311,18 @@ Future<Finder> campaignRow(
   final studentId = harness.scope
       .find<StudentContextController>()
       .activeStudentId;
-  final linked = campaigns.where((campaign) => campaign.studentId == studentId);
-  expect(linked, isNotEmpty);
+  final campaign = campaigns.singleWhere(
+    (row) => row.studentId == studentId && row.campaignId == campaignId,
+  );
+  expect(campaign.slotState, 'open');
   final labels = tester.element(find.byType(BackButton)).tr;
-  final rows = {
-    for (final campaign in linked)
-      (
-        campaign.context?.subjectName.isNotEmpty == true
-            ? '${campaign.context!.subjectName} · ${campaign.context!.teacherName}'
-            : labels.familyFeedbackTitle,
-        switch (campaign.slotState) {
-          'completed' ||
-          'already_completed' => labels.familyFeedbackSlotCompleted,
-          'open' => labels.familyFeedbackSlotOpen,
-          _ => labels.familyFeedbackClosed,
-        },
-      ),
-  };
+  final title = campaign.context?.subjectName.isNotEmpty == true
+      ? '${campaign.context!.subjectName} · ${campaign.context!.teacherName}'
+      : labels.familyFeedbackTitle;
   return find.byWidgetPredicate(
     (widget) =>
-        widget is ListRow && rows.contains((widget.title, widget.subtitle)),
+        widget is ListRow &&
+        widget.title == title &&
+        widget.subtitle == labels.familyFeedbackSlotOpen,
   );
 }
