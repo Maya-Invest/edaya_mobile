@@ -13,7 +13,7 @@ platform :ios do
     AppleRelease.testflight(self)
   end
 
-  desc 'Submit this production run’s processed builds to App Review without rebuilding'
+  desc 'Submit processed builds from this production run to App Review without rebuilding'
   lane :submit do
     AppleRelease.submit(self)
   end

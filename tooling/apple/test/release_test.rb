@@ -1,4 +1,5 @@
 require 'minitest/autorun'
+require 'open3'
 require 'ostruct'
 require 'yaml'
 require 'xcodeproj'
@@ -6,6 +7,15 @@ require 'spaceship'
 require_relative '../release'
 
 class AppleReleaseTest < Minitest::Test
+  def test_fastlane_loads_the_ios_release_lanes
+    output, status = Open3.capture2e(
+      { 'FASTLANE_SKIP_UPDATE_CHECK' => '1', 'FASTLANE_OPT_OUT_USAGE' => '1', 'FASTLANE_DISABLE_COLORS' => '1' },
+      'bundle', 'exec', 'fastlane', 'lanes', chdir: File.expand_path('..', __dir__)
+    )
+    assert_predicate status, :success?, output
+    %w[build upload_beta submit].each { |lane| assert_match(/\bfastlane ios #{lane}$/, output) }
+  end
+
   def config
     AppleRelease::APPS.fetch('guardian')
   end
