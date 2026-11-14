@@ -1,0 +1,19 @@
+name: Save mobile stage evidence
+description: Seal the stage result and transfer its files with their repository paths.
+inputs:
+  stage:
+    required: true
+    description: Completed stage
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        STAGE: ${{ inputs.stage }}
+      run: dart run edaya_repo:repo ci record-stage "$STAGE" "$TARGET"
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      with:
+        name: stage-${{ inputs.stage }}-${{ github.run_id }}-${{ github.run_attempt }}
+        path: .ci/transfer/${{ inputs.stage }}/
+        include-hidden-files: true
+        if-no-files-found: error

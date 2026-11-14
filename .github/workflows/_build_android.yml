@@ -1,0 +1,53 @@
+name: Android build
+on:
+  workflow_call:
+    inputs:
+      target: {type: string, required: true}
+      source_sha: {type: string, required: true}
+      backend_sha: {type: string, required: true}
+      release_mode: {type: boolean, default: false}
+    secrets:
+      ANDROID_SIGNING_BUNDLE: {required: false}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  android:
+    name: Android build
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.release_mode && inputs.target || '' }}
+    timeout-minutes: 180
+    env:
+      CI: 'true'
+      TARGET: ${{ inputs.target }}
+      CI_SOURCE_SHA: ${{ inputs.source_sha }}
+      CI_BACKEND_SHA: ${{ inputs.backend_sha }}
+      RELEASE_MODE: ${{ inputs.release_mode }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          native: true
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Compile both apps with development signing
+        if: ${{ !inputs.release_mode }}
+        run: dart run edaya_repo:repo ci native android "$TARGET"
+      - name: Build and verify signed Android releases
+        if: inputs.release_mode
+        env:
+          ANDROID_SIGNING_BUNDLE: ${{ secrets.ANDROID_SIGNING_BUNDLE }}
+          PLAY_VERSION_CODE_BASE: ${{ vars.PLAY_VERSION_CODE_BASE || '1000000' }}
+        run: dart run edaya_repo:repo build "$TARGET"
+      - name: Clean up restored signing material
+        if: always() && inputs.release_mode
+        run: dart run edaya_repo:repo ci signing-cleanup
+      - uses: ./.github/actions/stage
+        with:
+          stage: android

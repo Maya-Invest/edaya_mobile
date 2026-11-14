@@ -1,0 +1,73 @@
+name: pr_validation
+on:
+  pull_request:
+    branches: [main, staging]
+  workflow_dispatch:
+    inputs:
+      target: {type: choice, options: [staging, production], default: staging}
+      source_ref: {type: string, description: Optional mobile revision}
+      backend_ref: {type: string, description: Optional backend revision}
+permissions:
+  contents: read
+  actions: read
+  deployments: read
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('validation-{0}-{1}', github.ref, inputs.target) }}
+  cancel-in-progress: true
+jobs:
+  preparation:
+    uses: ./.github/workflows/_prepare.yml
+    with:
+      target: ${{ github.event_name == 'pull_request' && (github.base_ref == 'main' && 'production' || 'staging') || inputs.target }}
+      source_ref: ${{ inputs.source_ref || github.sha }}
+      match_backend_branch: ${{ github.event_name == 'pull_request' }}
+      backend_ref: ${{ github.event_name == 'pull_request' && github.head_ref || inputs.backend_ref }}
+    secrets:
+      BACKEND_CHECKOUT_TOKEN: ${{ secrets.BACKEND_CHECKOUT_TOKEN }}
+  quality:
+    needs: preparation
+    uses: ./.github/workflows/_quality_check.yml
+    with:
+      target: ${{ github.event_name == 'pull_request' && (github.base_ref == 'main' && 'production' || 'staging') || inputs.target }}
+      source_sha: ${{ needs.preparation.outputs.source_sha }}
+      backend_sha: ${{ needs.preparation.outputs.backend_sha }}
+  unit:
+    needs: preparation
+    uses: ./.github/workflows/_unit_test.yml
+    with:
+      target: ${{ github.event_name == 'pull_request' && (github.base_ref == 'main' && 'production' || 'staging') || inputs.target }}
+      source_sha: ${{ needs.preparation.outputs.source_sha }}
+      backend_sha: ${{ needs.preparation.outputs.backend_sha }}
+  android:
+    needs: preparation
+    uses: ./.github/workflows/_build_android.yml
+    with:
+      target: ${{ github.event_name == 'pull_request' && (github.base_ref == 'main' && 'production' || 'staging') || inputs.target }}
+      source_sha: ${{ needs.preparation.outputs.source_sha }}
+      backend_sha: ${{ needs.preparation.outputs.backend_sha }}
+  ios:
+    needs: preparation
+    uses: ./.github/workflows/_build_ios.yml
+    with:
+      target: ${{ github.event_name == 'pull_request' && (github.base_ref == 'main' && 'production' || 'staging') || inputs.target }}
+      source_sha: ${{ needs.preparation.outputs.source_sha }}
+      backend_sha: ${{ needs.preparation.outputs.backend_sha }}
+  integration:
+    needs: [preparation, quality, unit]
+    uses: ./.github/workflows/_integration_test.yml
+    with:
+      target: ${{ github.event_name == 'pull_request' && (github.base_ref == 'main' && 'production' || 'staging') || inputs.target }}
+      source_sha: ${{ needs.preparation.outputs.source_sha }}
+      backend_sha: ${{ needs.preparation.outputs.backend_sha }}
+      baseline_sha: ${{ github.event.pull_request.base.sha || '' }}
+    secrets:
+      BACKEND_CHECKOUT_TOKEN: ${{ secrets.BACKEND_CHECKOUT_TOKEN }}
+  qualification:
+    if: always()
+    needs: [preparation, quality, unit, android, ios, integration]
+    uses: ./.github/workflows/_finalize.yml
+    with:
+      target: ${{ github.event_name == 'pull_request' && (github.base_ref == 'main' && 'production' || 'staging') || inputs.target }}
+      source_sha: ${{ needs.preparation.outputs.source_sha }}
+      backend_sha: ${{ needs.preparation.outputs.backend_sha }}
+      job_results: ${{ toJSON(needs) }}

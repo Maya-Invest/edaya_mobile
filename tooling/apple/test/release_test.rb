@@ -24,6 +24,10 @@ class AppleReleaseTest < Minitest::Test
     OpenStruct.new(id: id, app_version: version, version: number, processing_state: state, expired: expired)
   end
 
+  def test_cutover_version_exceeds_previous_workflow
+    assert_equal '1.4.1', AppleRelease.build_number('GITHUB_RUN_NUMBER' => '1', 'EDAYA_RELEASE_SEQUENCE' => '4', 'GITHUB_RUN_ATTEMPT' => '1')
+  end
+
   def test_build_number_limits_and_retry_ordering
     assert_equal '1.42.1', AppleRelease.build_number('GITHUB_RUN_NUMBER' => '42', 'GITHUB_RUN_ATTEMPT' => '1')
     assert_equal '1.42.2', AppleRelease.build_number('GITHUB_RUN_NUMBER' => '42', 'GITHUB_RUN_ATTEMPT' => '2')
@@ -77,24 +81,24 @@ class AppleReleaseTest < Minitest::Test
     end
   end
 
-  def test_apple_submission_is_manual_and_separate_from_testflight
-    workflow = YAML.load_file(File.join(AppleRelease::ROOT, '.github/workflows/submit-app-store.yml'))
-    triggers = workflow['on'] || workflow[true] # YAML 1.1 treats "on" as boolean.
-    assert_equal ['workflow_dispatch'], triggers.keys
-    job = workflow.fetch('jobs').fetch('submit')
-    assert_equal "github.ref == 'refs/heads/main'", job.fetch('if')
-    assert_equal 'app-store-production', job.fetch('environment')
-    deploy = YAML.load_file(File.join(AppleRelease::ROOT, '.github/workflows/_deploy.yml'))['jobs']['apple']
-    assert_equal "inputs.target == 'production'", deploy.fetch('if')
-    assert_equal deploy.fetch('concurrency'), job.fetch('concurrency')
+  def test_staging_builds_cannot_be_submitted_for_app_review
+    AppleRelease.stub(:release_inputs, { 'environment' => 'staging' }) do
+      assert_raises(RuntimeError) { AppleRelease.submit(Object.new) }
+    end
   end
 
   def test_both_remote_builds_are_validated_before_submission_and_exact_builds_are_used
     previous = ENV.to_h
-    AppleRelease::APPS.each_key do |app|
-      ENV["APPLE_#{app.upcase}_VERSION"] = '1.0.0'
-      ENV["APPLE_#{app.upcase}_BUILD"] = '1.42.1'
+    ENV.delete('EDAYA_RELEASE_SEQUENCE')
+    ENV.update('GITHUB_RUN_NUMBER' => '42', 'GITHUB_RUN_ATTEMPT' => '1')
+    evidence = { 'environment' => 'production', 'apiUrl' => 'https://api.edayaplus.com', 'sourceCommit' => 'abc' }
+    records = AppleRelease::APPS.to_h do |app, config|
+      [app, evidence.merge('version' => '1.0.0', 'build' => '1.42.1', 'bundleId' => config['bundleId'], 'status' => 'processed')]
     end
+    %w[apiUrl environment sourceCommit build bundleId status].each do |key|
+      assert_raises(RuntimeError) { AppleRelease.validate_record(records['guardian'].merge(key => 'wrong'), config, evidence, 'processed') }
+    end
+    versions_created = []
     uploads = []
     context = Object.new
     context.define_singleton_method(:upload_to_app_store) { |**options| uploads << options }
@@ -110,19 +114,28 @@ class AppleReleaseTest < Minitest::Test
       assert_equal '1.42.1', options[:build_number]
       options[:app_id] == AppleRelease::APPS['teacher']['bundleId'] ? [] : [build]
     end
-    AppleRelease.stub(:api_key, {}) do
-      AppleRelease.stub(:record, nil) do
-        Spaceship::ConnectAPI::App.stub(:find, find_app) do
-          Spaceship::ConnectAPI::Build.stub(:all, missing_teacher) do
-            assert_raises(RuntimeError) { AppleRelease.submit(context) }
-            assert_empty uploads
-          end
-          Spaceship::ConnectAPI::Build.stub(:all, [build]) do
-            AppleRelease.submit(context)
+    AppleRelease.stub(:release_inputs, evidence) do
+      AppleRelease.stub(:upload_records, records) do
+        AppleRelease.stub(:api_key, {}) do
+          AppleRelease.stub(:record, nil) do
+            Spaceship::ConnectAPI::App.stub(:find, find_app) do
+              Spaceship::ConnectAPI::Build.stub(:all, missing_teacher) do
+                assert_raises(RuntimeError) { AppleRelease.submit(context) }
+                assert_empty uploads
+              end
+              create_version = ->(**args) { versions_created << args }
+              Spaceship::ConnectAPI.stub(:post_app_store_version, create_version) do
+                Spaceship::ConnectAPI::Build.stub(:all, [build]) do
+                  AppleRelease.submit(context)
+                end
+              end
+            end
           end
         end
       end
     end
+    assert_equal AppleRelease::APPS.values.map { |app| app['bundleId'] }, versions_created.map { |v| v[:app_id] }
+    versions_created.each { |v| assert_equal({ platform: 'IOS', versionString: '1.0.0', releaseType: 'MANUAL' }, v[:attributes]) }
     assert_equal 2, uploads.length
     uploads.each do |options|
       assert_equal '1.0.0', options[:app_version]

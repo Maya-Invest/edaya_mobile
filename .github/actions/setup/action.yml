@@ -1,0 +1,33 @@
+name: Restore prepared mobile inputs
+description: Verify the checkout, frozen lockfile and generated API client for this run.
+inputs:
+  native:
+    description: Generate platform plugin registrations for Guardian and Teacher.
+    default: 'false'
+runs:
+  using: composite
+  steps:
+    - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+      with:
+        flutter-version: 3.44.8
+        channel: stable
+        cache: true
+    - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      with:
+        name: prepared-${{ github.run_id }}-${{ github.run_attempt }}
+        path: .
+    - shell: bash
+      run: |
+        test "$(git rev-parse HEAD)" = "$CI_SOURCE_SHA"
+        cmp pubspec.lock .release/pubspec.lock
+        dart pub get --enforce-lockfile
+        dart run edaya_repo:repo ci restore-inputs "$TARGET"
+        # The previous deploy-staging.yml reached run 3 before the rename.
+        echo "EDAYA_RELEASE_SEQUENCE=$((GITHUB_RUN_NUMBER + 3))" >> "$GITHUB_ENV"
+    - name: Generate native plugin registrations
+      if: inputs.native == 'true'
+      shell: bash
+      run: |
+        for app in guardian teacher; do
+          (cd "apps/$app" && flutter pub get --enforce-lockfile)
+        done

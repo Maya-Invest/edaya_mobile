@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-import 'package:yaml/yaml.dart';
 import 'package:edaya_repo/src/runtime.dart';
 
 void main() {
@@ -67,38 +66,5 @@ void main() {
     } finally {
       directory.deleteSync(recursive: true);
     }
-  });
-  test('workflow releases require qualification without an extra switch', () {
-    final rootPath = root;
-    final qualification = File(
-      p.join(rootPath, '.github/workflows/_qualify.yml'),
-    ).readAsStringSync();
-    expect(qualification, contains('ci qualify'));
-    expect(qualification, contains('--backend-root .ci/edaya_backend'));
-    for (final target in ['staging', 'production']) {
-      final text = File(
-        p.join(rootPath, '.github/workflows/deploy-$target.yml'),
-      ).readAsStringSync();
-      expect(text, contains('needs: qualify'));
-      expect(text, contains('cancel-in-progress: false'));
-      expect(text, contains('workflow_dispatch:'));
-      final jobs = (loadYaml(text) as YamlMap)['jobs'] as YamlMap;
-      final deployJob = jobs['deploy'] as YamlMap;
-      expect(deployJob['needs'], 'qualify');
-      expect(deployJob['if'], isNull);
-      expect(deployJob['uses'], './.github/workflows/_deploy.yml');
-      final qualifyJob = jobs['qualify'] as YamlMap;
-      expect(qualifyJob['uses'], './.github/workflows/_qualify.yml');
-      expect(qualifyJob['if'], isNull);
-    }
-    final deploy = File(
-      p.join(rootPath, '.github/workflows/_deploy.yml'),
-    ).readAsStringSync();
-    expect(deploy, isNot(contains('generate client')));
-    expect(deploy, contains('ci signing-cleanup'));
-    final deployJob =
-        (loadYaml(deploy) as YamlMap)['jobs']['deploy'] as YamlMap;
-    expect(deployJob['environment'], r'${{ inputs.target }}');
-    expect(deployJob['if'], isNull);
   });
 }

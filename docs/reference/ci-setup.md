@@ -2,47 +2,38 @@
 
 Each repository verifies and releases its own revision. Backend changes do not require synchronized consumer source changes, client package publication, or release manifests in sibling repositories. Cloudflare application deployments remain; no container publication is configured.
 
-| Event | Required behavior |
-| --- | --- |
-| PR into `main` or `staging` | Full verification and integrations; no deployment |
-| Other branch push | Repository checks and unit/tooling tests |
-| Push to `staging` | Qualify that commit, release staging |
-| Push to `main` | Qualify that commit, release production |
-| Manual deployment | Select revision in the environment's deployment workflow; use the same qualification and deployment jobs |
-| Manual validation | Select environment, revision, and optionally a backend reference; never deploy |
+| Entry point | Trigger | Stages |
+| --- | --- | --- |
+| `branche_check.yml` | Push outside staging/main | Prepare once, then quality and unit in parallel |
+| `pr_validation.yml` | PR into staging/main or manual validation | Prepare → quality, unit, Android and iOS builds. Integration waits for quality and unit. **Full validation** checks all six jobs. |
+| `deploy.yml` | Push or manual dispatch on staging/main | Same full graph using distribution signing, then independent Play and Apple publishing jobs |
 
-Deployments are serialized per repository/environment without cancelling active deployments. They depend on successful qualification; failure, cancellation or skipped qualification cannot deploy. Artifact restoration selects the unique qualified artifact from the same run and attempt, checks out its recorded source commit, restores frozen dependencies, and verifies file checksums. Deployment never resolves another backend branch or generates another client.
+For branch pushes and PRs, prepare uses a matching backend branch (PR head branch), falling back to backend `dev` only if that branch is absent. PRs validate the proposed merge commit. Manual validation allows explicit revisions. Releases use the selected branch SHA and its matching backend destination. Manual release accepts no revision override.
+
+All stages restore the frozen client and lockfile for the same run and attempt. Signing credentials are passed to release build jobs only. Finalization checks source, backend, target, job results and artifact checksums. The publishers restore the qualified binaries, verify their checksums and submit them without rebuilding. Re-run all jobs to qualify a new attempt. A store failure preserves the platform build and any completed app receipts.
 
 ## Remaining configuration for Guardian v2 and Teacher v2
 
-**GitHub audit, 2026-11-13.** Actions is enabled and the required third-party actions are allowed. GitHub confirms that the repository secret `BACKEND_CHECKOUT_TOKEN` exists. An earlier branch check stopped at **Checkout backend input** with a missing token. Its read access to the backend can be verified by a new run using the updated workflow. [Earlier failed run](https://github.com/Maya-Invest/edaya_mobile/actions/runs/43547554414)
+Staging successfully produced both signed Android APKs on November 14, 2026. [Staging run](https://github.com/Maya-Invest/edaya_mobile/actions/runs/43574671877)
 
-### GitHub and backend prerequisites
+### Branches and credentials
 
-| Owner | Observed state | Remaining work |
+| Branch | Backend source and compiled API | Store destination for both apps |
 | --- | --- | --- |
-| Mobile repository admin | The mobile qualification workflow uses the configured `BACKEND_CHECKOUT_TOKEN` repository secret. | After the workflow rename reaches GitHub, verify the **Checkout backend input** step on the next branch run. Full integration runs on a PR targeting `staging` or `main`. |
-| Organization owner | Maya-Invest reports the Free plan. Private organization repositories need Team or Enterprise for environment secrets. | For the workflows as written, enable a plan supporting private environments and create the four environments below. Staying on Free requires a workflow change to use a different credential arrangement. Manual dispatch already provides the production release decision. GitHub required environment reviewers for a private repository require Enterprise. [GitHub environment availability](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments) |
-| Backend maintainer | Both backend branches have `tooling/repo/fixtures/openapi.json`. Backend `staging` has the integration fixture tooling. Backend `main` at `ca02b7e` lacks `tooling/repo/ops/main.ts`. | Land the backend tooling that implements `ci fixture` and its dependencies on backend `main` before production qualification. |
-| Mobile maintainer | The release workflows are on `optim/pre-release` at `4794140`. Mobile `staging` has older checks. The default branch, `main`, has no workflow directory. | Land the v2 source, tooling and workflows on `staging` for the signed APK rehearsal. Land them on `main` after preparing both stores, since a push starts production qualification and beta delivery. GitHub exposes manual workflow dispatch after the workflow reaches the default branch. [GitHub manual dispatch](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow) |
-| Mobile repository admin | GitHub reports `main` and `staging` are unprotected. | Once available on the chosen plan and visible on a PR, require the PR's **qualification / Full validation** check. Scope the two public-release environments to `main`. Optional environment reviewers are a separate control. |
+| `staging` | Backend `staging`, `https://staging.api.edayaplus.com` | Google Play internal testing and internal TestFlight. Signed Android APKs are also available as artifacts. |
+| `main` | Backend `main`, `https://api.edayaplus.com` | Fresh production builds sent to Google Play production review and Apple App Review. |
 
-### Credential and variable inventory
+Production qualification requires the integration fixture command in backend `main`. The backend maintainer must land the fixture tooling there before the first production qualification. Merging into mobile `main` starts the production workflow. Both branches use one release workflow so the two stores receive distinct, increasing build numbers.
 
-As of 2026-11-14, `BACKEND_CHECKOUT_TOKEN`, `ANDROID_SIGNING_BUNDLE`, `IOS_SIGNING_BUNDLE` and `APP_STORE_CONNECT_API_KEY_JSON` are configured as repository Actions secrets. The four release environments are absent. The table shows the intended scopes when configuring environment-specific credentials. [Actions secrets](https://github.com/Maya-Invest/edaya_mobile/settings/secrets/actions) · [Environments](https://github.com/Maya-Invest/edaya_mobile/settings/environments)
+| Actions secret | Purpose |
+| --- | --- |
+| `BACKEND_CHECKOUT_TOKEN` | Read backend contents for qualification. Configured at repository scope. |
+| `ANDROID_SIGNING_BUNDLE` | Upload keys, signing properties and matching Firebase configuration for both Android apps. Configured. |
+| `IOS_SIGNING_BUNDLE` | Distribution certificate, password and both App Store profiles. Configured. |
+| `APP_STORE_CONNECT_API_KEY_JSON` | Team key for both apps. Configured. Production review requires App Manager access. |
+| `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | Full Google service-account key for both apps. Still required as of November 14, 2026. |
 
-| Scope | Secret | Value and purpose |
-| --- | --- | --- |
-| Repository | `BACKEND_CHECKOUT_TOKEN` | A token with Contents: read on `Maya-Invest/edaya_backend` for branch checks, PRs and release qualification. A fine-grained PAT scoped to that backend repository is one option. |
-| `staging` | `ANDROID_SIGNING_BUNDLE` | Existing upload JKS, both aliases and passwords, and each v2 app's matching Firebase Android configuration. Signs both staging APKs. |
-| `production` | `ANDROID_SIGNING_BUNDLE` | The same signing bundle format with the upload keys registered in Play Console. Signs both production AABs. |
-| `production` | `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | JSON key for the service account that can publish both apps to testing tracks. |
-| `production` | `IOS_SIGNING_BUNDLE` | Base64 Apple Distribution `.p12` containing the private key, its password, and base64 App Store provisioning profiles for Guardian and Teacher. |
-| `production` | `APP_STORE_CONNECT_API_KEY_JSON` | Team API key with Developer access for TestFlight upload. JSON fields are `key_id`, `issuer_id` and `key` (the full `.p8` text). |
-| `google-play-production` | `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | JSON key for a separate promoter account with read access and the production release permission for both apps. |
-| `app-store-production` | `APP_STORE_CONNECT_API_KEY_JSON` | Team API key with App Manager access for App Review submission. |
-
-The only operator-set Actions variable is optional. In `production`, set `PLAY_VERSION_CODE_BASE` only if needed so `base + 100 × run_number + run_attempt` exceeds the highest uploaded code across both Play apps. The base defaults to `1000000`. GitHub supplies `GITHUB_TOKEN` and the run identifiers. The release workflows set the Flutter, Java, Ruby, Bun and Xcode versions, API endpoints and OTP settings. Staging APKs default to `https://staging.api.edayaplus.com`. Google Play internal and TestFlight builds default to `https://api.edayaplus.com`. Both apps honor a previously saved API URL override.
+Repository secrets apply to both release jobs. Where environment secrets are available, configure testing credentials in `staging` and public-release credentials in `production`. Restrict production to `main` where supported. With a shared Play account, grant it both testing and production release permissions. The optional repository variable `PLAY_VERSION_CODE_BASE` defaults to `1000000` and must be consistent across branches. Store builds ignore saved developer endpoint overrides. [Actions secrets](https://github.com/Maya-Invest/edaya_mobile/settings/secrets/actions)
 
 ### Upload the signing bundles
 
@@ -93,7 +84,7 @@ with (Path(os.environ["EDAYA_SIGNING_DIR"]) / "ios.json").open("x") as out:
 PY
 ```
 
-**Upload on the current Free plan.** Repository-level Actions secrets can hold both signing bundles. The deployment callers use `secrets: inherit`, and the signing jobs reference the names below. This makes each value available to eligible workflows across this repository. It also means both Android environments use the same signing bundle. The separate credentials for beta publishing and public promotion still need their own configuration. Each JSON payload must fit GitHub's 48 KB secret limit. The CLI reads from standard input and encrypts before sending. [GitHub secret limits](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#storing-large-secrets) · [GitHub CLI](https://cli.github.com/manual/gh_secret_set)
+**Upload on the current Free plan.** Repository-level Actions secrets can hold both signing bundles. The release caller explicitly passes the signing secrets to their platform build jobs. This makes each value available to eligible workflows across this repository. It also means both Android environments use the same signing bundle. The two stores also require their publishing credentials. Each JSON payload must fit GitHub's 48 KB secret limit. The CLI reads from standard input and encrypts before sending. [GitHub secret limits](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#storing-large-secrets) · [GitHub CLI](https://cli.github.com/manual/gh_secret_set)
 
 ```sh
 gh secret set ANDROID_SIGNING_BUNDLE --repo Maya-Invest/edaya_mobile < "$EDAYA_SIGNING_DIR/android.json"
@@ -106,6 +97,7 @@ For environment-scoped signing on a supported plan, create `staging` and `produc
 ```sh
 gh secret set ANDROID_SIGNING_BUNDLE --repo Maya-Invest/edaya_mobile --env staging < "$EDAYA_SIGNING_DIR/android.json"
 gh secret set ANDROID_SIGNING_BUNDLE --repo Maya-Invest/edaya_mobile --env production < "$EDAYA_SIGNING_DIR/android.json"
+gh secret set IOS_SIGNING_BUNDLE --repo Maya-Invest/edaya_mobile --env staging < "$EDAYA_SIGNING_DIR/ios.json"
 gh secret set IOS_SIGNING_BUNDLE --repo Maya-Invest/edaya_mobile --env production < "$EDAYA_SIGNING_DIR/ios.json"
 ```
 
@@ -125,9 +117,7 @@ Store accounts, highest uploaded versions and production push delivery still nee
 | Before Google Play internal testing | Google Cloud and Play admins | Enable the Android Publisher and IAM Service Account Credentials APIs. Grant each service account Token Creator on itself for the workflow's access-token flow. In Play Console, grant both accounts view access to both apps, the publisher testing-track release access, and the promoter production release access. Confirm both apps have Play App Signing, the matching upload certificates, initial AABs accepted, an internal tester list and opt-in links. Compare existing codes before choosing the base. [Google Play setup and exact signing JSON](google-play-releases.md) |
 | Before TestFlight | Apple Developer and App Store Connect admins | For team `SQFU4GGCX2`, confirm both explicit identifiers, enable Push Notifications on both and Associated Domains on Guardian, issue App Store profiles covering the supplied certificate, and confirm both app records and API keys. Set up an internal group with automatic distribution for each app, add testers, and clear applicable export-compliance prompts. Both v2 pubspecs currently select `1.0.0`. Check each app's version and build history before the first upload. [Apple setup and exact signing JSON](apple-releases.md) · [Apple internal testing](https://developer.apple.com/help/app-store-connect/test-a-beta-version/add-internal-testers/) |
 | Before testing push and invitation links | Firebase and web admins | Confirm that the Firebase project `edayaplus` has production APNs credentials for both iOS registrations. For Guardian, verify the public association files on the invitation hosts serve the v2 Apple application identifier and the Play **app signing** certificate fingerprint. The public file checks from this audit were inconclusive. Validate on store-installed builds. [Apple push setup](apple-push-notifications.md) |
-| Before public release | Store release owners | Complete the applicable listing, privacy, policy, country availability and review information for both apps. Record the tested Guardian and Teacher Play version codes and the two tested iOS marketing-version/build pairs. On `main`, **Promote Google Play to production** requests 100% rollout of those codes. **Submit TestFlight builds to App Store** submits the selected builds for review. Its default leaves public release to the operator after approval. [Play promotion](google-play-releases.md) · [App Store submission](apple-releases.md) |
-
-The first end-to-end proof is a successful staging deployment with two signed APKs, followed by a qualified production run with both Play internal releases available to testers and both TestFlight builds processed and installable. Public promotion is a separate operator decision.
+| Before public release | Store release owners | Complete the applicable listing, privacy, policy, country availability and review information for both apps. Merge the tested source into `main` when ready to submit production builds. Release approved Apple builds manually and use Play Console managed publishing to control eligible Google Play updates. [Google Play](google-play-releases.md) · [Apple](apple-releases.md) |
 
 ## Deployment prerequisites
 
@@ -145,7 +135,7 @@ Bun remains pinned to 1.3.14, Flutter to 3.44.8. Ubuntu CI and macOS development
 
 Production resolves backend `main`; staging resolves backend `staging`. Resolve once and detach at that SHA. A moving branch cannot change an existing checkout or generated client. The selected branch identifies the source tested, not necessarily the currently deployed backend.
 
-Local preparation defaults to staging. `--ref <branch-or-commit>` is an explicit local override. `--backend-root <clean-checkout>` accepts an already resolved checkout. Ordinary CI selects only the destination branch; overrides are exposed by Manual validation. Integrations verify the backend checkout still equals the prepared client's commit and has no tracked edits before starting services.
+Local preparation defaults to staging. `--ref <branch-or-commit>` is an explicit local override. `--backend-root <clean-checkout>` accepts an already resolved checkout. Release CI selects the destination branch. Branch checks and PRs match the feature branch, with a fallback to dev. Manual validation accepts an explicit override. Integrations verify the backend checkout still equals the prepared client's commit and has no tracked edits before starting services.
 
 `BACKEND_CHECKOUT_TOKEN` needs read-only contents access to `Maya-Invest/edaya_backend`. It is used only for source checkout. Package-registry credentials and write permissions are no longer needed. Cache identities include backend SHA, generator/runtime inputs and relevant lockfiles; invalid checksum entries are rebuilt. Generated inputs are transferred with qualification artifacts and checked again before release.
 
@@ -167,11 +157,9 @@ The `api`, `guardian_v2` and `teacher_v2` integration suites are mandatory. Thei
 
 ## Android releases
 
-Use `dart run edaya_repo:repo build staging` for both signed v2 APKs, or `build production` for both signed v2 AABs. Release paths are `apps/guardian` and `apps/teacher`; logical app keys remain `guardian` and `teacher`. CI uses Java 17 and Flutter 3.44.8. Environment secret `ANDROID_SIGNING_BUNDLE` contains the existing keystore/apps bundle with guardian and teacher aliases/passwords and each Firebase configuration. Local builds can use existing private signing files. Missing credentials, debug certificates, app ID mismatches or signature verification errors block output.
+Use `dart run edaya_repo:repo build staging` for both apps' signed APKs and AABs, or `build production` for both signed v2 AABs. Release paths are `apps/guardian` and `apps/teacher`; logical app keys remain `guardian` and `teacher`. CI uses Java 17 and Flutter 3.44.8. Environment secret `ANDROID_SIGNING_BUNDLE` contains the existing keystore/apps bundle with guardian and teacher aliases/passwords and each Firebase configuration. Local builds can use existing private signing files. Missing credentials, debug certificates, app ID mismatches or signature verification errors block output.
 
-Signed builds use the qualified source and transferred generated client. APK verification uses apksigner/aapt; AAB verification uses jarsigner/keytool, with signing certificate provenance and SHA-256 artifact hashes in `.release/manifest.json`. Production deployments publish those exact qualified AABs for Guardian and Teacher to Google Play **internal testing**. Staging remains APK artifact delivery. Restored private signing files are cleaned up on failure and success.
-
-Google Play production promotion is a separate manual workflow, **Promote Google Play to production**, run from `main` with explicit Guardian and Teacher version codes. It uses the `google-play-production` GitHub environment and promotes already-tested bundles without rebuilding. See [Google Play releases](google-play-releases.md) for credentials, first-release setup, version codes, and recovery. Production also runs a macOS job that builds signed v2 IPAs from the same qualified inputs and uploads them to TestFlight. App Store review submission is a separate manual workflow. See [Apple releases](apple-releases.md).
+Signed builds use the pinned source and transferred generated client. APK verification uses apksigner/aapt; AAB verification uses jarsigner/keytool, with signing certificate provenance and SHA-256 artifact hashes in `.release/manifest.json`. Both release branches publish their qualified AABs to the matching Play track. Restored private signing files are cleaned up after the build. Apple build and publishing jobs exchange the signed IPAs verified by finalization. [Google Play releases](google-play-releases.md) · [Apple releases](apple-releases.md)
 
 Brand tokens, galleries, design review, keystore setup and SVG/native icon generation are Dart/Flutter commands under `generate` and `maintenance`. The asset generator runs through Flutter rendering; Node is no longer needed.
 

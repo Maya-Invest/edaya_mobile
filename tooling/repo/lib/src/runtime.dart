@@ -25,6 +25,12 @@ String get root {
   return directory.path;
 }
 
+String releaseApiUrl(String target) => switch (target) {
+  'staging' => 'https://staging.api.edayaplus.com',
+  'production' => 'https://api.edayaplus.com',
+  _ => throw ArgumentError('Expected staging or production'),
+};
+
 String backendBranch(String target) => switch (target) {
   'main' || 'production' => 'main',
   'staging' => 'staging',
