@@ -216,7 +216,7 @@ Future<void> androidBuild(String target) async {
       return x.length.compareTo(y.length);
     });
   final tools = versions.last.path, signatures = <Map<String, dynamic>>[];
-  final api = target == 'production' ? 'https://api.edayaplus.com' : 'https://staging.api.edayaplus.com';
+  final api = releaseApiUrl(target);
   try {
     await restoreSigning();
     final fingerprints = <String, String>{};
@@ -274,29 +274,28 @@ Future<void> androidBuild(String target) async {
       final verification = await run([p.join(tools, 'apksigner'), 'verify', '--print-certs', apk], quiet: true);
       final badging = await run([p.join(tools, 'aapt'), 'dump', 'badging', apk], quiet: true);
       verifyApkIdentity(fingerprint, verification, entry.value, badging);
-      var artifact = apk, extension = 'apk';
-      if (target == 'production') {
-        await run(['flutter', 'build', 'appbundle', ...common], cwd: cwd);
-        artifact = p.join(cwd, 'build/app/outputs/bundle/release/app-release.aab');
-        extension = 'aab';
-        final verified = await run(['jarsigner', '-verify', artifact], quiet: true);
-        if (!verified.contains('jar verified.')) {
-          throw StateError('AAB signature verification failed');
-        }
-        final info = await run(
-          ['keytool', '-printcert', '-jarfile', artifact],
-          quiet: true,
-          env: {'JAVA_TOOL_OPTIONS': '-Duser.language=en -Duser.country=US'},
-        );
-        if (!info.toLowerCase().replaceAll(':', '').contains(fingerprint)) {
-          throw StateError('AAB certificate mismatch');
-        }
+      await run(['flutter', 'build', 'appbundle', ...common], cwd: cwd);
+      final bundle = p.join(cwd, 'build/app/outputs/bundle/release/app-release.aab');
+      final verified = await run(['jarsigner', '-verify', bundle], quiet: true);
+      if (!verified.contains('jar verified.')) {
+        throw StateError('AAB signature verification failed');
       }
-      final output = File(artifact).copySync(p.join(directory.path, 'edaya-$app-$target.$extension'));
+      final info = await run(
+        ['keytool', '-printcert', '-jarfile', bundle],
+        quiet: true,
+        env: {'JAVA_TOOL_OPTIONS': '-Duser.language=en -Duser.country=US'},
+      );
+      if (!info.toLowerCase().replaceAll(':', '').contains(fingerprint)) {
+        throw StateError('AAB certificate mismatch');
+      }
+      final prefix = p.join(directory.path, 'edaya-$app-$target');
+      final signedBundle = File(bundle).copySync('$prefix.aab');
+      final output = target == 'staging' ? File(apk).copySync('$prefix.apk') : signedBundle;
       signatures.add({
         'app': app,
         'applicationId': entry.value,
         'certificateSha256': fingerprint,
+        'bundleSha256': digest(signedBundle.readAsBytesSync()),
         'sha256': digest(output.readAsBytesSync()),
       });
     }
@@ -308,6 +307,7 @@ Future<void> androidBuild(String target) async {
       'formatVersion': 1,
       'sourceCommit': commit(await run(['git', 'rev-parse', 'HEAD'], quiet: true)),
       'environment': target,
+      'apiUrl': api,
       'versionCode': versionCode,
       'runtime': 'Flutter 3.44.8 / ${Platform.version}',
       'sourceState': (await run(['git', 'status', '--porcelain'], quiet: true)).isEmpty ? 'clean' : 'working-tree',

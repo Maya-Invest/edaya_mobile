@@ -4,27 +4,16 @@ The current release targets are Guardian v2 (`ca.mayainvest.edaya.guardian`) and
 
 ## Release flow
 
-1. Push to `main`, or manually run **Deploy production** for a revision containing this release tooling. The existing qualification job must succeed. Its signed production AABs use `https://api.edayaplus.com`.
-2. The deployment job verifies both artifact hashes, uploads both bundles, and releases them to the Google Play `internal` track. Version codes appear in the job summary, `.release/manifest.json`, and `.release/play-internal.json` in the release artifact.
-3. Test both apps using their Play Console internal-testing opt-in links.
-4. In GitHub Actions, run **Promote Google Play to production** on `main`. Enter `guardian_version_code` and `teacher_version_code` from the tested release. Both fields are required; they may differ if the apps have different tested versions.
-5. Approve the `google-play-production` environment if reviewers are configured. Promotion checks both apps before writing, requires each selected version to be a completed internal release, rejects a newer existing production version, and promotes exactly those bundles. It does not build, sign, or upload another bundle.
+| Branch | Compiled API | Destination |
+| --- | --- | --- |
+| `staging` | `https://staging.api.edayaplus.com` | Google Play internal testing, plus both signed APKs in GitHub |
+| `main` | `https://api.edayaplus.com` | Google Play production track, sent for review |
 
-Promotion requests a completed production release (100% rollout). Google review and any Play Console managed-publishing settings still determine public availability. The workflow does not edit listings, policy declarations, tester lists, or countries. A later internal release replaces the earlier internal track release: promote the tested version before publishing its replacement, or test and select the replacement.
+**Mobile store releases** qualifies the pushed commit and builds fresh signed bundles for both apps. It checks both AAB hashes and stages both edits before committing them to Play. After testing staging, merge the intended source into `main` to start production qualification. Each commit requests a completed release. Enable managed publishing for eligible apps in Play Console to hold an approved update for manual publication. Google controls first-release eligibility. [Google Play publishing controls](https://support.google.com/googleplay/android-developer/answer/9859654)
 
 ## GitHub credentials
 
-Create these **environment secrets** under repository Settings → Environments:
-
-| Environment | Secret | Value |
-| --- | --- | --- |
-| `production` | `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | Complete JSON key for the internal publisher service account |
-| `google-play-production` | `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | Complete JSON key for the production promoter service account |
-| `production` | `ANDROID_SIGNING_BUNDLE` | Existing Android upload keystore, passwords, and Firebase configuration bundle |
-
-Use separate service accounts so the automatic publisher has no production release permission. Keep their JSON keys in environment secrets, not repository files or artifacts. The Google auth action creates a short-lived Android Publisher access token in memory; no credential file is written. Restrict `google-play-production` to the `main` branch and configure required reviewers if your GitHub plan supports them. The workflow itself only runs its promotion job on `main` and only has a manual trigger.
-
-The existing `BACKEND_CHECKOUT_TOKEN` repository secret is still required for qualification: read-only contents access to `Maya-Invest/edaya_backend`. GitHub provides `GITHUB_TOKEN` automatically. Promotion does not require the Android signing secret or the backend token.
+Set `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` to the complete service-account key. If using one repository secret, grant that account testing and production release access to both apps. With environment secrets, set the same name in `staging` for a testing publisher and in `production` for a production publisher. Restrict the production environment to `main` where available. Both environments also use the existing `ANDROID_SIGNING_BUNDLE` and qualification uses `BACKEND_CHECKOUT_TOKEN` for read access to the backend.
 
 ### Create the Google service accounts
 
@@ -32,7 +21,7 @@ The existing `BACKEND_CHECKOUT_TOKEN` repository secret is still required for qu
 2. For each account, grant that account **Service Account Token Creator** (`roles/iam.serviceAccountTokenCreator`) on **itself**, as required by the Google authentication action's JSON-key access-token flow. No project-wide Owner/Editor role is needed.
 3. Create a JSON key for each account. Store the complete JSON, preferably minified, under the corresponding environment secret above.
 4. In Play Console → Users and permissions, add each service account's `client_email`. Grant app access to **both** package IDs above and **View app information (read-only)**.
-5. Grant the internal account **Release apps to testing tracks**. Grant the production account **Release to production, exclude devices, and use Play App Signing**. Its read access allows it to verify the internal track. Admin, financial, and tester-list management permissions are not needed by these workflows.
+5. Grant the internal account **Release apps to testing tracks**. Grant the production account **Release to production, exclude devices, and use Play App Signing**. Admin, financial, and tester-list management permissions are not needed by these workflows.
 
 References: [Google Play API setup](https://developers.google.com/android-publisher/getting_started), [Play Console permissions](https://support.google.com/googleplay/android-developer/answer/9844686), [Google authentication action](https://github.com/google-github-actions/auth#service-account-key-json).
 
@@ -72,16 +61,12 @@ CI assigns both apps a version code using:
 PLAY_VERSION_CODE_BASE + GITHUB_RUN_NUMBER * 100 + GITHUB_RUN_ATTEMPT
 ```
 
-`PLAY_VERSION_CODE_BASE` is an optional GitHub variable in the `production` environment, defaulting to `1000000`. Before the first run, ensure the resulting code exceeds **every code already uploaded for either app**. Increase the base if needed and do not lower it later. Codes above `2100000000`, invalid bases, and attempts outside 1–99 fail the build. Normal reruns get a new code. An older run retried after a newer release is rejected if it would move the internal track backwards. Local builds retain their pubspec version codes. The base need not be a secret.
+`PLAY_VERSION_CODE_BASE` is an optional repository Actions variable shared by staging and production, defaulting to `1000000`. Before the first run, ensure the resulting code exceeds **every code already uploaded for either app**. Increase the base if needed and do not lower it later. Codes above `2100000000`, invalid bases, and attempts outside 1–99 fail the build. Normal reruns get a new code. An older run retried after a newer release is rejected if it would move the internal track backwards. Local builds retain their pubspec version codes. The base need not be a secret.
 
 ## Recovery and evidence
 
-Internal publishing and manual promotion share a GitHub concurrency group so they cannot modify Play tracks simultaneously. GitHub may replace older pending jobs in that group; it does not cancel the active release. Avoid overlapping manual edits in Play Console while a release runs.
+Both branches use one release workflow and share its run-number sequence. Google Play jobs are serialized. Within a run, successful commits appear per app in the Actions summary and in `.release/play-<environment>.json`. Each manifest identifies the source commit, API URL, version code, and artifact checksums.
 
-Google Play has no transaction spanning both apps. A network or API failure may leave Guardian committed and Teacher unfinished. Each successful app is recorded immediately in the job summary and the release/promotion evidence artifact. A failed workflow is not evidence that neither app was released; inspect Play Console if a commit response was lost.
+Google commits one edit per app. If one commit fails, inspect both apps in Play Console before retrying. After resolving the cause, rerun **all jobs** on the intended branch to qualify and build both apps with a new version code. The publisher verifies any existing bundle by SHA-256 and rejects a downgrade on the target track. A production run uses its own production AABs.
 
-- For a failed **internal release**, fix the reported configuration/API issue and rerun **all jobs** of Deploy production so qualification and release share the same run attempt. This builds a new version code for both apps. Test the resulting pair before promotion. Reusing an already uploaded version is allowed by the publisher only when the AAB SHA-256 matches exactly.
-- For a failed **production promotion**, rerun with the same two version codes. An app already completed on production is skipped; the remaining app is promoted after validation. If a newer production release exists, stop and select the appropriate tested versions; the tool will not downgrade it.
-- HTTP errors stop the workflow; no production fallback or automatic relaxation of Play review rules is performed. Check Play Console publishing status, API enablement, permissions and initial app setup. Production promotion evidence is `play-promotion-<run_id>-<attempt>`; internal evidence is included in `release-production-<run_id>-<attempt>`.
-
-Repository tooling commands are `dart run edaya_repo:play internal` and `dart run edaya_repo:play promote`. They require a short-lived `PLAY_ACCESS_TOKEN`; promotion also requires `PLAY_GUARDIAN_VERSION` and `PLAY_TEACHER_VERSION`. These commands perform real store mutations. Tests use an in-memory API and never publish.
+The CI command is `dart run edaya_repo:play staging|production`. It requires the qualified local artifacts and a short-lived `PLAY_ACCESS_TOKEN`. Local publisher tests use an in-memory Play API.

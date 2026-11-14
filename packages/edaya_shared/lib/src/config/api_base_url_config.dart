@@ -1,14 +1,13 @@
 import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, kIsWeb, TargetPlatform;
+    show defaultTargetPlatform, kIsWeb, kReleaseMode, TargetPlatform;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/l10n_lookup.dart';
 
 /// Resolves the unified API origin for all mobile requests.
 ///
-/// A [SharedPreferences] override takes precedence over the compile-time School
-/// `--dart-define=API_URL` value so that endpoint can be switched without
-/// rebuilding. Authentication follows the same selected API origin.
+/// Store builds always use their compiled API origin. Developer builds may
+/// override it with a saved preference. Authentication uses the same origin.
 abstract final class ApiBaseUrlConfig {
   ApiBaseUrlConfig._();
 
@@ -71,6 +70,11 @@ abstract final class ApiBaseUrlConfig {
 
   /// Loads any persisted override before dependency injection starts.
   static Future<void> load() async {
+    if (kReleaseMode) {
+      _resolved = _coerceUrlForPlatform(defaultUrl);
+      _hasOverride = false;
+      return;
+    }
     final prefs = await SharedPreferences.getInstance();
     final override = prefs.getString(_prefKey);
     if (override != null && override.isNotEmpty) {
@@ -89,6 +93,7 @@ abstract final class ApiBaseUrlConfig {
 
   /// Persists an override. Returns `true` when the URL changed.
   static Future<bool> saveOverride(String rawUrl) async {
+    if (kReleaseMode) return false;
     final normalized = _coerceUrlForPlatform(_normalizeUrl(rawUrl));
     if (normalized == _resolved) {
       return false;

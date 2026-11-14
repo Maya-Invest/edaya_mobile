@@ -18,12 +18,20 @@ module AppleRelease
     "#{1 + run / 100}.#{run % 100}.#{attempt}"
   end
 
-  def self.selection(env, app)
-    version = env.fetch("APPLE_#{app.upcase}_VERSION")
-    build = env.fetch("APPLE_#{app.upcase}_BUILD")
-    raise 'Invalid marketing version' unless version.match?(/\A\d+\.\d+\.\d+\z/)
-    raise 'Invalid build number' unless build.match?(/\A[1-9]\d{0,3}\.\d{1,2}\.\d{1,2}\z/)
-    [version, build]
+  def self.release_inputs
+    evidence = JSON.parse(File.read(File.join(ROOT, '.release/apple-inputs.json')))
+    target = ENV.fetch('TARGET')
+    raise 'Expected qualified inputs for this branch and commit' unless %w[staging production].include?(target) &&
+      evidence.fetch('environment') == target && evidence.fetch('sourceCommit') == ENV.fetch('GITHUB_SHA') &&
+      evidence.dig('checks', 'verification') == true && evidence.dig('checks', 'integration') == true
+    evidence
+  end
+
+  def self.validate_record(row, config, evidence, status)
+    raise 'Apple build does not match this qualified release' unless row.fetch('status') == status &&
+      row.fetch('environment') == evidence.fetch('environment') && row.fetch('apiUrl') == evidence.fetch('apiUrl') &&
+      row.fetch('sourceCommit') == evidence.fetch('sourceCommit') && row.fetch('build') == build_number(ENV) &&
+      row.fetch('bundleId') == config.fetch('bundleId')
   end
 
   def self.validate_profile(profile, config, now: Time.now)
@@ -107,9 +115,8 @@ module AppleRelease
   def self.build(context)
     raise 'Signed Apple builds run only on GitHub-hosted macOS runners' unless ENV['GITHUB_ACTIONS'] == 'true' && RUBY_PLATFORM.include?('darwin')
     require 'xcodeproj'
-    evidence = JSON.parse(File.read(File.join(ROOT, '.release/apple-inputs.json')))
-    raise 'Qualified production inputs required' unless evidence['environment'] == 'production' &&
-      evidence.dig('checks', 'verification') == true && evidence.dig('checks', 'integration') == true
+    evidence = release_inputs
+    target = evidence.fetch('environment')
     number = build_number(ENV)
     bundle = secret_json('IOS_SIGNING_BUNDLE')
     certificate = OpenSSL::PKCS12.new(Base64.strict_decode64(bundle.fetch('certificate')), bundle.fetch('password'))
@@ -174,7 +181,7 @@ module AppleRelease
         })
         FileUtils.rm_rf(File.join(app_root, 'build/ios/ipa'))
         success = system('flutter', 'build', 'ipa', '--release', '--no-pub', "--build-number=#{number}",
-          '--dart-define=API_URL=https://api.edayaplus.com', '--dart-define=TEST_OTP_ACCESS=false',
+          "--dart-define=API_URL=#{evidence.fetch('apiUrl')}", '--dart-define=TEST_OTP_ACCESS=false',
           "--export-options-plist=#{options}", chdir: app_root)
         raise "#{app} IPA build failed" unless success
         ipas = Dir.glob(File.join(app_root, 'build/ios/ipa/*.ipa'))
@@ -196,10 +203,11 @@ module AppleRelease
         raise 'IPA is signed by the wrong team' unless entitlements['com.apple.developer.team-identifier'] == config.fetch('teamId')
         raise 'IPA application entitlement mismatch' unless entitlements['application-identifier'] == profiles.fetch(app).fetch('Entitlements').fetch('application-identifier')
         raise 'Distribution push entitlement missing' unless entitlements['aps-environment'] == 'production'
-        output = File.join(ROOT, '.release/ios', "edaya-#{app}-production.ipa")
+        output = File.join(ROOT, '.release/ios', "edaya-#{app}-#{target}.ipa")
         FileUtils.mkdir_p(File.dirname(output))
         FileUtils.cp(ipas.first, output)
         record('build', app, {
+          'environment' => target, 'apiUrl' => evidence.fetch('apiUrl'),
           'bundleId' => config.fetch('bundleId'), 'teamId' => config.fetch('teamId'),
           'version' => info.fetch('CFBundleShortVersionString'), 'build' => number,
           'sha256' => Digest::SHA256.file(output).hexdigest, 'sourceCommit' => evidence.fetch('sourceCommit'),
@@ -225,27 +233,39 @@ module AppleRelease
   end
 
   def self.testflight(context)
+    evidence = release_inputs
+    target = evidence.fetch('environment')
     manifest = JSON.parse(File.read(File.join(ROOT, '.release/apple-build.json')))
     # Validate both IPAs before either upload.
     candidates = APPS.map do |app, config|
       row = manifest.fetch('apps').fetch(app)
-      file = File.join(ROOT, '.release/ios', "edaya-#{app}-production.ipa")
-      raise 'IPA changed after signing verification' unless row['status'] == 'signed' &&
-        row['bundleId'] == config.fetch('bundleId') && row['sha256'] == Digest::SHA256.file(file).hexdigest
+      file = File.join(ROOT, '.release/ios', "edaya-#{app}-#{target}.ipa")
+      validate_record(row, config, evidence, 'signed')
+      raise 'IPA changed after signing verification' unless row.fetch('sha256') == Digest::SHA256.file(file).hexdigest
       [app, config, row, file]
     end
     candidates.each do |app, config, row, file|
       # Refresh the short-lived API JWT for each upload.
       context.upload_to_testflight(api_key: api_key(context), app_identifier: config.fetch('bundleId'),
-        ipa: file, skip_waiting_for_build_processing: true, distribute_external: false, skip_submission: true)
-      record('testflight', app, row.merge('status' => 'uploaded-awaiting-apple-processing'))
+        ipa: file, skip_waiting_for_build_processing: false, distribute_external: false, skip_submission: true)
+      record('testflight', app, row.merge('status' => 'processed'))
     end
   end
 
+  def self.upload_records
+    JSON.parse(File.read(File.join(ROOT, '.release/apple-testflight.json'))).fetch('apps')
+  end
+
   def self.submit(context)
+    evidence = release_inputs
+    raise 'Production qualification required for App Review' unless evidence.fetch('environment') == 'production'
+    uploads = upload_records
     api_key(context)
     candidates = APPS.map do |app, config|
-      version, number = selection(ENV, app)
+      row = uploads.fetch(app)
+      validate_record(row, config, evidence, 'processed')
+      version = row.fetch('version')
+      number = row.fetch('build')
       asc_app = Spaceship::ConnectAPI::App.find(config.fetch('bundleId'))
       raise "App Store Connect app missing: #{app}" unless asc_app
       builds = Spaceship::ConnectAPI::Build.all(app_id: asc_app.id, version: version, build_number: number,
@@ -265,7 +285,7 @@ module AppleRelease
       context.upload_to_app_store(api_key: api_key(context), app_identifier: config.fetch('bundleId'),
         app_version: version, build_number: number, skip_binary_upload: true,
         skip_metadata: true, skip_screenshots: true, submit_for_review: true,
-        automatic_release: ENV.fetch('APPLE_AUTOMATIC_RELEASE', 'false') == 'true',
+        automatic_release: false,
         run_precheck_before_submit: false, force: true)
       record('submission', app, { 'bundleId' => config.fetch('bundleId'), 'version' => version,
         'build' => number, 'status' => 'submitted-for-app-review' })

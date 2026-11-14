@@ -13,7 +13,7 @@ jobs:
   deploy:
     runs-on: ubuntu-24.04
     concurrency:
-      group: google-play-release-${{ inputs.target }}
+      group: google-play-release
       cancel-in-progress: false
     environment: ${{ inputs.target }}
     timeout-minutes: 90
@@ -42,7 +42,6 @@ jobs:
           ANDROID_SIGNING_BUNDLE: ${{ secrets.ANDROID_SIGNING_BUNDLE }}
         run: dart run edaya_repo:repo ci deploy "$TARGET"
       - name: Authenticate Google Play publisher
-        if: inputs.target == 'production'
         id: play-auth
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
         with:
@@ -51,11 +50,10 @@ jobs:
           access_token_scopes: https://www.googleapis.com/auth/androidpublisher
           create_credentials_file: false
           export_environment_variables: false
-      - name: Release both apps to Google Play internal testing
-        if: inputs.target == 'production'
+      - name: Publish qualified bundles to the branch’s Google Play track
         env:
           PLAY_ACCESS_TOKEN: ${{ steps.play-auth.outputs.access_token }}
-        run: dart run edaya_repo:play internal
+        run: dart run edaya_repo:play "$TARGET"
       - name: Upload release evidence and artifacts
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -69,16 +67,16 @@ jobs:
           ANDROID_SIGNING_BUNDLE: ${{ secrets.ANDROID_SIGNING_BUNDLE }}
         run: dart run edaya_repo:repo ci signing-cleanup
   apple:
-    name: Build iOS and upload to TestFlight
-    if: inputs.target == 'production'
+    name: Build and deliver iOS
     runs-on: macos-15
-    environment: production
+    environment: ${{ inputs.target }}
     concurrency:
-      group: apple-release-production
+      group: apple-release-${{ inputs.target }}
       cancel-in-progress: false
-    timeout-minutes: 120
+    timeout-minutes: 180
     env:
       GITHUB_TOKEN: ${{ github.token }}
+      TARGET: ${{ inputs.target }}
       DEVELOPER_DIR: /Applications/Xcode_26.1.1.app/Contents/Developer
       FASTLANE_SKIP_UPDATE_CHECK: '1'
       FASTLANE_OPT_OUT_USAGE: '1'
@@ -94,8 +92,8 @@ jobs:
       - name: Restore exact qualified source and generated client
         run: dart tooling/repo/bin/restore.dart
       - run: dart pub get --enforce-lockfile
-      - name: Verify qualified production inputs
-        run: dart run edaya_repo:apple
+      - name: Verify qualified release inputs
+        run: dart run edaya_repo:apple "$TARGET"
       - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1
         with:
           ruby-version: '3.3'
@@ -114,6 +112,12 @@ jobs:
         env:
           APP_STORE_CONNECT_API_KEY_JSON: ${{ secrets.APP_STORE_CONNECT_API_KEY_JSON }}
         run: bundle exec fastlane ios upload_beta
+      - name: Submit both production builds for App Review
+        if: inputs.target == 'production'
+        working-directory: tooling/apple
+        env:
+          APP_STORE_CONNECT_API_KEY_JSON: ${{ secrets.APP_STORE_CONNECT_API_KEY_JSON }}
+        run: bundle exec fastlane ios submit
       - name: Upload Apple release evidence and IPAs
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

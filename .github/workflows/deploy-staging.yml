@@ -1,30 +1,26 @@
-name: Deploy staging
+name: Mobile store releases
 on:
   push:
-    branches: [staging]
+    branches: [staging, main]
   workflow_dispatch:
-    inputs:
-      source_ref:
-        description: Source revision (empty uses selected workflow revision)
-        type: string
-        default: ''
 permissions:
   contents: read
   actions: read
   deployments: write
 concurrency:
-  group: deploy-staging
+  group: mobile-release-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   qualify:
+    if: github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main'
     uses: ./.github/workflows/_qualify.yml
     with:
-      target: staging
-      source_ref: ${{ inputs.source_ref || github.sha }}
+      target: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+      source_ref: ${{ github.sha }}
     secrets: inherit
   deploy:
     needs: qualify
     uses: ./.github/workflows/_deploy.yml
     with:
-      target: staging
+      target: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     secrets: inherit

@@ -3,7 +3,7 @@ require_relative '../release'
 default_platform(:ios)
 
 platform :ios do
-  desc 'Build and verify signed production IPAs from qualified inputs'
+  desc 'Build and verify signed IPAs from qualified inputs'
   lane :build do
     AppleRelease.build(self)
   end
@@ -13,7 +13,7 @@ platform :ios do
     AppleRelease.testflight(self)
   end
 
-  desc 'Submit explicit TestFlight versions/builds to App Review without rebuilding'
+  desc 'Submit this production run’s processed builds to App Review without rebuilding'
   lane :submit do
     AppleRelease.submit(self)
   end
