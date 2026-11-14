@@ -65,7 +65,7 @@ PLAY_VERSION_CODE_BASE + (GITHUB_RUN_NUMBER + 3) * 100 + GITHUB_RUN_ATTEMPT
 
 ## Recovery and evidence
 
-The offset of 3 preserves the previous release workflow’s version sequence. Both branches use one release workflow and share its run-number sequence. Google Play jobs are serialized. Within a run, successful commits appear per app in the Actions summary and in `.release/play-<environment>.json`. Each manifest identifies the source commit, API URL, version code, and artifact checksums.
+The offset of 3 preserves the previous release workflow’s version sequence. Both branches use one release workflow and share its run-number sequence. Staging and production runs share one release queue. Within each run, the two Play jobs can commit in parallel. Their receipts appear in the Actions summary and in `.release/<app>/play-<environment>.json`. Each manifest identifies the source commit, API URL, version code, and artifact checksums.
 
 Google commits one edit per app. If one commit fails, inspect both apps in Play Console before retrying. After resolving the cause, rerun **all jobs** on the intended branch to qualify and build both apps with a new version code. The publisher verifies any existing bundle by SHA-256 and rejects a downgrade on the target track. A production run uses its own production AABs.
 
