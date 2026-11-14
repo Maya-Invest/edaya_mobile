@@ -5,10 +5,17 @@ import 'package:path/path.dart' as p;
 import 'process.dart';
 export 'process.dart';
 
+const applicationPaths = {
+  'guardian': 'apps/guardian_v2',
+  'teacher': 'apps/teacher_v2',
+};
+
 String get root {
   var directory = Directory.current.absolute;
   while (!File(p.join(directory.path, 'pubspec.yaml')).existsSync() ||
-      !Directory(p.join(directory.path, 'apps/guardian')).existsSync()) {
+      !Directory(
+        p.join(directory.path, applicationPaths['guardian']!),
+      ).existsSync()) {
     final parent = directory.parent;
     if (parent.path == directory.path) {
       throw StateError('Run this command inside edaya_mobile');

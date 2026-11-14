@@ -51,19 +51,19 @@ API integration tests do **not** run Flutter controllers, widgets, or Levit task
 - `runTask` / in-flight load races
 - drawer/sheet navigation and local state refresh
 
-belong in `apps/teacher/test/` or `apps/guardian/test/` (pure logic) or widget/controller tests.
+belong in `apps/teacher_v2/test/` or `apps/guardian_v2/test/` (pure logic) or widget/controller tests.
 
 ### Guardian widget integration tests
 
-Live API widget tests live in `apps/guardian/test/integration/`. They reuse this package's harness (`PortalSession`, `bootstrapGuardianPortal`, feature probes) and pump real guardian pages under `flutter test`.
+Live API widget tests live in `apps/guardian_v2/test/integration/`. They reuse this package's harness (`PortalSession`, `bootstrapGuardianPortal`, feature probes) and pump real guardian pages under `flutter test`.
 
-Coverage includes the app shell (all five tabs), calendar timetable and events views, session details, student switching, academic curriculum progress, evaluations grades and report cards, fees and payment details, inbox message details, and attendance list views.
+Coverage includes the home menu and child picker, calendar timetable and events views, session details, student switching, academic curriculum progress, evaluations grades and report cards, fees and payment details, inbox message details, and attendance list views.
 
 Demo accounts: `m.kone@mail.ci` (children `ci-s1` + `ci-s10`), `k.yao@mail.ci` (`ci-s4`, `ci-s7`, `ci-s8`).
 
 ### Teacher widget integration tests
 
-Live API widget tests live in `apps/teacher/test/integration/`. They reuse `PortalSession`, `bootstrapTeacherPortal`, and feature probes, then pump real teacher pages under `flutter test`.
+Live API widget tests live in `apps/teacher_v2/test/integration/`. They reuse `PortalSession`, `bootstrapTeacherPortal`, and feature probes, then pump real teacher pages under `flutter test`.
 
 Coverage includes Accueil, agenda, classes, evaluations, inbox, account/settings, and live session routes.
 
@@ -76,13 +76,13 @@ dart run edaya_repo:repo test integration
 Or only guardian widget integration tests:
 
 ```bash
-dart run edaya_repo:repo test integration guardian
+dart run edaya_repo:repo test integration guardian_v2
 ```
 
 Or only teacher widget integration tests:
 
 ```bash
-dart run edaya_repo:repo test integration teacher
+dart run edaya_repo:repo test integration teacher_v2
 ```
 
 Unit/widget runs (`melos run test`) exclude `@Tags(['integration'])` tests so CI verify does not require a running API.

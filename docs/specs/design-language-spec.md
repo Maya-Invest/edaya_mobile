@@ -1,12 +1,12 @@
 # Design Language Spec
 
-> **Applies to:** Guardian Flutter app and Teacher Flutter app (`apps/teacher`)  
+> **Applies to:** Guardian (`apps/guardian_v2`) and Teacher (`apps/teacher_v2`)
 > **Audience:** Implementers and agents  
 > **Authority:** This document is normative. Implementations must be cross-checked against it.
 
-This spec defines the visual design language shared by the Guardian family companion and the Teacher Accueil-first shell: brand, color, type, spacing, elevation, cards, and accessibility. Navigation and shell chrome are defined in [guardian-shell-spec.md](guardian-shell-spec.md) and [teacher-shell-spec.md](teacher-shell-spec.md).
+This spec defines the visual design language shared by the Guardian family companion and the Teacher Accueil-first shell: brand, color, type, spacing, elevation, cards, and accessibility. Navigation and shell chrome are defined in [Guardian workspace](guardian-v2-workspace-spec.md) and [teacher-shell-spec.md](teacher-shell-spec.md).
 
-Visual tokens follow **EDAYA 1.0.0** (`packages/edaya_shared/design-system/tokens.json`, `AppTheme`, `EdayaColors`, `EdayaTypography`, `EdayaBrandLogo`). Accueil shell IA (five tabs, overlays, borderless cards) stays in the shell specs.
+Visual tokens follow **EDAYA 1.0.0** (`packages/edaya_shared/design-system/tokens.json`, `AppTheme`, `EdayaColors`, `EdayaTypography`, `EdayaBrandLogo`). The app workspace specifications define navigation and overlays.
 
 ---
 

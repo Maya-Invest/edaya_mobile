@@ -7,11 +7,6 @@ import 'client.dart';
 
 const applicationIds = {'guardian': 'ca.mayainvest.edaya.guardian', 'teacher': 'ca.mayainvest.edaya.staff'};
 
-const applicationPaths = {
-  'guardian': 'apps/guardian_v2',
-  'teacher': 'apps/teacher_v2',
-};
-
 int? releaseVersionCode(Map<String, String> env) {
   if (env['GITHUB_RUN_NUMBER'] == null) return null;
   final run = int.parse(env['GITHUB_RUN_NUMBER']!);

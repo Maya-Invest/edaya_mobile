@@ -5,9 +5,7 @@ environment:
   sdk: ^3.11.1
 
 workspace:
-  - apps/guardian
   - apps/guardian_v2
-  - apps/teacher
   - apps/teacher_v2
   - packages/edaya_api_client
   - packages/edaya_auth

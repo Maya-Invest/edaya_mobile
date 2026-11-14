@@ -1,6 +1,6 @@
 # Guardian v2 workspace
 
-This is the normative contract for `apps/guardian_v2`. The original Guardian app remains in `apps/guardian`; its existing shell specification still applies there. V2 shares the Guardian native identity and Firebase project, so installing it replaces that app on a device. It uses the EDAYA tokens and bundled Poppins/Inter typography.
+This is the normative contract for `apps/guardian_v2`. It uses the EDAYA tokens and bundled Poppins/Inter typography.
 
 ## Navigation and child context
 

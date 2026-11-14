@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:edaya_repo/src/runtime.dart' show applicationPaths;
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter_svg/flutter_svg.dart';
@@ -80,7 +81,8 @@ void main() {
         name.startsWith('horizontal') ? 1024 : 512,
       );
     }
-    for (final app in ['guardian', 'teacher']) {
+    for (final entry in applicationPaths.entries) {
+      final app = entry.key, path = entry.value;
       final symbol =
               'edaya-symbole-${app == 'guardian' ? 'couleur' : 'blanc'}.svg',
           background = app == 'guardian' ? 0xffffffff : 0xff2563eb;
@@ -100,7 +102,7 @@ void main() {
         ratio: .43,
       );
       for (final file in Directory(
-        p.join(root, 'apps/$app'),
+        p.join(root, path),
       ).listSync(recursive: true, followLinks: false).whereType<File>()) {
         final path = file.path;
         if (path.contains('/build/') || path.contains('/.dart_tool/')) continue;
@@ -134,7 +136,7 @@ void main() {
         await render(
           p.join(
             root,
-            'apps/$app/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage${scale == 1 ? '' : '@${scale}x'}.png',
+            '$path/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage${scale == 1 ? '' : '@${scale}x'}.png',
           ),
           symbol,
           144 * scale,
@@ -145,7 +147,7 @@ void main() {
       await render(
         p.join(
           root,
-          'apps/$app/android/app/src/main/res/drawable-mdpi/edaya_launch.png',
+          '$path/android/app/src/main/res/drawable-mdpi/edaya_launch.png',
         ),
         symbol,
         144,

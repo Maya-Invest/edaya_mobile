@@ -19,9 +19,6 @@ void main() {
           'edaya-signing-test-',
         );
         try {
-          Directory(
-            p.join(fixture.path, 'apps/guardian'),
-          ).createSync(recursive: true);
           File(
             p.join(fixture.path, 'pubspec.yaml'),
           ).writeAsStringSync('name: signing_fixture\n');

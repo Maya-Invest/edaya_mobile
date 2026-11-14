@@ -32,10 +32,8 @@ extension SemanticToneColors on SemanticTone {
             : PrototypeColors.onSurfaceVariant,
       ),
       SemanticTone.info => (
-        dark
-            ? EdayaTokens.darkPrimaryContainer
-            : PrototypeColors.primaryContainer,
-        dark ? EdayaTokens.darkPrimary : PrototypeColors.primary,
+        scheme.secondaryContainer,
+        scheme.onSecondaryContainer,
       ),
       SemanticTone.success => (
         dark ? EdayaTokens.darkSuccessSoft : PrototypeColors.primaryContainer,

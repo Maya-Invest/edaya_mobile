@@ -1,6 +1,6 @@
 # Teacher Shell Spec
 
-> **Applies to:** Teacher Flutter production shell (`apps/teacher`)  
+> **Applies to:** Teacher Flutter production shell (`apps/teacher_v2`)
 > **Audience:** Implementers and agents  
 > **Authority:** This document is normative for the teacher Accueil-first shell. Visual tokens live in [design-language-spec.md](design-language-spec.md). Shared widgets follow [guardian-shared-components-spec.md](guardian-shared-components-spec.md) unless a teacher-specific component is listed below.
 

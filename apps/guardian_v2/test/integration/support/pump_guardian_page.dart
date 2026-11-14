@@ -1,6 +1,6 @@
-import 'package:edaya_guardian_v2/app/shell_page.dart';
+import 'package:edaya_guardian_v2/app/workspace_shell.dart';
 import 'package:edaya_guardian_v2/design/components/list_row.dart';
-import 'package:edaya_guardian_v2/design/components/student_context_card.dart';
+import 'package:edaya_guardian_v2/features/context/child_picker.dart';
 import 'package:edaya_guardian_v2/features/calendar/attendance_page.dart';
 import 'package:edaya_guardian_v2/features/calendar/calendar_controller.dart';
 import 'package:edaya_guardian_v2/features/calendar/calendar_page.dart';
@@ -189,12 +189,18 @@ Future<void> openAttendancePage(
   );
 }
 
-/// Opens the student context sheet from the shell chrome.
-Future<void> openStudentContextSheet(WidgetTester tester) async {
-  await pumpUntilFound(tester, find.byType(StudentContextCard));
-  await tester.tap(find.byTooltip('Choisir un élève'));
-  await tester.pump();
-  await pumpUntilFound(tester, find.text('Mes enfants'));
+/// Opens the child picker through the home context card.
+Future<void> openChildPicker(
+  WidgetTester tester,
+  GuardianWidgetTestHarness harness,
+) async {
+  await harness.scope.find<AppSessionController>().refreshGrants();
+  harness.router.go('/home');
+  final card = find.byType(ChildContextCard);
+  await pumpUntilFound(tester, card);
+  await tester.ensureVisible(card);
+  await tester.tap(card);
+  await pumpUntilFound(tester, find.byType(ChildPicker));
 }
 
 CalendarController _calendarController(WidgetTester tester) {
@@ -292,15 +298,4 @@ Future<void> tapAlternateStudent(
   await pumpUntilFound(tester, fullName);
   await tester.ensureVisible(fullName.first);
   await tester.tap(fullName.first);
-}
-
-/// Confirms the authenticated shell chrome is mounted.
-void expectGuardianShellChrome() {
-  expect(find.byType(PrototypeShell), findsOneWidget);
-  expect(find.byType(NavigationBar), findsOneWidget);
-  expect(find.text('Accueil'), findsWidgets);
-  expect(find.text('Agenda'), findsWidgets);
-  expect(find.text('Scolarité'), findsWidgets);
-  expect(find.text('Frais'), findsWidgets);
-  expect(find.text('Messages'), findsWidgets);
 }

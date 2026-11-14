@@ -63,7 +63,7 @@ Personal inboxes load all pages with their existing recipient and school scope b
 
 ## Teacher signature profile extension
 
-`AccountProfilePage.profileActions` is an optional presentation slot for app-owned profile actions. Teacher Profile uses it to open the local `TeacherSignaturePage`; guardian Profile has no signature action. `TeacherSignatureController` follows the route-scoped Levit lifecycle. The signature editor uses the existing buttons, dialogs, busy indicators, EDAYA tokens and localization, with a white paper preview for dark signature ink. It stays in `apps/teacher/lib/features/signature` because no other product uses this flow.
+`AccountProfilePage.profileActions` is an optional presentation slot for app-owned profile actions. Teacher Profile uses it to open the local `TeacherSignaturePage`; guardian Profile has no signature action. `TeacherSignatureController` follows the route-scoped Levit lifecycle. The signature editor uses the existing buttons, dialogs, busy indicators, EDAYA tokens and localization, with a white paper preview for dark signature ink. It stays in `apps/teacher_v2/lib/features/signature` because no other product uses this flow.
 
 ### Conversation message bubbles
 

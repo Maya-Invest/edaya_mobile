@@ -5,7 +5,7 @@ Both stores now publish the v2 workspaces. Android keeps its existing package ID
 | App key | Workspace | iOS bundle ID | Apple team |
 | --- | --- | --- | --- |
 | `guardian` | `apps/guardian_v2` | `ca.maya-invest.edaya.guardian` | `SQFU4GGCX2` |
-| `teacher` | `apps/teacher_v2` | `ca.maya-invest.edaya.staff` | `SQFU4GGCX2` |
+| `teacher` | `apps/teacher_v2` | `ca.maya-invest.edaya.teacher` | `SQFU4GGCX2` |
 
 `tooling/apple/apps.json` is the Apple release configuration. The `guardian` and `teacher` keys are artifact/signing labels; they no longer select the original app directories. iOS bundle IDs intentionally differ from Android IDs.
 

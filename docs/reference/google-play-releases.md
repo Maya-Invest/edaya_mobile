@@ -1,6 +1,6 @@
 # Google Play releases
 
-The current release targets are Guardian v2 (`ca.mayainvest.edaya.guardian`) and Teacher v2 (`ca.mayainvest.edaya.staff`), built from `apps/guardian_v2` and `apps/teacher_v2`. The existing store identities, signing aliases, and logical artifact names `guardian`/`teacher` are preserved. The original app workspaces are not published.
+The current release targets are Guardian v2 (`ca.mayainvest.edaya.guardian`) and Teacher v2 (`ca.mayainvest.edaya.staff`), built from `apps/guardian_v2` and `apps/teacher_v2`. The existing store identities, signing aliases, and logical artifact names `guardian`/`teacher` are preserved.
 
 ## Release flow
 
@@ -24,7 +24,7 @@ Create these **environment secrets** under repository Settings → Environments:
 
 Use separate service accounts so the automatic publisher has no production release permission. Keep their JSON keys in environment secrets, not repository files or artifacts. The Google auth action creates a short-lived Android Publisher access token in memory; no credential file is written. Restrict `google-play-production` to the `main` branch and configure required reviewers if your GitHub plan supports them. The workflow itself only runs its promotion job on `main` and only has a manual trigger.
 
-The existing `IDENTITY_CHECKOUT_TOKEN` repository secret is still required for qualification: read-only contents access to `Maya-Invest/edaya_backend`. GitHub provides `GITHUB_TOKEN` automatically. Promotion does not require the Android signing secret or the backend token.
+The existing `BACKEND_CHECKOUT_TOKEN` repository secret is still required for qualification: read-only contents access to `Maya-Invest/edaya_backend`. GitHub provides `GITHUB_TOKEN` automatically. Promotion does not require the Android signing secret or the backend token.
 
 ### Create the Google service accounts
 

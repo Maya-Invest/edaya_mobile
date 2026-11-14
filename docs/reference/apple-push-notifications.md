@@ -5,7 +5,7 @@ Guardian v2 and Teacher v2 use Firebase Cloud Messaging (FCM), which delivers iO
 | App | iOS bundle ID | Apple team | Firebase iOS app ID |
 | --- | --- | --- | --- |
 | `apps/guardian_v2` | `ca.maya-invest.edaya.guardian` | `SQFU4GGCX2` (Maya Investissement Group Inc.) | `1:839288643279:ios:041e327d9cdaafbeea61ba` |
-| `apps/teacher_v2` | `ca.maya-invest.edaya.staff` | `SQFU4GGCX2` (Maya Investissement Group Inc.) | `1:839288643279:ios:7c5afb285dbf11b9ea61ba` |
+| `apps/teacher_v2` | `ca.maya-invest.edaya.teacher` | `SQFU4GGCX2` (Maya Investissement Group Inc.) | `1:839288643279:ios:7c5afb285dbf11b9ea61ba` |
 
 Both apps use Firebase project `edayaplus` and the enrolled Apple team **Maya Investissement Group Inc.** (`SQFU4GGCX2`). Each v2 app has a separate iOS identity and Firebase registration from its original app. Android identities are unchanged.
 

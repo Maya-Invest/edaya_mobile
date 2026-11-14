@@ -89,11 +89,11 @@ void brandCheck({bool recordReviewedBaseline = false}) {
     'packages/edaya_shared/assets',
     'packages/edaya_shared/design-system/logos',
     'branding/icons',
-    for (final app in ['guardian', 'teacher']) ...[
-      'apps/$app/android/app/src/main/res',
-      'apps/$app/ios/Runner/Assets.xcassets',
-      'apps/$app/web/icons',
-      'apps/$app/web/favicon.png',
+    for (final path in applicationPaths.values) ...[
+      '$path/android/app/src/main/res',
+      '$path/ios/Runner/Assets.xcassets',
+      '$path/web/icons',
+      '$path/web/favicon.png',
     ],
   ]) {
     final input = p.join(root, directory);
@@ -126,8 +126,7 @@ void brandCheck({bool recordReviewedBaseline = false}) {
   }
   final literals = <String, int>{};
   for (final directory in [
-    'apps/guardian/lib',
-    'apps/teacher/lib',
+    for (final path in applicationPaths.values) '$path/lib',
     'packages/edaya_shared/lib',
   ]) {
     for (final file in files(p.join(root, directory)).where(
@@ -190,9 +189,8 @@ void brandCheck({bool recordReviewedBaseline = false}) {
 Future<void> brandGallery() async {
   final revision = await run(['git', 'rev-parse', 'HEAD'], quiet: true);
   final tokens = jsonFile(p.join(design, 'tokens.json'));
-  const inputs = [
-    'apps/guardian/lib',
-    'apps/teacher/lib',
+  final inputs = [
+    for (final path in applicationPaths.values) '$path/lib',
     'packages/edaya_shared/lib',
     'packages/edaya_shared/assets',
     'packages/edaya_shared/design-system/tokens.json',
@@ -208,8 +206,9 @@ Future<void> brandGallery() async {
     }
   }
   final sourceDigest = digest(source);
-  for (final app in ['guardian', 'teacher']) {
-    final directory = p.join(root, 'apps/$app/design-review');
+  for (final entry in applicationPaths.entries) {
+    final app = entry.key, path = entry.value;
+    final directory = p.join(root, '$path/design-review');
     final manifest = File(p.join(directory, 'manifest.json'));
     final previous = manifest.existsSync()
         ? (jsonFile(manifest.path)['captures'] as List)

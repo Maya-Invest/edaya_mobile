@@ -12,7 +12,7 @@ import 'package:edaya_repo/src/smoke.dart';
 
 const commandHelp = '''Usage: dart run edaya_repo:repo <command>
 check                       Prepared client and brand integrity
- test unit|tooling|integration [api|guardian|teacher|teacher_v2]
+ test unit|tooling|integration [api|guardian_v2|teacher_v2]
  build staging|production   Signed APK/AAB artifacts
  generate client [staging|production] [--ref REF | --backend-root PATH]
  generate brand|gallery|assets|commands|reviewed-brand-baseline
@@ -151,7 +151,7 @@ Future<void> execute(List<String> args) async {
     checkClient();
     await run(
       ['flutter', 'run', '--no-pub'],
-      cwd: p.join(root, 'apps/$name'),
+      cwd: p.join(root, applicationPaths[name]!),
       timeout: null,
     );
     return;
@@ -191,7 +191,7 @@ Future<void> execute(List<String> args) async {
           'design-review',
           '--concurrency=1',
         ],
-        cwd: p.join(root, 'apps/$app'),
+        cwd: p.join(root, applicationPaths[app]!),
         env: {
           'EDAYA_DESIGN_REVIEW_LOCALE':
               Platform.environment['EDAYA_DESIGN_REVIEW_LOCALE'] ?? 'fr',

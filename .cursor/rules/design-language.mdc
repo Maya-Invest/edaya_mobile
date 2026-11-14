@@ -1,6 +1,6 @@
 ---
 description: EDAYA mobile UI foundations and scope
-globs: apps/{guardian,teacher}/**,packages/edaya_shared/**
+globs: apps/{guardian_v2,teacher_v2}/**,packages/edaya_shared/**
 alwaysApply: false
 ---
 

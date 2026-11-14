@@ -2,7 +2,7 @@
 
 Flutter app for teachers — Accueil-first IA with live Identity OTP, school API, FCM, and offline outbox.
 
-Android identity: `ca.mayainvest.edaya.staff`. iOS identity: `ca.maya-invest.edaya.staff`, signed by Maya Investissement Group Inc. (`SQFU4GGCX2`) in Debug, Profile and Release, with its own Firebase iOS registration.
+Android identity: `ca.mayainvest.edaya.staff`. iOS identity: `ca.maya-invest.edaya.teacher`, signed by Maya Investissement Group Inc. (`SQFU4GGCX2`) in Debug, Profile and Release, with its own Firebase iOS registration.
 
 ## Apple push notifications
 

@@ -4,7 +4,7 @@ Flutter monorepo for the Edaya mobile apps, managed with [Melos](https://melos.i
 
 ## Releases
 
-Android and iOS releases build `apps/guardian_v2` and `apps/teacher_v2`. Production qualification feeds Google Play internal testing and Apple TestFlight; public releases use separate manual workflows. See [CI setup](docs/reference/ci-setup.md), [Google Play](docs/reference/google-play-releases.md), and [Apple release credentials](docs/reference/apple-releases.md). The original apps remain covered by verification.
+Android and iOS releases build `apps/guardian_v2` and `apps/teacher_v2`. Production qualification feeds Google Play internal testing and Apple TestFlight; public releases use separate manual workflows. See [CI setup](docs/reference/ci-setup.md), [Google Play](docs/reference/google-play-releases.md), and [Apple release credentials](docs/reference/apple-releases.md).
 
 ## Layout
 
@@ -12,9 +12,7 @@ Android and iOS releases build `apps/guardian_v2` and `apps/teacher_v2`. Product
 edaya_mobile/
 ├── apps/
 │   ├── guardian_v2/           parent/guardian release app
-│   ├── teacher_v2/            teacher release app
-│   ├── guardian/              original app, retained in verification
-│   └── teacher/               original app, retained in verification
+│   └── teacher_v2/            teacher release app
 ├── packages/
 │   ├── edaya_api_client/      domain-shaped Core API client
 │   ├── edaya_auth/            Better Auth HTTP client
@@ -29,8 +27,8 @@ edaya_mobile/
 
 | App | Package | Audience | Notes |
 |-----|---------|----------|-------|
-| Guardian | `edaya_guardian` | Parents and guardians | `ca.mayainvest.edaya.guardian` — Accueil-first IA + live API; [design-language-spec](docs/specs/design-language-spec.md) |
-| Teacher | `edaya_teacher` | Teachers and staff | `ca.mayainvest.edaya.staff` — Accueil-first IA + live OTP; [teacher-shell-spec](docs/specs/teacher-shell-spec.md) |
+| Guardian | `edaya_guardian_v2` | Parents and guardians | `ca.mayainvest.edaya.guardian` — Accueil-first IA + live API; [design-language-spec](docs/specs/design-language-spec.md) |
+| Teacher | `edaya_teacher_v2` | Teachers and staff | `ca.mayainvest.edaya.staff` — Accueil-first IA + live OTP; [teacher-shell-spec](docs/specs/teacher-shell-spec.md) |
 
 Both apps share auth, bootstrap, theme, and most UI primitives via `edaya_shared`. Each app keeps a thin layer for routes, domain features, and app-specific preferences.
 
@@ -154,7 +152,7 @@ flutter run --dart-define=API_URL=http://10.0.2.2:9999
 flutter run --dart-define=API_URL=https://staging.api.edayaplus.com
 ```
 
-Run these Flutter commands from `apps/guardian` or `apps/teacher`. Use an explicit staging URL when targeting staging.
+Run these Flutter commands from `apps/guardian_v2` or `apps/teacher_v2`. Use an explicit staging URL when targeting staging.
 
 The login and account screens expose **Developer settings** in all build modes (including production) to change the API URL at runtime (persisted in `SharedPreferences`). Presets include local, staging, and production. Restart the app after saving.
 
@@ -170,8 +168,8 @@ Use the backend `bun repo dev` server for local captured email, WhatsApp and SMS
 ### Run an app
 
 ```bash
-(cd apps/guardian && flutter run --dart-define=API_URL=http://10.0.2.2:9999)
-(cd apps/teacher && flutter run --dart-define=API_URL=http://10.0.2.2:9999)
+(cd apps/guardian_v2 && flutter run --dart-define=API_URL=http://10.0.2.2:9999)
+(cd apps/teacher_v2 && flutter run --dart-define=API_URL=http://10.0.2.2:9999)
 ```
 
 ## Common commands
@@ -215,7 +213,7 @@ melos exec --scope=edaya_auth -- flutter test
 
 Shared integration tests live in `tooling/integration_tests`. They use `edaya_auth` + `edaya_api_client` against a running API (local seed or staging).
 
-**PR CI** resolves one backend destination commit, generates both contracts, starts that exact backend and runs API, guardian and teacher integrations. `IDENTITY_CHECKOUT_TOKEN` needs backend contents:read. See [CI setup](docs/reference/ci-setup.md).
+**PR CI** resolves one backend destination commit, generates both contracts, starts that exact backend and runs API, guardian and teacher integrations. `BACKEND_CHECKOUT_TOKEN` needs backend contents:read. See [CI setup](docs/reference/ci-setup.md).
 
 Use the backend `bun repo dev` server for local captured email, WhatsApp and SMS. Teacher_v2 debug builds fill the verification field automatically when the local server advertises test OTP access. Tap Verify to submit. Web and other Flutter clients use explicit Show test code and Copy controls with `PUBLIC_TEST_OTP_ACCESS=true` or `--dart-define=TEST_OTP_ACCESS=true` respectively. CI uses the separate internal testing composition and a private captured mailbox; normal staging/production builds omit testing access.
 

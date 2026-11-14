@@ -1,8 +1,8 @@
 # Live integration testing
 
-`dart run edaya_repo:repo test integration` runs the API, guardian and teacher suites independently and aggregates JSON outcomes. `dart run edaya_repo:repo ci validate-integration` validates their current artifacts. CI gives each suite its own disposable stack and publishes only sanitized `.ci-evidence/results.json` even on failure. A failed child never prevents the other local suites from executing.
+`dart run edaya_repo:repo test integration` runs the API, guardian and teacher suites independently and aggregates JSON outcomes. `dart run edaya_repo:repo ci validate-integration` validates their current artifacts. CI runs the three suites against a disposable seeded stack and publishes only sanitized `.ci-evidence/results.json` even on failure. A failed child never prevents the other local suites from executing.
 
-Run these commands from the repository root with an owned, disposable seeded local API and its private OTP capture configured. The runner enables `EDAYA_INTEGRATION_TESTS=1` automatically. Select a suite with `--suite api`, `--suite guardian`, or `--suite teacher`; combine `--validate-only --suite api` to validate only the API results.
+Run these commands from the repository root with an owned, disposable seeded local API and its private OTP capture configured. The runner enables `EDAYA_INTEGRATION_TESTS=1` automatically. Pass `api`, `guardian_v2` or `teacher_v2` after `test integration` to run one suite. Run `ci integration` to provision the fixture and execute all three suites.
 
 For individual API tests, use the native test runner from `tooling/integration_tests`:
 

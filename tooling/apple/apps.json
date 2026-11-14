@@ -6,7 +6,7 @@
   },
   "teacher": {
     "path": "apps/teacher_v2",
-    "bundleId": "ca.maya-invest.edaya.staff",
+    "bundleId": "ca.maya-invest.edaya.teacher",
     "teamId": "SQFU4GGCX2"
   }
 }

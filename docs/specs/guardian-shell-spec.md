@@ -1,8 +1,8 @@
 # Guardian Shell Spec
 
-> **Applies to:** Guardian Flutter app  
+> **Applies to:** Retired Guardian shell
 > **Audience:** Implementers and agents  
-> **Authority:** This document is normative. Implementations must be cross-checked against it.
+> **Authority:** Historical reference. The current app follows the [Guardian v2 workspace specification](guardian-v2-workspace-spec.md).
 
 This spec defines information architecture, shell chrome, student context, adaptive breakpoints, and list–detail presentation for the Guardian family companion. It does not define color tokens, typography tables, or the full shared-widget catalog.
 
@@ -306,4 +306,4 @@ Conversation details retain their captured school, participants and child indepe
 
 ## Separate Guardian v2 implementation
 
-The child-first Home and unified results workspace is implemented in `apps/guardian_v2`. Its normative contract is [Guardian v2 workspace](guardian-v2-workspace-spec.md). This document continues to describe the original `apps/guardian` shell.
+The child-first Home and unified results workspace is implemented in `apps/guardian_v2`. Its normative contract is [Guardian v2 workspace](guardian-v2-workspace-spec.md). This document describes the retired shell.

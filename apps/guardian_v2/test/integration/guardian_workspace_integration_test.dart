@@ -2,6 +2,7 @@
 library;
 
 import 'package:edaya_guardian_v2/app/workspace_shell.dart';
+import 'package:edaya_guardian_v2/design/components/list_row.dart';
 import 'package:edaya_api_client/edaya_api_client.dart';
 import 'package:edaya_guardian_v2/features/home/home_page.dart';
 import 'package:edaya_guardian_v2/features/home/dashboard_controller.dart';
@@ -86,7 +87,12 @@ Future<void> main() async {
       final h = await GuardianWidgetTestHarness.create();
       await pumpGuardianShellUntil<HomePage>(tester, h, initialRoute: '/home');
       for (final d in destinations) {
-        h.router.go(d.path);
+        final menuLabel = find
+            .descendant(of: find.byType(HomePage), matching: find.text(d.fr))
+            .first;
+        await tester.ensureVisible(menuLabel);
+        await pumpUntilFound(tester, menuLabel.hitTestable());
+        await tester.tap(menuLabel.hitTestable());
         await tester.pump(const Duration(seconds: 1));
         await pumpUntilFound(tester, find.byType(BackButton));
         final loadedContent = switch (d.path) {
@@ -96,7 +102,7 @@ Future<void> main() async {
           '/attendance' => find.text('Appel du jour'),
           '/fees' => find.text('Attendu'),
           '/inbox' => find.text('Nouveau message'),
-          '/inbox/avis' => find.text('Cette campagne est close.'),
+          '/inbox/avis' => await campaignRow(tester, h),
           '/child' => find.text('Documents'),
           _ => throw StateError('Missing content check for ${d.path}'),
         };
@@ -152,6 +158,8 @@ Future<void> main() async {
           h.router.pop();
           await tester.pump(const Duration(milliseconds: 400));
         }
+        h.router.go('/home');
+        await pumpUntilFound(tester, find.byType(HomePage));
       }
     },
   );
@@ -253,5 +261,39 @@ Future<void> main() async {
       expect(h.scope.find<AcademicYearController>().selectedYearId.value, year);
       expect(tester.takeException(), isNull);
     },
+  );
+}
+
+// An earlier journey may already have answered the selected child's survey.
+Future<Finder> campaignRow(
+  WidgetTester tester,
+  GuardianWidgetTestHarness harness,
+) async {
+  final campaigns = await listGuardianFamilyFeedbackCampaigns(
+    harness.portalSession!.schoolClient,
+  );
+  final studentId = harness.scope
+      .find<StudentContextController>()
+      .activeStudentId;
+  final linked = campaigns.where((campaign) => campaign.studentId == studentId);
+  expect(linked, isNotEmpty);
+  final labels = tester.element(find.byType(BackButton)).tr;
+  final rows = {
+    for (final campaign in linked)
+      (
+        campaign.context?.subjectName.isNotEmpty == true
+            ? '${campaign.context!.subjectName} · ${campaign.context!.teacherName}'
+            : labels.familyFeedbackTitle,
+        switch (campaign.slotState) {
+          'completed' ||
+          'already_completed' => labels.familyFeedbackSlotCompleted,
+          'open' => labels.familyFeedbackSlotOpen,
+          _ => labels.familyFeedbackClosed,
+        },
+      ),
+  };
+  return find.byWidgetPredicate(
+    (widget) =>
+        widget is ListRow && rows.contains((widget.title, widget.subtitle)),
   );
 }

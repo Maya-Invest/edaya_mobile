@@ -170,14 +170,9 @@ Future<void> integration({String? suite, bool validateOnly = false}) async {
   final allIds = registry.values
       .expand((value) => (value as List).cast<String>())
       .toList();
-  if (registry.keys.toSet().difference({
-        'api',
-        'guardian',
-        'guardian_v2',
-        'teacher',
-        'teacher_v2',
-      }).isNotEmpty ||
-      registry.length != 5 ||
+  final suites = {'api', ...applicationPaths.values.map(p.basename)};
+  if (registry.keys.toSet().difference(suites).isNotEmpty ||
+      registry.length != suites.length ||
       registry.values.any((value) => (value as List).isEmpty) ||
       allIds.length != allIds.toSet().length ||
       allIds.any((id) => !RegExp(r'^[a-z0-9][a-z0-9.-]+$').hasMatch(id))) {
@@ -189,7 +184,11 @@ Future<void> integration({String? suite, bool validateOnly = false}) async {
   final directory = Directory(p.join(root, '.integration-results'))
     ..createSync(recursive: true);
   final summaries = <String, dynamic>{};
-  for (final name in suite == null ? registry.keys : [suite]) {
+  final selected = applicationPaths[suite];
+  for (final name
+      in suite == null
+          ? registry.keys
+          : [selected == null ? suite : p.basename(selected)]) {
     if (!registry.containsKey(name)) throw ArgumentError('Unknown suite');
     final log = File(p.join(directory.path, '$name.jsonl')),
         metadata = File(p.join(directory.path, '$name.run.json')),
@@ -315,13 +314,7 @@ Future<void> integration({String? suite, bool validateOnly = false}) async {
     'suites': summaries,
   });
   final sanitized = <String, dynamic>{};
-  for (final name in [
-    'api',
-    'guardian',
-    'guardian_v2',
-    'teacher',
-    'teacher_v2',
-  ]) {
+  for (final name in suites) {
     final row = summaries[name] as Map<String, dynamic>?;
     final tests = (row?['tests'] as List?) ?? [];
     sanitized[name] = {
