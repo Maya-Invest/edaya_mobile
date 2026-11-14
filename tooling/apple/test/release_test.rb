@@ -16,6 +16,21 @@ class AppleReleaseTest < Minitest::Test
     %w[build upload_beta check_review submit].each { |lane| assert_match(/\bfastlane ios #{lane}$/, output) }
   end
 
+  def test_verify_signer_extracts_leaf_and_rejects_a_different_distribution_certificate
+    Dir.mktmpdir do |dir|
+      prefix = File.join(dir, 'guardian-signer-')
+      extract = lambda do |*args|
+        assert_equal ['codesign', '-d', "--extract-certificates=#{prefix}", 'Runner.app'], args
+        File.binwrite("#{prefix}0", 'leaf')
+        File.binwrite("#{prefix}1", 'issuer')
+      end
+      AppleRelease.stub(:run!, extract) do
+        AppleRelease.verify_signer('Runner.app', prefix, 'leaf')
+        assert_raises(RuntimeError) { AppleRelease.verify_signer('Runner.app', prefix, 'issuer') }
+      end
+    end
+  end
+
   def config
     AppleRelease::APPS.fetch('guardian')
   end

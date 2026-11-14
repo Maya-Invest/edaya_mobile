@@ -92,6 +92,12 @@ module AppleRelease
     output
   end
 
+  def self.verify_signer(application, certificate_prefix, expected_der)
+    # codesign treats a detached optional prefix as another object to inspect.
+    run!('codesign', '-d', "--extract-certificates=#{certificate_prefix}", application)
+    raise 'Exported IPA signing certificate mismatch' unless File.binread("#{certificate_prefix}0") == expected_der
+  end
+
   def self.plist(data)
     require 'cfpropertylist'
     CFPropertyList.native_types(CFPropertyList::List.new(data: data).value)
@@ -212,8 +218,7 @@ module AppleRelease
         application = applications.first
         run!('codesign', '--verify', '--deep', '--strict', application)
         certificate_prefix = File.join(private_dir, "#{app}-signer-")
-        run!('codesign', '-d', '--extract-certificates', certificate_prefix, application)
-        raise 'Exported IPA signing certificate mismatch' unless File.binread("#{certificate_prefix}0") == certificate.certificate.to_der
+        verify_signer(application, certificate_prefix, certificate.certificate.to_der)
         info = plist(File.binread(File.join(application, 'Info.plist')))
         raise 'Exported IPA identity/build mismatch' unless info['CFBundleIdentifier'] == config.fetch('bundleId') && info['CFBundleVersion'] == number
         validate_profile(plist(run!('security', 'cms', '-D', '-i', File.join(application, 'embedded.mobileprovision'))), config)
