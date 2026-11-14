@@ -3,7 +3,7 @@ description: Edaya mobile app for teachers and classroom workflows.
 publish_to: none
 resolution: workspace
 
-version: 1.0.0+0
+version: 0.0.0+1
 
 environment:
   sdk: ^3.11.1
