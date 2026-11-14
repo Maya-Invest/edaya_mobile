@@ -7,7 +7,7 @@ Guardian v2 and Teacher v2 use Firebase Cloud Messaging (FCM), which delivers iO
 | `apps/guardian` | `ca.maya-invest.edaya.guardian` | `SQFU4GGCX2` (Maya Investissement Group Inc.) | `1:839288643279:ios:041e327d9cdaafbeea61ba` |
 | `apps/teacher` | `ca.maya-invest.edaya.teacher` | `SQFU4GGCX2` (Maya Investissement Group Inc.) | `1:839288643279:ios:7c5afb285dbf11b9ea61ba` |
 
-Both apps use Firebase project `edayaplus` and the enrolled Apple team **Maya Investissement Group Inc.** (`SQFU4GGCX2`). Each v2 app has a separate iOS identity and Firebase registration from its original app. Android identities are unchanged.
+Both apps use Firebase project `edayaplus` and the enrolled Apple team **Maya Investissement Group Inc.** (`SQFU4GGCX2`). Each v2 app has a separate iOS identity and Firebase registration from its original app.
 
 Both apps' Debug, Profile and Release configurations use `SQFU4GGCX2`. Xcode Run uses Debug: changing only Profile leaves normal launches signed by the previous team. A changed iOS bundle ID also requires a new Firebase iOS app registration; changing `BUNDLE_ID` in an old plist does not change that registration.
 

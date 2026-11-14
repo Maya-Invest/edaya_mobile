@@ -55,7 +55,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCKQ1BkJZCOJ7JUZEjLUkDRruAiCyPTe1Y',
-    appId: '1:839288643279:android:9861bb05b8fb534aea61ba',
+    appId: '1:839288643279:android:63c4324ab6ab1a3eea61ba',
     messagingSenderId: '839288643279',
     projectId: 'edayaplus',
     storageBucket: 'edayaplus.firebasestorage.app',

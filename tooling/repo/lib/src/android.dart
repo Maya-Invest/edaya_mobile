@@ -5,7 +5,7 @@ import 'package:path/path.dart' as p;
 import 'runtime.dart';
 import 'client.dart';
 
-const applicationIds = {'guardian': 'ca.mayainvest.edaya.guardian', 'teacher': 'ca.mayainvest.edaya.staff'};
+const applicationIds = {'guardian': 'ca.mayainvest.edaya.guardian', 'teacher': 'ca.mayainvest.edaya.teacher'};
 
 int? releaseVersionCode(Map<String, String> env) {
   if (env['GITHUB_RUN_NUMBER'] == null) return null;
@@ -46,8 +46,7 @@ Future<void> restoreSigning() async {
   }
   final signingFiles = [
     p.join(root, 'android-signing/edaya-upload.jks'),
-    for (final app in applicationIds.keys)
-      p.join(root, '${applicationPaths[app]}/android/key.properties'),
+    for (final app in applicationIds.keys) p.join(root, '${applicationPaths[app]}/android/key.properties'),
   ];
   if (signingFiles.any((path) => File(path).existsSync())) {
     throw StateError('Refusing to replace existing private signing files');
@@ -91,8 +90,7 @@ Future<void> restoreSigning() async {
       final existingClients = (jsonFile(firebasePath)['client'] as List)
           .where((client) => client['client_info']['android_client_info']['package_name'] == entry.value)
           .toList();
-      if (existingClients.length != 1 ||
-          !suppliedIds.contains(existingClients.single['client_info']['mobilesdk_app_id'])) {
+      if (existingClients.length != 1 || !suppliedIds.contains(existingClients.single['client_info']['mobilesdk_app_id'])) {
         throw StateError('Checked-in Firebase configuration does not match signing bundle');
       }
     } else {

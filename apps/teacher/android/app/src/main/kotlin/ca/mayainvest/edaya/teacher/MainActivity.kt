@@ -1,4 +1,4 @@
-package ca.mayainvest.edaya.staff
+package ca.mayainvest.edaya.teacher
 
 import io.flutter.embedding.android.FlutterActivity
 

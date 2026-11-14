@@ -1,6 +1,6 @@
 # Google Play releases
 
-The current release targets are Guardian v2 (`ca.mayainvest.edaya.guardian`) and Teacher v2 (`ca.mayainvest.edaya.staff`), built from `apps/guardian` and `apps/teacher`. The existing store identities, signing aliases, and logical artifact names `guardian`/`teacher` are preserved.
+The current release targets are Guardian v2 (`ca.mayainvest.edaya.guardian`) and Teacher v2 (`ca.mayainvest.edaya.teacher`), built from `apps/guardian` and `apps/teacher`. Both keep their existing upload keys. Google Play treats the renamed Teacher package as a new app: complete the first-release setup for this package and grant the publishing service accounts access to its listing. Users of the previous package cannot receive it as an update.
 
 ## Release flow
 

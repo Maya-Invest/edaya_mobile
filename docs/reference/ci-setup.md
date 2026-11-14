@@ -118,7 +118,7 @@ Store accounts, highest uploaded versions and production push delivery still nee
 | App | Google Play package | App Store bundle ID |
 | --- | --- | --- |
 | Guardian v2 | `ca.mayainvest.edaya.guardian` | `ca.maya-invest.edaya.guardian` |
-| Teacher v2 | `ca.mayainvest.edaya.staff` | `ca.maya-invest.edaya.teacher` |
+| Teacher v2 | `ca.mayainvest.edaya.teacher` | `ca.maya-invest.edaya.teacher` |
 
 | When | Owner | Configure or verify |
 | --- | --- | --- |

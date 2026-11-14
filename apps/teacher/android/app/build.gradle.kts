@@ -17,7 +17,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "ca.mayainvest.edaya.staff"
+    namespace = "ca.mayainvest.edaya.teacher"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -28,7 +28,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "ca.mayainvest.edaya.staff"
+        applicationId = "ca.mayainvest.edaya.teacher"
         multiDexEnabled = true
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion

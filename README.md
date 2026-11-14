@@ -28,7 +28,7 @@ edaya_mobile/
 | App | Package | Audience | Notes |
 |-----|---------|----------|-------|
 | Guardian | `edaya_guardian_v2` | Parents and guardians | `ca.mayainvest.edaya.guardian` — Accueil-first IA + live API; [design-language-spec](docs/specs/design-language-spec.md) |
-| Teacher | `edaya_teacher_v2` | Teachers and staff | `ca.mayainvest.edaya.staff` — Accueil-first IA + live OTP; [teacher-shell-spec](docs/specs/teacher-shell-spec.md) |
+| Teacher | `edaya_teacher_v2` | Teachers and staff | `ca.mayainvest.edaya.teacher` — Accueil-first IA + live OTP; [teacher-shell-spec](docs/specs/teacher-shell-spec.md) |
 
 Both apps share auth, bootstrap, theme, and most UI primitives via `edaya_shared`. Each app keeps a thin layer for routes, domain features, and app-specific preferences.
 
