@@ -63,7 +63,9 @@ class StudentContextController extends LevitController
       _session.grants.stream.listen((grants) {
         if (grants == null || grants.kind != 'guardian') {
           linkedStudentIds(const []);
-          linkedStudentsResolved(true);
+          // A new sign-in must resolve its relationships before routing to
+          // the no-children page, including after a second-factor sign-in.
+          linkedStudentsResolved(false);
           _clearContext();
         }
       }),

@@ -8,6 +8,7 @@ import '../features/settings/app_settings_controller.dart';
 void registerEdayaDependencies(
   LevitScope scope, {
   required CookieJar cookieJar,
+  bool enableTestOtpInDebug = false,
 }) {
   scope.put<AppSettingsController>(
     () => AppSettingsController(),
@@ -20,6 +21,7 @@ void registerEdayaDependencies(
       baseUrlProvider: () => ApiBaseUrlConfig.authBaseUrl,
       client: createEdayaHttpClient(),
       cookieJar: cookieJar,
+      enableTestOtpInDebug: enableTestOtpInDebug,
     ),
     permanent: true,
   );

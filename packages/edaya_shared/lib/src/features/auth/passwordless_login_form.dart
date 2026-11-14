@@ -157,6 +157,14 @@ class PasswordlessLoginForm extends StatelessWidget {
                       : mode == LoginMode.recovery
                       ? context.tr.recoveryCode
                       : context.tr.otpLabel,
+                  helperText:
+                      mode == LoginMode.verifyOtp &&
+                          controller.delivery.isTestAutofilled(
+                            controller.otp.value,
+                          )
+                      ? context.tr.testCodeAutofilled
+                      : null,
+                  helperMaxLines: 3,
                 ),
                 onChanged: (value) => controller.otp(value),
               ),

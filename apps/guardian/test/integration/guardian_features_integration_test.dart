@@ -373,6 +373,7 @@ Future<void> main() async {
         academicYearId: harness.profile!.academicYearId,
       );
       final id = campaign['id'] as String;
+      addTearDown(() => disposeFeedbackFixture(owner, id));
       final studentId = harness.profile!.primaryStudentId;
       late GuardianFamilyFeedbackQuestionnaire questionnaire;
       try {
@@ -423,6 +424,8 @@ Future<void> main() async {
           180,
           scrollable: find.byType(Scrollable).last,
         );
+        await Scrollable.ensureVisible(tester.element(answer), alignment: 0.5);
+        await tester.pump(const Duration(milliseconds: 350));
         await tester.tap(answer);
         await tester.pump();
       }
@@ -434,6 +437,8 @@ Future<void> main() async {
       );
       await tester.pump();
       expect(tester.widget<FilledButton>(submit).onPressed, isNotNull);
+      await Scrollable.ensureVisible(tester.element(submit), alignment: 0.5);
+      await tester.pump(const Duration(milliseconds: 350));
       await tester.tap(submit);
       final deadline = DateTime.now().add(const Duration(seconds: 20));
       var saved = questionnaire;

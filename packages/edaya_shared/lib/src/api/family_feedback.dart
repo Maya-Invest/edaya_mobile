@@ -231,11 +231,19 @@ class TeacherFamilyFeedbackResult {
     required this.overallSuppressed,
     required this.questions,
     this.themes,
+    this.classGroupId,
+    this.classSubjectId,
+    this.academicYearId,
+    this.academicPeriodId,
   });
 
   factory TeacherFamilyFeedbackResult.fromJson(Map<String, dynamic> json) {
     return TeacherFamilyFeedbackResult(
       campaignId: json['campaignId'] as String? ?? '',
+      classGroupId: json['classGroupId'] as String?,
+      classSubjectId: json['classSubjectId'] as String?,
+      academicYearId: json['academicYearId'] as String?,
+      academicPeriodId: json['academicPeriodId'] as String?,
       eligibleSlotCount: json['eligibleSlotCount'] as int? ?? 0,
       completedSlotCount: json['completedSlotCount'] as int? ?? 0,
       responseRate: (json['responseRate'] as num?)?.toDouble() ?? 0,
@@ -250,6 +258,7 @@ class TeacherFamilyFeedbackResult {
   }
 
   final String campaignId;
+  final String? classGroupId, classSubjectId, academicYearId, academicPeriodId;
   final int eligibleSlotCount;
   final int completedSlotCount;
   final double responseRate;

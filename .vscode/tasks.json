@@ -1,0 +1,50 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Check teacher review API",
+      "dependsOn": "Prepare teacher review data",
+      "type": "process",
+      "command": "curl",
+      "args": [
+        "--fail", "--silent", "--show-error", "--max-time", "5",
+        "--output", "/dev/null",
+        "http://127.0.0.1:19998/auth/edaya/testing/capabilities"
+      ],
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent", "panel": "dedicated" }
+    },
+    {
+      "label": "Prepare teacher review data",
+      "type": "process",
+      "command": "bun",
+      "args": [
+        "--no-env-file", "tooling/repo/ops/main.ts", "ci", "fixture", "..", "--",
+        "bun", "--no-env-file", "bin/audits/edaya-teacher-ux-2026-11-03/review-data/seed.ts",
+        "all", "--keep-alive"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/../edaya_backend",
+        "env": {
+          "EDAYA_CI_API_PORT": "19998",
+          "EDAYA_CI_WEBAPP_ORIGIN": "http://127.0.0.1:4173",
+          "EDAYA_FIXTURE_SEED": "true",
+          "EDAYA_REVIEW_API_URL": "http://127.0.0.1:19998"
+        }
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "teacher-review",
+        "pattern": {
+          "regexp": "^(.*):(\\d+):(\\d+): (error): (.*)$",
+          "file": 1, "line": 2, "column": 3, "severity": 4, "message": 5
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^Waiting for API",
+          "endsPattern": "^Teacher review data ready$"
+        }
+      }
+    }
+  ]
+}

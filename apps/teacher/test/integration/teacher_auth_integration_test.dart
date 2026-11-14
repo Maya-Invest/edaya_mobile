@@ -364,8 +364,14 @@ Future<void> main() async {
       final profile = session.availableProfiles.value.first;
       scope.find<GoRouter>().go('/profiles');
       await until(tester, find.byType(ProfilePickerPage));
-      await until(tester, find.text(profile.label));
-      await tester.tap(find.text(profile.label));
+      final choice = find
+          .descendant(
+            of: find.byType(ProfilePickerPage),
+            matching: find.text(profile.label),
+          )
+          .first;
+      await until(tester, choice);
+      await tester.tap(choice);
       await until(tester, find.byType(HomePage));
       final deadline = DateTime.now().add(const Duration(seconds: 20));
       while (session.grants.value?.actorId != profile.actorId &&

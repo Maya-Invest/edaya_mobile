@@ -215,6 +215,8 @@ class ConversationPage extends LScopedView<ConversationController> {
       controller: controller,
       child: Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading:
+              ModalRoute.of(context) is! ModalBottomSheetRoute,
           title: Text(
             row?['subject'] as String? ?? context.tr.messagingConversations,
           ),

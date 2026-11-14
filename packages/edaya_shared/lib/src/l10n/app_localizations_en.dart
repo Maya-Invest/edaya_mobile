@@ -236,6 +236,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'This account is not linked to a teacher profile.';
 
   @override
+  String get navProfile => 'Profile';
+
+  @override
   String get navHome => 'Home';
 
   @override
@@ -1835,7 +1838,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teacherTaskAttendance => 'Attendance to record';
 
   @override
-  String get teacherTaskLogbook => 'Lesson log';
+  String get teacherTaskLogbook => 'Logbook';
 
   @override
   String get teacherTaskMarks => 'Marks to enter';
@@ -2026,6 +2029,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get testingOnly => 'Testing only';
+
+  @override
+  String get testCodeAutofilled =>
+      'Test mode is on. Your verification code was filled in automatically.';
 
   @override
   String get showTestCode => 'Show test code';
@@ -2363,4 +2370,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teacherQuickInvalid => 'Invalid or expired code.';
+
+  @override
+  String get logbookNotSaved => 'Logbook not saved';
+
+  @override
+  String get logbookCompleted => 'Logbook completed';
+
+  @override
+  String get noCompletedLogbook => 'No completed logbook';
 }

@@ -1,0 +1,143 @@
+import 'package:flutter/material.dart';
+
+import '../spacing.dart';
+import 'person_avatar.dart';
+import 'surface_card.dart';
+
+/// Shell context card for the teacher prototype — class/subject | school/year.
+class TeacherContextCard extends StatelessWidget {
+  const TeacherContextCard({
+    super.key,
+    required this.teacherName,
+    required this.teacherInitials,
+    required this.classLabel,
+    required this.subjectLabel,
+    required this.schoolName,
+    required this.schoolYear,
+    this.photoUrl,
+    this.onSelectContext,
+  });
+
+  final String teacherName;
+  final String teacherInitials;
+  final String classLabel;
+  final String subjectLabel;
+  final String schoolName;
+  final String schoolYear;
+  final String? photoUrl;
+  final VoidCallback? onSelectContext;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        PrototypeSpacing.md,
+        0,
+        PrototypeSpacing.md,
+        PrototypeSpacing.sm,
+      ),
+      child: SurfaceCard(
+        padding: const EdgeInsets.fromLTRB(
+          PrototypeSpacing.sm,
+          PrototypeSpacing.sm,
+          PrototypeSpacing.xs,
+          PrototypeSpacing.sm,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            PersonAvatar(
+              initials: teacherInitials,
+              photoUrl: photoUrl,
+              radius: 24,
+            ),
+            const SizedBox(width: PrototypeSpacing.sm),
+            Expanded(
+              child: MediaQuery.textScalerOf(context).scale(1) > 1.3
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          classLabel,
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        Text(
+                          subjectLabel,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        Text(
+                          schoolName,
+                          style: Theme.of(context).textTheme.bodySmall,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          schoolYear,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    )
+                  : Column(
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                classLabel,
+                                style: Theme.of(context).textTheme.titleSmall,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: PrototypeSpacing.sm),
+                            Expanded(
+                              child: Text(
+                                schoolName,
+                                style: Theme.of(context).textTheme.titleSmall,
+                                textAlign: TextAlign.right,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                subjectLabel,
+                                style: Theme.of(context).textTheme.bodySmall,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: PrototypeSpacing.sm),
+                            Expanded(
+                              child: Text(
+                                schoolYear,
+                                style: Theme.of(context).textTheme.bodySmall,
+                                textAlign: TextAlign.right,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+            ),
+            IconButton(
+              tooltip: 'Changer de classe',
+              icon: const Icon(Icons.expand_more),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              onPressed: onSelectContext,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

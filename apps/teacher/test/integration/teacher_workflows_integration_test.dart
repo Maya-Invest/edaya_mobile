@@ -246,6 +246,7 @@ Future<void> main() async {
       });
       final studentId = fixtureId('daily-student');
       await owner.schoolClient.registerStudent({
+        'requestId': fixtureId('register'),
         'id': studentId,
         'schoolId': harness.context.grants.schoolId,
         'firstName': 'Integration',
@@ -936,6 +937,7 @@ Future<void> main() async {
         academicYearId: profile.academicYearId,
       );
       final id = campaign['id'] as String;
+      addTearDown(() => disposeFeedbackFixture(owner, id));
       await expectLater(
         getTeacherFamilyFeedbackResult(baseline.schoolClient, id),
         throwsA(isA<ApiError>().having((error) => error.status, 'status', 403)),
@@ -1095,9 +1097,7 @@ Future<void> main() async {
         () => baseline.schoolClient.getAssessmentMarksReview({
           'assessmentId': id,
         }),
-        (review) =>
-            ((review['corrections'] as List).single as Map)['status'] ==
-            'withdrawn',
+        (review) => (review['corrections'] as List).isEmpty,
       );
       expect(
         (await baseline.schoolClient.assessmentResults.list({

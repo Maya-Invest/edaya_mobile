@@ -1,0 +1,718 @@
+import 'dart:async';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:edaya_api_client/edaya_api_client.dart' as api;
+import 'package:edaya_shared/edaya_shared.dart';
+import 'package:levit_flutter/levit_flutter.dart';
+
+import '../../live/runtime.dart';
+import '../context/academic_year_controller.dart';
+import '../context/teacher_context_controller.dart';
+import 'live_evaluations_controller.dart';
+
+enum MarkSyncState { synced, pending, failed }
+
+class LiveMarkRow {
+  const LiveMarkRow({
+    required this.studentId,
+    required this.fullName,
+    required this.initials,
+    this.photoUrl,
+    this.resultId,
+    this.score,
+    this.mentionId,
+    this.mentionCode,
+    this.designation,
+    this.marksLocked = false,
+    this.published = false,
+    this.notes,
+    this.deadlineStatus,
+    this.syncState = MarkSyncState.synced,
+  });
+
+  final String studentId;
+  final String fullName;
+  final String initials;
+  final String? photoUrl;
+  final String? resultId;
+  final double? score;
+  final String? mentionId;
+  final String? mentionCode;
+  final String? designation;
+  final bool marksLocked;
+  final bool published;
+  final String? notes;
+  final String? deadlineStatus;
+  final MarkSyncState syncState;
+
+  static const Object _unset = Object();
+
+  LiveMarkRow copyWith({
+    Object? resultId = _unset,
+    Object? score = _unset,
+    Object? mentionId = _unset,
+    Object? designation = _unset,
+    bool? marksLocked,
+    MarkSyncState? syncState,
+  }) {
+    return LiveMarkRow(
+      studentId: studentId,
+      fullName: fullName,
+      initials: initials,
+      photoUrl: photoUrl,
+      resultId: identical(resultId, _unset)
+          ? this.resultId
+          : resultId as String?,
+      mentionId: identical(mentionId, _unset)
+          ? this.mentionId
+          : mentionId as String?,
+      mentionCode: mentionCode,
+      score: identical(score, _unset) ? this.score : score as double?,
+      designation: identical(designation, _unset)
+          ? this.designation
+          : designation as String?,
+      marksLocked: marksLocked ?? this.marksLocked,
+      published: published,
+      notes: notes,
+      deadlineStatus: deadlineStatus,
+      syncState: syncState ?? this.syncState,
+    );
+  }
+}
+
+class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
+  LiveMarksController({
+    required this.evaluationId,
+    required LiveEvaluationsController evaluations,
+    required AcademicYearController academicYear,
+    required TeacherContextController teacherContext,
+    required SchoolClientFactory schoolClient,
+    TeacherOutboxStore? outboxStore,
+    TeacherOutboxContext? Function()? outboxContext,
+  }) : _evaluations = evaluations,
+       _teacherContext = teacherContext,
+       _schoolClient = schoolClient,
+       _outboxStore = outboxStore ?? openTeacherOutboxStore(),
+       _outboxContext = outboxContext;
+
+  final String evaluationId;
+  final LiveEvaluationsController _evaluations;
+  final TeacherContextController _teacherContext;
+  final SchoolClientFactory _schoolClient;
+  final TeacherOutboxStore _outboxStore;
+  final TeacherOutboxContext? Function()? _outboxContext;
+
+  final evaluation = LxVar<LiveEvaluationSummary?>(null);
+  final students = LxVar<List<LiveMarkRow>>(const []);
+  final ungradedOnly = LxVar(false);
+  final errorMessage = LxVar('');
+  final saveMessage = LxVar('');
+  String mentionLabel(String id) =>
+      (mentions.where((range) => range['id'] == id).firstOrNull?['letter']
+          as String?) ??
+      students.value
+          .where((row) => row.mentionId == id)
+          .firstOrNull
+          ?.mentionCode ??
+      id;
+
+  final gradingPolicy = LxVar<GradingPolicyView?>(null);
+  bool get mentionFirst => gradingPolicy.value?.mentionFirst ?? false;
+  List<Map<String, dynamic>> get mentions =>
+      gradingPolicy.value?.intervals ?? const [];
+  final marksStatus = LxVar('draft');
+  final canRequestCorrection = LxVar(false);
+  final corrections = LxVar<List<Map<String, dynamic>>>(const []);
+  final canSubmit = LxVar(false);
+  int _revision = 0;
+  final writing = LxVar(false);
+  final submitting = LxVar(false);
+  final pendingScoreInputs = LxVar<Map<String, String>>({});
+  Future<void> _draftWrites = Future<void>.value();
+  bool get _saving => writing.value;
+  set _saving(bool value) {
+    if (!isClosed) writing(value);
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    autoDispose(evaluation);
+    autoDispose(students);
+    autoDispose(ungradedOnly);
+    autoDispose(errorMessage);
+    autoDispose(saveMessage);
+    autoDispose(marksStatus);
+    autoDispose(gradingPolicy);
+    autoDispose(canRequestCorrection);
+    autoDispose(writing);
+    autoDispose(submitting);
+    autoDispose(pendingScoreInputs);
+    autoDispose(corrections);
+    autoDispose(canSubmit);
+    evaluation(_evaluations.evaluationById(evaluationId));
+    unawaited(load());
+  }
+
+  List<LiveMarkRow> get visibleStudents {
+    final rows = students.value;
+    if (!ungradedOnly.value) {
+      return rows;
+    }
+    return rows
+        .where(
+          (row) =>
+              row.score == null &&
+              row.mentionId == null &&
+              row.designation != 'absent' &&
+              row.designation != 'exempt',
+        )
+        .toList();
+  }
+
+  Future<void> load() async {
+    errorMessage('');
+    await runTask(() async {
+      try {
+        final client = _schoolClient();
+        // A marks deep link must resolve independently of the class/period
+        // currently selected in the evaluations list. The review query enforces
+        // access to this assessment before any roster is displayed.
+        final review = await client.getAssessmentMarksReview({
+          'assessmentId': evaluationId,
+        });
+        final sheet = (review['assessment'] as Map).cast<String, dynamic>();
+        var summary = _evaluations.evaluationById(evaluationId);
+        if (summary == null) {
+          final classId = sheet['classGroupId'] as String;
+          final classSubjectId = sheet['classSubjectId'] as String;
+          final classGroup = await client.classGroups.get(classId);
+          final classSubject = await client.classSubjects.get(classSubjectId);
+          final subject = await client.subjects.get(
+            classSubject['subjectId'] as String,
+          );
+          summary = LiveEvaluationSummary(
+            id: evaluationId,
+            title: sheet['title'] as String,
+            classGroupId: classId,
+            classSubjectId: classSubjectId,
+            periodId: sheet['periodId'] as String,
+            classLabel: classGroup['name'] as String? ?? classId,
+            subjectLabel: subject['name'] as String? ?? classSubjectId,
+            gradedCount: (review['results'] as List).length,
+            totalStudents: (review['students'] as List).length,
+            maxScore: (sheet['maxScore'] as num).toDouble(),
+            kind: sheet['kind'] as String? ?? 'quiz',
+            date: sheet['startsAt'] as String?,
+          );
+        }
+        gradingPolicy(
+          review['gradingPolicy'] is Map
+              ? GradingPolicyView(
+                  Map<String, dynamic>.from(review['gradingPolicy'] as Map),
+                )
+              : null,
+        );
+        evaluation(summary);
+        _revision = (sheet['marksRevision'] as num).toInt();
+        marksStatus(sheet['marksStatus'] as String);
+        canSubmit((review['allowedActions'] as Map)['submit'] == true);
+        canRequestCorrection(
+          (review['allowedActions'] as Map)['requestCorrection'] == true,
+        );
+        corrections(
+          (review['corrections'] as List? ?? [])
+              .map((row) => (row as Map).cast<String, dynamic>())
+              .toList(),
+        );
+        final published = (review['publishedResultIds'] as List? ?? [])
+            .cast<String>()
+            .toSet();
+        _outboxStore.bindContext(_outboxContext?.call());
+        final pending = await _outboxStore.listPending();
+        for (final entry in pending.where(
+          (row) =>
+              row.kind == TeacherOutboxKind.mark &&
+              row.payload['assessmentId'] == evaluationId,
+        )) {
+          final next =
+              ((entry.payload['expectedRevision'] as num?)?.toInt() ??
+                  _revision) +
+              1;
+          if (marksStatus.value == 'draft' && next > _revision) {
+            _revision = next;
+          }
+        }
+        final studentRows = (review['students'] as List).cast<Map>();
+        final results = (review['results'] as List).cast<Map>();
+        final scoreByStudent = {
+          for (final row in results)
+            if (row['studentId'] is String) row['studentId'] as String: row,
+        };
+        final roster = studentRows.map((row) {
+          final studentId = row['id'] as String;
+          final firstName = row['firstName'] as String? ?? '';
+          final lastName = row['lastName'] as String? ?? '';
+          final fullName = '$firstName $lastName'.trim();
+          final displayName = fullName.isEmpty ? studentId : fullName;
+          final result = scoreByStudent[studentId];
+          return LiveMarkRow(
+            studentId: studentId,
+            fullName: displayName,
+            initials: personInitials(displayName),
+            photoUrl: row['photoUrl'] as String?,
+            resultId: result?['id'] as String?,
+            score: (result?['score'] as num?)?.toDouble(),
+            mentionId: result?['mentionId'] as String?,
+            mentionCode: (result?['originalEntry'] as Map?)?['code'] as String?,
+            designation: result?['designation'] as String?,
+            marksLocked: marksStatus.value != 'draft',
+            published: published.contains(result?['id']),
+            notes: result?['notes'] as String?,
+            deadlineStatus: result?['status'] as String?,
+          );
+        }).toList()..sort((a, b) => a.fullName.compareTo(b.fullName));
+        students(roster);
+        for (final entry in pending.where(
+          (row) =>
+              row.kind == TeacherOutboxKind.mark &&
+              row.payload['assessmentId'] == evaluationId,
+        )) {
+          if (marksStatus.value != 'draft') {
+            await _outboxStore.upsert(
+              entry.copyWith(
+                state: TeacherOutboxState.conflict,
+                lastError: systemL10n().marksResolveConflicts,
+              ),
+            );
+            saveMessage(systemL10n().marksResolveConflicts);
+            continue;
+          }
+          _patchRow(
+            entry.payload['studentId'] as String,
+            resultId: entry.payload['id'] as String?,
+            score: (entry.payload['score'] as num?)?.toDouble(),
+            mentionId: entry.payload['mentionId'] as String?,
+            designation: entry.payload['designation'] as String?,
+            syncState: teacherOutboxEntryIsReplayable(entry)
+                ? MarkSyncState.pending
+                : MarkSyncState.failed,
+          );
+        }
+      } on api.ApiError catch (error) {
+        errorMessage(systemL10n().couldNotLoadMarks('$error'));
+      } on Object catch (error) {
+        errorMessage(systemL10n().couldNotLoadMarks('$error'));
+      }
+    });
+  }
+
+  Future<void> saveScore(
+    String studentId,
+    double? score, {
+    String? designation,
+    String? mentionId,
+  }) {
+    if (isClosed || submitting.value) return Future<void>.value();
+    final write = _draftWrites.then(
+      (_) => _saveScore(
+        studentId,
+        score,
+        designation: designation,
+        mentionId: mentionId,
+      ),
+    );
+    _draftWrites = write.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace _) {},
+    );
+    return write;
+  }
+
+  Future<void> _saveScore(
+    String studentId,
+    double? score, {
+    String? designation,
+    String? mentionId,
+  }) async {
+    if (isClosed || _saving || marksStatus.value != 'draft') return;
+    final summary = evaluation.value;
+    if (summary == null) {
+      return;
+    }
+    if (score != null &&
+        (!score.isFinite || score < 0 || score > summary.maxScore)) {
+      saveMessage(systemL10n().maxScoreMustBePositive);
+      return;
+    }
+    final row = students.value
+        .where((item) => item.studentId == studentId)
+        .firstOrNull;
+    if (row == null || row.marksLocked) {
+      if (row?.marksLocked ?? false) {
+        saveMessage(systemL10n().publishedReportCardImmutable);
+      }
+      return;
+    }
+    if (!_teacherContext.taughtClassSubjectIds.value.contains(
+          summary.classSubjectId,
+        ) &&
+        _teacherContext.taughtClassSubjectIds.value.isNotEmpty) {
+      saveMessage(systemL10n().couldNotSaveMark('403'));
+      return;
+    }
+    if (mentionFirst &&
+        (score != null ||
+            (mentionId != null &&
+                !mentions.any((range) => range['id'] == mentionId)))) {
+      saveMessage(systemL10n().marksInvalidNumber);
+      return;
+    }
+    saveMessage('');
+    _outboxStore.bindContext(_outboxContext?.call());
+    final resultId = row.resultId ?? 'ar-${summary.id}-$studentId';
+    _patchRow(
+      studentId,
+      resultId: resultId,
+      score: score,
+      mentionId: mentionId,
+      designation:
+          designation ?? (score != null || mentionId != null ? 'scored' : null),
+      syncState: MarkSyncState.pending,
+    );
+    final requestId = newSchoolRequestId();
+    final idempotencyKey = requestId;
+    final payload = assessmentResultPayload(
+      assessmentId: summary.id,
+      studentId: studentId,
+      score: score,
+      mentionId: mentionId,
+      designation: designation,
+      resultId: resultId,
+      requestId: requestId,
+      expectedRevision: _revision,
+      expectedGradingRevision: gradingPolicy.value?.revision ?? 0,
+    );
+    _saving = true;
+    try {
+      if ((await _outboxStore.listPending()).any(
+        (entry) =>
+            entry.kind == TeacherOutboxKind.mark &&
+            entry.payload['assessmentId'] == evaluationId,
+      )) {
+        throw Exception('offline pending marks');
+      }
+      if (isClosed) return;
+      await _schoolClient().recordAssessmentResult(payload);
+      if (isClosed) return;
+      _revision++;
+      await _outboxStore.removeByIdempotencyKey(idempotencyKey);
+      if (isClosed) return;
+      _patchRow(
+        studentId,
+        resultId: resultId,
+        score: score,
+        mentionId: mentionId,
+        designation:
+            designation ??
+            (score != null || mentionId != null ? 'scored' : null),
+        syncState: MarkSyncState.synced,
+      );
+      _evaluations.patchGradedCount(
+        summary.id,
+        students.value
+            .where(
+              (item) =>
+                  item.score != null ||
+                  item.mentionId != null ||
+                  item.designation == 'absent' ||
+                  item.designation == 'exempt',
+            )
+            .length,
+      );
+    } on Object catch (error) {
+      if (isClosed) return;
+      final retryable = isRetryableTeacherWriteFailure(error);
+      if (retryable) _revision++;
+      await _outboxStore.enqueue(
+        buildTeacherOutboxEntry(
+          id: requestId,
+          kind: TeacherOutboxKind.mark,
+          idempotencyKey: idempotencyKey,
+          payload: payload,
+          lastError: '$error',
+          state: retryable
+              ? TeacherOutboxState.pending
+              : TeacherOutboxState.conflict,
+        ),
+      );
+      if (isClosed) return;
+      _patchRow(
+        studentId,
+        resultId: resultId,
+        score: score,
+        mentionId: mentionId,
+        designation:
+            designation ??
+            (score != null || mentionId != null ? 'scored' : null),
+        syncState: retryable ? MarkSyncState.pending : MarkSyncState.failed,
+      );
+      saveMessage(
+        retryable
+            ? systemL10n().attendanceSavedLocally
+            : systemL10n().couldNotSaveMark('$error'),
+      );
+    } finally {
+      _saving = false;
+    }
+  }
+
+  Future<void> fillUngraded(double score) async {
+    if (isClosed) return;
+    for (final row in students.value) {
+      if (isClosed) return;
+      if (row.score != null ||
+          row.mentionId != null ||
+          row.designation == 'absent' ||
+          row.designation == 'exempt' ||
+          row.marksLocked) {
+        continue;
+      }
+      await saveScore(row.studentId, score);
+    }
+  }
+
+  Future<void> clearUnlocked() async {
+    if (isClosed) return;
+    for (final row in students.value) {
+      if (isClosed) return;
+      if (row.marksLocked || (row.score == null && row.mentionId == null)) {
+        continue;
+      }
+      await saveScore(row.studentId, null);
+    }
+  }
+
+  void trackScoreInput(String studentId, String value) {
+    final normalized = value.trim().replaceAll(',', '.');
+    final score = double.tryParse(normalized);
+    final saved = students.value
+        .where((row) => row.studentId == studentId)
+        .firstOrNull;
+    final inputs = {...pendingScoreInputs.value};
+    if (saved != null &&
+        (normalized.isEmpty || score != null) &&
+        score == saved.score) {
+      inputs.remove(studentId);
+    } else {
+      inputs[studentId] = value;
+    }
+    pendingScoreInputs(inputs);
+  }
+
+  void _patchRow(
+    String studentId, {
+    String? resultId,
+    double? score,
+    String? designation,
+    String? mentionId,
+    MarkSyncState? syncState,
+  }) {
+    final entered = pendingScoreInputs.value[studentId];
+    if (entered != null) {
+      final normalized = entered.trim().replaceAll(',', '.');
+      if ((normalized.isEmpty || double.tryParse(normalized) != null) &&
+          double.tryParse(normalized) == score) {
+        pendingScoreInputs({...pendingScoreInputs.value}..remove(studentId));
+      }
+    }
+    students([
+      for (final item in students.value)
+        if (item.studentId == studentId)
+          item.copyWith(
+            resultId: resultId,
+            score: score,
+            mentionId: mentionId,
+            designation: designation,
+            syncState: syncState,
+          )
+        else
+          item,
+    ]);
+  }
+
+  Future<void> saveScoreText(String studentId, String value) async {
+    final normalized = value.trim().replaceAll(',', '.');
+    final score = double.tryParse(normalized);
+    if (normalized.isNotEmpty && (score == null || !score.isFinite)) {
+      saveMessage(
+        systemL10n().couldNotSaveMark(systemL10n().marksInvalidNumber),
+      );
+      return;
+    }
+    await saveScore(studentId, score);
+  }
+
+  Future<Map<String, dynamic>> _onlineCommand(
+    String command,
+    Map<String, dynamic> payload,
+    Future<Map<String, dynamic>> Function(Map<String, dynamic>) send,
+  ) async {
+    final context = _outboxContext?.call()?.toJson();
+    final key =
+        'marks-online:${base64Url.encode(utf8.encode(jsonEncode([context, evaluationId, command, payload])))}';
+    final prefs = await SharedPreferences.getInstance();
+    final requestId = prefs.getString(key) ?? newSchoolRequestId();
+    await prefs.setString(key, requestId);
+    try {
+      final result = await send({...payload, 'requestId': requestId});
+      await prefs.remove(key);
+      return result;
+    } on Object catch (error) {
+      if (!isRetryableTeacherWriteFailure(error)) await prefs.remove(key);
+      rethrow;
+    }
+  }
+
+  Future<bool> requestCorrection(
+    List<Map<String, dynamic>> changes,
+    String reason, {
+    Map<String, dynamic>? correction,
+  }) async {
+    if (_saving ||
+        (correction == null && !canRequestCorrection.value) ||
+        reason.trim().isEmpty ||
+        changes.isEmpty) {
+      return false;
+    }
+    for (final change in changes) {
+      final proposed = change['proposed'] as Map;
+      final score = proposed['score'] as num?;
+      if (proposed['designation'] == 'scored' &&
+          (mentionFirst
+              ? !mentions.any((range) => range['id'] == proposed['mentionId'])
+              : (score == null ||
+                    !score.isFinite ||
+                    score < 0 ||
+                    score > (evaluation.value?.maxScore ?? 0)))) {
+        saveMessage(systemL10n().marksInvalidNumber);
+        return false;
+      }
+    }
+    _saving = true;
+    try {
+      if (correction == null) {
+        await _onlineCommand('request', {
+          'assessmentId': evaluationId,
+          'expectedRevision': _revision,
+          'expectedGradingRevision': gradingPolicy.value?.revision ?? 0,
+          'reason': reason.trim(),
+          'changes': changes,
+        }, _schoolClient().requestAssessmentMarksCorrection);
+      } else {
+        await _onlineCommand(
+          'revise',
+          {
+            'correctionId': correction['id'],
+            'assessmentId': evaluationId,
+            'expectedRevision': _revision,
+            'expectedGradingRevision': gradingPolicy.value?.revision ?? 0,
+            'expectedVersion': correction['version'],
+            'reason': reason.trim(),
+            'changes': changes,
+          },
+          (body) => _schoolClient().runCommand(
+            'revise-assessment-marks-correction',
+            body,
+          ),
+        );
+      }
+      await load();
+      saveMessage(systemL10n().marksCorrectionRequested);
+      return true;
+    } on Object catch (error) {
+      if (error is api.ApiError &&
+          (error.status == 409 || error.status == 412)) {
+        await load();
+      }
+      saveMessage(systemL10n().couldNotSaveMark('$error'));
+      return false;
+    } finally {
+      _saving = false;
+    }
+  }
+
+  Future<void> withdrawCorrection(Map<String, dynamic> correction) async {
+    if (_saving ||
+        (correction['allowedActions'] as Map?)?['withdraw'] != true) {
+      return;
+    }
+    _saving = true;
+    try {
+      await _onlineCommand('withdraw', {
+        'correctionId': correction['id'],
+        'expectedVersion': correction['version'],
+      }, _schoolClient().withdrawAssessmentMarksCorrection);
+      await load();
+    } on Object catch (error) {
+      saveMessage(systemL10n().couldNotSaveMark('$error'));
+    } finally {
+      _saving = false;
+    }
+  }
+
+  Future<void> submitMarks() async {
+    if (isClosed ||
+        submitting.value ||
+        pendingScoreInputs.value.isNotEmpty ||
+        marksStatus.value != 'draft') {
+      return;
+    }
+    submitting(true);
+    try {
+      await _draftWrites;
+      if (isClosed) return;
+      if (_saving) return;
+      _saving = true;
+      _outboxStore.bindContext(_outboxContext?.call());
+      final entries = await _outboxStore.listPending();
+      final client = _schoolClient();
+      for (final entry in entries.where(
+        (entry) =>
+            entry.kind == TeacherOutboxKind.mark &&
+            entry.payload['assessmentId'] == evaluationId,
+      )) {
+        if (!teacherOutboxEntryIsReplayable(entry)) {
+          throw StateError(systemL10n().marksResolveConflicts);
+        }
+        try {
+          await syncTeacherOutboxEntry(client, entry);
+          await _outboxStore.remove(entry.id);
+        } on Object catch (error) {
+          await _outboxStore.upsert(
+            entry.copyWith(
+              state: isRetryableTeacherWriteFailure(error)
+                  ? TeacherOutboxState.failed
+                  : TeacherOutboxState.conflict,
+              lastError: '$error',
+            ),
+          );
+          rethrow;
+        }
+      }
+      await load();
+      await _onlineCommand('submit', {
+        'assessmentId': evaluationId,
+        'expectedRevision': _revision,
+      }, client.submitAssessmentMarks);
+      await load();
+      saveMessage(systemL10n().marksSubmitted);
+    } on Object catch (error) {
+      saveMessage('Soumission impossible : $error');
+    } finally {
+      _saving = false;
+      if (!isClosed) submitting(false);
+    }
+  }
+}

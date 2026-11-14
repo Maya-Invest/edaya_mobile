@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:edaya_auth/edaya_auth.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 import '../../l10n/l10n_extension.dart';
 import 'otp_delivery_state.dart';
@@ -27,7 +26,7 @@ class OtpDeliveryControls extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (AuthClient.testOtpAccess && state.canReveal) ...[
+          if (!state.usesTestAutofill && state.canReveal) ...[
             Text(context.tr.testingOnly),
             OutlinedButton(
               key: const Key('auth-test-reveal'),
@@ -58,14 +57,16 @@ class OtpDeliveryControls extends StatelessWidget {
               child: Text(context.tr.retryRequest),
             ),
           const SizedBox(height: 12),
-          Text(
-            status.channel == 'whatsapp'
-                ? context.tr.checkWhatsApp
-                : status.channel == 'sms'
-                ? context.tr.checkSms
-                : context.tr.checkEmailCode,
-          ),
-          Text(context.tr.useMostRecentCode),
+          if (!state.isTestAutofilled(state.input.text)) ...[
+            Text(
+              status.channel == 'whatsapp'
+                  ? context.tr.checkWhatsApp
+                  : status.channel == 'sms'
+                  ? context.tr.checkSms
+                  : context.tr.checkEmailCode,
+            ),
+            Text(context.tr.useMostRecentCode),
+          ],
           if (status.delivery == 'failed') Text(context.tr.codeDeliveryFailed),
           if (status.delivery == 'uncertain')
             Text(context.tr.codeDeliveryUncertain),

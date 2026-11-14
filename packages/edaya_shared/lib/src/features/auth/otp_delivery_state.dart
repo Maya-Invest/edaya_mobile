@@ -1,12 +1,21 @@
 import 'dart:async';
 import 'package:edaya_auth/edaya_auth.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 /// Owned by the login or linking controller for the lifetime of its route.
 class OtpDeliveryState with WidgetsBindingObserver {
-  OtpDeliveryState(this.auth, {required this.active, required this.busy});
+  OtpDeliveryState(
+    this.auth, {
+    required this.active,
+    required this.busy,
+    required this.input,
+    required this.onInputChanged,
+  });
   final AuthClient auth;
+  final TextEditingController input;
+  final ValueChanged<String> onInputChanged;
   final bool Function() active, busy;
   final status = LxVar<OtpStatus?>(null);
   final remaining = LxVar(0);
@@ -20,9 +29,30 @@ class OtpDeliveryState with WidgetsBindingObserver {
   int _revealGeneration = 0;
   bool _visible = true;
   bool get visible => _visible;
+  bool get usesTestAutofill => auth.enableTestOtpInDebug && auth.testOtpEnabled;
+  bool isTestAutofilled(String value) =>
+      usesTestAutofill && testCode.value == value && value.isNotEmpty;
+
+  void _writeInput(String value) {
+    input.value = TextEditingValue(
+      text: value,
+      selection: TextSelection.collapsed(offset: value.length),
+    );
+    onInputChanged(value);
+  }
+
   set visible(bool value) {
+    if (value == _visible) return;
     _visible = value;
-    if (!value) clearTestCode();
+    if (value) return;
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_closed && !_visible) clearTestCode();
+      });
+    } else {
+      clearTestCode();
+    }
   }
 
   bool get canReveal =>
@@ -30,7 +60,7 @@ class OtpDeliveryState with WidgetsBindingObserver {
           WidgetsBinding.instance.lifecycleState ==
               AppLifecycleState.resumed) &&
       !expired.value &&
-      AuthClient.testOtpAccess &&
+      auth.testOtpEnabled &&
       testingAvailable.value &&
       active() &&
       visible &&
@@ -40,6 +70,7 @@ class OtpDeliveryState with WidgetsBindingObserver {
           DateTime.now().millisecondsSinceEpoch + status.value!.clockOffset;
   void clearTestCode() {
     _revealGeneration++;
+    if (isTestAutofilled(input.text)) _writeInput('');
     testCode('');
     revealing(false);
     revealFailed(false);
@@ -69,6 +100,10 @@ class OtpDeliveryState with WidgetsBindingObserver {
           code.expiresAt >
               DateTime.now().millisecondsSinceEpoch +
                   status.value!.clockOffset) {
+        if (usesTestAutofill) {
+          if (input.text.isNotEmpty) return;
+          _writeInput(code.otp);
+        }
         testCode(code.otp);
       } else {
         revealFailed(true);
@@ -81,7 +116,7 @@ class OtpDeliveryState with WidgetsBindingObserver {
   }
 
   Future<void> _discoverTesting() async {
-    if (!AuthClient.testOtpAccess) return;
+    if (!auth.testOtpEnabled) return;
     try {
       final available = await auth.testingOtpAvailable();
       if (!_closed) testingAvailable(available);
@@ -157,6 +192,14 @@ class OtpDeliveryState with WidgetsBindingObserver {
           !busy() &&
           auth.pendingChallenge == challenge) {
         refresh();
+        if (usesTestAutofill && visible && input.text.isEmpty) {
+          if (!testingAvailable.value) await _discoverTesting();
+          if (!_closed &&
+              auth.pendingChallenge == challenge &&
+              canReveal &&
+              testCode.value.isEmpty)
+            await reveal();
+        }
       }
     } catch (_) {
       /* Keep the current challenge on an unavailable status request. */

@@ -23,6 +23,8 @@ import 'package:levit_flutter/levit_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'support/integration_test_lifecycle.dart';
 import 'support/live_api_test_binding.dart';
+import '../../../../packages/edaya_shared/test/support/submit_auth.dart';
+import '../../../../packages/edaya_shared/test/support/enter_focused_text.dart';
 
 Future<void> until(WidgetTester tester, Finder finder) async {
   final deadline = DateTime.now().add(const Duration(seconds: 30));
@@ -89,13 +91,17 @@ Future<void> main() async {
   }) async {
     await until(tester, find.byKey(const Key('auth-identifier')));
     email ??= GuardianPortalProfile.mariamKone.email;
-    await tester.enterText(find.byKey(const Key('auth-identifier')), email);
+    await enterFocusedText(
+      tester,
+      find.byKey(const Key('auth-identifier')),
+      email,
+    );
     final since = DateTime.now();
-    await tester.tap(find.byKey(const Key('auth-submit')));
+    await submitAuth(tester);
     await until(tester, find.byKey(const Key('auth-code')));
     final code = await capturedOtp(email, 'email', since);
-    await tester.enterText(find.byKey(const Key('auth-code')), code);
-    await tester.tap(find.byKey(const Key('auth-submit')));
+    await enterFocusedText(tester, find.byKey(const Key('auth-code')), code);
+    await submitAuth(tester);
     await until(tester, find.byType(destination));
   }
 
@@ -146,8 +152,14 @@ Future<void> main() async {
       final profile = session.availableProfiles.value.first;
       scope.find<GoRouter>().go('/profiles');
       await until(tester, find.byType(ProfilePickerPage));
-      await until(tester, find.text(profile.label));
-      await tester.tap(find.text(profile.label));
+      final choice = find
+          .descendant(
+            of: find.byType(ProfilePickerPage),
+            matching: find.text(profile.label),
+          )
+          .first;
+      await until(tester, choice);
+      await tester.tap(choice);
       await until(tester, find.byType(HomePage));
       final deadline = DateTime.now().add(const Duration(seconds: 20));
       while (session.grants.value?.actorId != profile.actorId &&
@@ -171,6 +183,7 @@ Future<void> main() async {
       final id = fixtureId('invited-guardian');
       final email = '$id@integration.edaya.test';
       await owner.schoolClient.registerGuardian({
+        'requestId': fixtureId('register'),
         'id': id,
         'schoolId': school.schoolId,
         'firstName': 'Invited',
@@ -216,6 +229,7 @@ Future<void> main() async {
       final id = fixtureId('security-guardian');
       final email = '$id@integration.edaya.test';
       await owner.schoolClient.registerGuardian({
+        'requestId': fixtureId('register'),
         'id': id,
         'schoolId': school.schoolId,
         'firstName': 'Security',
@@ -264,7 +278,7 @@ Future<void> main() async {
         find.byKey(const Key('auth-code')),
         enrollmentCode,
       );
-      await tester.tap(find.byKey(const Key('auth-submit')));
+      await submitAuth(tester);
       await until(tester, find.byKey(const Key('auth-recovery-codes')));
       final codes = tester
           .widget<SelectableText>(find.byKey(const Key('auth-recovery-codes')))
@@ -272,7 +286,7 @@ Future<void> main() async {
           .split('\n');
       expect(codes.length, greaterThan(1));
       await tester.ensureVisible(find.byKey(const Key('auth-submit')));
-      await tester.tap(find.byKey(const Key('auth-submit')));
+      await submitAuth(tester);
       await until(tester, find.byType(AccountSecurityPage));
       Navigator.of(tester.element(find.byType(AccountSecurityPage))).pop();
 
@@ -302,14 +316,14 @@ Future<void> main() async {
         find.byKey(const Key('auth-code')),
         authenticatorCode(secret),
       );
-      await tester.tap(find.byKey(const Key('auth-submit')));
+      await submitAuth(tester);
       await until(tester, find.byType(HomePage));
       await logout();
       await primaryProof();
       await tester.tap(find.byKey(const Key('auth-use-recovery')));
       await tester.pump();
       await tester.enterText(find.byKey(const Key('auth-code')), codes.first);
-      await tester.tap(find.byKey(const Key('auth-submit')));
+      await submitAuth(tester);
       await until(tester, secretField);
       final replacementBy = DateTime.now().add(const Duration(seconds: 15));
       while ((tester.widget<SelectableText>(secretField).data ?? '').isEmpty &&
@@ -326,17 +340,17 @@ Future<void> main() async {
         find.byKey(const Key('auth-code')),
         authenticatorCode(replacementSecret),
       );
-      await tester.tap(find.byKey(const Key('auth-submit')));
+      await submitAuth(tester);
       await until(tester, find.byKey(const Key('auth-recovery-codes')));
       await tester.ensureVisible(find.byKey(const Key('auth-submit')));
-      await tester.tap(find.byKey(const Key('auth-submit')));
+      await submitAuth(tester);
       await until(tester, find.byType(HomePage));
       await logout();
       await primaryProof();
       await tester.tap(find.byKey(const Key('auth-use-recovery')));
       await tester.pump();
       await tester.enterText(find.byKey(const Key('auth-code')), codes.first);
-      await tester.tap(find.byKey(const Key('auth-submit')));
+      await submitAuth(tester);
       final controller = tester
           .element(find.byKey(const Key('auth-code')))
           .levit

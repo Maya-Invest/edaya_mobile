@@ -14,6 +14,7 @@ class CalendarWeekStrip extends StatelessWidget {
     required this.onSelected,
     this.onPreviousWeek,
     this.onNextWeek,
+    this.daySpacing = 0,
   });
 
   final List<DateTime> days;
@@ -21,6 +22,9 @@ class CalendarWeekStrip extends StatelessWidget {
   final ValueChanged<DateTime> onSelected;
   final VoidCallback? onPreviousWeek;
   final VoidCallback? onNextWeek;
+
+  /// Optional separation between day buttons; minimum touch targets are retained.
+  final double daySpacing;
 
   @override
   Widget build(BuildContext context) {
@@ -58,13 +62,15 @@ class CalendarWeekStrip extends StatelessWidget {
             final width = math.max(
               kMinInteractiveDimension *
                   math.max(1, MediaQuery.textScalerOf(context).scale(1)),
-              constraints.maxWidth / days.length,
+              (constraints.maxWidth - daySpacing * (days.length - 1)) /
+                  days.length,
             );
             return SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  for (final day in days)
+                  for (final (index, day) in days.indexed) ...[
+                    if (index > 0) SizedBox(width: daySpacing),
                     SizedBox(
                       width: width,
                       child: Semantics(
@@ -111,6 +117,7 @@ class CalendarWeekStrip extends StatelessWidget {
                         ),
                       ),
                     ),
+                  ],
                 ],
               ),
             );

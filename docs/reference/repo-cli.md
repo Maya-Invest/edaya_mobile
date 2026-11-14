@@ -15,7 +15,7 @@ dart run edaya_repo:repo ci integration
 
 Dart generates school and authentication contracts from the acquired backend's tracked OpenAPI definition into ignored `packages/edaya_api_client/lib/src/generated`. Handwritten runtime code, generator and generator test fixtures remain tracked. Generated binding metadata is in `.generated/client-bindings.json`. A clean checkout must run preparation before application analysis, tests or builds. Bun is needed only when running backend integration services/tools.
 
-API, guardian and teacher integration suites are mandatory. Their machine-event gate rejects empty/incomplete discovery, missing or duplicate scenarios, skips, runner errors, stale results and unmapped routes. JSON output is sanitized. Run `dart run edaya_repo:repo ci validate-integration` to validate existing results without executing suites.
+API, guardian, teacher and teacher_v2 integration suites are mandatory. Their machine-event gate rejects empty/incomplete discovery, missing or duplicate scenarios, skips, runner errors, stale results and unmapped routes. JSON output is sanitized. Run `dart run edaya_repo:repo ci validate-integration` to validate existing results without executing suites.
 
 ## Android releases
 
@@ -30,7 +30,7 @@ Brand tokens, galleries, design review, keystore setup and SVG/native icon gener
 ```text
 Usage: dart run edaya_repo:repo <command>
 check                       Prepared client and brand integrity
- test unit|tooling|integration [api|guardian|teacher]
+ test unit|tooling|integration [api|guardian|teacher|teacher_v2]
  build staging|production   Signed APK/AAB artifacts
  generate client [staging|production] [--ref REF | --backend-root PATH]
  generate brand|gallery|assets|commands|reviewed-brand-baseline

@@ -225,3 +225,41 @@ Profile exposes a Signature action for the current teacher and school. Its route
 Replacement creates a new private upload; failures preserve the saved signature and draft. Retry reuses the upload/command identity where safe. Removal requires confirmation explaining that already requested and issued documents retain their signatures. Profile/school changes and sign-out discard drafts, editor images and retry state and ignore late responses. Controls require French/English labels and semantics. Draw/crop editors belong to the teacher feature, rather than the shared portrait editor, which exports square JPEGs.
 
 The signature drawing editor uses the `signature` package and its controller for drawing, undo, clear, and transparent PNG export. Exported images pass through the shared signature bounds and size normalization before preview and save.
+
+## Teacher v2 navigation
+
+The copy in `apps/teacher_v2` uses the existing EDAYA tokens, Poppins/Inter and components. Home is the navigation root. Full destinations have **Retour**; records, forms and pickers use one bottom sheet with **Fermer**. Browser Back dismisses that sheet before leaving the destination. Sheet closure retains the invoking list, scroll position and focus. Dirty forms ask whether to continue or abandon the entry.
+
+### Exact assignment context
+
+A workspace is school + published academic year + class + subject. A missing subject is valid only for a titulaire who has no teaching assignment in that class. The single context sheet displays school headings with selectable class–subject entries. It adds **Titulaire** to teaching entries when relevant and uses a class-only titulaire entry only when no subject is taught there. School headings do not select a workspace. There is no all-class selection, separate school switcher or post-login chooser in teacher_v2.
+
+Restore the exact assignment per authenticated teacher, school and year. On first use choose the first eligible entry ordered by school, class and subject. Replace a revoked selection with a valid entry and explain the change. An empty assignment set shows an unavailable state. Switch school, grants, published year and assignment together; discard stale responses from the previous scope. The school year remains visible as read-only context. Original teacher and guardian selection flows are unchanged.
+
+### Home and destination availability
+
+**Mes espaces** appears on mobile and tablet. Equal `SurfaceCard` tiles use two phone columns and three tablet columns where space allows. **Enseignement** contains Agenda, Progression, Évaluations and Bulletins, in that order. **Vie en classe** contains Messages, Avis des familles and Incidents. Show Bulletins only to the selected class’s titulaire. Progression, Évaluations and Avis des familles require a subject. The upper-right **Mon profil** button in the Home app bar opens the account-wide profile, including for a teacher without an assignment. Teachers find pupils in the activity that needs them. Former class-list bookmarks return to Home and old individual pupil links open the identity sheet above Home.
+
+**Séances du jour** uses the same heading hierarchy as Mes espaces. Show eligible daily roll-call first, then the current and next lesson, or the next two today. Lessons follow the selected subject and actual lesson grants; class activities follow the class. Landscape tablet places daily work beside the grid; portrait places it above. Profile remains account-wide, lists assignments and presents settings once. School-wide notices remain under **Établissement**; unattributed feedback remains under **Sans classe précisée**.
+
+### Évaluations and Bulletins
+
+Évaluations opens on the pupil roster with **Période | Moyenne de la période / Évaluation | +**. Default to the current period and its average. The result picker puts the average first and evaluations newest first. Changing period or assignment returns to the average. Create/duplicate in a sheet with the selected teaching context and select the saved assessment. Use a compact accessible plus button at narrow widths and wrap the toolbar at enlarged text.
+
+Average rows use the authorized server subject-period summary: submitted official results, canonical coefficients and grading rules, active eligible pupils plus retained assessment pupils, contributing assessments and only the teacher's own subject-comment state. Draft marks and pending proposals do not change averages. No eligible result displays an unavailable value, never zero. Pupils without academic records remain visible. A prepared subject section is required to edit its appreciation. This view has no submission panel.
+
+An evaluation uses its authorized roster and submission snapshot. Its fixed bottom panel shows completion and **Soumettre les notes**, with enough list space for the final pupil. Initial submission flushes eligible writes and validates the current revision. Later changes require reasons and show official values beside pending proposals, using the existing idempotent correction commands.
+
+Bulletins is restricted to the selected class's titulaire. Its period picker opens the pupil list directly. Each pupil sheet shows all subject aggregates and teachers' appreciations, then the separately editable general comment. Subject appreciations are edited through Évaluations. Unprepared bulletins remain explicit in the list. Draft saves and published-comment approval rules remain unchanged, including **Approuvée · En attente de publication**. Stale snapshots are distinguished from current calculated results; viewing never generates or publishes documents.
+
+### Routes and design details
+
+Preserve existing deep links. Assessment links select their authorized teaching assignment and evaluation. Former subject-teacher bulletin links resolve to the subject average/comment view. Home lesson shortcuts open full pages; Agenda lessons use sheets. Pending proposals stay on their source records without a teacher approval-history destination.
+
+Home tiles use theme surface fills, 16dp token radii, soft shadows, primary-container icon wells, 16dp phone gutters and 24dp section spacing. Compact detail pages put the context switch below the title; wider pages put it in the title row. Agenda keeps previous/next-week chevrons, 4dp day spacing and scrollable 48dp day targets at narrow widths. Use **Cahier de texte** in French and **Logbook** in English.
+
+Current implementations are `workspace_home.dart`, `workspace_navigation.dart`, `teacher_gradebook_page.dart` and `workspace_classes.dart`. Chrome evidence and verification outcomes live in `bin/audits/edaya-teacher-ux-2026-11-03`.
+
+### Responsive detail workspaces in teacher_v2
+
+Home aligns its title and profile action with the assignment card. The localized profile action uses a leading account icon, a visible label, blue hover feedback and a keyboard focus outline. Wide detail pages retain the same Retour and Fermer navigation as phone pages. Progression pairs chapter coverage with dated cahiers. Gradebooks and bulletin rosters align pupil, results and status in columns at tablet widths. Expanded bulletin sheets pair subject results with the general comment, and average sheets pair official contributions with the appreciation. Messages separates conversations from school notices; survey, incident and lesson records pair related sections within their sheets. Account actions precede assignments and synchronization in reading order. At narrow widths and enlarged text these sections stack. Agenda retains its existing day and week layout.

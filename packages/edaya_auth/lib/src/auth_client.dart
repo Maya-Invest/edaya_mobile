@@ -58,6 +58,7 @@ class AuthClient {
     AuthBaseUrlProvider? baseUrlProvider,
     http.Client? client,
     CookieJar? cookieJar,
+    this.enableTestOtpInDebug = false,
   }) : _baseUrl = baseUrl,
        _baseUrlProvider = baseUrlProvider,
        _client = client ?? http.Client(),
@@ -518,20 +519,43 @@ class AuthClient {
     return const AuthResult.success(null);
   }
 
-  /// Explicitly enabled debug builds only; constant guards remove HTTP branches otherwise.
-  static const testOtpAccess =
-      bool.fromEnvironment('TEST_OTP_ACCESS') &&
+  final bool enableTestOtpInDebug;
+  static const _debugBuild =
       !bool.fromEnvironment('dart.vm.product') &&
       !bool.fromEnvironment('dart.vm.profile');
+  static const testOtpAccess =
+      _debugBuild && bool.fromEnvironment('TEST_OTP_ACCESS');
+
+  /// An explicit build flag takes precedence over the app's debug default.
+  bool get testOtpEnabled =>
+      _debugBuild &&
+      (const bool.hasEnvironment('TEST_OTP_ACCESS')
+          ? testOtpAccess
+          : enableTestOtpInDebug);
+
   Future<bool>? _testingDiscovery;
+  String? _testingOrigin;
   Future<bool> testingOtpAvailable() {
-    if (!testOtpAccess) return Future.value(false);
-    return _testingDiscovery ??= _discoverTestingOtp();
+    if (!testOtpEnabled) return Future.value(false);
+    if (_testingOrigin != baseUrl) {
+      _testingOrigin = baseUrl;
+      _testingDiscovery = null;
+    }
+    final origin = baseUrl;
+    return _testingDiscovery ??= _discoverTestingOtp().catchError((
+      Object error,
+    ) {
+      if (_testingOrigin == origin) _testingDiscovery = null;
+      throw error;
+    });
   }
 
   Future<bool> _discoverTestingOtp() async {
     final response = await _send('GET', '/edaya/testing/capabilities');
     final body = _decodeBody(response);
+    if (response.statusCode == 429 || response.statusCode >= 500) {
+      throw _readError(body);
+    }
     return response.statusCode == 200 &&
         body is Map &&
         body['otpAccess'] == true;
@@ -539,7 +563,7 @@ class AuthClient {
 
   Future<({String challenge, String otp, String channel, int expiresAt})?>
   revealTestOtp(String challenge) async {
-    if (!testOtpAccess) return null;
+    if (!testOtpEnabled) return null;
     final response = await _send('POST', '/edaya/testing/otp', {
       'challenge': challenge,
     });

@@ -115,6 +115,7 @@
   "signedInNoTeacherProfile": "Signed in, but no linked teacher profile. Run: bun seed --scope auth:link",
   "accountNotLinkedToStaff": "This account is not linked to a staff profile.",
   "accountNotLinkedToTeacher": "This account is not linked to a teacher profile.",
+  "navProfile": "Profile",
   "navHome": "Home",
   "navAgenda": "Agenda",
   "navClasses": "Classes",
@@ -1198,7 +1199,7 @@
   "familyFeedbackSlotCompleted": "Completed",
   "teacherTaskFamilyFeedback": "Family feedback",
   "teacherTaskAttendance": "Attendance to record",
-  "teacherTaskLogbook": "Lesson log",
+  "teacherTaskLogbook": "Logbook",
   "teacherTaskMarks": "Marks to enter",
   "chooseSchool": "Choose a school",
   "teacherTaskReportComments": "Report comments",
@@ -1271,6 +1272,7 @@
   },
   "retryRequest": "Retry request",
   "testingOnly": "Testing only",
+  "testCodeAutofilled": "Test mode is on. Your verification code was filled in automatically.",
   "showTestCode": "Show test code",
   "copyTestCode": "Copy",
   "testCodeUnavailable": "Test code unavailable",
@@ -1395,5 +1397,8 @@
   "teacherQuickLogin": "Sign in with a quick code",
   "teacherQuickHint": "Enter the code sent by your school.",
   "teacherQuickLabel": "8-character teacher code",
-  "teacherQuickInvalid": "Invalid or expired code."
+  "teacherQuickInvalid": "Invalid or expired code.",
+  "logbookNotSaved": "Logbook not saved",
+  "logbookCompleted": "Logbook completed",
+  "noCompletedLogbook": "No completed logbook"
 }

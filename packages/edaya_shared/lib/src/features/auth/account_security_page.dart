@@ -22,6 +22,8 @@ class AccountSecurityController extends LevitController
   final codeText = TextEditingController();
   late final delivery = OtpDeliveryState(
     auth,
+    input: codeText,
+    onInputChanged: code.call,
     active: () => challengeSent.value,
     busy: () => isBusy.value,
   );
@@ -154,7 +156,8 @@ class AccountSecurityController extends LevitController
 }
 
 class AccountSecurityPage extends LScopedView<AccountSecurityController> {
-  const AccountSecurityPage({super.key});
+  const AccountSecurityPage({super.key, this.embedded = false});
+  final bool embedded;
   @override
   AccountSecurityController onConfigScope(LevitScope scope) => scope.put(
     () => AccountSecurityController(
@@ -165,7 +168,7 @@ class AccountSecurityPage extends LScopedView<AccountSecurityController> {
   @override
   Widget buildView(BuildContext context, AccountSecurityController controller) {
     return Scaffold(
-      appBar: AppBar(title: Text(context.tr.accountSecurity)),
+      appBar: embedded ? null : AppBar(title: Text(context.tr.accountSecurity)),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
@@ -265,7 +268,14 @@ class AccountSecurityPage extends LScopedView<AccountSecurityController> {
               controller: controller.codeText,
               enabled: !controller.isBusy.value,
               onChanged: controller.code.call,
-              decoration: InputDecoration(labelText: context.tr.otpLabel),
+              decoration: InputDecoration(
+                labelText: context.tr.otpLabel,
+                helperText:
+                    controller.delivery.isTestAutofilled(controller.code.value)
+                    ? context.tr.testCodeAutofilled
+                    : null,
+                helperMaxLines: 3,
+              ),
             ),
           if (!controller.challengeSent.value &&
               controller.delivery.remaining.value > 0)

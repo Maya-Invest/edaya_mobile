@@ -8,7 +8,7 @@ A lost or unavailable HTTP response retains its request ID. `canRetryOtpRequest`
 
 `linkIdentifier` uses the same flow and requires a recent completed session. OTP state, pending request IDs, authenticator secrets and recovery codes stay in memory. Only completed renewal credentials are persisted by application session storage. Existing verification, MFA, recovery and API-token methods retain their behavior.
 
-Explicit test access uses `--dart-define=TEST_OTP_ACCESS=true` in debug builds only. `testingOtpAvailable()` discovers capabilities once; `revealTestOtp(challenge)` returns a transient capture without changing authentication. Normal builds return false/null without a testing request. Use the shared Show test code/Copy controls; never autofill, persist or log captured codes.
+Explicit test access uses `--dart-define=TEST_OTP_ACCESS=true` in debug builds only. `testingOtpAvailable()` discovers capabilities once; `revealTestOtp(challenge)` returns a transient capture without changing authentication. Normal builds return false/null without a testing request. Teacher_v2 fills an empty verification field with the pending test code and requires manual submission. Other apps use the shared Show test code/Copy controls. Captured codes stay in memory.
 
 `LoginIdentifier.detect` classifies and normalizes a login contact as an email or an international phone number, using the service's validation rules. Invalid input returns null. Country support remains a server policy.
 

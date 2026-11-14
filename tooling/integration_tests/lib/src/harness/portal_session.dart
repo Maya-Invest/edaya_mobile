@@ -105,6 +105,19 @@ class PortalSession {
       ),
     );
 
+    final profiles = (await schoolClient.authorizationProfiles())
+        .where((row) => row['kind'] == actorKind)
+        .toList();
+    final requestedSchool =
+        Platform.environment['EDAYA_SCHOOL_ID'] ?? 'sch-edaya-ci-cocody';
+    final profile =
+        profiles.where((p) => p['schoolId'] == requestedSchool).firstOrNull ??
+        (profiles.length == 1 ? profiles.single : null);
+    if (profile == null) {
+      throw StateError('No unique $actorKind profile for $requestedSchool');
+    }
+    resolvedActorId = profile['actorId'] as String;
+    resolvedSchoolId = profile['schoolId'] as String;
     final grants = await schoolClient.effectiveGrants();
     resolvedActorId = grants.actorId;
     resolvedSchoolId = grants.schoolId;

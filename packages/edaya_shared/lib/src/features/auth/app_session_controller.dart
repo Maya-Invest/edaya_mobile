@@ -26,6 +26,7 @@ class AppSessionController extends LevitController {
     String? Function()? resolveActorKind,
     bool Function()? allowUnlinkedIdentity,
     Future<void> Function()? onSignOut,
+    this.selectFirstProfile = false,
   }) : _authClient = authClient,
        _sessionStorage = sessionStorage,
        _pushNotifications = pushNotifications,
@@ -37,6 +38,8 @@ class AppSessionController extends LevitController {
        _allowUnlinkedIdentity = allowUnlinkedIdentity,
        _onSignOut = onSignOut;
 
+  /// Opt-in for apps whose workspace picker owns school selection.
+  final bool selectFirstProfile;
   final AuthClient _authClient;
   final AuthSessionStorage _sessionStorage;
   final PushNotificationService _pushNotifications;
@@ -69,7 +72,9 @@ class AppSessionController extends LevitController {
   bool get hasSchoolSession => grants.value != null;
 
   bool get needsProfileSelection =>
-      grants.value == null && availableProfiles.value.length > 1;
+      grants.value == null &&
+      _pinnedActorId == null &&
+      availableProfiles.value.length > 1;
 
   @override
   void onInit() {
@@ -274,10 +279,11 @@ class AppSessionController extends LevitController {
     _pinnedActorId = null;
     _pinnedSchoolId = null;
     _pinnedActorKind = null;
-    if (matches.length == 1) {
-      _pinnedActorId = matches.single.actorId;
-      _pinnedSchoolId = matches.single.schoolId;
-      _pinnedActorKind = matches.single.kind;
+    if (matches.length == 1 || (selectFirstProfile && matches.isNotEmpty)) {
+      matches.sort((a, b) => a.schoolName.compareTo(b.schoolName));
+      _pinnedActorId = matches.first.actorId;
+      _pinnedSchoolId = matches.first.schoolId;
+      _pinnedActorKind = matches.first.kind;
       await _persistPinnedProfile();
     }
   }

@@ -273,22 +273,26 @@ class _LiveResultsPage extends LScopedView<ResultsController> {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
-                  trailing: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        reportCard.averageLabel,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.w700,
+                  trailing: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 180),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          reportCard.averageLabel,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.w700,
+                              ),
                         ),
-                      ),
-                      Text(
-                        reportCard.aggregateLabel ?? 'Moyenne',
-                        style: Theme.of(context).textTheme.labelSmall,
-                      ),
-                    ],
+                        Text(
+                          reportCard.aggregateLabel ?? 'Moyenne',
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                      ],
+                    ),
                   ),
                   onTap: () => context.push('/report-card/${reportCard.id}'),
                 ),

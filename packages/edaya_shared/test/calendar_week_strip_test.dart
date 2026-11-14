@@ -27,6 +27,7 @@ void main() {
                         width: 320,
                         child: CalendarWeekStrip(
                           days: days,
+                          daySpacing: 4,
                           selected: days.first,
                           onSelected: (value) => selected = value,
                           onPreviousWeek: () => shifts--,

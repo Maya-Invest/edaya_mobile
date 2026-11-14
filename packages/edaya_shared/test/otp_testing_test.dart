@@ -10,12 +10,82 @@ import 'package:http/testing.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   test(
+    'debug polling pulls a pending code once and only while visible',
+    () async {
+      var pulls = 0;
+      var discoveryAttempts = 0;
+      final expires = DateTime.now().millisecondsSinceEpoch + 300000;
+      final status = {
+        'challenge': 'current',
+        'lifecycle': 'pending',
+        'expiresAt': expires,
+      };
+      final auth =
+          AuthClient(
+              baseUrl: 'http://localhost:9999',
+              enableTestOtpInDebug: true,
+              client: MockClient((request) async {
+                final path = request.url.path;
+                if (path.endsWith('/otp/status'))
+                  return http.Response(jsonEncode(status), 200);
+                if (path.endsWith('/capabilities')) {
+                  if (++discoveryAttempts == 1) {
+                    return http.Response('{}', 503);
+                  }
+                  return http.Response('{"otpAccess":true}', 200);
+                }
+                expect(path.endsWith('/testing/otp'), isTrue);
+                pulls++;
+                return http.Response(
+                  jsonEncode({
+                    'challenge': 'current',
+                    'otp': '123456',
+                    'channel': 'email',
+                    'expiresAt': expires,
+                  }),
+                  200,
+                );
+              }),
+            )
+            ..pendingChallenge = 'current'
+            ..pendingStep = 'primary_required';
+      final input = TextEditingController();
+      var submittedValue = '';
+      addTearDown(input.dispose);
+      final state = OtpDeliveryState(
+        auth,
+        input: input,
+        onInputChanged: (value) => submittedValue = value,
+        active: () => true,
+        busy: () => false,
+      );
+      addTearDown(state.close);
+      state.visible = false;
+      await state.poll();
+      expect(pulls, 0);
+      state.visible = true;
+      await state.poll();
+      expect(pulls, 0);
+      await state.poll();
+      await state.poll();
+      expect(pulls, auth.testOtpEnabled ? 1 : 0);
+      expect(input.text.isNotEmpty, auth.testOtpEnabled);
+      expect(input.text == submittedValue, isTrue);
+      input.text = 'manual';
+      await state.poll();
+      expect(input.text, 'manual');
+      state.didChangeAppLifecycleState(AppLifecycleState.paused);
+      expect(input.text, 'manual');
+    },
+  );
+  test(
     'test codes are explicit, transient, and discard stale lookups',
     () async {
       final responses = <Completer<http.Response>>[];
       var discovery = 0;
       final auth = AuthClient(
         baseUrl: 'http://localhost:9999',
+        enableTestOtpInDebug: true,
         client: MockClient((request) async {
           if (request.url.path.endsWith('/capabilities')) {
             discovery++;
@@ -27,15 +97,26 @@ void main() {
         }),
       );
       var active = true;
+      final input = TextEditingController();
+      var submittedValue = '';
+      addTearDown(input.dispose);
       final state = OtpDeliveryState(
         auth,
+        input: input,
+        onInputChanged: (value) => submittedValue = value,
         active: () => active,
         busy: () => false,
       );
       addTearDown(state.close);
-      if (!AuthClient.testOtpAccess) {
+      const expected =
+          !bool.fromEnvironment('dart.vm.product') &&
+          !bool.fromEnvironment('dart.vm.profile') &&
+          bool.fromEnvironment('TEST_OTP_ACCESS', defaultValue: true);
+      expect(auth.testOtpEnabled, expected);
+      if (!expected) {
         expect(await auth.testingOtpAvailable(), isFalse);
         await state.reveal();
+        expect(discovery, 0);
         expect(responses, isEmpty);
         expect(state.canReveal, isFalse);
         return;
@@ -88,9 +169,11 @@ void main() {
       responses.removeAt(0).complete(code('replacement'));
       await pending;
       expect(state.testCode.value.isNotEmpty, isTrue);
+      expect(input.text.isNotEmpty && input.text == submittedValue, isTrue);
       expect(auth.renewalCredential, isNull);
       state.didChangeAppLifecycleState(AppLifecycleState.paused);
       expect(state.testCode.value, isEmpty);
+      expect(input.text.isEmpty && submittedValue.isEmpty, isTrue);
       pending = state.reveal();
       await started();
       state.visible = false;
@@ -98,6 +181,13 @@ void main() {
       await pending;
       expect(state.testCode.value, isEmpty);
       state.visible = true;
+      pending = state.reveal();
+      await started();
+      input.text = 'manual';
+      responses.removeAt(0).complete(code('replacement'));
+      await pending;
+      expect(input.text, 'manual');
+      expect(state.testCode.value.isEmpty, isTrue);
       for (final lifecycle in [
         'completed',
         'superseded',

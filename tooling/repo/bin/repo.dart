@@ -11,7 +11,7 @@ import 'package:edaya_repo/src/smoke.dart';
 
 const commandHelp = '''Usage: dart run edaya_repo:repo <command>
 check                       Prepared client and brand integrity
- test unit|tooling|integration [api|guardian|teacher]
+ test unit|tooling|integration [api|guardian|teacher|teacher_v2]
  build staging|production   Signed APK/AAB artifacts
  generate client [staging|production] [--ref REF | --backend-root PATH]
  generate brand|gallery|assets|commands|reviewed-brand-baseline

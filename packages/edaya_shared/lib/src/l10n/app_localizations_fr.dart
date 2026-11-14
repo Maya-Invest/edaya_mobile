@@ -239,6 +239,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ce compte n\'est pas lié à un profil enseignant.';
 
   @override
+  String get navProfile => 'Profil';
+
+  @override
   String get navHome => 'Accueil';
 
   @override
@@ -284,11 +287,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get teachingProgressTab => 'Progression';
 
   @override
-  String get teachingLogbookTab => 'Cahier';
+  String get teachingLogbookTab => 'Cahier de texte';
 
   @override
   String get noTeachingLogEntries =>
-      'Aucune entrée de cahier pour cette matière.';
+      'Aucune entrée de cahier de texte pour cette matière.';
 
   @override
   String couldNotLoadTeachingData(String error) {
@@ -475,11 +478,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noAttendanceRecorded => 'Aucune présence enregistrée.';
 
   @override
-  String get classLogbook => 'Cahier de classe';
+  String get classLogbook => 'Cahier de texte';
 
   @override
   String get noLogbookEntryForSession =>
-      'Aucune entrée de cahier pour cette séance.';
+      'Aucune entrée de cahier de texte pour cette séance.';
 
   @override
   String get homeworkLabel => 'Devoirs';
@@ -883,7 +886,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get classSessionFallback => 'Séance de cours';
 
   @override
-  String get logbook => 'Cahier de textes';
+  String get logbook => 'Cahier de texte';
 
   @override
   String attendanceProgress(int recorded, int total) {
@@ -895,7 +898,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get logbookNotAvailableForSession =>
-      'Le cahier de textes n\'est pas disponible pour cette séance.';
+      'Le cahier de texte n’est pas disponible pour cette séance.';
 
   @override
   String get attendanceRecordingLessonOnly =>
@@ -918,10 +921,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get progressPercentLabel => 'Progression %';
 
   @override
-  String get saveLogbook => 'Enregistrer le cahier';
+  String get saveLogbook => 'Enregistrer le cahier de texte';
 
   @override
-  String get logbookSaved => 'Cahier enregistré';
+  String get logbookSaved => 'Cahier de texte enregistré';
 
   @override
   String get sessionNotesLabel => 'Notes de séance';
@@ -1123,7 +1126,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sessionAttendanceIncomplete => 'Présence incomplète';
 
   @override
-  String get logbookDraftRestored => 'Brouillon de cahier restauré';
+  String get logbookDraftRestored => 'Brouillon du cahier de texte restauré';
 
   @override
   String get done => 'Terminé';
@@ -1146,7 +1149,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String couldNotSaveLogbook(String error) {
-    return 'Impossible d\'enregistrer le cahier : $error';
+    return 'Impossible d’enregistrer le cahier de texte : $error';
   }
 
   @override
@@ -1795,7 +1798,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get documentStatusPreview => 'Émis';
 
   @override
-  String get exportLogbookPdf => 'PDF du cahier de textes';
+  String get exportLogbookPdf => 'PDF du cahier de texte';
 
   @override
   String get exportTimetablePdf => 'PDF de l’emploi du temps';
@@ -2051,6 +2054,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get testingOnly => 'Réservé aux tests';
+
+  @override
+  String get testCodeAutofilled =>
+      'Mode test activé. Le code de vérification a été saisi automatiquement.';
 
   @override
   String get showTestCode => 'Afficher le code de test';
@@ -2390,4 +2397,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get teacherQuickInvalid => 'Code invalide ou expiré.';
+
+  @override
+  String get logbookNotSaved => 'Cahier de texte non enregistré';
+
+  @override
+  String get logbookCompleted => 'Cahier de texte complété';
+
+  @override
+  String get noCompletedLogbook => 'Aucun cahier de texte complété';
 }

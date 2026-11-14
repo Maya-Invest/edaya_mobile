@@ -18,23 +18,25 @@ api.SchoolClient createEdayaSchoolClient(
   String? Function()? getActorKind,
   String? Function()? getActorId,
   String? Function()? getSchoolId,
+  api.Transport Function(api.Transport)? decorateTransport,
 }) {
+  final transport = api.HttpTransport(
+    baseUrl: ApiBaseUrlConfig.apiBaseUrl,
+    client: authClient.businessHttpClient,
+    getAccessToken: ({required Uri resource}) async {
+      if (!canIssueSchoolAccessToken(authClient)) {
+        return null;
+      }
+      return authClient.getAccessToken(resource: resource);
+    },
+    invalidateAccessToken: authClient.invalidateAccessToken,
+    getAcademicYearId: getAcademicYearId,
+    getActorKind: getActorKind,
+    getActorId: getActorId,
+    getSchoolId: getSchoolId,
+  );
   return api.createSchoolClient(
-    api.HttpTransport(
-      baseUrl: ApiBaseUrlConfig.apiBaseUrl,
-      client: authClient.businessHttpClient,
-      getAccessToken: ({required Uri resource}) async {
-        if (!canIssueSchoolAccessToken(authClient)) {
-          return null;
-        }
-        return authClient.getAccessToken(resource: resource);
-      },
-      invalidateAccessToken: authClient.invalidateAccessToken,
-      getAcademicYearId: getAcademicYearId,
-      getActorKind: getActorKind,
-      getActorId: getActorId,
-      getSchoolId: getSchoolId,
-    ),
+    decorateTransport?.call(transport) ?? transport,
   );
 }
 
@@ -46,6 +48,7 @@ void registerSchoolClientFactory(
   String? Function()? getActorKind,
   String? Function()? getActorId,
   String? Function()? getSchoolId,
+  api.Transport Function(api.Transport)? decorateTransport,
 }) {
   scope.put<SchoolClientFactory>(
     () =>
@@ -55,6 +58,7 @@ void registerSchoolClientFactory(
           getActorKind: getActorKind,
           getActorId: getActorId,
           getSchoolId: getSchoolId,
+          decorateTransport: decorateTransport,
         ),
     permanent: true,
   );

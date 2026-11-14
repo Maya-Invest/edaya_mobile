@@ -154,7 +154,7 @@ The login and account screens expose **Developer settings** in all build modes (
 
 ### Dev credentials
 
-Use the backend `bun repo dev` server for local captured email, WhatsApp and SMS. Enable web `PUBLIC_TEST_OTP_ACCESS=true` or Flutter debug `--dart-define=TEST_OTP_ACCESS=true` for explicit Show test code and Copy controls. CI uses the separate internal testing composition and a private captured mailbox; normal staging/production builds omit testing access.
+Use the backend `bun repo dev` server for local captured email, WhatsApp and SMS. Teacher_v2 debug builds fill the verification field automatically when the local server advertises test OTP access. Tap Verify to submit. Web and other Flutter clients use explicit Show test code and Copy controls with `PUBLIC_TEST_OTP_ACCESS=true` or `--dart-define=TEST_OTP_ACCESS=true` respectively. CI uses the separate internal testing composition and a private captured mailbox; normal staging/production builds omit testing access.
 
 | App | Email define | Default |
 |-----|--------------|---------|
@@ -211,7 +211,7 @@ Shared integration tests live in `tooling/integration_tests`. They use `edaya_au
 
 **PR CI** resolves one backend destination commit, generates both contracts, starts that exact backend and runs API, guardian and teacher integrations. `IDENTITY_CHECKOUT_TOKEN` needs backend contents:read. See [CI setup](docs/reference/ci-setup.md).
 
-Use the backend `bun repo dev` server for local captured email, WhatsApp and SMS. Enable web `PUBLIC_TEST_OTP_ACCESS=true` or Flutter debug `--dart-define=TEST_OTP_ACCESS=true` for explicit Show test code and Copy controls. CI uses the separate internal testing composition and a private captured mailbox; normal staging/production builds omit testing access.
+Use the backend `bun repo dev` server for local captured email, WhatsApp and SMS. Teacher_v2 debug builds fill the verification field automatically when the local server advertises test OTP access. Tap Verify to submit. Web and other Flutter clients use explicit Show test code and Copy controls with `PUBLIC_TEST_OTP_ACCESS=true` or `--dart-define=TEST_OTP_ACCESS=true` respectively. CI uses the separate internal testing composition and a private captured mailbox; normal staging/production builds omit testing access.
 
 ```bash
 # With local API on :9999 and demo teacher seeded

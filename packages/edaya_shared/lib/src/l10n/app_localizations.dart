@@ -494,6 +494,12 @@ abstract class AppLocalizations {
   /// **'This account is not linked to a teacher profile.'**
   String get accountNotLinkedToTeacher;
 
+  /// No description provided for @navProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get navProfile;
+
   /// No description provided for @navHome.
   ///
   /// In en, this message translates to:
@@ -3191,7 +3197,7 @@ abstract class AppLocalizations {
   /// No description provided for @teacherTaskLogbook.
   ///
   /// In en, this message translates to:
-  /// **'Lesson log'**
+  /// **'Logbook'**
   String get teacherTaskLogbook;
 
   /// No description provided for @teacherTaskMarks.
@@ -3541,6 +3547,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Testing only'**
   String get testingOnly;
+
+  /// No description provided for @testCodeAutofilled.
+  ///
+  /// In en, this message translates to:
+  /// **'Test mode is on. Your verification code was filled in automatically.'**
+  String get testCodeAutofilled;
 
   /// No description provided for @showTestCode.
   ///
@@ -4171,6 +4183,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Invalid or expired code.'**
   String get teacherQuickInvalid;
+
+  /// No description provided for @logbookNotSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Logbook not saved'**
+  String get logbookNotSaved;
+
+  /// No description provided for @logbookCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Logbook completed'**
+  String get logbookCompleted;
+
+  /// No description provided for @noCompletedLogbook.
+  ///
+  /// In en, this message translates to:
+  /// **'No completed logbook'**
+  String get noCompletedLogbook;
 }
 
 class _AppLocalizationsDelegate

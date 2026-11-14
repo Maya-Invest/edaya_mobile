@@ -49,6 +49,8 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
   final otpText = TextEditingController();
   late final delivery = OtpDeliveryState(
     _authClient,
+    input: otpText,
+    onInputChanged: otp.call,
     active: () => mode.value == LoginMode.verifyOtp,
     busy: () => isBusy.value,
   );

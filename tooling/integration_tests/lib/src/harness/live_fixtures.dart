@@ -16,21 +16,29 @@ Future<Map<String, dynamic>> createReportCardFixture(
     throw StateError('Required report-card definition fixture missing');
   }
   final template = templates.first;
-  // A fresh reporting period isolates comments without changing frozen class rosters.
-  final period = await client.academicPeriods.get(
-    template['periodId'] as String,
-  );
-  final periodId = fixtureId('report-period');
-  await client.academicPeriods.save({
-    ...period,
-    'id': periodId,
-    'name': periodId,
+  // Grade periods cannot overlap. Use a new pupil in the existing class and period.
+  final studentId = fixtureId('report-student');
+  await client.registerStudent({
+    'requestId': fixtureId('register-report-student'),
+    'id': studentId,
+    'schoolId': (await client.effectiveGrants()).schoolId,
+    'firstName': 'Test',
+    'lastName': studentId,
+    'sendAccountInvitation': false,
   });
+  await client.enrollStudent({
+    'id': fixtureId('report-enrollment'),
+    'classGroupId': classGroupId,
+    'studentId': studentId,
+    'enrolledAt': DateTime.utc(2026, 9, 1).toIso8601String(),
+  });
+  final periodId = template['periodId'] as String;
   return client.generateReportCardResult({
     'id': fixtureId('report'),
-    'studentId': template['studentId'],
+    'studentId': studentId,
     'periodId': periodId,
-    'reportCardDefinitionId': template['reportCardDefinitionId'],
+    if (template['reportCardDefinitionId'] != null)
+      'reportCardDefinitionId': template['reportCardDefinitionId'],
     'generatedAt': DateTime.now().toUtc().toIso8601String(),
   });
 }
@@ -63,12 +71,7 @@ Future<Map<String, dynamic>> createFeedbackFixture(
     'academicYearId': academicYearId,
   });
   if (periods.isEmpty) throw StateError('Required academic period missing');
-  final periodId = fixtureId('feedback-period');
-  await client.academicPeriods.save({
-    ...periods.first,
-    'id': periodId,
-    'name': periodId,
-  });
+  final periodId = periods.last['id'] as String;
   final id = fixtureId('feedback');
   final moderator = (await client.effectiveGrants()).actorId;
   await client.runCommand('create-family-feedback-campaign', {
@@ -82,6 +85,23 @@ Future<Map<String, dynamic>> createFeedbackFixture(
   return client.runCommand('open-family-feedback-campaign', {
     'requestId': fixtureId('open'),
     'id': id,
+  });
+}
+
+/// Release the assignment/period slot without reusing another scenario's data.
+Future<void> disposeFeedbackFixture(PortalSession owner, String id) async {
+  if (!id.startsWith('ui-feedback-')) throw ArgumentError('Not a test fixture');
+  final campaign = await owner.schoolClient.runQuery(
+    'get-family-feedback-campaign',
+    {'id': id},
+  );
+  if (campaign['status'] == 'archived') return;
+  final command = ['published', 'cancelled'].contains(campaign['status'])
+      ? 'archive-family-feedback-campaign'
+      : 'cancel-family-feedback-campaign';
+  await owner.schoolClient.runCommand(command, {
+    'id': id,
+    'requestId': fixtureId('feedback-cleanup'),
   });
 }
 

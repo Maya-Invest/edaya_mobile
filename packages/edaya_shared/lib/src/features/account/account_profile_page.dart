@@ -20,6 +20,9 @@ class AccountProfilePage extends LScopedView<AccountProfileController> {
     this.onProfileSaved,
     this.embedded = false,
     this.profileActions,
+    this.onOpenSecurity,
+    this.confirmDiscard,
+    this.onClose,
   });
 
   final AppSessionController session;
@@ -29,6 +32,13 @@ class AccountProfilePage extends LScopedView<AccountProfileController> {
 
   /// Additional actions owned by the selected portal app.
   final Widget? profileActions;
+
+  /// Optional app-owned presentation for security details.
+  final VoidCallback? onOpenSecurity;
+
+  /// Optional app-owned discard confirmation.
+  final Future<bool?> Function(BuildContext)? confirmDiscard;
+  final VoidCallback? onClose;
 
   @override
   AccountProfileController onConfigScope(LevitScope scope) {
@@ -53,6 +63,7 @@ class AccountProfilePage extends LScopedView<AccountProfileController> {
           () => _ProfileForm(
             controller: controller,
             profileActions: profileActions,
+            onOpenSecurity: onOpenSecurity,
           ),
         ),
       ),
@@ -62,28 +73,36 @@ class AccountProfilePage extends LScopedView<AccountProfileController> {
         canPop: !controller.isDirty && !controller.isSaving.value,
         onPopInvokedWithResult: (didPop, result) async {
           if (didPop || controller.isSaving.value) return;
-          final discard = await showDialog<bool>(
-            context: context,
-            builder: (dialogContext) => AlertDialog(
-              title: Text(context.tr.guardianDiscardChanges),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext, false),
-                  child: Text(
-                    MaterialLocalizations.of(context).cancelButtonLabel,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext, true),
-                  child: Text(context.tr.guardianDiscard),
-                ),
-              ],
-            ),
-          );
+          final discard =
+              await (confirmDiscard?.call(context) ??
+                  showDialog<bool>(
+                    context: context,
+                    builder: (dialogContext) => AlertDialog(
+                      title: Text(context.tr.guardianDiscardChanges),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(dialogContext, false),
+                          child: Text(
+                            MaterialLocalizations.of(context).cancelButtonLabel,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(dialogContext, true),
+                          child: Text(context.tr.guardianDiscard),
+                        ),
+                      ],
+                    ),
+                  ));
           if (discard == true && context.mounted) {
             controller.discardChanges();
             await WidgetsBinding.instance.endOfFrame;
-            if (context.mounted) Navigator.of(context).pop();
+            if (context.mounted && ModalRoute.of(context)?.isCurrent == true) {
+              if (onClose != null) {
+                onClose!();
+              } else {
+                Navigator.of(context).pop();
+              }
+            }
           }
         },
         child: body,
@@ -98,10 +117,15 @@ class AccountProfilePage extends LScopedView<AccountProfileController> {
 }
 
 class _ProfileForm extends StatelessWidget {
-  const _ProfileForm({required this.controller, this.profileActions});
+  const _ProfileForm({
+    required this.controller,
+    this.profileActions,
+    this.onOpenSecurity,
+  });
 
   final AccountProfileController controller;
   final Widget? profileActions;
+  final VoidCallback? onOpenSecurity;
 
   @override
   Widget build(BuildContext context) {
@@ -117,11 +141,13 @@ class _ProfileForm extends StatelessWidget {
         ListTile(
           title: Text(context.tr.accountSecurity),
           leading: const Icon(Icons.security),
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => const AccountSecurityPage(),
-            ),
-          ),
+          onTap:
+              onOpenSecurity ??
+              () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const AccountSecurityPage(),
+                ),
+              ),
         ),
         Center(
           child: Tooltip(
