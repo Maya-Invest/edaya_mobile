@@ -274,17 +274,24 @@ module AppleRelease
       live = asc_app.get_live_app_store_version(platform: 'IOS')
       existing = asc_app.get_app_store_versions(filter: { versionString: version, platform: 'IOS' }).first
       decision = submission_decision(version, build, live: live, existing: existing)
-      [app, config, version, number, decision]
+      [app, config, version, number, decision, asc_app, existing]
     end
-    candidates.each do |app, config, version, number, decision|
+    candidates.each do |app, config, version, number, decision, asc_app, existing|
       if decision == :already_submitted
         record('submission', app, { 'bundleId' => config.fetch('bundleId'), 'version' => version,
           'build' => number, 'status' => 'already-submitted' })
         next
       end
+      # Deliver skips release-type updates when metadata uploads are disabled.
+      if existing
+        existing.update(attributes: { releaseType: 'MANUAL' }) unless existing.release_type == 'MANUAL'
+      else
+        Spaceship::ConnectAPI.post_app_store_version(app_id: asc_app.id,
+          attributes: { platform: 'IOS', versionString: version, releaseType: 'MANUAL' })
+      end
       context.upload_to_app_store(api_key: api_key(context), app_identifier: config.fetch('bundleId'),
         app_version: version, build_number: number, skip_binary_upload: true,
-        skip_metadata: true, skip_screenshots: true, submit_for_review: true,
+        skip_metadata: true, skip_screenshots: true, skip_app_version_update: true, submit_for_review: true,
         automatic_release: false,
         run_precheck_before_submit: false, force: true)
       record('submission', app, { 'bundleId' => config.fetch('bundleId'), 'version' => version,

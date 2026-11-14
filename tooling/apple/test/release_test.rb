@@ -93,6 +93,7 @@ class AppleReleaseTest < Minitest::Test
     %w[apiUrl environment sourceCommit build bundleId status].each do |key|
       assert_raises(RuntimeError) { AppleRelease.validate_record(records['guardian'].merge(key => 'wrong'), config, evidence, 'processed') }
     end
+    versions_created = []
     uploads = []
     context = Object.new
     context.define_singleton_method(:upload_to_app_store) { |**options| uploads << options }
@@ -117,14 +118,19 @@ class AppleReleaseTest < Minitest::Test
                 assert_raises(RuntimeError) { AppleRelease.submit(context) }
                 assert_empty uploads
               end
-              Spaceship::ConnectAPI::Build.stub(:all, [build]) do
-                AppleRelease.submit(context)
+              create_version = ->(**args) { versions_created << args }
+              Spaceship::ConnectAPI.stub(:post_app_store_version, create_version) do
+                Spaceship::ConnectAPI::Build.stub(:all, [build]) do
+                  AppleRelease.submit(context)
+                end
               end
             end
           end
         end
       end
     end
+    assert_equal AppleRelease::APPS.values.map { |app| app['bundleId'] }, versions_created.map { |v| v[:app_id] }
+    versions_created.each { |v| assert_equal({ platform: 'IOS', versionString: '1.0.0', releaseType: 'MANUAL' }, v[:attributes]) }
     assert_equal 2, uploads.length
     uploads.each do |options|
       assert_equal '1.0.0', options[:app_version]
