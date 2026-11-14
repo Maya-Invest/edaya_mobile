@@ -1,6 +1,6 @@
+import 'package:edaya_api_client/edaya_api_client.dart';
 import 'dart:async';
 
-import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
@@ -18,14 +18,19 @@ class LiveCalendarController extends LevitController
     required SchoolClientFactory schoolClient,
   }) : _teacherContext = teacherContext,
        _academicYear = academicYear,
-       _schoolClient = schoolClient;
+       _schoolClient = schoolClient {
+    final now = teacherContext.schoolTime(DateTime.now());
+    final day = DateTime(now.year, now.month, now.day);
+    selectedDay(day);
+    weekStart(startOfWeek(day));
+  }
 
   final TeacherContextController _teacherContext;
   final AcademicYearController _academicYear;
   final SchoolClientFactory _schoolClient;
 
-  final weekStart = LxVar(startOfWeek(defaultCalendarDay()));
-  final selectedDay = LxVar(defaultCalendarDay());
+  final weekStart = LxVar(startOfWeek(DateTime.now()));
+  final selectedDay = LxVar(DateTime.now());
   final sessions = LxVar<List<TeacherSession>>(const []);
   final todaySessions = LxVar<List<TeacherSession>>(const []);
   final attendanceCompletionBySessionId =
@@ -51,18 +56,29 @@ class LiveCalendarController extends LevitController
       _teacherContext.taughtClassSubjectIds.stream,
       _teacherContext.isLoading.stream,
       _academicYear.selectedYearId.stream,
+      _teacherContext.schoolTimeZone.stream,
       weekStart.stream,
     ]) {
-      autoDispose(subscription.listen((_) => unawaited(loadCalendarData())));
+      autoDispose(
+        subscription.listen((_) {
+          if (_started && !isClosed) unawaited(loadCalendarData());
+        }),
+      );
     }
+  }
 
-    unawaited(loadCalendarData());
+  bool _started = false;
+
+  /// Home owns a day-only preview. Begin reading Agenda data at its first consumer.
+  void start() {
+    if (_started || isClosed) return;
+    _started = true;
+    scheduleMicrotask(loadCalendarData);
   }
 
   CalendarSessionFocus get todayFocus => resolveCalendarSessionFocus(
-    sessions: todaySessions.value.isNotEmpty
-        ? todaySessions.value
-        : sessions.value,
+    sessions: todaySessions.value,
+    schoolTime: _teacherContext.schoolTime,
     now: DateTime.now(),
   );
 
@@ -116,7 +132,9 @@ class LiveCalendarController extends LevitController
     selectedDay(DateTime(day.year, day.month, day.day));
   }
 
+  bool _explicitDay = false;
   void goToDate(DateTime day) {
+    _explicitDay = true;
     final calendarDay = DateTime(day.year, day.month, day.day);
     weekStart(startOfWeek(calendarDay));
     selectedDay(calendarDay);
@@ -128,83 +146,101 @@ class LiveCalendarController extends LevitController
           _teacherContext.activeAssignment?.classSubjectId;
 
   int _loadGeneration = 0;
+  String? _selectionKey;
   Future<void> loadCalendarData() async {
+    if (isClosed) return;
     final generation = ++_loadGeneration;
     bool stale() => isClosed || generation != _loadGeneration;
 
-    if (_teacherContext.isLoading.value ||
-        _teacherContext.teacherId.value == null) {
+    final workspace = _teacherContext.selection;
+    final teacherId = _teacherContext.teacherId.value;
+    final selectionKey = workspace == null
+        ? null
+        : '${workspace.schoolId}/${workspace.academicYearId}/$teacherId/${_teacherContext.activeAssignmentId.value}';
+    if (selectionKey != _selectionKey) {
+      _selectionKey = selectionKey;
       sessions(const []);
       todaySessions(const []);
-      return;
-    }
-
-    final classGroupIds = _teacherContext.visibleClassGroupIds;
-    if (classGroupIds.isEmpty) {
-      sessions(const []);
-      todaySessions(const []);
+      attendanceCompletionBySessionId(const {});
+      logbookCompleteBySessionId(const {});
       errorMessage('');
-      return;
     }
-
+    if (workspace == null ||
+        teacherId == null ||
+        _teacherContext.isLoading.value)
+      return;
+    final now = _teacherContext.schoolTime(DateTime.now());
+    if (!_explicitDay) {
+      final day = DateTime(now.year, now.month, now.day);
+      selectedDay(day);
+      weekStart(startOfWeek(day));
+    }
+    final range = planningDateRangeForWeek(weekStart.value);
+    final labels = {
+      for (final group in _teacherContext.assignedClasses.value)
+        group.id: group.label,
+    };
     errorMessage('');
     await runTask(() async {
+      if (stale()) return;
       try {
         final client = _schoolClient();
-        final classLabelById = {
-          for (final assigned in _teacherContext.assignedClasses.value)
-            assigned.id: assigned.label,
-        };
-        final range = planningDateRangeForWeek(weekStart.value);
-        final parsedSessions = <TeacherSession>[];
-
-        final occurrences = await fetchTeacherTimetableOccurrences(
-          client,
-          _teacherContext.teacherId.value!,
-          range: range,
-        );
-        for (final occurrence in occurrences) {
-          parsedSessions.add(
-            TeacherSession.fromOccurrence(
-              occurrence,
-              classLabel:
-                  classLabelById[occurrence.classGroupId] ??
-                  occurrence.classGroupId,
-            ),
+        Future<List<TeacherSession>> read(PlanningDateRange dates) async {
+          final occurrences = await fetchTeacherTimetableOccurrences(
+            client,
+            teacherId,
+            range: dates,
           );
+          return [
+              for (final event in occurrences)
+                TeacherSession.fromOccurrence(
+                  event,
+                  classLabel: labels[event.classGroupId] ?? event.classGroupId,
+                ),
+            ].where(_matchesSelection).toList()
+            ..sort((a, b) => a.startsAt.compareTo(b.startsAt));
         }
 
+        final week = await read(range);
         if (stale()) return;
-        parsedSessions.sort((a, b) => a.startsAt.compareTo(b.startsAt));
-        sessions(parsedSessions.where(_matchesSelection).toList());
-        todaySessions(
-          (await _loadTeacherToday(
-            client,
-            classLabelById,
-          )).where(_matchesSelection).toList(),
+        sessions(week);
+        // The teacher query uses UTC calendar dates. Cover both sides of local midnight.
+        final utcDay = now.toUtc();
+        String key(DateTime d) => d.toIso8601String().substring(0, 10);
+        final todayRange = PlanningDateRange(
+          startDate: key(utcDay.subtract(const Duration(days: 1))),
+          endDate: key(utcDay.add(const Duration(days: 1))),
         );
-        await _loadTodayAttendanceCompletion(parsedSessions);
-        await _loadTodayLogbookCompletion(parsedSessions);
-      } on api.ApiError catch (error) {
+        final coversToday =
+            range.startDate.compareTo(todayRange.startDate) <= 0 &&
+            range.endDate.compareTo(todayRange.endDate) >= 0;
+        final candidates = coversToday ? week : await read(todayRange);
         if (stale()) return;
-        errorMessage(systemL10n().couldNotLoadCalendar('$error'));
-        sessions(const []);
+        final today = candidates
+            .where(
+              (s) => isSameCalendarDay(
+                _teacherContext.schoolTime(s.startsAt),
+                now,
+              ),
+            )
+            .toList();
+        todaySessions(today);
+        await Future.wait([
+          _loadTodayAttendanceCompletion(today, stale),
+          _loadTodayLogbookCompletion(today, stale),
+        ]);
       } on Object catch (error) {
         if (stale()) return;
         errorMessage(systemL10n().couldNotLoadCalendar('$error'));
-        sessions(const []);
       }
     });
   }
 
   Future<void> _loadTodayAttendanceCompletion(
     List<TeacherSession> loadedSessions,
+    bool Function() stale,
   ) async {
-    final focus = resolveCalendarSessionFocus(
-      sessions: loadedSessions,
-      now: DateTime.now(),
-    );
-    final lessonSessions = focus.todaySessions
+    final lessonSessions = loadedSessions
         .where((session) => session.kind == 'lesson')
         .toList();
     if (lessonSessions.isEmpty) {
@@ -239,18 +275,15 @@ class LiveCalendarController extends LevitController
       }
     }
 
-    attendanceCompletionBySessionId(completionBySessionId);
+    if (!stale()) attendanceCompletionBySessionId(completionBySessionId);
   }
 
   Future<void> _loadTodayLogbookCompletion(
     List<TeacherSession> loadedSessions,
+    bool Function() stale,
   ) async {
     final now = DateTime.now();
-    final focus = resolveCalendarSessionFocus(
-      sessions: loadedSessions,
-      now: now,
-    );
-    final endedLessons = focus.todaySessions
+    final endedLessons = loadedSessions
         .where(
           (session) => session.kind == 'lesson' && !session.endsAt.isAfter(now),
         )
@@ -272,51 +305,6 @@ class LiveCalendarController extends LevitController
         completeBySessionId[session.id] = false;
       }
     }
-    logbookCompleteBySessionId(completeBySessionId);
-  }
-
-  Future<List<TeacherSession>> _loadTeacherToday(
-    api.SchoolClient client,
-    Map<String, String> classLabelById,
-  ) async {
-    final teacherId = _teacherContext.teacherId.value;
-    if (teacherId == null) {
-      return const [];
-    }
-    final now = _teacherContext.schoolTime(DateTime.now());
-    final day =
-        '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-    try {
-      final response = await client.runQuery('get-teacher-timetable', {
-        'teacherId': teacherId,
-        'startDate': day,
-        'endDate': day,
-      });
-      final events = response['events'];
-      if (events is! List) {
-        return const [];
-      }
-      return [
-        for (final raw in events)
-          if (raw is Map)
-            TeacherSession(
-              id: raw['id'] as String,
-              title: raw['title'] as String? ?? raw['id'] as String,
-              kind: raw['kind'] as String? ?? 'lesson',
-              startsAt: DateTime.parse(raw['startsAt'] as String),
-              endsAt: DateTime.parse(raw['endsAt'] as String),
-              classGroupId: raw['classGroupId'] as String,
-              classLabel:
-                  classLabelById[raw['classGroupId']] ??
-                  raw['classGroupId'] as String,
-              subjectLabel: raw['subjectLabel'] as String? ?? '',
-              classSubjectId: raw['classSubjectId'] as String?,
-              status: raw['status'] as String?,
-            ),
-      ];
-    } on Object catch (error) {
-      errorMessage(systemL10n().couldNotLoadCalendar('$error'));
-      return const [];
-    }
+    if (!stale()) logbookCompleteBySessionId(completeBySessionId);
   }
 }

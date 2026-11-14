@@ -31,6 +31,20 @@ class SchoolClient {
     );
   }
 
+  /// Executes a command whose documented response is an array of records.
+  /// Use this for batch commands instead of the object-returning [runCommand].
+  Future<List<Map<String, dynamic>>> runListCommand(
+    String publicName,
+    Map<String, dynamic> payload,
+  ) async {
+    final rows = await _transport.request<List<dynamic>>(
+      'POST',
+      schoolApiPath(['commands', publicName]),
+      options: TransportRequestOptions(body: payload),
+    );
+    return rows.map((row) => Map<String, dynamic>.from(row as Map)).toList();
+  }
+
   Future<Map<String, dynamic>> runQuery(
     String publicName,
     Map<String, dynamic> payload,

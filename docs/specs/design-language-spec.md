@@ -94,6 +94,8 @@ Login canvas and card fills must use the active theme together with its text and
 
 Minimum logo widths: vertical 88, horizontal 128, symbol 32. Symbol on native splash and Flutter bootstrap; vertical on login, invite, and waiting. Do not place the logo on authenticated hub chrome.
 
+Teacher v2's Android launcher pairs the supplied white symbol with the primary-blue background (`#2563EB`), matching its legacy launcher asset. Keep the native splash background white with its color symbol. Android notification small icons use the dedicated monochrome `ic_stat_notification` drawable in both foreground and background notifications; adaptive launcher artwork is not a small notification icon.
+
 ---
 
 ## 4. Spacing, radii, elevation
@@ -263,3 +265,5 @@ Both apps use shared message bubbles: sent right on the blue container, received
 ### Report grouping labels
 
 Use Module / Module for result groups, and Coefficient / Coefficient for subject weights. Show an explicit module weight or sum-of-contributing-coefficients label beside the captured module result. Keep an unavailable grade distinct from a numeric zero. Report cards retain their existing shared card and typography treatment.
+
+In teacher v2, attendance choice chips are interactive status selectors. Their selected fill is pastel green for Present, pastel red for Absent and pastel orange for Late, paired with a checkmark, readable text and a neutral outline for unselected choices. Use the corresponding dark-mode tones. Keep 8 dp between choices and a minimum 48 dp touch target.

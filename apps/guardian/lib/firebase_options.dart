@@ -66,6 +66,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '839288643279',
     projectId: 'edayaplus',
     storageBucket: 'edayaplus.firebasestorage.app',
-    iosBundleId: 'ca.mayainvest.edaya.guardian',
+    iosBundleId: 'ca.maya-invest.edaya.guardian',
   );
 }

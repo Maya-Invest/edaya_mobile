@@ -32,7 +32,11 @@ Future<void> syncTeacherOutboxEntry(
     case TeacherOutboxKind.logbook:
       await _syncLogbookEntry(client, entry.payload);
     case TeacherOutboxKind.mark:
-      await client.recordAssessmentResult(entry.payload);
+      if (entry.payload['results'] is List) {
+        await client.runListCommand('record-assessment-results', entry.payload);
+      } else {
+        await client.recordAssessmentResult(entry.payload);
+      }
     case TeacherOutboxKind.comment:
       await _syncCommentEntry(client, entry.payload);
   }
@@ -224,3 +228,12 @@ int reportCommentNextVersion(
   }
   return version;
 }
+
+/// Rows covered by one legacy single-mark or current batch outbox entry.
+Iterable<Map<String, dynamic>> teacherMarkOutboxRows(
+  TeacherOutboxEntry entry,
+) => entry.payload['results'] is List
+    ? (entry.payload['results'] as List).map(
+        (row) => Map<String, dynamic>.from(row as Map),
+      )
+    : [entry.payload];

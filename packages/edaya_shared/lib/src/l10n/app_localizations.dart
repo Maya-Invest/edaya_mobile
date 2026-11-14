@@ -548,6 +548,42 @@ abstract class AppLocalizations {
   /// **'Evaluations'**
   String get navEvaluations;
 
+  /// No description provided for @teacherMockSignInHint.
+  ///
+  /// In en, this message translates to:
+  /// **'In this demo, you can use any email address.'**
+  String get teacherMockSignInHint;
+
+  /// No description provided for @teacherMockVerifyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter any code to continue the demo.'**
+  String get teacherMockVerifyHint;
+
+  /// No description provided for @teacherTodaySessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Today’s sessions'**
+  String get teacherTodaySessions;
+
+  /// No description provided for @teacherNoUpcomingSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming sessions'**
+  String get teacherNoUpcomingSessions;
+
+  /// No description provided for @teacherSessionsAgendaHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You can find today’s sessions in the agenda.'**
+  String get teacherSessionsAgendaHint;
+
+  /// No description provided for @teacherClassLife.
+  ///
+  /// In en, this message translates to:
+  /// **'School life'**
+  String get teacherClassLife;
+
   /// No description provided for @navTeaching.
   ///
   /// In en, this message translates to:
@@ -1885,6 +1921,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Optional context for the school office'**
   String get attendanceNotesHint;
+
+  /// No description provided for @rollWriteRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'The change could not be saved. Check the register and try again.'**
+  String get rollWriteRejected;
+
+  /// No description provided for @rollRegisterChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'The register has changed. Review the updated entries before finishing.'**
+  String get rollRegisterChanged;
+
+  /// No description provided for @rollExcused.
+  ///
+  /// In en, this message translates to:
+  /// **'Excused by staff'**
+  String get rollExcused;
+
+  /// No description provided for @rollUnmarked.
+  ///
+  /// In en, this message translates to:
+  /// **'Not marked'**
+  String get rollUnmarked;
+
+  /// No description provided for @rollList.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get rollList;
+
+  /// No description provided for @rollRosterCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{marked}/{total} marked'**
+  String rollRosterCount(int total, int marked);
+
+  /// No description provided for @bookGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General information'**
+  String get bookGeneral;
+
+  /// No description provided for @bookChapters.
+  ///
+  /// In en, this message translates to:
+  /// **'Chapters covered'**
+  String get bookChapters;
+
+  /// No description provided for @bookAddChapter.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a chapter'**
+  String get bookAddChapter;
+
+  /// No description provided for @bookEditChapter.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit {name}'**
+  String bookEditChapter(String name);
+
+  /// No description provided for @bookAllLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'All programme chapters are linked to this lesson.'**
+  String get bookAllLinked;
+
+  /// No description provided for @bookNoProgramme.
+  ///
+  /// In en, this message translates to:
+  /// **'No chapters are available for this class and subject.'**
+  String get bookNoProgramme;
+
+  /// No description provided for @bookProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress'**
+  String get bookProgress;
+
+  /// No description provided for @rollMarkRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest present'**
+  String get rollMarkRemaining;
+
+  /// No description provided for @rollOneByOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo mode'**
+  String get rollOneByOne;
+
+  /// No description provided for @rollPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'{position} of {total}'**
+  String rollPosition(int position, int total);
+
+  /// No description provided for @rollToSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending sync · Retry'**
+  String get rollToSend;
+
+  /// No description provided for @rollLeftAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Left at {time}'**
+  String rollLeftAt(String time);
+
+  /// No description provided for @rollDeparture.
+  ///
+  /// In en, this message translates to:
+  /// **'Record departure'**
+  String get rollDeparture;
+
+  /// No description provided for @rollAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance'**
+  String get rollAttendance;
+
+  /// No description provided for @rollLocalDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Local draft available'**
+  String get rollLocalDraft;
+
+  /// No description provided for @rollProposedLogbook.
+  ///
+  /// In en, this message translates to:
+  /// **'Proposed logbook'**
+  String get rollProposedLogbook;
+
+  /// No description provided for @rollContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Lesson content'**
+  String get rollContent;
+
+  /// No description provided for @rollObjectives.
+  ///
+  /// In en, this message translates to:
+  /// **'Objectives'**
+  String get rollObjectives;
+
+  /// No description provided for @rollHomework.
+  ///
+  /// In en, this message translates to:
+  /// **'Homework'**
+  String get rollHomework;
+
+  /// No description provided for @rollFamilySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Family summary'**
+  String get rollFamilySummary;
+
+  /// No description provided for @rollChapters.
+  ///
+  /// In en, this message translates to:
+  /// **'Chapter coverage'**
+  String get rollChapters;
+
+  /// No description provided for @rollRequestChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Request a change'**
+  String get rollRequestChange;
+
+  /// No description provided for @rollCreateBook.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in the logbook'**
+  String get rollCreateBook;
+
+  /// No description provided for @rollEditBook.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit logbook'**
+  String get rollEditBook;
 
   /// No description provided for @attendanceSavedLocally.
   ///
@@ -4201,6 +4417,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No completed logbook'**
   String get noCompletedLogbook;
+
+  /// No description provided for @gradebookSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get gradebookSave;
+
+  /// No description provided for @gradebookSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit marks'**
+  String get gradebookSubmit;
+
+  /// No description provided for @gradebookUnsaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsaved changes'**
+  String get gradebookUnsaved;
+
+  /// No description provided for @gradebookSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft saved'**
+  String get gradebookSaved;
+
+  /// No description provided for @gradebookQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'To send'**
+  String get gradebookQueued;
+
+  /// No description provided for @gradebookClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear entry'**
+  String get gradebookClear;
+
+  /// No description provided for @gradebookEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit mark'**
+  String get gradebookEdit;
+
+  /// No description provided for @gradebookOfficial.
+  ///
+  /// In en, this message translates to:
+  /// **'Official mark'**
+  String get gradebookOfficial;
+
+  /// No description provided for @gradebookProposed.
+  ///
+  /// In en, this message translates to:
+  /// **'Proposed result'**
+  String get gradebookProposed;
+
+  /// No description provided for @gradebookReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get gradebookReason;
+
+  /// No description provided for @gradebookSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send request'**
+  String get gradebookSend;
+
+  /// No description provided for @gradebookUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Update request'**
+  String get gradebookUpdate;
+
+  /// No description provided for @gradebookWithdraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw request'**
+  String get gradebookWithdraw;
+
+  /// No description provided for @gradebookApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'The official result remains unchanged until approval.'**
+  String get gradebookApproval;
+
+  /// No description provided for @gradebookPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending approval'**
+  String get gradebookPending;
+
+  /// No description provided for @gradebookGrouped.
+  ///
+  /// In en, this message translates to:
+  /// **'This reason belongs to an existing grouped request. Other pupils’ proposals will be preserved.'**
+  String get gradebookGrouped;
+
+  /// No description provided for @gradebookLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This result cannot be edited with your current permissions.'**
+  String get gradebookLocked;
+
+  /// No description provided for @gradebookDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard changes'**
+  String get gradebookDiscard;
+
+  /// No description provided for @gradebookContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue editing'**
+  String get gradebookContinue;
+
+  /// No description provided for @gradebookDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get gradebookDraft;
+
+  /// No description provided for @gradebookResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get gradebookResult;
+
+  /// No description provided for @gradebookPupil.
+  ///
+  /// In en, this message translates to:
+  /// **'Pupil'**
+  String get gradebookPupil;
+
+  /// No description provided for @gradebookMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry required'**
+  String get gradebookMissing;
+
+  /// No description provided for @gradebookInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid result within the assessment scale.'**
+  String get gradebookInvalid;
+
+  /// No description provided for @gradebookWithdrawConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw the proposed change for this pupil?'**
+  String get gradebookWithdrawConfirm;
+
+  /// No description provided for @gradebookOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Result options'**
+  String get gradebookOptions;
 }
 
 class _AppLocalizationsDelegate

@@ -1,17 +1,14 @@
-import '../../design/workspace_layout.dart';
-import '../../app/workspace_navigation.dart';
+import 'roll_call.dart';
 import 'package:edaya_shared/edaya_shared.dart' hide PersonAvatar;
 import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../design/components/components.dart';
-import '../../design/spacing.dart';
 import '../../live/runtime.dart';
 import '../../mock/mock_store.dart';
 import '../calendar/live_calendar_controller.dart';
 import '../context/academic_year_controller.dart';
 import '../context/teacher_context_controller.dart';
-import '../context/store_bound_controller.dart';
 import 'live_session_controller.dart';
 
 LiveSessionController putLiveSessionController(
@@ -21,7 +18,7 @@ LiveSessionController putLiveSessionController(
   return scope.put(
     () => LiveSessionController(
       sessionId: sessionId,
-      calendar: scope.find<LiveCalendarController>(),
+      calendar: scope.find<LiveCalendarController>()..start(),
       academicYear: scope.find<AcademicYearController>(),
       schoolClient: scope.find<SchoolClientFactory>(),
       outboxStore: scope.find<TeacherOutboxStore>(),
@@ -40,483 +37,99 @@ LiveSessionController putLiveSessionController(
 
 class AttendancePage extends StatelessWidget {
   const AttendancePage({super.key, required this.sessionId});
-
   final String sessionId;
 
   @override
   Widget build(BuildContext context) {
-    if (prototypeIsLive(context)) {
-      return _LiveAttendancePage(sessionId: sessionId);
-    }
-    return _MockAttendancePage(sessionId: sessionId);
-  }
-}
-
-class _MockAttendancePage extends LScopedView<StoreBoundController> {
-  const _MockAttendancePage({required this.sessionId});
-
-  final String sessionId;
-
-  @override
-  StoreBoundController onConfigScope(LevitScope scope) {
-    return scope.put(() => StoreBoundController(scope.find<MockStore>()));
-  }
-
-  @override
-  Widget buildView(BuildContext context, StoreBoundController controller) {
-    controller.storeTick.value;
-    final store = controller.store;
-    final session = store.sessionById(sessionId);
-    if (session == null) {
-      return const PrototypeDetailScaffold(
-        title: 'Présences',
-        body: EmptyState(title: 'Séance introuvable'),
+    if (!prototypeIsLive(context)) {
+      final store = context.levit.find<MockStore>();
+      final session = store.sessionById(sessionId)!;
+      return ListenableBuilder(
+        listenable: store,
+        builder: (_, _) => RollCall(
+          rows: [
+            for (final r in store.getAttendance(sessionId))
+              if (store.studentById(r.studentId) case final student?)
+                LiveSessionStudent(
+                  studentId: r.studentId,
+                  fullName: student.fullName,
+                  initials: student.initials,
+                  photoUrl: student.photoUrl,
+                  status: r.status,
+                  reason: r.comment,
+                ),
+          ],
+          busy: false,
+          pending: false,
+          submitted: session.attendanceComplete,
+          message: '',
+          windowOpen: false,
+          schoolTime: (v) => v.toLocal(),
+          onSync: () async {},
+          onMove: (_, _) async => false,
+          onBulk: () async => store.markAllPresent(sessionId),
+          onFinish: () async => store.completeAttendance(sessionId),
+          onSave: (row, status, comment, reason) async {
+            if (session.attendanceComplete) return false;
+            store.setAttendanceStatus(
+              sessionId,
+              row.studentId,
+              status,
+              comment: comment,
+            );
+            return true;
+          },
+        ),
       );
     }
-
-    final records = store.getAttendance(sessionId);
-
-    return PrototypeDetailScaffold(
-      title: 'Présences · ${session.classLabel}',
-      fallbackRoute: '/session/$sessionId',
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(PrototypeSpacing.md),
-            child: Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => store.markAllPresent(sessionId),
-                    child: const Text('Tous présents'),
-                  ),
-                ),
-                const SizedBox(width: PrototypeSpacing.sm),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () {
-                      store.completeAttendance(sessionId);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Présences enregistrées')),
-                      );
-                    },
-                    child: const Text('Terminer'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(
-                PrototypeSpacing.md,
-                0,
-                PrototypeSpacing.md,
-                PrototypeSpacing.md,
-              ),
-              itemCount: records.length,
-              separatorBuilder: (_, _) =>
-                  const SizedBox(height: PrototypeSpacing.xs),
-              itemBuilder: (context, i) {
-                final record = records[i];
-                final student = store.studentById(record.studentId);
-                if (student == null) return const SizedBox.shrink();
-                return SurfaceCard(
-                  child: Row(
-                    children: [
-                      PersonAvatar(initials: student.initials, radius: 20),
-                      const SizedBox(width: PrototypeSpacing.sm),
-                      Expanded(child: Text(student.fullName)),
-                      DropdownButton<AttendanceStatus>(
-                        value: record.status,
-                        underline: const SizedBox.shrink(),
-                        items: [
-                          for (final s in AttendanceStatus.values)
-                            DropdownMenuItem(value: s, child: Text(s.labelFr)),
-                        ],
-                        onChanged: (value) {
-                          if (value == null) return;
-                          store.setAttendanceStatus(
-                            sessionId,
-                            student.id,
-                            value,
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LiveAttendancePage extends LScopedView<LiveSessionController> {
-  const _LiveAttendancePage({required this.sessionId});
-
-  final String sessionId;
-
-  @override
-  LiveSessionController onConfigScope(LevitScope scope) {
-    return putLiveSessionController(scope, sessionId);
-  }
-
-  @override
-  Widget buildView(BuildContext context, LiveSessionController controller) {
+    final c = context.levit.find<LiveSessionController>();
     return LWatch(() {
-      controller.session.value;
-      controller.students.value;
-      controller.saveMessage.value;
-      final session = controller.session.value;
-      if (session == null) {
-        return const PrototypeDetailScaffold(
-          title: 'Présences',
-          body: EmptyState(title: 'Séance introuvable'),
-        );
-      }
-      if (!controller.supportsAttendanceRecording) {
-        return PrototypeDetailScaffold(
-          title: 'Présences · ${session.classLabel}',
-          fallbackRoute: '/session/$sessionId',
-          body: const EmptyState(
-            title: 'Présences',
-            message:
-                'La saisie des présences est réservée aux séances de cours.',
+      if (c.attendanceError.value.isNotEmpty)
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(c.attendanceError.value),
+              TextButton(onPressed: c.load, child: Text(context.tr.retry)),
+            ],
           ),
         );
-      }
-      final records = controller.students.value;
-      return PrototypeDetailScaffold(
-        title: 'Présences · ${session.classLabel}',
-        fallbackRoute: '/session/$sessionId',
-        body: AttendanceLayout(
-          controls: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                '${records.where((r) => r.status != null).length}/${records.length} renseignés',
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.all(PrototypeSpacing.md),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed:
-                          controller.attendanceSubmitted.value ||
-                              records.isEmpty
-                          ? null
-                          : controller.markAllPresent,
-                      child: const Text('Tous présents'),
-                    ),
-                  ),
-                  const SizedBox(width: PrototypeSpacing.sm),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed:
-                          controller.attendanceSubmitted.value ||
-                              records.isEmpty
-                          ? null
-                          : () async {
-                              await controller.completeAttendance();
-                              if (!context.mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    controller.saveMessage.value.isEmpty
-                                        ? 'Présences enregistrées'
-                                        : controller.saveMessage.value,
-                                  ),
-                                ),
-                              );
-                            },
-                      child: const Text('Terminer'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          roster: records.isEmpty
-              ? const EmptyState(title: 'Aucun élève')
-              : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(
-                    PrototypeSpacing.md,
-                    0,
-                    PrototypeSpacing.md,
-                    PrototypeSpacing.md,
-                  ),
-                  itemCount: records.length,
-                  separatorBuilder: (_, _) =>
-                      const SizedBox(height: PrototypeSpacing.xs),
-                  itemBuilder: (context, i) {
-                    final record = records[i];
-                    return SurfaceCard(
-                      child: Row(
-                        children: [
-                          PersonAvatar(
-                            initials: record.initials,
-                            photoUrl: record.photoUrl,
-                            radius: 20,
-                          ),
-                          const SizedBox(width: PrototypeSpacing.sm),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(record.fullName),
-                                if (record.reason != null &&
-                                    record.reason!.isNotEmpty)
-                                  Text(
-                                    record.reason!,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  ),
-                              ],
-                            ),
-                          ),
-                          if (controller.attendanceSubmitted.value &&
-                              controller.arrivalWindowActive &&
-                              record.status == AttendanceStatus.absent)
-                            TextButton(
-                              onPressed: () =>
-                                  controller.recordArrival(record.studentId),
-                              child: Text(context.tr.attendanceArrival),
-                            ),
-                          if (controller.attendanceSubmitted.value &&
-                              record.status != null)
-                            IconButton(
-                              tooltip: context.tr.workflowRequestCorrection,
-                              icon: const Icon(Icons.edit_note),
-                              onPressed: () async {
-                                final exception =
-                                    await showAttendanceExceptionSheet(
-                                      context: context,
-                                      studentName: record.fullName,
-                                      initialStatus: record.status!,
-                                      initialReason: record.reason,
-                                      initialNotes: record.notes,
-                                      correction: true,
-                                    );
-                                if (exception != null) {
-                                  await controller.requestAttendanceCorrection(
-                                    record.studentId,
-                                    exception.status,
-                                    exception.correctionReason!,
-                                    notes: exception.notes,
-                                    teacherExplanation: exception.reason,
-                                  );
-                                }
-                              },
-                            ),
-                          DropdownButton<AttendanceStatus>(
-                            hint: const Text('À saisir'),
-                            value: record.status,
-                            underline: const SizedBox.shrink(),
-                            items: [
-                              for (final s in AttendanceStatus.values)
-                                DropdownMenuItem(
-                                  value: s,
-                                  child: Text(s.labelFr),
-                                ),
-                            ],
-                            onChanged: (value) async {
-                              if (value == null) return;
-                              if (controller.attendanceSubmitted.value) {
-                                final exception =
-                                    await showAttendanceExceptionSheet(
-                                      context: context,
-                                      studentName: record.fullName,
-                                      initialStatus: value,
-                                      initialReason: record.reason,
-                                      initialNotes: record.notes,
-                                      correction: true,
-                                    );
-                                if (exception != null) {
-                                  await controller.requestAttendanceCorrection(
-                                    record.studentId,
-                                    exception.status,
-                                    exception.correctionReason!,
-                                    notes: exception.notes,
-                                    teacherExplanation: exception.reason,
-                                  );
-                                }
-                                return;
-                              }
-                              if (value == AttendanceStatus.present) {
-                                await controller.setAttendanceStatus(
-                                  record.studentId,
-                                  value,
-                                );
-                                return;
-                              }
-                              final exception =
-                                  await showAttendanceExceptionSheet(
-                                    context: context,
-                                    studentName: record.fullName,
-                                    initialStatus: value,
-                                    initialReason: record.reason,
-                                    initialNotes: record.notes,
-                                  );
-                              if (exception == null) return;
-                              await controller.setAttendanceStatus(
-                                record.studentId,
-                                exception.status,
-                                reason: exception.reason,
-                                notes: exception.notes,
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-        ),
+      if (!c.supportsAttendanceRecording)
+        return const EmptyState(
+          title: 'Présences',
+          message: 'La saisie des présences est réservée aux séances de cours.',
+        );
+      return RollCall(
+        rows: c.students.value,
+        submitted: c.attendanceSubmitted.value,
+        busy: c.isBusy.value,
+        savingDraft: c.draftWrites.writing.value,
+        message: c.saveMessage.value,
+        pending: c.draftPending.value,
+        conflict: c.draftConflict.value,
+        windowOpen: c.arrivalWindowActive,
+        onBulk: c.markAllPresent,
+        onFinish: c.completeAttendance,
+        onSync: c.retryAttendanceDraft,
+        schoolTime: c.schoolTime,
+        onMove: (row, departure) => departure
+            ? c.recordDeparture(row.studentId)
+            : c.recordArrival(row.studentId),
+        onSave: (row, status, comment, reason) async {
+          if (reason != null) {
+            await c.requestAttendanceCorrection(
+              row.studentId,
+              status,
+              reason,
+              teacherExplanation: comment,
+            );
+            return c.saveMessage.value ==
+                    systemL10n().workflowCorrectionPending ||
+                c.saveMessage.value == systemL10n().attendanceSavedLocally;
+          }
+          return c.setAttendanceStatus(row.studentId, status, reason: comment);
+        },
       );
     });
   }
-}
-
-class AttendanceExceptionResult {
-  const AttendanceExceptionResult({
-    required this.status,
-    this.reason,
-    this.notes,
-    this.correctionReason,
-  });
-
-  final AttendanceStatus status;
-  final String? reason;
-  final String? notes;
-  final String? correctionReason;
-}
-
-Future<AttendanceExceptionResult?> showAttendanceExceptionSheet({
-  required BuildContext context,
-  required String studentName,
-  required AttendanceStatus initialStatus,
-  String? initialReason,
-  String? initialNotes,
-  bool correction = false,
-}) {
-  var status = initialStatus;
-  final reason = TextEditingController(text: initialReason ?? '');
-  final notes = TextEditingController(text: initialNotes ?? '');
-  final correctionReason = TextEditingController();
-  return showWorkspaceEditor<AttendanceExceptionResult>(
-    context: context,
-    title: studentName,
-    builder: (context, finish) {
-      return SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.only(
-            left: PrototypeSpacing.md,
-            right: PrototypeSpacing.md,
-            top: PrototypeSpacing.md,
-            bottom:
-                MediaQuery.viewInsetsOf(context).bottom + PrototypeSpacing.md,
-          ),
-          child: StatefulBuilder(
-            builder: (context, setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () => finish(null),
-                      child: const Text('Annuler'),
-                    ),
-                  ),
-                  Text(
-                    studentName,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: PrototypeSpacing.md),
-                  DropdownButtonFormField<AttendanceStatus>(
-                    initialValue: status,
-                    decoration: const InputDecoration(
-                      labelText: 'Statut',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: [
-                      for (final value in AttendanceStatus.values)
-                        DropdownMenuItem(
-                          value: value,
-                          child: Text(value.labelFr),
-                        ),
-                    ],
-                    onChanged: (value) {
-                      if (value == null) return;
-                      setState(() => status = value);
-                    },
-                  ),
-                  const SizedBox(height: PrototypeSpacing.md),
-                  TextField(
-                    controller: reason,
-                    decoration: InputDecoration(
-                      labelText: context.tr.workflowTeacherExplanation,
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: PrototypeSpacing.md),
-                  TextField(
-                    controller: notes,
-                    maxLines: 2,
-                    decoration: const InputDecoration(
-                      labelText: 'Note',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: PrototypeSpacing.md),
-                  if (correction)
-                    TextField(
-                      controller: correctionReason,
-                      maxLines: 2,
-                      decoration: InputDecoration(
-                        labelText: context.tr.marksCorrectionReason,
-                      ),
-                      onChanged: (_) => setState(() {}),
-                    ),
-                  FilledButton(
-                    onPressed:
-                        correction && correctionReason.text.trim().isEmpty
-                        ? null
-                        : () {
-                            finish(
-                              AttendanceExceptionResult(
-                                status: status,
-                                reason: reason.text.trim(),
-                                notes: notes.text.trim(),
-                                correctionReason: correctionReason.text.trim(),
-                              ),
-                            );
-                          },
-                    child: Text(
-                      correction
-                          ? context.tr.workflowRequestCorrection
-                          : context.tr.save,
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
-      );
-    },
-  ).whenComplete(() {
-    reason.dispose();
-    notes.dispose();
-    correctionReason.dispose();
-  });
 }

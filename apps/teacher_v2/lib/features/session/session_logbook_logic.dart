@@ -89,7 +89,7 @@ SessionMatterProgress? parseSessionMatterProgress(Map<String, dynamic>? row) {
 List<SessionSubjectMatterOption> buildSessionSubjectMatters({
   required List<Map<String, dynamic>> matterLinks,
   required List<Map<String, dynamic>> subjectMatters,
-  required List<Map<String, dynamic>> sessionProgressRows,
+  List<Map<String, dynamic>> sessionProgressRows = const [],
   required String fallbackName,
 }) {
   final matterNameById = {

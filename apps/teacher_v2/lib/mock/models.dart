@@ -107,7 +107,8 @@ class MockAttendanceRecord {
   MockAttendanceRecord({required this.studentId, required this.status});
 
   final String studentId;
-  AttendanceStatus status;
+  AttendanceStatus? status;
+  String? comment;
 }
 
 class MockLogbook {
@@ -116,14 +117,16 @@ class MockLogbook {
     this.content = '',
     this.objectives = '',
     this.homework = '',
-    this.progressPercent = 0,
-  });
+    this.familySummary = '',
+    Map<String, int>? chapters,
+  }) : chapters = chapters ?? {};
 
   final String sessionId;
   String content;
   String objectives;
   String homework;
-  int progressPercent;
+  String familySummary;
+  final Map<String, int> chapters;
 }
 
 class MockEvaluation {

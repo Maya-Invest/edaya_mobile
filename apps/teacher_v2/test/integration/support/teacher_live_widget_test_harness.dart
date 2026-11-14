@@ -127,6 +127,19 @@ class TeacherLiveWidgetTestHarness {
     settings.language(language);
 
     session.user(AuthUser(id: authUserId, email: profile.email));
+    // This harness skips production sign-in, which normally populates the picker profiles.
+    final profiles = await portalSession.schoolClient.authorizationProfiles();
+    session.availableProfiles([
+      for (final row in profiles)
+        if (row['kind'] == 'teacher')
+          SchoolAuthorizationProfile(
+            kind: 'teacher',
+            actorId: row['actorId'] as String,
+            schoolId: row['schoolId'] as String,
+            schoolName: row['schoolName'] as String? ?? '',
+            schoolShortName: row['schoolShortName'] as String? ?? '',
+          ),
+    ]);
     session.grants(context.grants);
     session.isBootstrapping(false);
 

@@ -2,13 +2,19 @@
 
 Flutter monorepo for the Edaya mobile apps, managed with [Melos](https://melos.invertase.dev/) and [pub workspaces](https://dart.dev/tools/pub/workspaces).
 
+## Releases
+
+Android and iOS releases build `apps/guardian_v2` and `apps/teacher_v2`. Production qualification feeds Google Play internal testing and Apple TestFlight; public releases use separate manual workflows. See [CI setup](docs/reference/ci-setup.md), [Google Play](docs/reference/google-play-releases.md), and [Apple release credentials](docs/reference/apple-releases.md). The original apps remain covered by verification.
+
 ## Layout
 
 ```text
 edaya_mobile/
 ├── apps/
-│   ├── guardian/              edaya_guardian — parent/guardian app (production)
-│   └── teacher/               edaya_teacher — Accueil-first teacher app (production)
+│   ├── guardian_v2/           parent/guardian release app
+│   ├── teacher_v2/            teacher release app
+│   ├── guardian/              original app, retained in verification
+│   └── teacher/               original app, retained in verification
 ├── packages/
 │   ├── edaya_api_client/      domain-shaped Core API client
 │   ├── edaya_auth/            Better Auth HTTP client
@@ -240,3 +246,5 @@ Integration tests run against two demo-ci teacher profiles automatically:
 | Homeroom teacher (ci-t2) | `k.diomande@ecole-ci.edaya.dev` | `ci-6b` |
 
 Covered API chains mirror the teacher app: bootstrap/context, calendar/timetable enrichment, evaluations, session detail (enrollments, students, attendance, logbook reads), and `recordAttendance` write-back. `EDAYA_TEACHER_EMAIL` only overrides the subject-teacher defaults when running a single profile manually.
+
+Guardian v2 is available in `apps/guardian_v2`, with a child picker, two Home menu groups and unified period results. See [its workspace specification](docs/specs/guardian-v2-workspace-spec.md).

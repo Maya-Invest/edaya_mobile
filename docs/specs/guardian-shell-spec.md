@@ -303,3 +303,7 @@ Must not be treated as shell requirements:
 Messages supports New message, a merged notification/conversation list, and `/inbox/conversation/:conversationId` details under the existing Messages tab. Avis remains unchanged. Teacher conversations capture the selected child and a currently assigned teacher; school conversations may omit the child. Subject and body are text only. Recipient changes clear composer fields. Unsent drafts remain transient and are cleared on profile/logout changes.
 
 Conversation details retain their captured school, participants and child independently of the shell selection. Guardians retain authorized read-only history after the original teaching relationship ends. Teacher exchanges explain school oversight. School enquiry status is shown separately from personal unread state. Push destinations establish the correct selected school/profile before navigation, including after sign-in.
+
+## Separate Guardian v2 implementation
+
+The child-first Home and unified results workspace is implemented in `apps/guardian_v2`. Its normative contract is [Guardian v2 workspace](guardian-v2-workspace-spec.md). This document continues to describe the original `apps/guardian` shell.

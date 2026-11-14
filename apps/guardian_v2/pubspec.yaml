@@ -1,0 +1,60 @@
+name: edaya_guardian_v2
+description: Edaya mobile app for guardians and parents.
+publish_to: none
+resolution: workspace
+
+version: 1.0.0+0
+
+environment:
+  sdk: ^3.11.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  edaya_api_client:
+    path: ../../packages/edaya_api_client
+  edaya_auth:
+    path: ../../packages/edaya_auth
+  edaya_shared:
+    path: ../../packages/edaya_shared
+  go_router: ^17.3.0
+  intl: any
+  timezone: ^0.11.1
+  levit_flutter: ^0.0.9
+  shared_preferences: ^2.5.5
+  firebase_core: ^4.11.0
+  firebase_messaging: ^16.4.1
+  url_launcher: ^6.3.2
+
+dev_dependencies:
+  flutter_secure_storage: ^10.3.4
+  flutter_test:
+    sdk: flutter
+  edaya_integration_tests:
+    path: ../../tooling/integration_tests
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: ../../branding/icons/guardian.png
+  remove_alpha_ios: true
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: ../../branding/icons/guardian-foreground.png
+  web:
+    generate: true
+    image_path: ../../branding/icons/guardian.png
+    background_color: "#FFFFFF"
+    theme_color: "#2563EB"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/fonts/
+  fonts:
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito-Variable.ttf

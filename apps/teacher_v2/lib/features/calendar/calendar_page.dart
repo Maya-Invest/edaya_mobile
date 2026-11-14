@@ -1,3 +1,4 @@
+import '../context/teacher_context_controller.dart';
 import '../../app/workspace_navigation.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
@@ -91,7 +92,7 @@ class _MockCalendarPage extends LScopedView<StoreBoundController> {
                           ].join(' · '),
                         ].where((line) => line.isNotEmpty).join('\n'),
                         selected: selected,
-                        onTap: () => context.push('/calendar/lesson/${s.id}'),
+                        onTap: () => context.push('/session/${s.id}'),
                         trailing: Icon(
                           Icons.chevron_right,
                           color: selected
@@ -113,6 +114,7 @@ class _LiveCalendarPage extends LView<LiveCalendarController> {
 
   @override
   Widget buildView(BuildContext context, LiveCalendarController controller) {
+    controller.start();
     return LWatch(() {
       controller.sessions.value;
       controller.selectedDay.value;
@@ -157,7 +159,22 @@ class _LiveCalendarPage extends LView<LiveCalendarController> {
               onSelectDay: controller.goToDate,
             ),
             Expanded(
-              child: sessions.isEmpty
+              child: controller.errorMessage.value.isNotEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(controller.errorMessage.value),
+                          TextButton(
+                            onPressed: controller.loadCalendarData,
+                            child: Text(context.tr.retry),
+                          ),
+                        ],
+                      ),
+                    )
+                  : controller.isBusy.value && sessions.isEmpty
+                  ? const Center(child: CircularProgressIndicator())
+                  : sessions.isEmpty
                   ? EmptyState(
                       title: 'Aucune séance ce jour',
                       message: controller.errorMessage.value,
@@ -174,9 +191,17 @@ class _LiveCalendarPage extends LView<LiveCalendarController> {
                             completion[s.id]?.isComplete ?? false;
                         final cahierDone = logbookComplete[s.id] ?? false;
                         return ListRow(
+                          key: ValueKey('agenda-lesson-${s.id}'),
                           title: '${s.classLabel} · ${s.subjectLabel}',
                           subtitle: [
-                            formatClockRange(s.startsAt, s.endsAt),
+                            formatClockRange(
+                              context.levit
+                                  .find<TeacherContextController>()
+                                  .schoolTime(s.startsAt),
+                              context.levit
+                                  .find<TeacherContextController>()
+                                  .schoolTime(s.endsAt),
+                            ),
                             [
                               if (s.kind == 'lesson' && !attendanceDone)
                                 'Présences',
@@ -185,7 +210,7 @@ class _LiveCalendarPage extends LView<LiveCalendarController> {
                             ].join(' · '),
                           ].where((line) => line.isNotEmpty).join('\n'),
                           selected: selected,
-                          onTap: () => context.push('/calendar/lesson/${s.id}'),
+                          onTap: () => context.push('/session/${s.id}'),
                           trailing: Icon(
                             Icons.chevron_right,
                             color: selected

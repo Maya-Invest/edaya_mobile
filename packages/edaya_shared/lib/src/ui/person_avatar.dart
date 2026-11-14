@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +19,8 @@ class PersonAvatar extends StatefulWidget {
     required this.name,
     required this.initials,
     this.photoUrl,
+    this.schoolClient,
+    this.retryTransientLoad = false,
     this.radius = 20,
     this.backgroundColor,
     this.initialsStyle,
@@ -26,6 +29,8 @@ class PersonAvatar extends StatefulWidget {
   final String name;
   final String initials;
   final String? photoUrl;
+  final SchoolClientFactory? schoolClient;
+  final bool retryTransientLoad;
   final double radius;
   final Color? backgroundColor;
   final TextStyle? initialsStyle;
@@ -39,6 +44,13 @@ class _PersonAvatarState extends State<PersonAvatar> {
   ImageProvider? _image;
   String? _loadedUrl;
   int _generation = 0;
+  Timer? _retry;
+  int _attempts = 0;
+  @override
+  void dispose() {
+    _retry?.cancel();
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
@@ -49,6 +61,7 @@ class _PersonAvatarState extends State<PersonAvatar> {
   Future<void> _loadImage() async {
     final source = widget.photoUrl?.trim();
     if (_loadedUrl == source) return;
+    _retry?.cancel();
     _loadedUrl = source;
     final generation = ++_generation;
     _image = null;
@@ -65,7 +78,9 @@ class _PersonAvatarState extends State<PersonAvatar> {
         if (segments.length != 4 || segments.last != 'content') {
           throw StateError('Unsupported photo resource');
         }
-        final client = context.levit.find<SchoolClientFactory>()();
+        final client =
+            (widget.schoolClient ??
+            context.levit.find<SchoolClientFactory>())();
         final grant = await client.getDownloadUrl(attachmentId: segments[2]);
         final downloadUrl = ApiBaseUrlConfig.rewriteLocalDevUrl(
           grant['downloadUrl'] as String,
@@ -104,6 +119,14 @@ class _PersonAvatarState extends State<PersonAvatar> {
     } catch (_) {
       if (mounted && generation == _generation) {
         setState(() => _imageFailed = true);
+        if (widget.retryTransientLoad && _attempts < 2) {
+          _attempts++;
+          _retry = Timer(Duration(seconds: _attempts), () {
+            if (!mounted || generation != _generation) return;
+            _loadedUrl = null;
+            _loadImage();
+          });
+        }
       }
     }
   }
@@ -111,7 +134,10 @@ class _PersonAvatarState extends State<PersonAvatar> {
   @override
   void didUpdateWidget(covariant PersonAvatar oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.photoUrl != widget.photoUrl) {
+    if (oldWidget.photoUrl != widget.photoUrl ||
+        oldWidget.schoolClient != widget.schoolClient) {
+      _loadedUrl = null;
+      _attempts = 0;
       _loadImage();
     }
   }

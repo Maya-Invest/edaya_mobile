@@ -173,10 +173,11 @@ Future<void> integration({String? suite, bool validateOnly = false}) async {
   if (registry.keys.toSet().difference({
         'api',
         'guardian',
+        'guardian_v2',
         'teacher',
         'teacher_v2',
       }).isNotEmpty ||
-      registry.length != 4 ||
+      registry.length != 5 ||
       registry.values.any((value) => (value as List).isEmpty) ||
       allIds.length != allIds.toSet().length ||
       allIds.any((id) => !RegExp(r'^[a-z0-9][a-z0-9.-]+$').hasMatch(id))) {
@@ -314,7 +315,13 @@ Future<void> integration({String? suite, bool validateOnly = false}) async {
     'suites': summaries,
   });
   final sanitized = <String, dynamic>{};
-  for (final name in ['api', 'guardian', 'teacher', 'teacher_v2']) {
+  for (final name in [
+    'api',
+    'guardian',
+    'guardian_v2',
+    'teacher',
+    'teacher_v2',
+  ]) {
     final row = summaries[name] as Map<String, dynamic>?;
     final tests = (row?['tests'] as List?) ?? [];
     sanitized[name] = {

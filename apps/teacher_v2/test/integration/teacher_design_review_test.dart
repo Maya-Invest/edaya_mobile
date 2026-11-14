@@ -19,7 +19,6 @@ import 'package:edaya_teacher_v2/features/home/home_page.dart';
 import 'package:edaya_teacher_v2/features/inbox/inbox_page.dart';
 import 'package:edaya_teacher_v2/features/login/login_page.dart';
 import 'package:edaya_teacher_v2/features/session/attendance_page.dart';
-import 'package:edaya_teacher_v2/features/session/logbook_page.dart';
 import 'package:edaya_teacher_v2/features/session/session_detail_page.dart';
 
 import 'support/design_review_capture.dart';
@@ -148,7 +147,7 @@ Future<void> main() async {
                 slug: '04b-logbook',
                 title: 'Logbook',
                 description: 'Structured lesson logbook and progress.',
-                pageType: LogbookPage,
+                pageType: SessionDetailPage,
               ),
               (
                 path: (_) => '/progress',

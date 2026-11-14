@@ -119,7 +119,10 @@ class LiveReportCardsController extends LevitController
   List<ReportCardClassSummary> get pendingCommentClasses =>
       classSummaries.value.where((item) => item.pendingComments > 0).toList();
 
+  int _summaryGeneration = 0;
   Future<void> loadClassSummaries() async {
+    final generation = ++_summaryGeneration;
+    bool stale() => isClosed || generation != _summaryGeneration;
     final periodId = _evaluations.selectedPeriodId.value;
     final periodLabel = _evaluations.selectedPeriodLabel ?? periodId ?? '';
     final classes = _teacherContext.assignedClasses.value;
@@ -137,6 +140,7 @@ class LiveReportCardsController extends LevitController
             'classGroupId': assigned.id,
             'periodId': periodId,
           });
+          if (stale()) return;
           final generated = results.where(reportCardIsGenerated);
           final withComments = generated.where(
             (row) => _responsibilities(
@@ -163,8 +167,9 @@ class LiveReportCardsController extends LevitController
             ),
           );
         }
-        classSummaries(summaries);
+        if (!stale()) classSummaries(summaries);
       } on Object catch (error) {
+        if (stale()) return;
         errorMessage(systemL10n().couldNotLoadReportCards('$error'));
         classSummaries(const []);
       }

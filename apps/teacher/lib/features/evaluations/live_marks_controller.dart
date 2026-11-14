@@ -229,7 +229,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
           final next =
               ((entry.payload['expectedRevision'] as num?)?.toInt() ??
                   _revision) +
-              1;
+              ((entry.payload['results'] as List?)?.length ?? 1);
           if (marksStatus.value == 'draft' && next > _revision) {
             _revision = next;
           }
@@ -279,16 +279,18 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
             saveMessage(systemL10n().marksResolveConflicts);
             continue;
           }
-          _patchRow(
-            entry.payload['studentId'] as String,
-            resultId: entry.payload['id'] as String?,
-            score: (entry.payload['score'] as num?)?.toDouble(),
-            mentionId: entry.payload['mentionId'] as String?,
-            designation: entry.payload['designation'] as String?,
-            syncState: teacherOutboxEntryIsReplayable(entry)
-                ? MarkSyncState.pending
-                : MarkSyncState.failed,
-          );
+          for (final payload in teacherMarkOutboxRows(entry)) {
+            _patchRow(
+              payload['studentId'] as String,
+              resultId: payload['id'] as String?,
+              score: (payload['score'] as num?)?.toDouble(),
+              mentionId: payload['mentionId'] as String?,
+              designation: payload['designation'] as String?,
+              syncState: teacherOutboxEntryIsReplayable(entry)
+                  ? MarkSyncState.pending
+                  : MarkSyncState.failed,
+            );
+          }
         }
       } on api.ApiError catch (error) {
         errorMessage(systemL10n().couldNotLoadMarks('$error'));

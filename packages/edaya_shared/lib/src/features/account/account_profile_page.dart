@@ -20,6 +20,7 @@ class AccountProfilePage extends LScopedView<AccountProfileController> {
     this.onProfileSaved,
     this.embedded = false,
     this.profileActions,
+    this.portrait,
     this.onOpenSecurity,
     this.confirmDiscard,
     this.onClose,
@@ -32,6 +33,7 @@ class AccountProfilePage extends LScopedView<AccountProfileController> {
 
   /// Additional actions owned by the selected portal app.
   final Widget? profileActions;
+  final Widget? portrait;
 
   /// Optional app-owned presentation for security details.
   final VoidCallback? onOpenSecurity;
@@ -63,6 +65,7 @@ class AccountProfilePage extends LScopedView<AccountProfileController> {
           () => _ProfileForm(
             controller: controller,
             profileActions: profileActions,
+            portrait: portrait,
             onOpenSecurity: onOpenSecurity,
           ),
         ),
@@ -120,11 +123,13 @@ class _ProfileForm extends StatelessWidget {
   const _ProfileForm({
     required this.controller,
     this.profileActions,
+    this.portrait,
     this.onOpenSecurity,
   });
 
   final AccountProfileController controller;
   final Widget? profileActions;
+  final Widget? portrait;
   final VoidCallback? onOpenSecurity;
 
   @override
@@ -165,12 +170,13 @@ class _ProfileForm extends StatelessWidget {
               child: Stack(
                 alignment: Alignment.bottomRight,
                 children: [
-                  PersonAvatar(
-                    name: profile.fullName,
-                    initials: profile.initials,
-                    photoUrl: profile.photoUrl,
-                    radius: 40,
-                  ),
+                  portrait ??
+                      PersonAvatar(
+                        name: profile.fullName,
+                        initials: profile.initials,
+                        photoUrl: profile.photoUrl,
+                        radius: 40,
+                      ),
                   if (controller.canUploadPhoto)
                     CircleAvatar(
                       radius: 14,

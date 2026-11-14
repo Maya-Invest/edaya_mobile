@@ -5,10 +5,12 @@ import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../features/auth/session_storage.dart';
+import '../features/account/teacher_portrait.dart';
 import '../features/calendar/live_calendar_controller.dart';
 import '../features/context/academic_year_controller.dart';
 import '../features/context/teacher_context_controller.dart';
 import '../features/context/teacher_workspace_catalog.dart';
+import '../features/context/teacher_assignment_catalog.dart';
 import '../features/evaluations/family_feedback_controller.dart';
 import '../features/evaluations/live_evaluations_controller.dart';
 import '../features/inbox/live_inbox_controller.dart';
@@ -23,6 +25,8 @@ import '../app/router.dart';
 Future<void> initializeTeacherAuthenticatedContext(
   LevitScope scope, {
   bool findEligibleSchool = true,
+  TeacherAssignmentCatalog? preview,
+  String? preferredAssignment,
 }) async {
   // Resolve dependencies before awaiting: the initiating route can be disposed.
   final session = scope.find<AppSessionController>();
@@ -30,21 +34,35 @@ Future<void> initializeTeacherAuthenticatedContext(
   final year = scope.find<AcademicYearController>();
   final teacher = scope.find<TeacherContextController>();
   final outbox = scope.find<TeacherOutboxController>();
-  final inbox = scope.find<LiveInboxController>();
+  final school = session.schoolIdHeader;
+  final actor = session.actorIdHeader;
+  bool current() =>
+      !session.isClosed &&
+      session.schoolIdHeader == school &&
+      session.actorIdHeader == actor;
   await year.loadYears();
-  if (session.isClosed) return;
-  await session.refreshGrants();
-  if (session.isClosed) return;
-  await teacher.initializeFromSession();
-  if (session.isClosed) return;
+  if (!current()) return;
+  final grantError = await session.refreshGrants();
+  if (!current()) return;
+  if (grantError != null) {
+    teacher.recordLoadFailure(grantError);
+    return;
+  }
+  await teacher.initializeFromSession(
+    preview: preview,
+    preferredAssignment: preferredAssignment,
+  );
+  if (!current()) return;
   if (findEligibleSchool &&
-      teacher.assignments.value.isEmpty &&
+      (teacher.confirmedNoAssignments || year.confirmedNoPublishedYear) &&
       session.availableProfiles.value.length > 1) {
     final catalog = await loadTeacherSchoolChoices(
       scope.find<AuthClient>(),
-      session.availableProfiles.value,
+      session,
+      teacher,
+      year,
     );
-    if (session.isClosed) return;
+    if (!current()) return;
     final eligible = catalog
         .where(
           (school) =>
@@ -59,14 +77,13 @@ Future<void> initializeTeacherAuthenticatedContext(
         await initializeTeacherAuthenticatedContext(
           scope,
           findEligibleSchool: false,
+          preview: eligible.catalog,
         );
         return;
       }
     }
   }
   await outbox.refreshSummary();
-  if (session.isClosed) return;
-  await inbox.loadInbox();
 }
 
 void registerPrototypeDependencies(
@@ -106,6 +123,10 @@ void registerPrototypeDependencies(
         enableTestOtpInDebug: true,
       );
     }
+    scope.lazyPut<TeacherPortraitSource>(
+      () => TeacherPortraitSource(scope.find<AuthClient>()),
+      permanent: true,
+    );
     scope.put<SessionStorage>(() => SessionStorage(), permanent: true);
     registerSchoolClientFactory(
       scope,
@@ -184,7 +205,7 @@ void registerPrototypeDependencies(
       ),
       permanent: true,
     );
-    scope.put<LiveEvaluationsController>(
+    scope.lazyPut<LiveEvaluationsController>(
       () => LiveEvaluationsController(
         teacherContext: scope.find<TeacherContextController>(),
         academicYear: scope.find<AcademicYearController>(),
@@ -192,7 +213,7 @@ void registerPrototypeDependencies(
       ),
       permanent: true,
     );
-    scope.put<LiveReportCardsController>(
+    scope.lazyPut<LiveReportCardsController>(
       () => LiveReportCardsController(
         teacherContext: scope.find<TeacherContextController>(),
         academicYear: scope.find<AcademicYearController>(),
@@ -201,23 +222,23 @@ void registerPrototypeDependencies(
       ),
       permanent: true,
     );
-    scope.put<LiveFamilyFeedbackController>(
+    scope.lazyPut<LiveFamilyFeedbackController>(
       () => LiveFamilyFeedbackController(
         session: scope.find<AppSessionController>(),
         schoolClient: scope.find<SchoolClientFactory>(),
       ),
       permanent: true,
     );
-    scope.put<LiveInboxController>(
+    scope.lazyPut<LiveInboxController>(
       () => LiveInboxController(
         session: scope.find<AppSessionController>(),
         schoolClient: scope.find<SchoolClientFactory>(),
       ),
       permanent: true,
     );
-    scope.put<LiveHomeController>(
+    scope.lazyPut<LiveHomeController>(
       () => LiveHomeController(
-        calendar: scope.find<LiveCalendarController>(),
+        calendar: scope.find<LiveCalendarController>()..start(),
         evaluations: scope.find<LiveEvaluationsController>(),
         familyFeedback: scope.find<LiveFamilyFeedbackController>(),
         reportCards: scope.find<LiveReportCardsController>(),
@@ -261,13 +282,17 @@ void registerPrototypeDependencies(
         }
       });
     }
-    store.addListener(() => scope.find<EdayaRouterRefresh>().refresh());
   } else {
     scope.put<AppSettingsController>(
       () => AppSettingsController(),
       permanent: true,
     );
-    store.addListener(() => scope.find<EdayaRouterRefresh>().refresh());
+    var signedIn = store.isAuthenticated;
+    store.addListener(() {
+      if (signedIn == store.isAuthenticated) return;
+      signedIn = store.isAuthenticated;
+      scope.find<EdayaRouterRefresh>().refresh();
+    });
   }
 
   scope.put<GoRouter>(

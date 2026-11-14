@@ -50,7 +50,11 @@ class PrototypeWidgetTestHarness {
     return RepaintBoundary(key: designReviewRootKey, child: framed);
   }
 
-  Widget buildApp() {
+  Widget buildApp({
+    Locale locale = const Locale('fr', 'FR'),
+    double? textScale,
+    ThemeMode? themeMode,
+  }) {
     _scope = null;
     return LScope(
       name: 'teacher-test-${identityHashCode(this)}',
@@ -63,17 +67,21 @@ class PrototypeWidgetTestHarness {
           return MaterialApp.router(
             builder: (context, child) => MediaQuery(
               data: MediaQuery.of(context).copyWith(
-                textScaler: TextScaler.linear(designReviewTextScale()),
+                textScaler: TextScaler.linear(
+                  textScale ?? designReviewTextScale(),
+                ),
               ),
               child: child!,
             ),
             title: 'Edaya Teacher Prototype',
             theme: PrototypeTheme.light,
             darkTheme: PrototypeTheme.dark,
-            themeMode: designReviewTheme() == 'dark'
-                ? ThemeMode.dark
-                : ThemeMode.light,
-            locale: const Locale('fr', 'FR'),
+            themeMode:
+                themeMode ??
+                (designReviewTheme() == 'dark'
+                    ? ThemeMode.dark
+                    : ThemeMode.light),
+            locale: locale,
             supportedLocales: AppLocalizations.supportedLocales,
             localizationsDelegates: const [
               AppLocalizations.delegate,

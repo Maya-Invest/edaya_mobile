@@ -1,7 +1,6 @@
 import '../../design/workspace_layout.dart';
 import '../../design/components/surface_card.dart';
 import '../../design/spacing.dart';
-import 'package:edaya_api_client/edaya_api_client.dart';
 import 'dart:async';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter/material.dart';
@@ -9,10 +8,9 @@ import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import '../../app/workspace_navigation.dart';
-import '../../app/formatters.dart';
+import '../../di/prototype_module.dart';
+import 'home_lesson_list.dart';
 import '../../live/runtime.dart';
-import '../calendar/live_calendar_controller.dart';
-import '../calendar/teacher_session.dart';
 import '../context/teacher_context_controller.dart';
 import '../context/academic_year_controller.dart';
 
@@ -24,6 +22,7 @@ class WorkspaceHome extends StatefulWidget {
 
 class _WorkspaceHomeState extends State<WorkspaceHome>
     with WidgetsBindingObserver {
+  final _lessonList = GlobalKey();
   Timer? timer;
   DateTime? wake;
   @override
@@ -38,7 +37,6 @@ class _WorkspaceHomeState extends State<WorkspaceHome>
         mounted &&
         prototypeIsLive(context)) {
       registerKey = '';
-      context.levit.find<LiveCalendarController>().loadCalendarData();
       setState(() {});
     }
   }
@@ -49,7 +47,6 @@ class _WorkspaceHomeState extends State<WorkspaceHome>
     timer?.cancel();
     timer = Timer(at.difference(now) + const Duration(milliseconds: 50), () {
       if (mounted) {
-        context.levit.find<LiveCalendarController>().loadCalendarData();
         setState(() {});
       }
     });
@@ -72,8 +69,6 @@ class _WorkspaceHomeState extends State<WorkspaceHome>
     final api = factory();
     final result = <({String id, String label, bool done})>[];
     for (final c in classes) {
-      final group = await api.classGroups.get(c.id);
-      if (group['attendanceMode'] != 'daily') continue;
       final call = await api.runQuery('get-teacher-attendance-call', {
         'anchor': {
           'kind': 'daily',
@@ -88,41 +83,28 @@ class _WorkspaceHomeState extends State<WorkspaceHome>
 
   Widget day(BuildContext context) {
     if (!prototypeIsLive(context)) return const SizedBox.shrink();
-    final teacher = context.levit.find<TeacherContextController>(),
-        calendar = context.levit.find<LiveCalendarController>();
-    final ids = teacher.visibleClassGroupIds;
-    final now = teacher.schoolTime(DateTime.now()),
-        currentClass = teacher.activeAssignment?.classGroupId;
-    final lessons = homeLessonPreview(
-      calendar.todaySessions.value,
-      now: now,
-      schoolTime: teacher.schoolTime,
-      classIds: ids,
+    final teacher = context.levit.find<TeacherContextController>();
+    final now = teacher.schoolTime(DateTime.now());
+    final assignment = teacher.activeAssignment;
+    final workspace = teacher.selection;
+    final teacherId = teacher.teacherId.value;
+    final currentClass = assignment?.classGroupId;
+    atBoundary(
+      now,
+      tz.TZDateTime(now.location, now.year, now.month, now.day + 1),
     );
-    final nextDay = tz.TZDateTime(
-      now.location,
-      now.year,
-      now.month,
-      now.day + 1,
-    );
-    final boundaries = [
-      nextDay,
-      ...lessons
-          .expand((s) => [s.startsAt, s.endsAt])
-          .where((t) => t.isAfter(now)),
-    ]..sort();
-    atBoundary(now, boundaries.first);
     final homerooms = teacher.assignedClasses.value
         .where(
           (c) =>
-              (currentClass == null || c.id == currentClass) &&
+              c.dailyAttendance &&
+              c.id == currentClass &&
               teacher.assignments.value.any(
                 (a) => a.classGroupId == c.id && a.isHomeroom,
               ),
         )
         .toList();
     final key =
-        '${teacher.teacherId.value}/${context.levit.find<AcademicYearController>().selectedYearId.value}/${now.year}-${now.month}-${now.day}/${homerooms.map((c) => c.id).join(",")}';
+        '${workspace?.schoolId}/${teacher.teacherId.value}/${workspace?.academicYearId}/${now.year}-${now.month}-${now.day}/${homerooms.map((c) => c.id).join(",")}';
     if (key != registerKey) {
       registerKey = key;
       registers = loadRegisters(
@@ -134,9 +116,16 @@ class _WorkspaceHomeState extends State<WorkspaceHome>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Séances du jour', style: Theme.of(context).textTheme.titleLarge),
+        Semantics(
+          header: true,
+          child: Text(
+            context.tr.teacherTodaySessions,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+        ),
         const SizedBox(height: PrototypeSpacing.md),
         FutureBuilder(
+          key: ValueKey(registerKey),
           future: registers,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
@@ -193,48 +182,22 @@ class _WorkspaceHomeState extends State<WorkspaceHome>
             );
           },
         ),
-        if (calendar.errorMessage.value.isNotEmpty)
-          TextButton(
-            onPressed: calendar.loadCalendarData,
-            child: const Text('Réessayer le chargement des séances'),
-          )
-        else if (calendar.isBusy.value)
-          const SurfaceCard(child: LinearProgressIndicator())
-        else if (lessons.isEmpty)
-          SurfaceCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.event_available_outlined,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(height: PrototypeSpacing.sm),
-                Text(
-                  'Aucune séance à venir',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                const SizedBox(height: PrototypeSpacing.xxs),
-                Text(
-                  'Les séances de la journée restent accessibles dans l’agenda.',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
-            ),
-          ),
-        for (final s in lessons)
-          Padding(
-            padding: const EdgeInsets.only(bottom: PrototypeSpacing.xs),
-            child: SurfaceCard(
-              padding: EdgeInsets.zero,
-              child: ListTile(
-                title: Text('${s.classLabel} · ${s.subjectLabel}'),
-                subtitle: Text(
-                  '${!s.startsAt.isAfter(now) ? "En cours" : "À venir"} · ${formatClockRange(teacher.schoolTime(s.startsAt), teacher.schoolTime(s.endsAt))}',
-                ),
-                onTap: () => context.push('/session/${s.id}'),
-                trailing: const Icon(Icons.chevron_right),
-              ),
+        if (workspace != null && assignment != null && teacherId != null)
+          KeyedSubtree(
+            key: _lessonList,
+            child: HomeLessonList(
+              key: ValueKey((
+                workspace.schoolId,
+                workspace.academicYearId,
+                teacherId,
+                assignment.id,
+                now.location.name,
+              )),
+              classId: workspace.classGroupId,
+              subjectId: workspace.classSubjectId,
+              teacherId: teacherId,
+              classLabel: assignment.classLabel,
+              location: now.location,
             ),
           ),
       ],
@@ -275,7 +238,12 @@ class _WorkspaceHomeState extends State<WorkspaceHome>
       ) => GridView.count(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        crossAxisCount: box.maxWidth >= 700 ? 3 : 2,
+        crossAxisCount: box.maxWidth >= 700
+            ? 3
+            : box.maxWidth < 400 &&
+                  MediaQuery.textScalerOf(context).scale(14) >= 24
+            ? 1
+            : 2,
         mainAxisSpacing: PrototypeSpacing.sm,
         crossAxisSpacing: PrototypeSpacing.sm,
         mainAxisExtent: MediaQuery.textScalerOf(
@@ -310,39 +278,34 @@ class _WorkspaceHomeState extends State<WorkspaceHome>
       );
       final teaching = teachingWorkspaces.where(available).toList();
       final classLife = classLifeWorkspaces.where(available).toList();
-      final grid = Semantics(
-        container: true,
-        explicitChildNodes: true,
-        label: 'Mes espaces',
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ExcludeSemantics(
+      final grid = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (teaching.isNotEmpty) ...[
+            Semantics(
+              header: true,
               child: Text(
-                'Mes espaces',
+                context.tr.navTeaching,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
-            const SizedBox(height: PrototypeSpacing.md),
-            if (teaching.isNotEmpty) ...[
-              Text(
-                'Enseignement',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: PrototypeSpacing.sm),
-              tiles(teaching),
-            ],
-            if (classLife.isNotEmpty) ...[
-              const SizedBox(height: PrototypeSpacing.xl),
-              Text(
-                'Vie en classe',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: PrototypeSpacing.sm),
-              tiles(classLife),
-            ],
+            const SizedBox(height: PrototypeSpacing.sm),
+            tiles(teaching),
           ],
-        ),
+          if (teaching.isNotEmpty && classLife.isNotEmpty)
+            const SizedBox(height: PrototypeSpacing.xl),
+          if (classLife.isNotEmpty) ...[
+            Semantics(
+              header: true,
+              child: Text(
+                context.tr.teacherClassLife,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ),
+            const SizedBox(height: PrototypeSpacing.sm),
+            tiles(classLife),
+          ],
+        ],
       );
       final landscape = box.maxWidth >= 900 && box.maxWidth > box.maxHeight;
       return ListView(
@@ -360,7 +323,12 @@ class _WorkspaceHomeState extends State<WorkspaceHome>
               ),
               title: Text(
                 [
-                  active?.classLabel ?? 'Aucune affectation',
+                  active?.classLabel ??
+                      (tc?.isLoading.value == true
+                          ? context.tr.loading
+                          : tc?.loadFailed.value == true
+                          ? context.tr.classLabel
+                          : 'Aucune affectation'),
                   tc?.schoolName.value,
                   year,
                 ].whereType<String>().join(' · '),
@@ -386,6 +354,25 @@ class _WorkspaceHomeState extends State<WorkspaceHome>
             ),
           if (tc != null && tc.errorMessage.value.isNotEmpty)
             Text(tc.errorMessage.value),
+          if (live &&
+              (tc!.loadFailed.value ||
+                  context.levit
+                      .find<AcademicYearController>()
+                      .errorMessage
+                      .value
+                      .isNotEmpty))
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: tc.isLoading.value
+                    ? null
+                    : () => initializeTeacherAuthenticatedContext(
+                        LScope.of(context)!,
+                        findEligibleSchool: false,
+                      ),
+                child: Text(context.tr.retry),
+              ),
+            ),
           const SizedBox(height: PrototypeSpacing.xl),
           if (teaching.isNotEmpty || classLife.isNotEmpty)
             if (landscape)

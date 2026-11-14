@@ -16,10 +16,37 @@ import 'workspace_browser_history_stub.dart'
 import '../features/context/academic_year_controller.dart';
 import '../features/context/teacher_context_controller.dart';
 import '../live/runtime.dart';
+import '../features/account/teacher_portrait.dart';
 
 final _routeExitGuards = Expando<Map<LocalKey, bool Function()>>();
 
-bool workspaceCanExit(BuildContext context, GoRouterState state) {
+final workspaceChangeGuards = Expando<Future<bool> Function()>();
+Future<bool> prepareWorkspaceChange(BuildContext context) async =>
+    await workspaceChangeGuards[GoRouter.of(context)]?.call() ?? true;
+
+/// Query-only browser history changes keep the same route, so onExit does not run.
+Future<OnEnterResult> workspaceCanEnter(
+  BuildContext context,
+  GoRouterState current,
+  GoRouterState next,
+  GoRouter router,
+) async {
+  if (current.uri.path == '/evaluations' &&
+      next.uri.path == '/evaluations' &&
+      current.uri.queryParameters['assessment'] !=
+          next.uri.queryParameters['assessment'] &&
+      !(await workspaceChangeGuards[router]?.call() ?? true)) {
+    return const Block.stop();
+  }
+  return const Allow();
+}
+
+Future<bool> workspaceCanExit(BuildContext context, GoRouterState state) async {
+  if (state.uri.path == '/evaluations' &&
+      !await prepareWorkspaceChange(context)) {
+    return false;
+  }
+  if (!context.mounted) return false;
   final key = state.matchedLocation.endsWith('/editor')
       ? _editorRequest(context, state)?.key
       : null;
@@ -70,7 +97,29 @@ class _WorkspaceExitGuardState extends State<WorkspaceExitGuard> {
   Widget build(BuildContext context) => widget.child;
 }
 
-void backFromWorkspace(BuildContext context, {String fallback = '/home'}) {
+Future<bool> _readyToPop(BuildContext context) async {
+  final route = ModalRoute.of(context);
+  if (route?.animation?.status != AnimationStatus.forward) return true;
+  final ready = Completer<void>();
+  void settled(AnimationStatus status) {
+    if (status == AnimationStatus.completed ||
+        status == AnimationStatus.dismissed) {
+      route!.animation!.removeStatusListener(settled);
+      ready.complete();
+    }
+  }
+
+  route!.animation!.addStatusListener(settled);
+  await ready.future;
+  return context.mounted && route.isCurrent;
+}
+
+Future<void> backFromWorkspace(
+  BuildContext context, {
+  String fallback = '/home',
+}) async {
+  if (!await _readyToPop(context) || !context.mounted) return;
+  if (!await prepareWorkspaceChange(context) || !context.mounted) return;
   final router = GoRouter.of(context);
   if (!router.canPop()) {
     Router.neglect(context, () => router.go(fallback));
@@ -86,20 +135,7 @@ void backFromWorkspace(BuildContext context, {String fallback = '/home'}) {
 Future<void> closeWorkspaceSheet<T>(BuildContext context, [T? result]) async {
   final route = ModalRoute.of(context);
   final navigator = Navigator.of(context);
-  if (route?.animation?.status == AnimationStatus.forward) {
-    final ready = Completer<void>();
-    void settled(AnimationStatus status) {
-      if (status == AnimationStatus.completed ||
-          status == AnimationStatus.dismissed) {
-        route!.animation!.removeStatusListener(settled);
-        ready.complete();
-      }
-    }
-
-    route!.animation!.addStatusListener(settled);
-    await ready.future;
-    if (!context.mounted || !route.isCurrent) return;
-  }
+  if (!await _readyToPop(context) || !context.mounted) return;
   if (route == null || route.popDisposition != RoutePopDisposition.pop) {
     await navigator.maybePop(result);
     return;
@@ -142,7 +178,8 @@ const classLifeWorkspaces = <WorkspaceDestination>[
 
 const workspaces = [...teachingWorkspaces, ...classLifeWorkspaces];
 
-Future<void> chooseContext(BuildContext context) {
+Future<void> chooseContext(BuildContext context) async {
+  if (!await prepareWorkspaceChange(context) || !context.mounted) return;
   final uri = GoRouterState.of(context).uri;
   return context.push<void>(
     uri.replace(path: '${uri.path}/context').toString(),
@@ -163,11 +200,15 @@ class _ClassContextPickerState extends State<ClassContextPicker> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    choices ??= loadTeacherSchoolChoices(
-      context.levit.find<AuthClient>(),
-      context.levit.find<AppSessionController>().availableProfiles.value,
-    );
+    choices ??= _loadChoices();
   }
+
+  Future<List<TeacherSchoolChoices>> _loadChoices() => loadTeacherSchoolChoices(
+    context.levit.find<AuthClient>(),
+    context.levit.find<AppSessionController>(),
+    context.levit.find<TeacherContextController>(),
+    context.levit.find<AcademicYearController>(),
+  );
 
   Future<void> select(
     TeacherSchoolChoices school,
@@ -185,17 +226,43 @@ class _ClassContextPickerState extends State<ClassContextPicker> {
       error = null;
     });
     try {
+      final preview = school.catalog;
+      if (preview == null ||
+          preview.workspace.account != session.user.value?.id) {
+        throw StateError('Ce profil n’est plus disponible.');
+      }
       if (session.schoolIdHeader != school.profile.schoolId ||
           session.actorIdHeader != school.profile.actorId) {
         scope.find<AcademicYearController>().clearSelection();
         final failure = await session.selectProfile(school.profile);
         if (failure != null) throw StateError(failure);
-        await initializeTeacherAuthenticatedContext(scope);
+        await initializeTeacherAuthenticatedContext(
+          scope,
+          findEligibleSchool: false,
+          preview: preview,
+          preferredAssignment: option.id,
+        );
+      } else if (teacher.activeAssignmentId.value != option.id ||
+          !identical(teacher.catalog, preview) ||
+          !preview.fresh ||
+          teacher.loadFailed.value) {
+        await teacher.reloadContext(
+          preview: preview,
+          preferredAssignment: option.id,
+        );
       }
-      if (!teacher.assignments.value.any((a) => a.id == option.id)) {
+      if (teacher.loadFailed.value) {
+        throw StateError(teacher.errorMessage.value);
+      }
+      if (session.user.value?.id != preview.workspace.account ||
+          teacher.catalog?.workspace != preview.workspace ||
+          !teacher.assignments.value.any((a) => a.id == option.id)) {
+        if (mounted) choices = _loadChoices();
         throw StateError('Cette affectation n’est plus disponible.');
       }
-      await teacher.selectAssignment(option.id);
+      if (teacher.activeAssignmentId.value != option.id) {
+        await teacher.selectAssignment(option.id);
+      }
       if (mounted) {
         await closeWorkspaceSheet(context);
         if (isGradebook) router.replace('/evaluations');
@@ -203,7 +270,7 @@ class _ClassContextPickerState extends State<ClassContextPicker> {
     } on Object catch (e) {
       if (mounted) {
         setState(() {
-          error = '$e';
+          error = e is StateError ? e.message : '$e';
           switching = false;
         });
       }
@@ -243,10 +310,7 @@ class _ClassContextPickerState extends State<ClassContextPicker> {
                 onPressed: switching
                     ? null
                     : () => setState(() {
-                        choices = loadTeacherSchoolChoices(
-                          context.levit.find<AuthClient>(),
-                          session.availableProfiles.value,
-                        );
+                        choices = _loadChoices();
                       }),
                 child: Text(school.error!),
               )
@@ -412,44 +476,80 @@ class WorkspaceShell extends StatelessWidget {
               actionsPadding: EdgeInsets.only(
                 right: workspaceGutter(MediaQuery.sizeOf(context).width),
               ),
-              toolbarHeight: MediaQuery.textScalerOf(context).scale(24) + 32,
+              toolbarHeight: MediaQuery.textScalerOf(context).scale(24) + 48,
               title: Text(context.tr.navHome),
               actions: [
-                TextButton.icon(
-                  key: const ValueKey('home-profile'),
-                  style: ButtonStyle(
-                    visualDensity: VisualDensity.standard,
-                    tapTargetSize: MaterialTapTargetSize.padded,
-                    minimumSize: const WidgetStatePropertyAll(Size(48, 48)),
-                    foregroundColor: WidgetStatePropertyAll(
-                      Theme.of(context).colorScheme.primary,
-                    ),
-                    overlayColor: WidgetStateProperty.resolveWith((states) {
-                      final blue = Theme.of(context).colorScheme.primary;
-                      if (states.contains(WidgetState.pressed)) {
-                        return blue.withValues(alpha: .16);
-                      }
-                      if (states.contains(WidgetState.hovered) ||
-                          states.contains(WidgetState.focused)) {
-                        return blue.withValues(alpha: .09);
-                      }
-                      return null;
-                    }),
-                    shape: WidgetStateProperty.resolveWith(
-                      (states) => RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(PrototypeRadii.sm),
-                        side: states.contains(WidgetState.focused)
-                            ? BorderSide(
-                                color: Theme.of(context).colorScheme.primary,
-                                width: 2,
-                              )
-                            : BorderSide.none,
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.sizeOf(context).width * .55,
+                  ),
+                  child: TextButton.icon(
+                    key: const ValueKey('home-profile'),
+                    style: ButtonStyle(
+                      visualDensity: VisualDensity.standard,
+                      tapTargetSize: MaterialTapTargetSize.padded,
+                      minimumSize: const WidgetStatePropertyAll(Size(68, 68)),
+                      padding: const WidgetStatePropertyAll(
+                        EdgeInsets.symmetric(horizontal: 16),
+                      ),
+                      textStyle: WidgetStatePropertyAll(
+                        Theme.of(
+                          context,
+                        ).textTheme.titleMedium?.copyWith(fontSize: 20),
+                      ),
+                      foregroundColor: WidgetStatePropertyAll(
+                        Theme.of(context).colorScheme.primary,
+                      ),
+                      overlayColor: WidgetStateProperty.resolveWith((states) {
+                        final blue = Theme.of(context).colorScheme.primary;
+                        if (states.contains(WidgetState.pressed)) {
+                          return blue.withValues(alpha: .16);
+                        }
+                        if (states.contains(WidgetState.hovered) ||
+                            states.contains(WidgetState.focused)) {
+                          return blue.withValues(alpha: .09);
+                        }
+                        return null;
+                      }),
+                      shape: WidgetStateProperty.resolveWith(
+                        (states) => RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            PrototypeRadii.sm,
+                          ),
+                          side: states.contains(WidgetState.focused)
+                              ? BorderSide(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  width: 2,
+                                )
+                              : BorderSide.none,
+                        ),
                       ),
                     ),
+                    icon: live
+                        ? const TeacherPortrait(radius: 17)
+                        : LWatch(() {
+                            final mock = context.levit
+                                .find<MockTeacherContextBridge>()
+                                .store;
+                            final photo = mock.teacher.photoUrl;
+                            if (photo == null || photo.trim().isEmpty) {
+                              return const Icon(
+                                Icons.account_circle_outlined,
+                                size: 34,
+                              );
+                            }
+                            return ExcludeSemantics(
+                              child: PersonAvatar(
+                                name: mock.teacherFullName,
+                                initials: mock.teacherInitials,
+                                photoUrl: photo,
+                                radius: 17,
+                              ),
+                            );
+                          }),
+                    label: Text(context.tr.navProfile),
+                    onPressed: () => context.push('/account'),
                   ),
-                  icon: const Icon(Icons.account_circle_outlined),
-                  label: Text(context.tr.navProfile),
-                  onPressed: () => context.push('/account'),
                 ),
               ],
             )

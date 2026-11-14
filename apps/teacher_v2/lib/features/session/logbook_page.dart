@@ -1,405 +1,201 @@
-import '../../design/workspace_layout.dart';
-import 'package:edaya_shared/edaya_shared.dart';
 import 'dart:async';
-
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
-import 'package:levit_flutter/levit_flutter.dart';
+import 'session_logbook_draft_storage.dart';
 
-import '../../design/components/components.dart';
-import '../../design/spacing.dart';
-import '../../live/runtime.dart';
-import '../../mock/mock_store.dart';
-import '../context/store_bound_controller.dart';
-import 'attendance_page.dart';
-import 'live_session_controller.dart';
-import 'session_logbook_logic.dart';
-
-class LogbookPage extends StatelessWidget {
-  const LogbookPage({super.key, required this.sessionId});
-
-  final String sessionId;
-
-  @override
-  Widget build(BuildContext context) {
-    if (prototypeIsLive(context)) {
-      return _LiveLogbookPage(sessionId: sessionId);
-    }
-    return _MockLogbookPage(sessionId: sessionId);
-  }
-}
-
-class _MockLogbookPage extends LScopedView<StoreBoundController> {
-  const _MockLogbookPage({required this.sessionId});
-
-  final String sessionId;
-
-  @override
-  StoreBoundController onConfigScope(LevitScope scope) {
-    return scope.put(() => StoreBoundController(scope.find<MockStore>()));
-  }
-
-  @override
-  Widget buildView(BuildContext context, StoreBoundController controller) {
-    controller.storeTick.value;
-    final store = controller.store;
-    final session = store.sessionById(sessionId);
-    if (session == null) {
-      return PrototypeDetailScaffold(
-        title: context.tr.logbook,
-        body: const EmptyState(title: 'Séance introuvable'),
-      );
-    }
-
-    final existing = store.getLogbook(sessionId);
-    return LogbookForm(
-      sessionId: sessionId,
-      classLabel: session.classLabel,
-      initialContent: existing?.content ?? '',
-      initialObjectives: existing?.objectives ?? '',
-      initialHomework: existing?.homework ?? '',
-      initialFamilySummary: '',
-      initialProgress: existing?.progressPercent ?? 50,
-      minProgress: 0,
-      onSave:
-          (
-            content,
-            objectives,
-            homework,
-            familySummary,
-            progress,
-            reason,
-          ) async {
-            store.saveLogbook(
-              sessionId: sessionId,
-              content: content,
-              objectives: objectives,
-              homework: homework,
-              progressPercent: progress,
-            );
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(context.tr.logbookSaved)));
-          },
-    );
-  }
-}
-
-class _LiveLogbookPage extends LScopedView<LiveSessionController> {
-  const _LiveLogbookPage({required this.sessionId});
-
-  final String sessionId;
-
-  @override
-  LiveSessionController onConfigScope(LevitScope scope) {
-    return putLiveSessionController(scope, sessionId);
-  }
-
-  @override
-  Widget buildView(BuildContext context, LiveSessionController controller) {
-    return LWatch(() {
-      if (controller.isBusy.value) {
-        return const Center(child: CircularProgressIndicator());
-      }
-      final session = controller.session.value;
-      controller.content.value;
-      controller.objectives.value;
-      controller.homework.value;
-      controller.familySummary.value;
-      controller.progressPercent.value;
-      controller.subjectMatters.value;
-      if (session == null) {
-        return PrototypeDetailScaffold(
-          title: context.tr.logbook,
-          body: const EmptyState(title: 'Séance introuvable'),
-        );
-      }
-      if (!controller.supportsLogbook) {
-        return PrototypeDetailScaffold(
-          title: '${context.tr.logbook} · ${session.classLabel}',
-          fallbackRoute: '/session/$sessionId',
-          body: EmptyState(
-            title: context.tr.logbook,
-            message: context.tr.logbookNotAvailableForSession,
-          ),
-        );
-      }
-      return LogbookForm(
-        key: ValueKey(
-          '${session.id}-${controller.content.value}-${controller.familySummary.value}',
-        ),
-        sessionId: sessionId,
-        classLabel: session.classLabel,
-        initialContent: controller.content.value,
-        initialObjectives: controller.objectives.value,
-        initialHomework: controller.homework.value,
-        initialFamilySummary: controller.familySummary.value,
-        initialProgress: controller.progressPercent.value,
-        minProgress: controller.minProgress,
-        requestCorrection: controller.logbookValidated.value,
-        chapters: controller.subjectMatters.value,
-        selectedChapterId: controller.selectedMatterId.value,
-        onChapterSelected: controller.selectMatter,
-        onChanged: (content, objectives, homework, familySummary, progress) {
-          unawaited(
-            controller.persistDraft(
-              contentText: content,
-              objectivesText: objectives,
-              homeworkText: homework,
-              familySummaryText: familySummary,
-              progress: progress,
-            ),
-          );
-        },
-        onSave:
-            (
-              content,
-              objectives,
-              homework,
-              familySummary,
-              progress,
-              reason,
-            ) async {
-              final saved = await controller.saveLogbook(
-                correctionReason: reason,
-                contentText: content,
-                objectivesText: objectives,
-                homeworkText: homework,
-                familySummaryText: familySummary,
-                progress: progress,
-              );
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    saved
-                        ? (controller.saveMessage.value.isEmpty
-                              ? context.tr.logbookSaved
-                              : controller.saveMessage.value)
-                        : (controller.saveMessage.value.isEmpty
-                              ? context.tr.logbookNotSaved
-                              : controller.saveMessage.value),
-                  ),
-                ),
-              );
-            },
-      );
-    });
-  }
-}
-
+/// A single sheet edits either the lesson note or one programme chapter.
 class LogbookForm extends StatefulWidget {
   const LogbookForm({
     super.key,
-    required this.sessionId,
-    required this.classLabel,
-    required this.initialContent,
-    required this.initialObjectives,
-    required this.initialHomework,
-    required this.initialFamilySummary,
-    required this.initialProgress,
-    required this.minProgress,
+    required this.initial,
     required this.onSave,
-    this.onChanged,
-    this.requestCorrection = false,
-    this.chapters = const [],
-    this.selectedChapterId,
-    this.onChapterSelected,
+    required this.onDraft,
+    required this.close,
+    this.choices = const {},
+    this.chapterValue,
+    this.validated = false,
   });
-
-  final String sessionId;
-  final String classLabel;
-  final String initialContent;
-  final String initialObjectives;
-  final String initialHomework;
-  final String initialFamilySummary;
-  final int initialProgress;
-  final int minProgress;
-  final bool requestCorrection;
-  final List<SessionSubjectMatterOption> chapters;
-  final String? selectedChapterId;
-  final ValueChanged<String>? onChapterSelected;
-  final Future<void> Function(String, String, String, String, int, String?)
-  onSave;
-  final void Function(String, String, String, String, int)? onChanged;
-
+  final LogbookEdit? initial;
+  final Map<String, String> choices;
+  final LogbookEdit Function(String)? chapterValue;
+  final bool validated;
+  final Future<String?> Function(LogbookEdit) onSave;
+  final Future<void> Function(LogbookEdit) onDraft;
+  final VoidCallback close;
   @override
   State<LogbookForm> createState() => _LogbookFormState();
 }
 
 class _LogbookFormState extends State<LogbookForm> {
-  late final TextEditingController _content;
-  late final TextEditingController _objectives;
-  late final TextEditingController _homework;
-  late final TextEditingController _familySummary;
-  late double _progress;
-  Timer? _draftTimer;
-  final _correctionReason = TextEditingController();
+  late final TextEditingController content,
+      objectives,
+      homework,
+      family,
+      reason;
+  String? chapterId;
+  int percentage = 0;
+  bool saving = false;
+  String? error;
+  bool get general => widget.initial?.note != null;
 
   @override
   void initState() {
     super.initState();
-    _content = TextEditingController(text: widget.initialContent);
-    _objectives = TextEditingController(text: widget.initialObjectives);
-    _homework = TextEditingController(text: widget.initialHomework);
-    _familySummary = TextEditingController(text: widget.initialFamilySummary);
-    _progress = widget.initialProgress
-        .clamp(widget.minProgress, 100)
-        .toDouble();
-    for (final controller in [
-      _content,
-      _objectives,
-      _homework,
-      _familySummary,
-    ]) {
-      controller.addListener(_scheduleDraft);
-    }
+    final edit = widget.initial;
+    final note = edit?.note;
+    content = TextEditingController(text: note?.content);
+    objectives = TextEditingController(text: note?.objectives.join('\n'));
+    homework = TextEditingController(text: note?.homework);
+    family = TextEditingController(text: note?.familySummary);
+    reason = TextEditingController(text: edit?.reason);
+    chapterId = edit?.chapterId;
+    percentage = edit?.percentage ?? 0;
   }
 
   @override
   void dispose() {
-    _draftTimer?.cancel();
-    _correctionReason.dispose();
-    _content.dispose();
-    _objectives.dispose();
-    _homework.dispose();
-    _familySummary.dispose();
+    for (final field in [content, objectives, homework, family, reason]) {
+      field.dispose();
+    }
     super.dispose();
   }
 
-  void _scheduleDraft() {
-    _draftTimer?.cancel();
-    _draftTimer = Timer(const Duration(milliseconds: 400), _emitDraft);
+  LogbookEdit get edit => general
+      ? LogbookEdit.general(
+          StructuredLogbookContent(
+            content: content.text,
+            objectives: objectives.text
+                .split('\n')
+                .where((s) => s.trim().isNotEmpty)
+                .toList(),
+            homework: homework.text,
+            familySummary: family.text,
+          ),
+          reason: reason.text,
+        )
+      : LogbookEdit.chapter(chapterId!, percentage, reason: reason.text);
+
+  void changed() {
+    if (saving) return;
+    setState(() => error = null);
+    if (general || chapterId != null) unawaited(widget.onDraft(edit));
   }
 
-  void _emitDraft() {
-    widget.onChanged?.call(
-      _content.text,
-      _objectives.text,
-      _homework.text,
-      _familySummary.text,
-      _progress.round(),
-    );
+  Future<void> save() async {
+    if (saving) return;
+    setState(() {
+      saving = true;
+      error = null;
+    });
+    try {
+      final failure = await widget.onSave(edit);
+      if (!mounted) return;
+      if (failure == null) {
+        widget.close();
+      } else {
+        setState(() => error = failure);
+      }
+    } finally {
+      if (mounted) setState(() => saving = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final min = widget.minProgress.toDouble().clamp(0, 100).toDouble();
-    return PrototypeDetailScaffold(
-      title: '${context.tr.logbook} · ${widget.classLabel}',
-      fallbackRoute: '/session/${widget.sessionId}',
-      body: ListView(
-        padding: const EdgeInsets.all(PrototypeSpacing.md),
-        children: [
-          WorkspaceColumns(
-            firstFraction: .6,
-            first: [
-              TextField(
-                controller: _content,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  labelText: 'Contenu abordé',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: PrototypeSpacing.md),
-              TextField(
-                controller: _objectives,
-                maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'Objectifs',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: PrototypeSpacing.md),
-              TextField(
-                controller: _homework,
-                maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'Devoirs',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: PrototypeSpacing.md),
-              TextField(
-                controller: _familySummary,
-                maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'Synthèse familles',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: PrototypeSpacing.md),
-            ],
-            second: [
-              if (widget.chapters.length > 1)
-                DropdownButtonFormField<String>(
-                  initialValue:
-                      widget.selectedChapterId ?? widget.chapters.first.id,
-                  isExpanded: true,
-                  decoration: const InputDecoration(labelText: 'Chapitre'),
-                  items: [
-                    for (final chapter in widget.chapters)
-                      DropdownMenuItem(
-                        value: chapter.id,
-                        child: Text(
-                          chapter.name,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      widget.onChapterSelected?.call(value);
-                    }
-                  },
-                ),
-              if (widget.chapters.length > 1)
-                const SizedBox(height: PrototypeSpacing.md),
-              Text('Progression programme · ${_progress.round()} %'),
-              Slider(
-                value: _progress.clamp(min, 100).toDouble(),
-                min: min,
-                max: 100,
-                divisions: ((100 - min) / 5).round().clamp(1, 20),
-                onChanged: (v) {
-                  setState(() => _progress = v);
-                  _scheduleDraft();
-                },
-              ),
-              const SizedBox(height: PrototypeSpacing.md),
-            ],
+    final t = context.tr;
+    Widget field(String label, TextEditingController controller, int lines) =>
+        TextField(
+          controller: controller,
+          enabled: !saving,
+          maxLines: lines,
+          decoration: InputDecoration(
+            labelText: label,
+            border: const OutlineInputBorder(),
           ),
-          if (widget.requestCorrection)
-            TextField(
-              controller: _correctionReason,
+          onChanged: (_) => changed(),
+        );
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        if (general) ...[
+          field(t.rollContent, content, 3),
+          const SizedBox(height: 16),
+          field(t.rollObjectives, objectives, 2),
+          const SizedBox(height: 16),
+          field(t.rollHomework, homework, 2),
+          const SizedBox(height: 16),
+          field(t.rollFamilySummary, family, 2),
+        ] else ...[
+          if (widget.initial == null)
+            DropdownButtonFormField<String>(
+              initialValue: chapterId,
+              isExpanded: true,
               decoration: InputDecoration(
-                labelText: context.tr.marksCorrectionReason,
+                labelText: t.chapterLabel,
+                border: const OutlineInputBorder(),
               ),
-              onChanged: (_) => setState(() {}),
+              items: [
+                for (final item in widget.choices.entries)
+                  DropdownMenuItem(value: item.key, child: Text(item.value)),
+              ],
+              onChanged: saving
+                  ? null
+                  : (id) {
+                      if (id == null) return;
+                      final value = widget.chapterValue!(id);
+                      setState(() {
+                        chapterId = id;
+                        percentage = value.percentage!;
+                        reason.text = value.reason;
+                        error = null;
+                      });
+                    },
+            )
+          else
+            Text(
+              widget.choices[chapterId] ?? t.chapterFallback,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
-          FilledButton(
+          if (chapterId != null) ...[
+            const SizedBox(height: 16),
+            Text('${t.bookProgress} · $percentage %'),
+            Slider(
+              value: percentage.toDouble(),
+              min: 0,
+              max: 100,
+              divisions: 100,
+              semanticFormatterCallback: (n) => '${n.round()} %',
+              onChanged: saving
+                  ? null
+                  : (v) {
+                      percentage = v.round();
+                      changed();
+                    },
+            ),
+          ],
+        ],
+        if (widget.validated) ...[
+          const SizedBox(height: 16),
+          field(t.marksCorrectionReason, reason, 2),
+        ],
+        if (error != null)
+          Padding(padding: const EdgeInsets.only(top: 12), child: Text(error!)),
+        const SizedBox(height: 16),
+        Align(
+          alignment: Alignment.centerRight,
+          child: FilledButton(
             onPressed:
-                widget.requestCorrection &&
-                    _correctionReason.text.trim().isEmpty
+                saving ||
+                    (!general && chapterId == null) ||
+                    (widget.validated && reason.text.trim().isEmpty)
                 ? null
-                : () => widget.onSave(
-                    _content.text,
-                    _objectives.text,
-                    _homework.text,
-                    _familySummary.text,
-                    _progress.round(),
-                    widget.requestCorrection
-                        ? _correctionReason.text.trim()
-                        : null,
-                  ),
+                : save,
             child: Text(
-              widget.requestCorrection
-                  ? context.tr.workflowRequestCorrection
-                  : context.tr.save,
+              widget.validated ? t.workflowRequestCorrection : t.save,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -263,6 +263,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navEvaluations => 'Evaluations';
 
   @override
+  String get teacherMockSignInHint =>
+      'In this demo, you can use any email address.';
+
+  @override
+  String get teacherMockVerifyHint => 'Enter any code to continue the demo.';
+
+  @override
+  String get teacherTodaySessions => 'Today’s sessions';
+
+  @override
+  String get teacherNoUpcomingSessions => 'No upcoming sessions';
+
+  @override
+  String get teacherSessionsAgendaHint =>
+      'You can find today’s sessions in the agenda.';
+
+  @override
+  String get teacherClassLife => 'School life';
+
+  @override
   String get navTeaching => 'Teaching';
 
   @override
@@ -1082,6 +1102,108 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attendanceNotesHint => 'Optional context for the school office';
+
+  @override
+  String get rollWriteRejected =>
+      'The change could not be saved. Check the register and try again.';
+
+  @override
+  String get rollRegisterChanged =>
+      'The register has changed. Review the updated entries before finishing.';
+
+  @override
+  String get rollExcused => 'Excused by staff';
+
+  @override
+  String get rollUnmarked => 'Not marked';
+
+  @override
+  String get rollList => 'List';
+
+  @override
+  String rollRosterCount(int total, int marked) {
+    return '$marked/$total marked';
+  }
+
+  @override
+  String get bookGeneral => 'General information';
+
+  @override
+  String get bookChapters => 'Chapters covered';
+
+  @override
+  String get bookAddChapter => 'Add a chapter';
+
+  @override
+  String bookEditChapter(String name) {
+    return 'Edit $name';
+  }
+
+  @override
+  String get bookAllLinked =>
+      'All programme chapters are linked to this lesson.';
+
+  @override
+  String get bookNoProgramme =>
+      'No chapters are available for this class and subject.';
+
+  @override
+  String get bookProgress => 'Progress';
+
+  @override
+  String get rollMarkRemaining => 'Rest present';
+
+  @override
+  String get rollOneByOne => 'Photo mode';
+
+  @override
+  String rollPosition(int position, int total) {
+    return '$position of $total';
+  }
+
+  @override
+  String get rollToSend => 'Pending sync · Retry';
+
+  @override
+  String rollLeftAt(String time) {
+    return 'Left at $time';
+  }
+
+  @override
+  String get rollDeparture => 'Record departure';
+
+  @override
+  String get rollAttendance => 'Attendance';
+
+  @override
+  String get rollLocalDraft => 'Local draft available';
+
+  @override
+  String get rollProposedLogbook => 'Proposed logbook';
+
+  @override
+  String get rollContent => 'Lesson content';
+
+  @override
+  String get rollObjectives => 'Objectives';
+
+  @override
+  String get rollHomework => 'Homework';
+
+  @override
+  String get rollFamilySummary => 'Family summary';
+
+  @override
+  String get rollChapters => 'Chapter coverage';
+
+  @override
+  String get rollRequestChange => 'Request a change';
+
+  @override
+  String get rollCreateBook => 'Fill in the logbook';
+
+  @override
+  String get rollEditBook => 'Edit logbook';
 
   @override
   String get attendanceSavedLocally => 'Saved locally — will sync when online';
@@ -2379,4 +2501,87 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noCompletedLogbook => 'No completed logbook';
+
+  @override
+  String get gradebookSave => 'Save';
+
+  @override
+  String get gradebookSubmit => 'Submit marks';
+
+  @override
+  String get gradebookUnsaved => 'Unsaved changes';
+
+  @override
+  String get gradebookSaved => 'Draft saved';
+
+  @override
+  String get gradebookQueued => 'To send';
+
+  @override
+  String get gradebookClear => 'Clear entry';
+
+  @override
+  String get gradebookEdit => 'Edit mark';
+
+  @override
+  String get gradebookOfficial => 'Official mark';
+
+  @override
+  String get gradebookProposed => 'Proposed result';
+
+  @override
+  String get gradebookReason => 'Reason';
+
+  @override
+  String get gradebookSend => 'Send request';
+
+  @override
+  String get gradebookUpdate => 'Update request';
+
+  @override
+  String get gradebookWithdraw => 'Withdraw request';
+
+  @override
+  String get gradebookApproval =>
+      'The official result remains unchanged until approval.';
+
+  @override
+  String get gradebookPending => 'Pending approval';
+
+  @override
+  String get gradebookGrouped =>
+      'This reason belongs to an existing grouped request. Other pupils’ proposals will be preserved.';
+
+  @override
+  String get gradebookLocked =>
+      'This result cannot be edited with your current permissions.';
+
+  @override
+  String get gradebookDiscard => 'Discard changes';
+
+  @override
+  String get gradebookContinue => 'Continue editing';
+
+  @override
+  String get gradebookDraft => 'Draft';
+
+  @override
+  String get gradebookResult => 'Result';
+
+  @override
+  String get gradebookPupil => 'Pupil';
+
+  @override
+  String get gradebookMissing => 'Entry required';
+
+  @override
+  String get gradebookInvalid =>
+      'Enter a valid result within the assessment scale.';
+
+  @override
+  String get gradebookWithdrawConfirm =>
+      'Withdraw the proposed change for this pupil?';
+
+  @override
+  String get gradebookOptions => 'Result options';
 }

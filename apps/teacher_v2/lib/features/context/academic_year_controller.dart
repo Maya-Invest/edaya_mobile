@@ -60,9 +60,11 @@ class AcademicYearController extends LevitController
   }
 
   int _generation = 0;
+  bool confirmedNoPublishedYear = false;
 
   void clearSelection() {
     _generation++;
+    confirmedNoPublishedYear = false;
     years(const []);
     selectedYearId(null);
     errorMessage('');
@@ -70,6 +72,7 @@ class AcademicYearController extends LevitController
 
   Future<void> loadYears() async {
     final generation = ++_generation;
+    confirmedNoPublishedYear = false;
     if (!_session.hasSchoolSession) {
       years(const []);
       selectedYearId(null);
@@ -88,6 +91,7 @@ class AcademicYearController extends LevitController
             return bName.compareTo(aName);
           });
         if (sorted.isEmpty) {
+          confirmedNoPublishedYear = true;
           selectedYearId(null);
           errorMessage(systemL10n().noAcademicYearsAvailable);
           years(const []);
@@ -123,6 +127,7 @@ class AcademicYearController extends LevitController
     final activeYear = publishedTeacherYear(sortedYears);
     selectedYearId(activeYear?['id'] as String?);
     if (activeYear == null) {
+      confirmedNoPublishedYear = true;
       errorMessage('Aucune année scolaire publiée pour cet établissement.');
     }
   }

@@ -17,6 +17,7 @@ import '../context/store_bound_controller.dart';
 import '../context/teacher_context_controller.dart';
 import '../offline/teacher_outbox_controller.dart';
 import 'settings_controller.dart';
+import 'teacher_portrait.dart';
 
 class AccountPage extends StatelessWidget {
   const AccountPage({super.key});
@@ -117,6 +118,7 @@ class AccountProfilePage extends StatelessWidget {
     if (prototypeIsLive(context)) {
       return edaya.AccountProfilePage(
         embedded: true,
+        portrait: const TeacherPortrait(radius: 40),
         confirmDiscard: confirmWorkspaceDiscard,
         onClose: () => closeWorkspaceSheet(context),
         onOpenSecurity: () => showWorkspaceEditor<void>(
@@ -217,7 +219,7 @@ class _LiveAccountPage extends StatelessWidget {
       final outbox = context.levit.find<TeacherOutboxController>();
       session.user.value;
       teacherContext.teacherName.value;
-      teacherContext.teacherPhotoUrl.value;
+
       outbox.summary.value;
       outbox.isBusy.value;
       final selected = GoRouterState.of(context).uri.path;
@@ -238,11 +240,7 @@ class _LiveAccountPage extends StatelessWidget {
                 SurfaceCard(
                   child: Row(
                     children: [
-                      PersonAvatar(
-                        initials: teacherContext.teacherInitials,
-                        photoUrl: teacherContext.teacherPhotoUrl.value,
-                        radius: 28,
-                      ),
+                      const TeacherPortrait(radius: 28),
                       const SizedBox(width: PrototypeSpacing.md),
                       Expanded(
                         child: Column(

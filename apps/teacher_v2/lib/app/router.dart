@@ -20,8 +20,6 @@ import '../features/evaluations/family_feedback_page.dart';
 import '../features/home/home_page.dart';
 import '../features/inbox/inbox_page.dart';
 import '../features/login/login_page.dart';
-import '../features/session/attendance_page.dart';
-import '../features/session/logbook_page.dart';
 import '../features/session/session_detail_page.dart';
 
 GoRouter createRouter({
@@ -32,6 +30,7 @@ GoRouter createRouter({
   GoRouter.optionURLReflectsImperativeAPIs = true;
   return GoRouter(
     initialLocation: '/login',
+    onEnter: workspaceCanEnter,
     refreshListenable: routerRefresh,
     redirect: (context, state) {
       if (isBootstrapping?.call() ?? false) {
@@ -80,57 +79,37 @@ GoRouter createRouter({
             path: '/calendar',
             builder: (_, _) => const CalendarPage(),
             routes: [
-              record(
-                'lesson/:id',
-                'Séance',
-                (s) => SessionDetailPage(sessionId: s.pathParameters['id']!),
-                wide: true,
-              ),
-              record(
-                'lesson/:id/attendance',
-                'Appel de séance',
-                (s) => AttendancePage(sessionId: s.pathParameters['id']!),
-                wide: true,
-              ),
-              record(
-                'lesson/:id/logbook',
-                'Cahier de texte',
-                (s) => LogbookPage(sessionId: s.pathParameters['id']!),
-                titleBuilder: (context) => context.tr.logbook,
-                wide: true,
-              ),
+              for (final tail in ['', '/attendance', '/logbook'])
+                GoRoute(
+                  path: 'lesson/:id$tail',
+                  redirect: (_, s) =>
+                      _sessionLocation(s, logbook: tail == '/logbook'),
+                ),
             ],
           ),
           workspaceRoute(
             path: '/session/:id',
-            builder: (_, s) =>
-                SessionDetailPage(sessionId: s.pathParameters['id']!),
+            builder: (_, s) => SessionDetailPage(
+              key: ValueKey(s.pathParameters['id']),
+              sessionId: s.pathParameters['id']!,
+              logbook: s.uri.queryParameters['tab'] == 'logbook',
+            ),
             routes: [
-              record(
-                'attendance',
-                'Appel de séance',
-                (s) => AttendancePage(sessionId: s.pathParameters['id']!),
-                wide: true,
-              ),
-              record(
-                'logbook',
-                'Cahier de texte',
-                (s) => LogbookPage(sessionId: s.pathParameters['id']!),
-                titleBuilder: (context) => context.tr.logbook,
-                wide: true,
-              ),
+              for (final entry in ['attendance', 'logbook'])
+                GoRoute(
+                  path: entry,
+                  redirect: (_, s) =>
+                      _sessionLocation(s, logbook: entry == 'logbook'),
+                ),
             ],
           ),
           workspaceRoute(
             path: '/progress',
             builder: (_, _) => const ProgressPage(),
             routes: [
-              record(
-                'cahier/:id',
-                'Cahier de texte',
-                (s) => LogbookPage(sessionId: s.pathParameters['id']!),
-                titleBuilder: (context) => context.tr.logbook,
-                wide: true,
+              GoRoute(
+                path: 'cahier/:id',
+                redirect: (_, s) => _sessionLocation(s, logbook: true),
               ),
             ],
           ),
@@ -165,8 +144,13 @@ GoRouter createRouter({
             ),
           workspaceRoute(
             path: '/classes/:classId/attendance',
-            builder: (_, s) =>
-                DailyAttendancePage(classId: s.pathParameters['classId']!),
+            builder: (_, s) => DailyAttendancePage(
+              key: ValueKey(s.pathParameters['classId']),
+              classId: s.pathParameters['classId']!,
+              initialDate: DateTime.tryParse(
+                s.uri.queryParameters['date'] ?? '',
+              ),
+            ),
           ),
           workspaceRoute(
             path: '/classes/:classId/discipline',
@@ -395,3 +379,8 @@ String _localTarget(GoRouterState state) {
       ? uri.toString()
       : '/home';
 }
+
+String _sessionLocation(GoRouterState s, {required bool logbook}) => Uri(
+  pathSegments: ['', 'session', s.pathParameters['id']!],
+  queryParameters: logbook ? {'tab': 'logbook'} : null,
+).toString();

@@ -1,7 +1,9 @@
 @Tags(['integration'])
 library;
 
-import 'package:http/http.dart' show ClientException;
+import 'dart:async';
+import 'package:http/http.dart'
+    show ClientException, BaseRequest, StreamedResponse;
 
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:edaya_teacher_v2/app/workspace_navigation.dart';
@@ -11,7 +13,10 @@ import 'package:edaya_integration_tests/edaya_integration_tests.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_shared/src/features/settings/app_settings_models.dart';
 import 'package:edaya_shared/src/features/settings/app_settings_storage.dart';
+import 'package:edaya_teacher_v2/features/home/home_lesson_list.dart';
+import 'package:edaya_teacher_v2/features/home/home_timetable_controller.dart';
 import 'package:edaya_teacher_v2/features/calendar/calendar_page.dart';
+import 'package:edaya_teacher_v2/features/calendar/live_calendar_controller.dart';
 import 'package:edaya_teacher_v2/features/context/teacher_context_controller.dart';
 import 'package:edaya_teacher_v2/features/classes/daily_attendance_page.dart';
 import 'package:edaya_teacher_v2/features/classes/teacher_discipline_page.dart';
@@ -20,8 +25,10 @@ import 'package:edaya_teacher_v2/features/evaluations/evaluations_page.dart';
 import 'package:edaya_teacher_v2/features/evaluations/teacher_gradebook_page.dart';
 import 'package:edaya_teacher_v2/features/evaluations/live_evaluations_controller.dart';
 import 'package:edaya_teacher_v2/features/evaluations/live_marks_controller.dart';
+import 'package:edaya_teacher_v2/features/evaluations/pupil_mark_correction_sheet.dart';
 import 'package:edaya_teacher_v2/features/session/logbook_page.dart';
-import 'package:edaya_teacher_v2/mock/mock_store.dart' show AttendanceStatus;
+import 'package:edaya_teacher_v2/features/session/roll_call.dart';
+import 'package:edaya_teacher_v2/design/components/surface_card.dart';
 import 'package:edaya_teacher_v2/features/signature/signature_editor_page.dart';
 import 'package:edaya_teacher_v2/features/signature/teacher_signature_controller.dart';
 import 'package:edaya_teacher_v2/features/session/attendance_page.dart';
@@ -34,6 +41,25 @@ import 'package:levit_flutter/levit_flutter.dart';
 import 'support/integration_test_lifecycle.dart';
 import 'support/live_api_test_binding.dart';
 import 'support/teacher_live_widget_test_harness.dart';
+
+class _TimetableTransport extends SwitchableTransport {
+  Completer<void>? holdNext;
+  final held = Completer<void>();
+  @override
+  Future<StreamedResponse> send(BaseRequest request) async {
+    if (request.url.path.endsWith('/get-teacher-timetable')) {
+      if (offline)
+        throw ClientException('Test timetable read unavailable', request.url);
+      final gate = holdNext;
+      if (gate != null) {
+        holdNext = null;
+        held.complete();
+        await gate.future;
+      }
+    }
+    return super.send(request);
+  }
+}
 
 Future<void> until(WidgetTester tester, Finder finder) async {
   final deadline = DateTime.now().add(const Duration(seconds: 30));
@@ -90,7 +116,9 @@ T findController<T extends LevitController>(
   WidgetTester tester,
   Finder finder,
 ) => tester
-    .element(find.descendant(of: finder, matching: find.byType(ListView)).first)
+    .element(
+      find.descendant(of: finder, matching: find.byType(Scrollable)).first,
+    )
     .levit
     .find<T>();
 
@@ -107,7 +135,7 @@ Future<void> enterAllMarks(
   );
   await until(
     tester,
-    find.descendant(of: pane, matching: find.byType(ListView)),
+    find.descendant(of: pane, matching: find.byType(SingleChildScrollView)),
   );
   final controller = findController<LiveMarksController>(tester, pane);
   await persisted(
@@ -115,55 +143,39 @@ Future<void> enterAllMarks(
     () async => controller.students.value,
     (rows) => rows.isNotEmpty,
   );
+  final before = await harnessMarks(tester, controller);
   for (final pupil in controller.students.value) {
-    final name = find.descendant(
+    final input = find.descendant(
       of: pane,
-      matching: find.byKey(ValueKey('mark-${pupil.studentId}')),
+      matching: find.byKey(ValueKey('score-${pupil.studentId}')),
     );
-    await until(
-      tester,
-      find.descendant(of: pane, matching: find.byType(ListView)),
-    );
-    final rosterScroll = find
+    final scroll = find
         .descendant(of: pane, matching: find.byType(Scrollable))
         .first;
-    if (!tester.any(name)) {
-      await tester.scrollUntilVisible(name, 140, scrollable: rosterScroll);
-    }
-    await tester.ensureVisible(name);
-    await until(tester, name.hitTestable());
-    await tester.tap(name);
-    await until(tester, find.byType(TextField));
-    await tester.enterText(find.byType(TextField).first, score);
-    final save = find.widgetWithText(FilledButton, 'Enregistrer');
-    await tester.pump(const Duration(milliseconds: 400));
-    await tester.scrollUntilVisible(
-      save,
-      120,
-      scrollable: find
-          .descendant(
-            of: find.descendant(
-              of: find.byType(BottomSheet),
-              matching: find.byType(ListView),
-            ),
-            matching: find.byWidgetPredicate(
-              (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
-            ),
-          )
-          .first,
-    );
-    await until(tester, save.hitTestable());
-    await tester.tap(save);
-    await gone(tester, BottomSheet);
-    expect(pane, findsOneWidget);
-    final deadline = DateTime.now().add(const Duration(seconds: 10));
-    while (tester.any(find.byType(TextField)) &&
-        DateTime.now().isBefore(deadline)) {
-      await tester.pump(const Duration(milliseconds: 100));
-    }
-    expect(find.byType(TextField), findsNothing);
+    if (!tester.any(input))
+      await tester.scrollUntilVisible(input, 140, scrollable: scroll);
+    await tester.ensureVisible(input);
+    await tester.enterText(input, score);
+    await tester.pump();
   }
+  // Editing the roster does not mutate the confirmed controller rows.
+  expect(controller.students.value.map((r) => r.score).toList(), before);
+  FocusManager.instance.primaryFocus?.unfocus();
+  await tester.pump();
+  final save = find.descendant(
+    of: pane,
+    matching: find.widgetWithText(FilledButton, 'Enregistrer'),
+  );
+  await until(tester, save.hitTestable());
+  await tester.tap(save);
+  await persisted(tester, () async => !controller.writing.value, (v) => v);
+  expect(controller.hasUnsaved, isFalse, reason: controller.saveMessage.value);
 }
+
+Future<List<double?>> harnessMarks(
+  WidgetTester tester,
+  LiveMarksController controller,
+) async => controller.students.value.map((r) => r.score).toList();
 
 Future<void> main() async {
   LiveApiWidgetTestBinding();
@@ -220,7 +232,7 @@ Future<void> main() async {
     '[teacher-v2.navigation.sheets] opens class and date pickers as routed sheets',
     (tester) async {
       await mount(tester, '/home');
-      await until(tester, find.text('Mes espaces'));
+      await until(tester, find.byKey(const ValueKey('home-profile')));
       await tester.tap(find.byIcon(Icons.expand_more).first);
       await until(tester, find.byType(ClassContextPicker));
       await tester.pump(const Duration(milliseconds: 400));
@@ -378,9 +390,63 @@ Future<void> main() async {
       );
       expect(initialCall['students'] as List, isNotEmpty);
       await mount(tester, '/session/$id/attendance');
-      await until(tester, find.byType(DropdownButton<AttendanceStatus>));
-      await until(tester, find.text('Tous présents').hitTestable());
-      await tester.tap(find.text('Tous présents'));
+      await until(tester, find.byType(AttendanceStatusPicker));
+      await until(
+        tester,
+        find
+            .byWidgetPredicate(
+              (w) =>
+                  w is TextButton &&
+                  w.key == const ValueKey('roll-mark-remaining') &&
+                  w.onPressed != null,
+            )
+            .hitTestable(),
+      );
+      final ordered = (initialCall['students'] as List).cast<Map>().toList()
+        ..sort(
+          (a, b) => "${a['firstName']} ${a['lastName']}".compareTo(
+            "${b['firstName']} ${b['lastName']}",
+          ),
+        );
+      final firstStudent = ordered.first;
+      final fullName =
+          "${firstStudent['firstName']} ${firstStudent['lastName']}";
+      final pupilButton = find.byTooltip(fullName);
+      final pupilCard = find
+          .ancestor(of: pupilButton, matching: find.byType(SurfaceCard))
+          .first;
+      for (final label in ['Présent', 'Absent']) {
+        final chip = find.descendant(
+          of: pupilCard,
+          matching: find.widgetWithText(ChoiceChip, label),
+        );
+        await reveal(tester, chip);
+        await tester.tap(chip);
+        await persisted(tester, () async {
+          final snapshot = await baseline.schoolClient.runQuery(
+            'get-teacher-attendance-call',
+            {
+              'anchor': {'kind': 'lesson', 'lessonSessionId': id},
+            },
+          );
+          return (snapshot['entries'] as List)
+              .whereType<Map>()
+              .where((r) => r['studentId'] == firstStudent['id'])
+              .firstOrNull?['status'];
+        }, (status) => status == (label == 'Présent' ? 'present' : 'absent'));
+      }
+      await reveal(tester, pupilButton);
+      await tester.tap(pupilButton);
+      final selectedChip = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.widgetWithText(ChoiceChip, 'Absent'),
+      );
+      await until(tester, selectedChip);
+      expect(tester.widget<ChoiceChip>(selectedChip).selected, isTrue);
+      await tester.tap(find.text('Fermer'));
+      await gone(tester, BottomSheet);
+      await reveal(tester, find.text('Restants présents'));
+      await tester.tap(find.text('Restants présents'));
       await until(tester, find.text('Présent'));
       expect(
         await baseline.schoolClient.attendance.list({'lessonSessionId': id}),
@@ -409,21 +475,21 @@ Future<void> main() async {
         () => baseline.schoolClient.attendance.list({'lessonSessionId': id}),
         (rows) =>
             rows.length == roster.length &&
-            rows.every((row) => row['status'] == 'present'),
+            rows.every(
+              (row) =>
+                  row['status'] ==
+                  (row['studentId'] == firstStudent['id']
+                      ? 'absent'
+                      : 'present'),
+            ),
       );
       expect(rows.map((row) => row['studentId']).toSet().length, rows.length);
       harness.scope.find<GoRouter>().go('/home');
       await gone(tester, AttendancePage);
       harness.scope.find<GoRouter>().go('/session/$id/attendance');
       await until(tester, find.text('Présent'));
-      expect(
-        tester
-            .widgetList<DropdownButton<AttendanceStatus>>(
-              find.byType(DropdownButton<AttendanceStatus>),
-            )
-            .every((widget) => widget.value == AttendanceStatus.present),
-        isTrue,
-      );
+      expect(find.byType(AttendanceStatusPicker), findsNothing);
+      expect(find.text('Présent'), findsWidgets);
     },
   );
 
@@ -467,7 +533,7 @@ Future<void> main() async {
         'createdAt': '2026-09-01T00:00:00.000Z',
       });
       await mount(tester, '/classes/$classId/attendance');
-      await until(tester, find.text('Marquer les autres présents'));
+      await until(tester, find.text('Restants présents'));
       final controller = findController<DailyAttendanceController>(
         tester,
         find.byType(DailyAttendancePage),
@@ -478,7 +544,7 @@ Future<void> main() async {
         (ready) => ready,
       );
       await tester.pump();
-      await tester.tap(find.text('Marquer les autres présents'));
+      await tester.tap(find.text('Restants présents'));
       await until(tester, find.text('Présent'));
       await persisted(
         tester,
@@ -510,6 +576,29 @@ Future<void> main() async {
         ),
         (call) => call['submitted'] == true,
       );
+      await persisted(
+        tester,
+        () async => controller.submitted.value && !controller.busy.value,
+        (ready) => ready,
+      );
+      final pupilDetails = find.byTooltip('Integration $studentId');
+      await until(tester, pupilDetails);
+      await tester.ensureVisible(pupilDetails);
+      await tester.tap(pupilDetails);
+      await until(tester, find.text('Enregistrer le départ').hitTestable());
+      await tester.tap(find.text('Enregistrer le départ'));
+      final reopened = await persisted(
+        tester,
+        () => harness.portalSession.schoolClient.runQuery(
+          'get-teacher-attendance-call',
+          {'anchor': controller.anchor},
+        ),
+        (call) => (call['records'] as List).whereType<Map>().any(
+          (r) => r['studentId'] == studentId && r['departedAt'] != null,
+        ),
+      );
+      expect((reopened['records'] as List).single['status'], 'present');
+      await gone(tester, BottomSheet);
       expect(find.byType(DailyAttendancePage), findsOneWidget);
     },
   );
@@ -687,7 +776,77 @@ Future<void> main() async {
       final id = lesson['id'] as String;
       final content = 'Contenu $id';
       final family = 'Synthèse $id';
+      final allocation = await owner.schoolClient.classSubjects.get(
+        lesson['classSubjectId'] as String,
+      );
+      const chapterNames = ['Atelier équilibre', 'Atelier coordination'];
+      final links = <String>[];
+      for (final (index, name) in chapterNames.indexed) {
+        final matterId = fixtureId('programme');
+        await owner.schoolClient.configureSubjectMatter({
+          'id': matterId,
+          'subjectId': allocation['subjectId'],
+          'name': name,
+          'shortName': name,
+          'sequenceOrder': index + 1,
+        });
+        final allocated = await owner.schoolClient.classSubjectMatters.list({
+          'classSubjectId': allocation['id'],
+        });
+        links.add(
+          allocated.firstWhere(
+                (row) => row['subjectMatterId'] == matterId,
+              )['id']
+              as String,
+        );
+      }
+      Future<Map<String, int>> savedChapters() async => {
+        for (final row in await owner.schoolClient.classSubjectProgress.list({
+          'lessonSessionId': id,
+        }))
+          row['classSubjectMatterId'] as String:
+              (row['completedPercentage'] as num).toInt(),
+      };
+      Future<void> changeChapter(
+        int index,
+        int percentage, {
+        bool add = false,
+        bool locked = false,
+      }) async {
+        final action = add
+            ? find.text('Ajouter un chapitre')
+            : find.byTooltip('Modifier ${chapterNames[index]}');
+        await until(tester, action);
+        await reveal(tester, action);
+        await tester.tap(action);
+        await until(tester, find.byType(LogbookForm));
+        if (add) {
+          final dropdown = find.byType(DropdownButtonFormField<String>);
+          await until(tester, dropdown.hitTestable());
+          await tester.tap(dropdown);
+          await until(tester, find.text(chapterNames[index]).hitTestable());
+          await tester.tap(find.text(chapterNames[index]).hitTestable().last);
+        }
+        final slider = find.byType(Slider);
+        await until(tester, slider);
+        tester.widget<Slider>(slider).onChanged!(percentage.toDouble());
+        if (locked)
+          await tester.enterText(
+            field('Motif de la correction'),
+            'Ajustement du chapitre',
+          );
+        final save = find.widgetWithText(
+          FilledButton,
+          locked ? 'Demander une correction' : 'Enregistrer',
+        );
+        await reveal(tester, save);
+        await tester.tap(save);
+        await gone(tester, LogbookForm);
+      }
+
       await mount(tester, '/session/$id/logbook');
+      await until(tester, find.text('Renseigner le cahier de texte'));
+      await tester.tap(find.text('Renseigner le cahier de texte'));
       await until(tester, find.byType(LogbookForm));
       await until(tester, field('Contenu abordé'));
       await tester.enterText(field('Contenu abordé'), content);
@@ -695,6 +854,30 @@ Future<void> main() async {
       await tester.enterText(field('Devoirs'), 'Exercice 2');
       await reveal(tester, field('Synthèse familles'));
       await tester.enterText(field('Synthèse familles'), family);
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tap(find.text('Fermer'));
+      await gone(tester, LogbookForm);
+      await until(tester, find.text('Brouillon local disponible'));
+      expect(
+        (await baseline.schoolClient.lessonSessions.get(id))['sessionNote'],
+        isNull,
+      );
+      await changeChapter(0, 25, add: true);
+      await changeChapter(1, 40, add: true);
+      await changeChapter(0, 60);
+      expect(await savedChapters(), {links[0]: 60, links[1]: 40});
+      expect(
+        (await baseline.schoolClient.lessonSessions.get(id))['sessionNote'],
+        isNull,
+      );
+      await reveal(tester, find.text('Renseigner le cahier de texte'));
+      await tester.tap(find.text('Renseigner le cahier de texte'));
+      await until(tester, field('Contenu abordé'));
+      expect(
+        tester.widget<TextField>(field('Contenu abordé')).controller!.text,
+        content,
+      );
       await reveal(tester, find.text('Enregistrer'));
       await tester.tap(find.text('Enregistrer'));
       final saved = await persisted(
@@ -708,22 +891,66 @@ Future<void> main() async {
       expect(decoded.content, content);
       expect(decoded.familySummary, family);
       harness.scope.find<GoRouter>().go('/home');
-      await gone(tester, LogbookPage);
+      await gone(tester, LogbookForm);
       harness.scope.find<GoRouter>().go('/session/$id/logbook');
       await until(tester, find.text(content));
       expect(find.text(family), findsOneWidget);
-      await harness.scope.find<TeacherContextController>().selectClass(
-        profile.primaryClassGroupId,
+      final teacher = harness.scope.find<TeacherContextController>();
+      await teacher.selectAssignment(
+        teacher.assignments.value
+            .firstWhere((a) => a.classSubjectId == lesson['classSubjectId'])
+            .id,
       );
       harness.scope.find<GoRouter>().go('/progress');
-      await until(tester, find.text(id));
-      await reveal(tester, find.text(id));
-      await tester.tap(find.text(id));
+      await gone(tester, SessionDetailPage);
+      final datedEntry = find.widgetWithText(ListTile, id);
+      await until(tester, datedEntry);
+      await reveal(tester, datedEntry);
+      await tester.tap(datedEntry);
+      await until(tester, find.text(content));
+      expect(find.text(family), findsOneWidget);
+      expect(await savedChapters(), {links[0]: 60, links[1]: 40});
+      final validated = await owner.schoolClient.requestRoute<List<dynamic>>(
+        'POST',
+        '/core/commands/validate-teacher-logbook',
+        body: {
+          'requestId': fixtureId('validate-book'),
+          'lessonSessionIds': [id],
+        },
+      );
+      expect(validated, hasLength(1));
+      harness.scope.find<GoRouter>().go('/home');
+      await gone(tester, SessionDetailPage);
+      harness.scope.find<GoRouter>().go('/session/$id/logbook');
+      final request = find.text('Demander une modification');
+      await until(tester, request);
+      await reveal(tester, request);
+      await tester.tap(request);
       await until(tester, field('Contenu abordé'));
+      final revised = 'Révision $id';
+      await tester.enterText(field('Contenu abordé'), revised);
+      await reveal(tester, field('Motif de la correction'));
+      await tester.enterText(
+        field('Motif de la correction'),
+        'Précision après validation',
+      );
+      await reveal(tester, find.text('Demander une correction'));
+      await tester.tap(find.text('Demander une correction'));
+      await gone(tester, LogbookForm);
+      await until(tester, find.text('Correction en attente de validation'));
       expect(
-        tester.widget<TextField>(field('Contenu abordé')).controller!.text,
+        decodeStructuredSessionNote(
+          (await baseline.schoolClient.lessonSessions.get(id))['sessionNote']
+              as String,
+        ).content,
         content,
       );
+      expect(find.text(revised), findsOneWidget);
+      await changeChapter(1, 80, locked: true);
+      await until(tester, find.textContaining('80 %'));
+      expect(await savedChapters(), {links[0]: 60, links[1]: 40});
+      await reveal(tester, find.text(revised));
+      expect(find.text(content), findsOneWidget);
     },
   );
 
@@ -791,7 +1018,7 @@ Future<void> main() async {
         (rows) =>
             rows.length == roster.length &&
             rows.every((row) => row['score'] == 20),
-        // Fill persists one request per student; allow the entire batch to finish.
+        // Explicit Save persists the complete batch.
         timeout: Duration(seconds: 20 + roster.length * 10),
       );
       expect(marks.map((row) => row['studentId']).toSet().length, marks.length);
@@ -824,22 +1051,142 @@ Future<void> main() async {
   testWidgets(
     '[teacher-v2.session.detail] opens an assigned lesson with its actual title',
     (tester) async {
-      final lessons = await baseline.schoolClient.lessonSessions.list({
-        'classSubjectId': profile.expectedClassSubjectIds.first,
+      final transport = _TimetableTransport();
+      addTearDown(transport.close);
+      final auth = AuthClient(
+        baseUrl: baseline.config.authUrl,
+        client: transport,
+      )..restoreRenewalCredential(baseline.authClient.renewalCredential!);
+      harness = await TeacherLiveWidgetTestHarness.create(
+        authenticatedSession: PortalSession(
+          config: baseline.config,
+          authClient: auth,
+          schoolClient: baseline.schoolClient,
+          actorKind: 'teacher',
+        ),
+      );
+      await mount(tester, '/home');
+      final tc = harness.scope.find<TeacherContextController>();
+      await persisted(
+        tester,
+        () async => tc.assignments.value,
+        (rows) => rows.any(
+          (a) => a.classSubjectId == profile.expectedClassSubjectIds.first,
+        ),
+      );
+      final initial = tc.assignments.value.firstWhere(
+        (a) => a.classSubjectId == profile.expectedClassSubjectIds.first,
+      );
+      await tc.selectAssignment(initial.id);
+      final section = find
+          .descendant(
+            of: find.byType(HomeLessonList),
+            matching: find.byType(Column),
+          )
+          .first;
+      await until(tester, section);
+      final today = tester
+          .element(section)
+          .levit
+          .find<HomeTimetableController>();
+      await persisted(
+        tester,
+        () async => today.entries.value,
+        (rows) => rows != null,
+      );
+      final lesson = await lessonFixture();
+      final id = lesson['id'] as String;
+      final now = DateTime.now().toUtc();
+      await owner.schoolClient.lessonSessions.save({
+        ...lesson,
+        'timetableTeacherIds': [harness.context.grants.actorId],
+        'startsAt': now.subtract(const Duration(minutes: 1)).toIso8601String(),
+        'endsAt': now.add(const Duration(minutes: 45)).toIso8601String(),
       });
-      expect(lessons, isNotEmpty);
-      final lesson = lessons.first;
-      await mount(tester, '/session/${lesson['id']}');
-      await until(tester, find.byType(SessionDetailPage));
-      await until(tester, find.text('Cahier de texte'));
-      expect(find.text('Séance introuvable'), findsNothing);
+      final timetable = await baseline.schoolClient.getTeacherTimetable({
+        'teacherId': harness.context.grants.actorId,
+        'startDate': now
+            .subtract(const Duration(days: 1))
+            .toIso8601String()
+            .substring(0, 10),
+        'endDate': now
+            .add(const Duration(days: 1))
+            .toIso8601String()
+            .substring(0, 10),
+      });
+      expect(
+        (timetable['events'] as List).where((e) => e['id'] == id),
+        hasLength(1),
+      );
+      final shortcut = find.byKey(ValueKey('home-lesson-$id'));
+      // The lesson was added after Home finished its initial read. Keep Home open
+      // until the foreground poll discovers it, then reject a refresh.
+      await persisted(
+        tester,
+        () async => tester.any(shortcut),
+        (visible) => visible,
+        timeout: const Duration(seconds: 80),
+      );
+      transport.offline = true;
+      await today.refresh();
+      await until(tester, find.text('Réessayer'));
+      expect(shortcut, findsOneWidget);
+      transport.offline = false;
+      await today.refresh();
+      await tester.pump();
+      expect(today.failed.value, isFalse);
+      await tester.ensureVisible(shortcut);
+      await tester.tap(shortcut);
+      await until(tester, find.widgetWithText(Tab, 'Appel'));
+      expect(find.byType(BottomSheet), findsNothing);
+      harness.scope.find<GoRouter>().go('/calendar');
+      final row = find.byKey(ValueKey('agenda-lesson-$id'));
+      await until(tester, row);
+      await tester.ensureVisible(row);
+      await tester.tap(row);
+      await until(tester, find.widgetWithText(Tab, 'Cahier de texte'));
+      await until(tester, find.byTooltip('Retour').hitTestable());
+      await tester.tap(find.byTooltip('Retour').hitTestable());
+      await until(tester, row);
+      final other = tc.assignments.value.firstWhere(
+        (a) => a.classGroupId != initial.classGroupId,
+      );
+      final calendar = harness.scope.find<LiveCalendarController>();
+      final delayedRead = Completer<void>();
+      transport.holdNext = delayedRead;
+      final oldRequest = calendar.loadCalendarData();
+      await transport.held.future.timeout(const Duration(seconds: 10));
+      await tc.selectAssignment(other.id);
+      await gone(tester, SessionDetailPage);
+      await persisted(
+        tester,
+        () async => tester.any(row),
+        (visible) => !visible,
+      );
+      delayedRead.complete();
+      await oldRequest;
+      expect(
+        calendar.todaySessions.value.every(
+          (lesson) => lesson.classGroupId == other.classGroupId,
+        ),
+        isTrue,
+      );
+      await tc.selectAssignment(initial.id);
+      await until(tester, row);
+      transport.offline = true;
+      await calendar.loadCalendarData();
+      await until(tester, find.text('Réessayer'));
+      transport.offline = false;
+      await tester.tap(find.text('Réessayer'));
+      await until(tester, row);
     },
+    timeout: const Timeout(Duration(minutes: 3)),
   );
   testWidgets(
     '[teacher-v2.classes.list] returns a saved roster link to the teacher home',
     (tester) async {
       await mount(tester, '/classes');
-      await until(tester, find.text('Mes espaces'));
+      await until(tester, find.byKey(const ValueKey('home-profile')));
       expect(find.text('Liste des élèves'), findsNothing);
       expect(
         harness.scope.find<GoRouter>().routeInformationProvider.value.uri.path,
@@ -1118,7 +1465,7 @@ Future<void> main() async {
         tester,
         find.text('La saisie des présences est réservée aux séances de cours.'),
       );
-      expect(find.text('Tous présents'), findsNothing);
+      expect(find.text('Restants présents'), findsNothing);
     },
   );
 
@@ -1150,22 +1497,28 @@ Future<void> main() async {
       );
       final roster = call['students'] as List;
       await mount(tester, '/session/$id/attendance');
-      await until(tester, find.byType(DropdownButton<AttendanceStatus>));
-      await until(tester, find.text('Tous présents').hitTestable());
-      transport.offline = true;
-      await tester.tap(find.text('Tous présents'));
-      await until(tester, find.text('Présent'));
+      await until(tester, find.byType(AttendanceStatusPicker));
       await until(
         tester,
-        find.byWidgetPredicate(
-          (widget) =>
-              widget is FilledButton &&
-              widget.onPressed != null &&
-              widget.child is Text &&
-              (widget.child as Text).data == 'Terminer',
-        ),
+        find
+            .byWidgetPredicate(
+              (w) =>
+                  w is TextButton &&
+                  w.key == const ValueKey('roll-mark-remaining') &&
+                  w.onPressed != null,
+            )
+            .hitTestable(),
       );
-      await tester.tap(find.text('Terminer'));
+      transport.offline = true;
+      await tester.tap(find.text('Restants présents'));
+      await until(tester, find.text('Présent'));
+      await until(tester, find.text('À envoyer · Réessayer'));
+      expect(
+        tester
+            .widget<FilledButton>(find.widgetWithText(FilledButton, 'Terminer'))
+            .onPressed,
+        isNull,
+      );
       final outbox = harness.scope.find<TeacherOutboxController>();
       await persisted(tester, () async {
         await outbox.refreshSummary();
@@ -1292,6 +1645,16 @@ Future<void> main() async {
         'academicYearId': profile.academicYearId,
       });
       final period = periods.firstWhere((row) => row['name'] == 'Trimestre 2');
+      Future<Map<String, dynamic>> readSummary() =>
+          baseline.schoolClient.runQuery('get-teacher-subject-period-summary', {
+            'classSubjectId': profile.expectedClassSubjectIds.first,
+            'periodId': period['id'],
+          });
+      Map<String, dynamic> averages(Map summary) => {
+        for (final pupil in summary['students'] as List)
+          pupil['studentId'] as String: pupil['average'],
+      };
+      final beforeDraft = averages(await readSummary());
       final starts = DateTime.now().toUtc().add(const Duration(days: 1));
       await baseline.schoolClient.createAssessment({
         'id': id,
@@ -1351,6 +1714,16 @@ Future<void> main() async {
             rows.every((row) => row['score'] == 20),
         timeout: Duration(seconds: 20 + roster.length * 10),
       );
+      final draftSummary = await readSummary();
+      expect(averages(draftSummary), beforeDraft);
+      expect(
+        (draftSummary['students'] as List).any(
+          (pupil) => (pupil['contributions'] as List).any(
+            (result) => result['assessmentId'] == id,
+          ),
+        ),
+        isFalse,
+      );
       await until(
         tester,
         find.byWidgetPredicate(
@@ -1370,25 +1743,33 @@ Future<void> main() async {
         }),
         (review) => (review['assessment'] as Map)['marksStatus'] == 'submitted',
       );
-      await until(
-        tester,
-        find.text('Les modifications sont soumises à approbation.'),
+      await until(tester, find.byTooltip('Options du résultat').hitTestable());
+      final submittedSummary = await readSummary();
+      final officialAverages = averages(submittedSummary);
+      expect(
+        (submittedSummary['students'] as List).any(
+          (pupil) => (pupil['contributions'] as List).any(
+            (result) => result['assessmentId'] == id,
+          ),
+        ),
+        isTrue,
       );
-      await tester.tap(find.text('Soumettre les notes'));
-      await until(tester, find.byType(CheckboxListTile));
-      final students = find.byType(CheckboxListTile);
-      await tester.tap(students.first);
-      await tester.pump();
-      await tester.enterText(field('Valeur proposée'), '15');
+      expect(find.text('Soumettre les notes'), findsNothing);
+      await tester.tap(
+        find.byTooltip('Options du résultat').hitTestable().first,
+      );
+      await until(tester, find.text('Modifier la note').hitTestable());
+      await tester.tap(find.text('Modifier la note').hitTestable());
+      await until(tester, find.byKey(const ValueKey('correction-score')));
+      await tester.enterText(
+        find.byKey(const ValueKey('correction-score')),
+        '15',
+      );
       final reason = 'Correction $id';
-      final reasonField = field('Motif de la correction');
-      await reveal(tester, reasonField);
-      await tester.enterText(reasonField, reason);
+      await reveal(tester, field('Motif'));
+      await tester.enterText(field('Motif'), reason);
       await tester.pump();
-      final send = find.descendant(
-        of: find.byType(BottomSheet),
-        matching: find.widgetWithText(FilledButton, 'Soumettre les notes'),
-      );
+      final send = find.widgetWithText(FilledButton, 'Envoyer la demande');
       await reveal(tester, send);
       await tester.tap(send);
       final review = await persisted(
@@ -1401,15 +1782,74 @@ Future<void> main() async {
       final proposal = (review['corrections'] as List).single as Map;
       expect(proposal['status'], 'pending');
       expect(proposal['reason'], reason);
+      expect(averages(await readSummary()), officialAverages);
       expect(
         (await baseline.schoolClient.assessmentResults.list({
           'assessmentId': id,
         })).every((row) => row['score'] == 20),
         isTrue,
       );
-      await until(tester, find.text('Retirer ma demande'));
-      await reveal(tester, find.text('Retirer ma demande'));
-      await tester.tap(find.text('Retirer ma demande'));
+      expect((proposal['changes'] as List), hasLength(1));
+      expect((proposal['allowedActions'] as Map)['withdraw'], isTrue);
+      final changedResultId =
+          ((proposal['changes'] as List).single as Map)['resultId'];
+      final pupilId =
+          marks.singleWhere(
+                (mark) => mark['id'] == changedResultId,
+              )['studentId']
+              as String;
+      await gone(tester, BottomSheet);
+      final editPupil = find.descendant(
+        of: find.byKey(ValueKey(pupilId)),
+        matching: find.byTooltip('Options du résultat'),
+      );
+      await reveal(tester, editPupil);
+      await tester.tap(editPupil);
+      await until(tester, find.text('Modifier la note').hitTestable());
+      await tester.tap(find.text('Modifier la note').hitTestable());
+      await until(tester, find.byType(PupilMarkCorrectionSheet));
+      await tester.enterText(
+        find.byKey(const ValueKey('correction-score')),
+        '16',
+      );
+      final update = find.widgetWithText(
+        FilledButton,
+        'Mettre à jour la demande',
+      );
+      await reveal(tester, update);
+      await tester.tap(update);
+      await persisted(
+        tester,
+        () => baseline.schoolClient.getAssessmentMarksReview({
+          'assessmentId': id,
+        }),
+        (review) {
+          final changes =
+              ((review['corrections'] as List).single as Map)['changes']
+                  as List;
+          return ((changes.single as Map)['proposed'] as Map)['score'] == 16;
+        },
+      );
+      await gone(tester, BottomSheet);
+      await reveal(tester, editPupil);
+      await tester.tap(editPupil);
+      await until(tester, find.text('Modifier la note').hitTestable());
+      await tester.tap(find.text('Modifier la note').hitTestable());
+      await until(tester, find.byType(PupilMarkCorrectionSheet));
+      await tester.scrollUntilVisible(
+        find.text('Retirer la demande'),
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(PupilMarkCorrectionSheet),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await reveal(tester, find.text('Retirer la demande'));
+      await tester.tap(find.text('Retirer la demande'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Retirer la demande'));
       await persisted(
         tester,
         () => baseline.schoolClient.getAssessmentMarksReview({
@@ -1422,6 +1862,134 @@ Future<void> main() async {
           'assessmentId': id,
         })).length,
         marks.length,
+      );
+
+      // Existing grouped requests must retain the other pupil and shared reason.
+      await gone(tester, BottomSheet);
+      final currentReview = await baseline.schoolClient
+          .getAssessmentMarksReview({'assessmentId': id});
+      final other = marks.firstWhere((mark) => mark['id'] != changedResultId);
+      final sharedReason = 'Grouped correction $id';
+      await baseline.schoolClient.requestAssessmentMarksCorrection({
+        'requestId': newSchoolRequestId(),
+        'assessmentId': id,
+        'expectedRevision':
+            (currentReview['assessment'] as Map)['marksRevision'],
+        'expectedGradingRevision':
+            (currentReview['gradingPolicy'] as Map?)?['revision'] ?? 0,
+        'reason': sharedReason,
+        'changes': [
+          {
+            'resultId': changedResultId,
+            'proposed': {'score': 17, 'designation': 'scored', 'notes': null},
+          },
+          {
+            'resultId': other['id'],
+            'proposed': {'score': 18, 'designation': 'scored', 'notes': null},
+          },
+        ],
+      });
+      final paneContext = tester.element(
+        find
+            .descendant(
+              of: find.byType(EvaluationMarksPane),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await paneContext.levit.find<LiveMarksController>().load();
+      await tester.pump();
+      await reveal(tester, editPupil);
+      await tester.tap(editPupil);
+      await until(tester, find.text('Modifier la note').hitTestable());
+      await tester.tap(find.text('Modifier la note').hitTestable());
+      await until(tester, find.byType(PupilMarkCorrectionSheet));
+      expect(tester.widget<TextField>(field('Motif')).readOnly, isTrue);
+      expect(
+        tester.widget<TextField>(field('Motif')).controller!.text,
+        sharedReason,
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('correction-score')),
+        '19',
+      );
+      await tester.scrollUntilVisible(
+        update,
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(PupilMarkCorrectionSheet),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await reveal(tester, update);
+      await tester.tap(update);
+      final groupedReview = await persisted(
+        tester,
+        () => baseline.schoolClient.getAssessmentMarksReview({
+          'assessmentId': id,
+        }),
+        (review) =>
+            (((review['corrections'] as List).single as Map)['changes'] as List)
+                .any(
+                  (change) =>
+                      change['resultId'] == changedResultId &&
+                      change['proposed']['score'] == 19,
+                ),
+      );
+      final grouped = (groupedReview['corrections'] as List).single as Map;
+      expect(grouped['reason'], sharedReason);
+      expect(grouped['changes'], hasLength(2));
+      expect(
+        (grouped['changes'] as List).singleWhere(
+          (change) => change['resultId'] == other['id'],
+        )['proposed']['score'],
+        18,
+      );
+      await gone(tester, BottomSheet);
+      await reveal(tester, editPupil);
+      await tester.tap(editPupil);
+      await until(tester, find.text('Modifier la note').hitTestable());
+      await tester.tap(find.text('Modifier la note').hitTestable());
+      await until(tester, find.byType(PupilMarkCorrectionSheet));
+      await tester.scrollUntilVisible(
+        find.text('Retirer la demande'),
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(PupilMarkCorrectionSheet),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await reveal(tester, find.text('Retirer la demande'));
+      await tester.tap(find.text('Retirer la demande'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Retirer la demande'));
+      final remainingReview = await persisted(
+        tester,
+        () => baseline.schoolClient.getAssessmentMarksReview({
+          'assessmentId': id,
+        }),
+        (review) =>
+            (((review['corrections'] as List).single as Map)['changes'] as List)
+                .length ==
+            1,
+      );
+      final remaining = (remainingReview['corrections'] as List).single as Map;
+      expect(remaining['id'], grouped['id']);
+      expect(remaining['reason'], sharedReason);
+      expect(averages(await readSummary()), officialAverages);
+      expect(
+        ((remaining['changes'] as List).single as Map)['resultId'],
+        other['id'],
+      );
+      expect(
+        (await baseline.schoolClient.assessmentResults.list({
+          'assessmentId': id,
+        })).every((row) => row['score'] == 20),
+        isTrue,
       );
     },
   );

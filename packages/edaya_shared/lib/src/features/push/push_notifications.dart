@@ -13,8 +13,9 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'push_runtime.dart' if (dart.library.io) 'push_runtime_io.dart';
 
-const _androidForegroundNotificationIcon = '@mipmap/ic_launcher';
-const _androidBackgroundNotificationIcon = '@drawable/ic_stat_notification';
+// Android small notification icons use a monochrome drawable, not an adaptive
+// launcher icon, whose background becomes an opaque silhouette.
+const _androidNotificationIcon = '@drawable/ic_stat_notification';
 
 // --- Background isolate configuration ----------------------------------------
 
@@ -233,7 +234,7 @@ Future<void> displayEdayaPushNotification(
   PushNotificationConfig config, {
   FlutterLocalNotificationsPlugin? plugin,
   int? notificationId,
-  String androidIcon = _androidBackgroundNotificationIcon,
+  String androidIcon = _androidNotificationIcon,
 }) async {
   final content = resolveNotificationDisplayContent(message);
   if (content == null) {
@@ -274,7 +275,7 @@ Future<void> _ensureBackgroundLocalNotifications(
   }
 
   const androidSettings = AndroidInitializationSettings(
-    _androidBackgroundNotificationIcon,
+    _androidNotificationIcon,
   );
   const iosSettings = DarwinInitializationSettings();
 
@@ -488,7 +489,7 @@ class FcmPushNotificationService implements PushNotificationService {
     }
 
     const androidSettings = AndroidInitializationSettings(
-      _androidForegroundNotificationIcon,
+      _androidNotificationIcon,
     );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -553,7 +554,7 @@ class FcmPushNotificationService implements PushNotificationService {
             channelDescription: _config.androidChannelDescription,
             importance: Importance.high,
             priority: Priority.high,
-            icon: _androidForegroundNotificationIcon,
+            icon: _androidNotificationIcon,
           ),
           iOS: const DarwinNotificationDetails(
             presentAlert: true,

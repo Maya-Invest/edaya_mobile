@@ -19,18 +19,20 @@ class WorkspaceColumns extends StatelessWidget {
     required this.second,
     this.firstFraction = .5,
     this.sectionSpacing = 0,
+    this.minimumSplitWidth = 840,
   });
 
   final List<Widget> first, second;
   final double firstFraction;
   final double sectionSpacing;
+  final double minimumSplitWidth;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, box) {
       const gap = PrototypeSpacing.lg;
       final split =
-          box.maxWidth >= 840 &&
+          box.maxWidth >= minimumSplitWidth &&
           MediaQuery.textScalerOf(context).scale(14) < 22;
       final usable = box.maxWidth - gap;
       final left = split
@@ -134,6 +136,11 @@ class ResponsiveRosterTile extends StatelessWidget {
   );
 }
 
+bool useAttendanceRail(BuildContext context, double width) =>
+    width >= 840 &&
+    MediaQuery.orientationOf(context) == Orientation.landscape &&
+    MediaQuery.textScalerOf(context).scale(14) < 22;
+
 class AttendanceLayout extends StatelessWidget {
   const AttendanceLayout({
     super.key,
@@ -145,9 +152,7 @@ class AttendanceLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, box) {
-      final wide =
-          box.maxWidth >= 840 &&
-          MediaQuery.textScalerOf(context).scale(14) < 22;
+      final wide = useAttendanceRail(context, box.maxWidth);
       return Flex(
         direction: wide ? Axis.horizontal : Axis.vertical,
         crossAxisAlignment: CrossAxisAlignment.stretch,

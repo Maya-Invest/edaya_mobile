@@ -75,6 +75,12 @@
   "navFees": "Frais",
   "navInbox": "Boîte de réception",
   "navEvaluations": "Évaluations",
+  "teacherMockSignInHint": "Dans cette démo, vous pouvez utiliser une adresse e-mail de votre choix.",
+  "teacherMockVerifyHint": "Saisissez un code de votre choix pour continuer la démo.",
+  "teacherTodaySessions": "Séances du jour",
+  "teacherNoUpcomingSessions": "Aucune séance à venir",
+  "teacherSessionsAgendaHint": "Les séances de la journée restent accessibles dans l’agenda.",
+  "teacherClassLife": "Vie en classe",
   "navTeaching": "Enseignement",
   "navReportCards": "Bulletins",
   "teachingTitle": "Enseignement",
@@ -298,6 +304,53 @@
   "attendanceReasonHint": "ex. maladie, rendez-vous",
   "attendanceNotesLabel": "Notes",
   "attendanceNotesHint": "Contexte optionnel pour la vie scolaire",
+  "rollWriteRejected": "La modification n’a pas été enregistrée. Vérifiez le registre puis réessayez.",
+  "rollRegisterChanged": "Le registre a changé. Vérifiez les présences actualisées avant de terminer.",
+  "rollExcused": "Absence justifiée par l’établissement",
+  "rollUnmarked": "À saisir",
+  "rollList": "Liste",
+  "rollRosterCount": "{marked}/{total} renseignés",
+  "bookGeneral": "Informations générales",
+  "bookChapters": "Chapitres abordés",
+  "bookAddChapter": "Ajouter un chapitre",
+  "bookEditChapter": "Modifier {name}",
+  "bookAllLinked": "Tous les chapitres du programme sont liés à cette séance.",
+  "bookNoProgramme": "Aucun chapitre disponible pour cette classe et cette matière.",
+  "bookProgress": "Progression",
+  "@rollRosterCount": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "marked": {
+        "type": "int"
+      }
+    }
+  },
+  "@bookEditChapter": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "rollMarkRemaining": "Restants présents",
+  "rollOneByOne": "Mode photo",
+  "rollPosition": "{position} sur {total}",
+  "rollToSend": "À envoyer · Réessayer",
+  "rollLeftAt": "Parti à {time}",
+  "rollDeparture": "Enregistrer le départ",
+  "rollAttendance": "Appel",
+  "rollLocalDraft": "Brouillon local disponible",
+  "rollProposedLogbook": "Cahier de texte proposé",
+  "rollContent": "Contenu abordé",
+  "rollObjectives": "Objectifs",
+  "rollHomework": "Devoirs",
+  "rollFamilySummary": "Synthèse familles",
+  "rollChapters": "Progression des chapitres",
+  "rollRequestChange": "Demander une modification",
+  "rollCreateBook": "Renseigner le cahier de texte",
+  "rollEditBook": "Modifier le cahier de texte",
   "attendanceSavedLocally": "Enregistré localement — synchronisation à la reconnexion",
   "calendarTodayTitle": "Aujourd'hui",
   "calendarGoToToday": "Aller à aujourd'hui",
@@ -717,5 +770,31 @@
   "teacherQuickInvalid": "Code invalide ou expiré.",
   "logbookNotSaved": "Cahier de texte non enregistré",
   "logbookCompleted": "Cahier de texte complété",
-  "noCompletedLogbook": "Aucun cahier de texte complété"
+  "noCompletedLogbook": "Aucun cahier de texte complété",
+  "gradebookSave": "Enregistrer",
+  "gradebookSubmit": "Soumettre les notes",
+  "gradebookUnsaved": "Modifications non enregistrées",
+  "gradebookSaved": "Brouillon enregistré",
+  "gradebookQueued": "À envoyer",
+  "gradebookClear": "Effacer la saisie",
+  "gradebookEdit": "Modifier la note",
+  "gradebookOfficial": "Note officielle",
+  "gradebookProposed": "Résultat proposé",
+  "gradebookReason": "Motif",
+  "gradebookSend": "Envoyer la demande",
+  "gradebookUpdate": "Mettre à jour la demande",
+  "gradebookWithdraw": "Retirer la demande",
+  "gradebookApproval": "Le résultat officiel reste inchangé jusqu’à approbation.",
+  "gradebookPending": "En attente d’approbation",
+  "gradebookGrouped": "Ce motif appartient à une demande groupée existante. Les propositions des autres élèves seront conservées.",
+  "gradebookLocked": "Vos droits actuels ne permettent pas de modifier ce résultat.",
+  "gradebookDiscard": "Abandonner les modifications",
+  "gradebookContinue": "Continuer la saisie",
+  "gradebookDraft": "Brouillon",
+  "gradebookResult": "Résultat",
+  "gradebookPupil": "Élève",
+  "gradebookMissing": "À compléter",
+  "gradebookInvalid": "Saisissez un résultat valide dans le barème de l’évaluation.",
+  "gradebookWithdrawConfirm": "Retirer la modification proposée pour cet élève ?",
+  "gradebookOptions": "Options du résultat"
 }

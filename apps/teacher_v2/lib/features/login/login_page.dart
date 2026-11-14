@@ -42,35 +42,35 @@ class _MockLoginPageState extends State<_MockLoginPage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            _codeSent ? 'Vérifiez votre e-mail' : 'Connexion',
+            _codeSent ? context.tr.verifyContactTitle : context.tr.signInTitle,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: PrototypeSpacing.sm),
           Text(
             _codeSent
-                ? 'Saisissez le code envoyé (harness mock).'
-                : 'Harness mock — n\'importe quels identifiants fonctionnent.',
+                ? context.tr.teacherMockVerifyHint
+                : context.tr.teacherMockSignInHint,
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: PrototypeSpacing.md),
           if (!_codeSent) ...[
-            const TextField(
+            TextField(
               decoration: InputDecoration(
-                labelText: 'E-mail',
-                border: OutlineInputBorder(),
+                labelText: context.tr.emailLabel,
+                border: const OutlineInputBorder(),
               ),
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: PrototypeSpacing.lg),
             FilledButton(
               onPressed: () => setState(() => _codeSent = true),
-              child: const Text('Envoyer le code'),
+              child: Text(context.tr.sendCodeButton),
             ),
           ] else ...[
-            const TextField(
+            TextField(
               decoration: InputDecoration(
-                labelText: 'Code',
-                border: OutlineInputBorder(),
+                labelText: context.tr.otpLabel,
+                border: const OutlineInputBorder(),
               ),
               keyboardType: TextInputType.number,
             ),
@@ -80,7 +80,7 @@ class _MockLoginPageState extends State<_MockLoginPage> {
                 store.signIn();
                 context.go('/home');
               },
-              child: const Text('Vérifier le code'),
+              child: Text(context.tr.verifyCodeButton),
             ),
           ],
         ],
@@ -124,6 +124,15 @@ class _LoginChrome extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        toolbarHeight: MediaQuery.textScalerOf(context).scale(16) + 40,
+        actionsPadding: const EdgeInsets.symmetric(
+          horizontal: PrototypeSpacing.md,
+        ),
+        actions: const [_LoginLanguagePicker()],
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -147,6 +156,90 @@ class _LoginChrome extends StatelessWidget {
                   SurfaceCard(child: child),
                 ],
               ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LoginLanguagePicker extends StatelessWidget {
+  const _LoginLanguagePicker();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final current = Localizations.localeOf(context).languageCode;
+    return MenuAnchor(
+      style: MenuStyle(
+        alignment: AlignmentDirectional.bottomStart,
+        minimumSize: const WidgetStatePropertyAll(Size(176, 0)),
+        backgroundColor: WidgetStatePropertyAll(colors.surface),
+        shape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(PrototypeRadii.md),
+            side: BorderSide(color: colors.outlineVariant),
+          ),
+        ),
+      ),
+      alignmentOffset: const Offset(0, 4),
+      menuChildren: [
+        for (final (option, flag, label) in const [
+          (LanguagePreference.en, '🇬🇧', 'English'),
+          (LanguagePreference.fr, '🇫🇷', 'Français'),
+        ])
+          MenuItemButton(
+            key: ValueKey('login-language-${option.name}'),
+            onPressed: () =>
+                context.levit.find<AppSettingsController>().setLanguage(option),
+            leadingIcon: ExcludeSemantics(child: Text(flag)),
+            trailingIcon: option.name == current
+                ? Icon(Icons.check, size: 18, color: colors.primary)
+                : null,
+            style: ButtonStyle(
+              minimumSize: const WidgetStatePropertyAll(Size(0, 48)),
+              backgroundColor: option.name == current
+                  ? WidgetStatePropertyAll(
+                      colors.primary.withValues(alpha: 0.05),
+                    )
+                  : null,
+            ),
+            child: Semantics(
+              selected: option.name == current,
+              child: Text(label),
+            ),
+          ),
+      ],
+      builder: (context, controller, _) => Semantics(
+        expanded: controller.isOpen,
+        child: TextButton(
+          key: const ValueKey('login-language'),
+          onPressed: controller.isOpen ? controller.close : controller.open,
+          style: TextButton.styleFrom(
+            minimumSize: const Size(0, 48),
+            foregroundColor: colors.onSurface,
+            backgroundColor: colors.surface,
+            side: BorderSide(color: colors.outlineVariant),
+            shape: const StadiumBorder(),
+            padding: const EdgeInsets.symmetric(
+              horizontal: PrototypeSpacing.sm,
+            ),
+          ),
+          child: Tooltip(
+            message: context.tr.settingsLanguage,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.translate, size: 16, color: colors.onSurfaceVariant),
+                const SizedBox(width: 6),
+                Text(current.toUpperCase()),
+                const SizedBox(width: 6),
+                Icon(
+                  controller.isOpen ? Icons.expand_less : Icons.expand_more,
+                  size: 16,
+                ),
+              ],
             ),
           ),
         ),

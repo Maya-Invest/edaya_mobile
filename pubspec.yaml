@@ -6,6 +6,7 @@ environment:
 
 workspace:
   - apps/guardian
+  - apps/guardian_v2
   - apps/teacher
   - apps/teacher_v2
   - packages/edaya_api_client

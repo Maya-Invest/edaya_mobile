@@ -4,6 +4,40 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
+    'batch marks replay unchanged alongside legacy single entries',
+    () async {
+      final transport = _RecordingTransport();
+      final entry = buildTeacherOutboxEntry(
+        id: 'batch',
+        kind: TeacherOutboxKind.mark,
+        idempotencyKey: 'batch',
+        payload: {
+          'requestId': 'batch',
+          'assessmentId': 'sheet',
+          'expectedRevision': 3,
+          'results': [
+            {
+              'id': 'r1',
+              'studentId': 's1',
+              'score': 12,
+              'designation': 'scored',
+            },
+            {'id': 'r2', 'studentId': 's2', 'designation': 'absent'},
+          ],
+        },
+      );
+      final restored = TeacherOutboxEntry.fromJson(entry.toJson());
+      await syncTeacherOutboxEntry(createSchoolClient(transport), restored);
+      await syncTeacherOutboxEntry(createSchoolClient(transport), restored);
+      expect(transport.bodies[0], transport.bodies[1]);
+      expect(teacherMarkOutboxRows(restored).map((r) => r['studentId']), [
+        's1',
+        's2',
+      ]);
+    },
+  );
+
+  test(
     'distinct mark edits survive queueing and retries preserve command identity',
     () async {
       final store = InMemoryTeacherOutboxStore();
@@ -175,6 +209,7 @@ class _RecordingTransport implements Transport {
     TransportRequestOptions? options,
   }) async {
     bodies.add(Map<String, dynamic>.from(options!.body! as Map));
+    if (path.endsWith('/record-assessment-results')) return <dynamic>[] as T;
     return <String, dynamic>{} as T;
   }
 }

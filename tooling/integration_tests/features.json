@@ -877,5 +877,89 @@
         "reason": "Support-assisted recovery is not implemented."
       }
     ]
+  },
+  "guardian_v2": {
+    "features": [
+      {
+        "id": "guardian-v2.workspace",
+        "routes": [
+          "/account",
+          "/account/profile",
+          "/attendance",
+          "/calendar",
+          "/calendar/attendance",
+          "/calendar/events",
+          "/child",
+          "/children",
+          "/fee/:id",
+          "/fees",
+          "/fees/fee/:id",
+          "/fees/payment/:id",
+          "/grade/:id",
+          "/home",
+          "/inbox",
+          "/inbox/avis",
+          "/inbox/avis/:campaignId",
+          "/inbox/conversation/:conversationId",
+          "/inbox/message/:id",
+          "/invite/:token",
+          "/login",
+          "/message/:id",
+          "/payment/:id",
+          "/profiles",
+          "/report-card/:id",
+          "/scolarite",
+          "/scolarite/bulletins",
+          "/scolarite/cahier",
+          "/scolarite/notes",
+          "/scolarite/period/:periodId/subject/:subject",
+          "/scolarite/programme",
+          "/scolarite/progress",
+          "/scolarite/subject/:subject",
+          "/scolarite/subject/:subject/cahier",
+          "/session/:id",
+          "/settings",
+          "/waiting"
+        ],
+        "actions": [
+          {
+            "id": "guardian-v2.workspace.home.action",
+            "scenarios": [
+              "guardian-v2.workspace.home"
+            ]
+          },
+          {
+            "id": "guardian-v2.workspace.menu.action",
+            "scenarios": [
+              "guardian-v2.workspace.menu"
+            ]
+          },
+          {
+            "id": "guardian-v2.workspace.children.action",
+            "scenarios": [
+              "guardian-v2.workspace.children"
+            ]
+          },
+          {
+            "id": "guardian-v2.results.drilldown.action",
+            "scenarios": [
+              "guardian-v2.results.drilldown"
+            ]
+          },
+          {
+            "id": "guardian-v2.results.archive.action",
+            "scenarios": [
+              "guardian-v2.results.archive"
+            ]
+          },
+          {
+            "id": "guardian-v2.coverage.routes.action",
+            "scenarios": [
+              "guardian-v2.coverage.routes"
+            ]
+          }
+        ]
+      }
+    ]
   }
 }

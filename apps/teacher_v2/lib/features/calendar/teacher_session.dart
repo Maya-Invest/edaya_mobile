@@ -106,10 +106,18 @@ class SessionAttendanceCompletion {
 CalendarSessionFocus resolveCalendarSessionFocus({
   required List<TeacherSession> sessions,
   required DateTime now,
+  DateTime Function(DateTime)? schoolTime,
 }) {
-  final today = DateTime(now.year, now.month, now.day);
+  final today = schoolTime?.call(now) ?? now;
   final todaySessions =
-      sessions.where((session) => session.occursOn(today)).toList()
+      sessions
+          .where(
+            (session) => isSameCalendarDay(
+              schoolTime?.call(session.startsAt) ?? session.startsAt,
+              today,
+            ),
+          )
+          .toList()
         ..sort((a, b) => a.startsAt.compareTo(b.startsAt));
 
   TeacherSession? current;

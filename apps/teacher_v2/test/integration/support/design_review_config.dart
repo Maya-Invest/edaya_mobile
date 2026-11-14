@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// Locale slug for design-review screenshots.
 ///
@@ -6,7 +7,7 @@ import 'dart:io';
 /// folder layout aligned with Guardian.
 String designReviewLocaleSlug() {
   final raw =
-      Platform.environment['EDAYA_DESIGN_REVIEW_LOCALE'] ??
+      (kIsWeb ? null : Platform.environment['EDAYA_DESIGN_REVIEW_LOCALE']) ??
       const String.fromEnvironment(
         'EDAYA_DESIGN_REVIEW_LOCALE',
         defaultValue: 'fr',
@@ -29,7 +30,12 @@ String designReviewLocaleLabel(String localeSlug) {
 
 /// Explicit palette for reproducible accessibility review captures.
 String designReviewTheme() {
-  final value = Platform.environment['EDAYA_DESIGN_REVIEW_THEME'] ?? 'light';
+  final value =
+      (kIsWeb ? null : Platform.environment['EDAYA_DESIGN_REVIEW_THEME']) ??
+      const String.fromEnvironment(
+        'EDAYA_DESIGN_REVIEW_THEME',
+        defaultValue: 'light',
+      );
   if (!['light', 'dark'].contains(value)) {
     throw ArgumentError('EDAYA_DESIGN_REVIEW_THEME must be light or dark');
   }
@@ -37,7 +43,14 @@ String designReviewTheme() {
 }
 
 double designReviewTextScale() {
-  final value = Platform.environment['EDAYA_DESIGN_REVIEW_TEXT_SCALE'] ?? '1';
+  final value =
+      (kIsWeb
+          ? null
+          : Platform.environment['EDAYA_DESIGN_REVIEW_TEXT_SCALE']) ??
+      const String.fromEnvironment(
+        'EDAYA_DESIGN_REVIEW_TEXT_SCALE',
+        defaultValue: '1',
+      );
   if (!['1', '2'].contains(value)) {
     throw ArgumentError('EDAYA_DESIGN_REVIEW_TEXT_SCALE must be 1 or 2');
   }

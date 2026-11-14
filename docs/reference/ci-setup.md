@@ -19,7 +19,7 @@ Release workflows proceed automatically after successful qualification. Deployme
 
 Deploy the backend tooling changes to the destination branches before consumers qualify against those branches: consumer integration uses the backend's typed fixture command. Configure branch protection to require **qualification / Full validation** from the PR workflow (confirm the exact displayed check name on the first rehearsal). Remove obsolete coordinator/publication checks only after that required check succeeds. GitHub may display the caller workflow name as an additional prefix.
 
-Bun remains pinned to 1.3.14, Flutter to 3.44.8. Ubuntu CI and macOS development use native Git, archive tools and PostgreSQL binaries where needed. Validators are downloaded at pinned versions and verified against committed SHA-256 checksums. No first-party Python or Node operational runtime is required.
+Bun remains pinned to 1.3.14, Flutter to 3.44.8. Ubuntu CI and macOS development use native Git, archive tools and PostgreSQL binaries where needed. Validators are downloaded at pinned versions and verified against committed SHA-256 checksums. Dart owns the main repository operations; pinned Ruby/Fastlane/CocoaPods tooling handles Apple signing and store delivery.
 
 ## Release evidence
 
@@ -51,9 +51,11 @@ API, guardian and teacher integration suites are mandatory. Their machine-event 
 
 ## Android releases
 
-Use `dart run edaya_repo:repo build staging` for both signed APKs, or `build production` for both signed AABs. CI uses Java 17 and Flutter 3.44.8. Environment secret `ANDROID_SIGNING_BUNDLE` contains the existing keystore/apps bundle with guardian and teacher aliases/passwords and each Firebase configuration. Local builds can use existing private signing files. Missing credentials, debug certificates, app ID mismatches or signature verification errors block output.
+Use `dart run edaya_repo:repo build staging` for both signed v2 APKs, or `build production` for both signed v2 AABs. Release paths are `apps/guardian_v2` and `apps/teacher_v2`; logical app keys remain `guardian` and `teacher`. CI uses Java 17 and Flutter 3.44.8. Environment secret `ANDROID_SIGNING_BUNDLE` contains the existing keystore/apps bundle with guardian and teacher aliases/passwords and each Firebase configuration. Local builds can use existing private signing files. Missing credentials, debug certificates, app ID mismatches or signature verification errors block output.
 
-Signed builds use the qualified source and transferred generated client. APK verification uses apksigner/aapt; AAB verification uses jarsigner/keytool, with signing certificate provenance and SHA-256 artifact hashes in `.release/manifest.json`. CI uploads those exact files; it does not submit to a store or add iOS delivery. Restored private signing files are cleaned up on failure and success.
+Signed builds use the qualified source and transferred generated client. APK verification uses apksigner/aapt; AAB verification uses jarsigner/keytool, with signing certificate provenance and SHA-256 artifact hashes in `.release/manifest.json`. Production deployments publish those exact qualified AABs for Guardian and Teacher to Google Play **internal testing**. Staging remains APK artifact delivery. Restored private signing files are cleaned up on failure and success.
+
+Google Play production promotion is a separate manual workflow, **Promote Google Play to production**, run from `main` with explicit Guardian and Teacher version codes. It uses the `google-play-production` GitHub environment and promotes already-tested bundles without rebuilding. See [Google Play releases](google-play-releases.md) for credentials, first-release setup, version codes, and recovery. Production also runs a macOS job that builds signed v2 IPAs from the same qualified inputs and uploads them to TestFlight. App Store review submission is a separate manual workflow. See [Apple releases](apple-releases.md).
 
 Brand tokens, galleries, design review, keystore setup and SVG/native icon generation are Dart/Flutter commands under `generate` and `maintenance`. The asset generator runs through Flutter rendering; Node is no longer needed.
 

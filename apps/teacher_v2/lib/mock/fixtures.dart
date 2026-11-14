@@ -175,9 +175,7 @@ Map<String, List<MockAttendanceRecord>> _buildAttendance(
       for (final s in roster)
         MockAttendanceRecord(
           studentId: s.id,
-          status: session.attendanceComplete
-              ? AttendanceStatus.present
-              : AttendanceStatus.present,
+          status: session.attendanceComplete ? AttendanceStatus.present : null,
         ),
     ];
   }
@@ -193,7 +191,7 @@ Map<String, MockLogbook> _buildLogbooks(List<MockSession> sessions) {
           content: 'Chapitre fractions — exercices 1 à 8',
           objectives: 'Maîtriser l\'addition de fractions',
           homework: 'Exercices 9–12 page 54',
-          progressPercent: 62,
+          chapters: {'fractions': 62, 'decimals': 30},
         ),
   };
 }

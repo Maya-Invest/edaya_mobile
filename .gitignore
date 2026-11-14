@@ -61,3 +61,10 @@ packages/edaya_api_client/lib/src/generated/
 packages/edaya_api_client/spec/client-bindings.json
 
 .cache/clients/
+
+# Apple release dependencies and fastlane local output
+tooling/apple/.bundle/
+tooling/apple/vendor/
+tooling/apple/fastlane/report.xml
+tooling/apple/fastlane/README.md
+tooling/apple/fastlane/Preview.html

@@ -124,6 +124,12 @@
   "navFees": "Fees",
   "navInbox": "Inbox",
   "navEvaluations": "Evaluations",
+  "teacherMockSignInHint": "In this demo, you can use any email address.",
+  "teacherMockVerifyHint": "Enter any code to continue the demo.",
+  "teacherTodaySessions": "Today’s sessions",
+  "teacherNoUpcomingSessions": "No upcoming sessions",
+  "teacherSessionsAgendaHint": "You can find today’s sessions in the agenda.",
+  "teacherClassLife": "School life",
   "navTeaching": "Teaching",
   "navReportCards": "Report cards",
   "teachingTitle": "Teaching",
@@ -722,6 +728,70 @@
   "attendanceReasonHint": "e.g. illness, appointment",
   "attendanceNotesLabel": "Notes",
   "attendanceNotesHint": "Optional context for the school office",
+  "rollWriteRejected": "The change could not be saved. Check the register and try again.",
+  "rollRegisterChanged": "The register has changed. Review the updated entries before finishing.",
+  "rollExcused": "Excused by staff",
+  "rollUnmarked": "Not marked",
+  "rollList": "List",
+  "rollRosterCount": "{marked}/{total} marked",
+  "bookGeneral": "General information",
+  "bookChapters": "Chapters covered",
+  "bookAddChapter": "Add a chapter",
+  "bookEditChapter": "Edit {name}",
+  "bookAllLinked": "All programme chapters are linked to this lesson.",
+  "bookNoProgramme": "No chapters are available for this class and subject.",
+  "bookProgress": "Progress",
+  "@rollRosterCount": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "marked": {
+        "type": "int"
+      }
+    }
+  },
+  "@bookEditChapter": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "rollMarkRemaining": "Rest present",
+  "rollOneByOne": "Photo mode",
+  "rollPosition": "{position} of {total}",
+  "rollToSend": "Pending sync · Retry",
+  "rollLeftAt": "Left at {time}",
+  "rollDeparture": "Record departure",
+  "rollAttendance": "Attendance",
+  "rollLocalDraft": "Local draft available",
+  "rollProposedLogbook": "Proposed logbook",
+  "rollContent": "Lesson content",
+  "rollObjectives": "Objectives",
+  "rollHomework": "Homework",
+  "rollFamilySummary": "Family summary",
+  "rollChapters": "Chapter coverage",
+  "rollRequestChange": "Request a change",
+  "rollCreateBook": "Fill in the logbook",
+  "rollEditBook": "Edit logbook",
+  "@rollPosition": {
+    "placeholders": {
+      "position": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@rollLeftAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "attendanceSavedLocally": "Saved locally — will sync when online",
   "calendarTodayTitle": "Today",
   "calendarGoToToday": "Go to today",
@@ -1400,5 +1470,31 @@
   "teacherQuickInvalid": "Invalid or expired code.",
   "logbookNotSaved": "Logbook not saved",
   "logbookCompleted": "Logbook completed",
-  "noCompletedLogbook": "No completed logbook"
+  "noCompletedLogbook": "No completed logbook",
+  "gradebookSave": "Save",
+  "gradebookSubmit": "Submit marks",
+  "gradebookUnsaved": "Unsaved changes",
+  "gradebookSaved": "Draft saved",
+  "gradebookQueued": "To send",
+  "gradebookClear": "Clear entry",
+  "gradebookEdit": "Edit mark",
+  "gradebookOfficial": "Official mark",
+  "gradebookProposed": "Proposed result",
+  "gradebookReason": "Reason",
+  "gradebookSend": "Send request",
+  "gradebookUpdate": "Update request",
+  "gradebookWithdraw": "Withdraw request",
+  "gradebookApproval": "The official result remains unchanged until approval.",
+  "gradebookPending": "Pending approval",
+  "gradebookGrouped": "This reason belongs to an existing grouped request. Other pupils’ proposals will be preserved.",
+  "gradebookLocked": "This result cannot be edited with your current permissions.",
+  "gradebookDiscard": "Discard changes",
+  "gradebookContinue": "Continue editing",
+  "gradebookDraft": "Draft",
+  "gradebookResult": "Result",
+  "gradebookPupil": "Pupil",
+  "gradebookMissing": "Entry required",
+  "gradebookInvalid": "Enter a valid result within the assessment scale.",
+  "gradebookWithdrawConfirm": "Withdraw the proposed change for this pupil?",
+  "gradebookOptions": "Result options"
 }

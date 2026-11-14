@@ -1,5 +1,6 @@
 import 'package:edaya_shared/edaya_shared.dart' show systemL10n;
 import 'package:flutter/foundation.dart';
+import '../features/session/session_logbook_draft_storage.dart';
 
 part 'models.dart';
 part 'fixtures.dart';
@@ -203,12 +204,14 @@ class MockStore extends ChangeNotifier {
   void setAttendanceStatus(
     String sessionId,
     String studentId,
-    AttendanceStatus status,
-  ) {
+    AttendanceStatus status, {
+    String? comment,
+  }) {
     final list = _attendance[sessionId];
     if (list == null) return;
     final record = list.firstWhere((r) => r.studentId == studentId);
     record.status = status;
+    record.comment = comment ?? record.comment;
     notifyListeners();
   }
 
@@ -216,7 +219,7 @@ class MockStore extends ChangeNotifier {
     final list = _attendance[sessionId];
     if (list == null) return;
     for (final r in list) {
-      r.status = AttendanceStatus.present;
+      r.status ??= AttendanceStatus.present;
     }
     notifyListeners();
   }
@@ -230,22 +233,27 @@ class MockStore extends ChangeNotifier {
 
   MockLogbook? getLogbook(String sessionId) => _logbooks[sessionId];
 
-  void saveLogbook({
-    required String sessionId,
-    required String content,
-    required String objectives,
-    required String homework,
-    required int progressPercent,
-  }) {
-    _logbooks[sessionId] = MockLogbook(
-      sessionId: sessionId,
-      content: content,
-      objectives: objectives,
-      homework: homework,
-      progressPercent: progressPercent,
+  static const programmeChapters = {
+    'fractions': 'Fractions',
+    'decimals': 'Nombres décimaux',
+    'geometry': 'Géométrie',
+  };
+  final logbookDrafts = <String, Map<String, LogbookEdit>>{};
+  void saveLogbook(String sessionId, LogbookEdit edit) {
+    final book = _logbooks.putIfAbsent(
+      sessionId,
+      () => MockLogbook(sessionId: sessionId),
     );
-    final session = sessionById(sessionId);
-    if (session != null) session.logbookComplete = true;
+    if (edit.note case final note?) {
+      book.content = note.content;
+      book.objectives = note.objectives.join('\n');
+      book.homework = note.homework ?? '';
+      book.familySummary = note.familySummary ?? '';
+    } else {
+      book.chapters[edit.chapterId!] = edit.percentage!;
+    }
+    logbookDrafts[sessionId]?.remove(edit.key);
+    sessionById(sessionId)?.logbookComplete = true;
     notifyListeners();
   }
 

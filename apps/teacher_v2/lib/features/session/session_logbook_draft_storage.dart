@@ -3,93 +3,43 @@ import 'dart:convert';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class SessionLogbookDraft {
-  const SessionLogbookDraft({
-    required this.sessionNote,
-    required this.objectives,
-    required this.homework,
-    required this.familySummary,
-    required this.progressEntries,
-    required this.updatedAt,
-  });
+/// One editor's values. A chapter edit never contains general-information fields.
+class LogbookEdit {
+  const LogbookEdit.general(this.note, {this.reason = ''})
+    : chapterId = null,
+      percentage = null;
+  const LogbookEdit.chapter(
+    String this.chapterId,
+    int this.percentage, {
+    this.reason = '',
+  }) : note = null;
 
-  final String sessionNote;
-  final String objectives;
-  final String homework;
-  final String familySummary;
-  final List<SessionLogbookDraftProgressEntry> progressEntries;
-  final DateTime updatedAt;
+  final StructuredLogbookContent? note;
+  final String? chapterId;
+  final int? percentage;
+  final String reason;
+  String get key => chapterId == null ? 'general' : 'chapter:$chapterId';
 
-  Map<String, dynamic> toJson() {
-    return {
-      'sessionNote': sessionNote,
-      'objectives': objectives,
-      'homework': homework,
-      'familySummary': familySummary,
-      'progressEntries': [for (final entry in progressEntries) entry.toJson()],
-      'updatedAt': updatedAt.toUtc().toIso8601String(),
-    };
-  }
+  Map<String, dynamic> toJson() => {
+    if (note != null) 'sessionNote': encodeStructuredSessionNote(note!),
+    if (chapterId != null) 'chapterId': chapterId,
+    if (percentage != null) 'percentage': percentage,
+    'reason': reason,
+  };
 
-  factory SessionLogbookDraft.fromJson(Map<String, dynamic> json) {
-    final rawEntries = json['progressEntries'];
-    return SessionLogbookDraft(
-      sessionNote: json['sessionNote'] as String? ?? '',
-      objectives: json['objectives'] as String? ?? '',
-      homework: json['homework'] as String? ?? '',
-      familySummary: json['familySummary'] as String? ?? '',
-      progressEntries: rawEntries is List
-          ? rawEntries
-                .whereType<Map>()
-                .map(
-                  (entry) => SessionLogbookDraftProgressEntry.fromJson(
-                    entry.cast<String, dynamic>(),
-                  ),
-                )
-                .toList()
-          : const [],
-      updatedAt:
-          DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
-          DateTime.now(),
-    );
-  }
-}
-
-class SessionLogbookDraftProgressEntry {
-  const SessionLogbookDraftProgressEntry({
-    required this.matterId,
-    required this.completedPercentage,
-    required this.notes,
-    required this.isEditingExisting,
-  });
-
-  final String matterId;
-  final int completedPercentage;
-  final String notes;
-  final bool isEditingExisting;
-
-  Map<String, dynamic> toJson() {
-    return {
-      'matterId': matterId,
-      'completedPercentage': completedPercentage,
-      'notes': notes,
-      'isEditingExisting': isEditingExisting,
-    };
-  }
-
-  factory SessionLogbookDraftProgressEntry.fromJson(Map<String, dynamic> json) {
-    return SessionLogbookDraftProgressEntry(
-      matterId: json['matterId'] as String? ?? '',
-      completedPercentage: (json['completedPercentage'] as num?)?.toInt() ?? 0,
-      notes: json['notes'] as String? ?? '',
-      isEditingExisting: json['isEditingExisting'] as bool? ?? false,
+  factory LogbookEdit.fromJson(Map<String, dynamic> json) {
+    final reason = json['reason'] as String? ?? '';
+    if (json['chapterId'] case final String id) {
+      return LogbookEdit.chapter(id, json['percentage'] as int, reason: reason);
+    }
+    return LogbookEdit.general(
+      decodeStructuredSessionNote(json['sessionNote'] as String?),
+      reason: reason,
     );
   }
 }
 
 abstract final class SessionLogbookDraftStorage {
-  SessionLogbookDraftStorage._();
-
   static String _key(String sessionId, TeacherOutboxContext? context) {
     final scope = context == null
         ? 'unscoped'
@@ -97,41 +47,78 @@ abstract final class SessionLogbookDraftStorage {
     return 'teacher_logbook_draft_${scope}_$sessionId';
   }
 
-  static Future<SessionLogbookDraft?> load(
-    String sessionId, {
+  static Future<Map<String, LogbookEdit>> load(
+    String sessionId,
     TeacherOutboxContext? context,
-  }) async {
+    int revision,
+    int? proposalVersion,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_key(sessionId, context));
-    if (raw == null || raw.isEmpty) {
-      return null;
-    }
-
+    if (raw == null) return {};
     try {
-      final decoded = jsonDecode(raw);
-      if (decoded is! Map<String, dynamic>) {
-        return null;
+      final data = jsonDecode(raw) as Map<String, dynamic>;
+      if ((data['revision'] ?? 0) != revision ||
+          data['proposalVersion'] != proposalVersion) {
+        return {};
       }
-      return SessionLogbookDraft.fromJson(decoded);
+      if (data['sections'] case final Map sections) {
+        return {
+          for (final entry in sections.entries)
+            entry.key as String: LogbookEdit.fromJson(
+              Map<String, dynamic>.from(entry.value as Map),
+            ),
+        };
+      }
+      // The previous combined form stored the note and one selected chapter together.
+      final reason = data['correctionReason'] as String? ?? '';
+      final note = StructuredLogbookContent(
+        content: data['sessionNote'] as String? ?? '',
+        objectives: (data['objectives'] as String? ?? '')
+            .split('\n')
+            .where((s) => s.isNotEmpty)
+            .toList(),
+        homework: data['homework'] as String?,
+        familySummary: data['familySummary'] as String?,
+      );
+      return {
+        'general': LogbookEdit.general(note, reason: reason),
+        for (final row
+            in (data['progressEntries'] as List? ?? const []).whereType<Map>())
+          if (row['matterId'] is String && row['completedPercentage'] is int)
+            'chapter:${row['matterId']}': LogbookEdit.chapter(
+              row['matterId'] as String,
+              row['completedPercentage'] as int,
+              reason: reason,
+            ),
+      };
     } on Object {
-      return null;
+      return {};
     }
   }
 
   static Future<void> save(
     String sessionId,
-    SessionLogbookDraft draft, {
     TeacherOutboxContext? context,
-  }) async {
+    int revision,
+    int? proposalVersion,
+    Map<String, LogbookEdit> sections,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_key(sessionId, context), jsonEncode(draft.toJson()));
-  }
-
-  static Future<void> clear(
-    String sessionId, {
-    TeacherOutboxContext? context,
-  }) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_key(sessionId, context));
+    final key = _key(sessionId, context);
+    if (sections.isEmpty) {
+      await prefs.remove(key);
+      return;
+    }
+    await prefs.setString(
+      key,
+      jsonEncode({
+        'revision': revision,
+        'proposalVersion': proposalVersion,
+        'sections': {
+          for (final entry in sections.entries) entry.key: entry.value.toJson(),
+        },
+      }),
+    );
   }
 }

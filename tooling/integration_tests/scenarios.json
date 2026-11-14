@@ -165,5 +165,13 @@
     "teacher-v2.messaging.start",
     "teacher-v2.discipline.register",
     "teacher-v2.navigation.sheets"
+  ],
+  "guardian_v2": [
+    "guardian-v2.workspace.home",
+    "guardian-v2.workspace.menu",
+    "guardian-v2.workspace.children",
+    "guardian-v2.results.drilldown",
+    "guardian-v2.results.archive",
+    "guardian-v2.coverage.routes"
   ]
 }

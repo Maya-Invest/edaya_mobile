@@ -68,6 +68,14 @@ jobs:
           TARGET: ${{ inputs.target }}
         run: dart run edaya_repo:repo generate client "$TARGET" --backend-root .ci/edaya_backend
       - run: dart pub get --enforce-lockfile
+      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: tooling/apple
+      - name: Verify Apple release tooling
+        working-directory: tooling/apple
+        run: bundle exec ruby test/release_test.rb
       - name: Verify candidate
         env:
           TARGET: ${{ inputs.target }}

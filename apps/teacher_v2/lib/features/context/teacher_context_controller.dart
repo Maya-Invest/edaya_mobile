@@ -1,36 +1,14 @@
-import 'dart:async';
 import 'package:timezone/timezone.dart' as tz;
 
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../live/entity_queries.dart';
+import 'teacher_assignment_catalog.dart';
+export 'teacher_assignment_catalog.dart'
+    show TeacherAssignmentOption, AssignedClass;
 import '../auth/session_storage.dart';
 import 'academic_year_controller.dart';
-
-class TeacherAssignmentOption {
-  const TeacherAssignmentOption({
-    required this.id,
-    required this.classGroupId,
-    required this.classLabel,
-    required this.subjectLabel,
-    required this.isHomeroom,
-    this.classSubjectId,
-  });
-
-  final String id;
-  final String classGroupId;
-  final String classLabel;
-  final String subjectLabel;
-  final bool isHomeroom;
-  final String? classSubjectId;
-  String get label => [
-    classLabel,
-    if (classSubjectId != null) subjectLabel,
-    if (isHomeroom) 'Titulaire',
-  ].join(' · ');
-}
 
 class TeacherWorkspaceSelection {
   const TeacherWorkspaceSelection({
@@ -43,13 +21,6 @@ class TeacherWorkspaceSelection {
   final String academicYearId;
   final String classGroupId;
   final String? classSubjectId;
-}
-
-class AssignedClass {
-  const AssignedClass({required this.id, required this.label});
-
-  final String id;
-  final String label;
 }
 
 class TeacherContextController extends LevitController
@@ -88,6 +59,15 @@ class TeacherContextController extends LevitController
   final assignedClassGroupIds = LxVar<Set<String>>({});
   final isLoading = LxVar(false);
   final errorMessage = LxVar('');
+  bool confirmedNoAssignments = false;
+  final loadFailed = LxVar(false);
+  void recordLoadFailure(String message) {
+    _recent.remove((_session.schoolIdHeader, _session.actorIdHeader));
+    confirmedNoAssignments = false;
+    loadFailed(true);
+    errorMessage(message);
+  }
+
   bool _closed = false;
   int _loadGeneration = 0;
   int _selectionRevision = 0;
@@ -114,10 +94,13 @@ class TeacherContextController extends LevitController
     autoDispose(assignedClassGroupIds);
     autoDispose(isLoading);
     autoDispose(errorMessage);
+    autoDispose(loadFailed);
 
     autoDispose(
-      _academicYear.selectedYearId.listen((_) {
-        unawaited(_reloadOnAcademicYearChange());
+      _session.user.stream.listen((user) {
+        _recent.removeWhere(
+          (_, entry) => entry.catalog.workspace.account != user?.id,
+        );
       }),
     );
     autoDispose(
@@ -160,17 +143,49 @@ class TeacherContextController extends LevitController
     return letters.toUpperCase();
   }
 
-  Future<void> _reloadOnAcademicYearChange() async {
-    if (_academicYear.selectedYearId.value == null) {
-      await reloadContext();
-      return;
-    }
-    await _session.refreshGrants();
-    if (!_closed) await reloadContext();
+  TeacherAssignmentCatalog? catalog;
+  final _recent =
+      <
+        (String, String),
+        ({TeacherAssignmentCatalog catalog, String? yearLabel})
+      >{};
+
+  /// Only picker display data is retained between school visits. Activation
+  /// always reads the published year, grants and actual assignments again.
+  ({TeacherAssignmentCatalog catalog, String? yearLabel})? recentCatalog(
+    String school,
+    String actor,
+  ) {
+    final entry = _recent[(school, actor)];
+    if (entry == null ||
+        !entry.catalog.fresh ||
+        entry.catalog.workspace.account != _session.user.value?.id)
+      return null;
+    return entry;
   }
 
-  Future<void> initializeFromSession() async {
-    if (!_closed) await reloadContext();
+  void rememberCatalog(TeacherAssignmentCatalog data, String? yearLabel) {
+    if (_closed || data.workspace.account != _session.user.value?.id) return;
+    _recent.removeWhere(
+      (_, e) =>
+          !e.catalog.fresh ||
+          e.catalog.workspace.account != data.workspace.account,
+    );
+    _recent[(data.workspace.school, data.workspace.actor)] = (
+      catalog: data,
+      yearLabel: yearLabel,
+    );
+  }
+
+  Future<void> initializeFromSession({
+    TeacherAssignmentCatalog? preview,
+    String? preferredAssignment,
+  }) async {
+    if (!_closed)
+      await reloadContext(
+        preview: preview,
+        preferredAssignment: preferredAssignment,
+      );
   }
 
   TeacherWorkspaceSelection? get selection {
@@ -212,40 +227,56 @@ class TeacherContextController extends LevitController
 
   Future<void>? _pendingLoad;
   String? _pendingKey;
-  Future<void> reloadContext() {
+  Future<void> reloadContext({
+    TeacherAssignmentCatalog? preview,
+    String? preferredAssignment,
+  }) {
     final grants = _session.grants.value;
     final key =
-        '${grants?.schoolId}/${grants?.actorId}/${_academicYear.selectedYearId.value}';
+        '${grants?.schoolId}/${grants?.actorId}/${_academicYear.selectedYearId.value}/${_session.user.value?.id}/$preferredAssignment';
     final pending = _pendingLoad;
     if (_pendingKey == key && pending != null) return pending;
     _pendingKey = key;
-    final next = _loadContext();
+    final next = _loadContext(preview, preferredAssignment);
     _pendingLoad = next;
     return next.whenComplete(() {
       if (identical(_pendingLoad, next)) _pendingLoad = null;
     });
   }
 
-  Future<void> _loadContext() async {
+  Future<void> _loadContext(
+    TeacherAssignmentCatalog? preview,
+    String? preferredAssignment,
+  ) async {
     if (_closed) return;
     final generation = ++_loadGeneration;
     final revision = _selectionRevision;
-    bool stale() => _closed || generation != _loadGeneration;
     final grants = _session.grants.value;
-    if (grants == null || grants.kind != 'teacher') {
+    final account = _session.user.value?.id;
+    final yearId = _academicYear.selectedYearId.value;
+    bool stale() =>
+        _closed ||
+        generation != _loadGeneration ||
+        account != _session.user.value?.id ||
+        yearId != _academicYear.selectedYearId.value ||
+        grants?.schoolId != _session.schoolIdHeader ||
+        grants?.actorId != _session.actorIdHeader;
+    if (account == null || grants == null || grants.kind != 'teacher') {
       _clearContext();
       return;
     }
 
+    confirmedNoAssignments = false;
+    loadFailed(false);
     final resolvedTeacherId = grants.actorId;
     teacherId(resolvedTeacherId);
     errorMessage('');
 
-    final yearId = _academicYear.selectedYearId.value;
     if (yearId == null) {
       teacherName(
         _session.user.value?.name ?? systemL10n().teacherFallbackName,
       );
+      catalog = null;
       assignments(const []);
       assignedClasses(const []);
       taughtClassSubjectIds({});
@@ -257,174 +288,86 @@ class TeacherContextController extends LevitController
       isLoading(true);
       try {
         final client = _schoolClient();
-        try {
-          final teacher = await client.teachers.get(resolvedTeacherId);
-          if (stale()) return;
-          final firstName = teacher['firstName'] as String? ?? '';
-          final lastName = teacher['lastName'] as String? ?? '';
-          final fullName = '$firstName $lastName'.trim();
-          teacherName(
-            fullName.isEmpty
-                ? (_session.user.value?.name ??
-                      systemL10n().teacherFallbackName)
-                : fullName,
-          );
-          teacherPhotoUrl(teacher['photoUrl'] as String?);
-        } on Object {
-          if (stale()) return;
-          teacherName(
-            _session.user.value?.name ?? systemL10n().teacherFallbackName,
-          );
-          teacherPhotoUrl(null);
-        }
-
-        final schoolId = _session.schoolIdHeader;
-        if (schoolId != null && schoolId.isNotEmpty) {
+        final workspace = (
+          account: account,
+          school: grants.schoolId,
+          actor: resolvedTeacherId,
+          year: yearId,
+        );
+        if (preview == null || catalog?.workspace != workspace) {
           try {
-            final school = await client.schools.get(schoolId);
+            final teacher = await client.teachers.get(resolvedTeacherId);
             if (stale()) return;
-            schoolTimeZone(school['timeZone'] as String? ?? 'UTC');
-            schoolName(school['name'] as String? ?? schoolId);
+            final firstName = teacher['firstName'] as String? ?? '';
+            final lastName = teacher['lastName'] as String? ?? '';
+            final fullName = '$firstName $lastName'.trim();
+            teacherName(
+              fullName.isEmpty
+                  ? (_session.user.value?.name ??
+                        systemL10n().teacherFallbackName)
+                  : fullName,
+            );
+            teacherPhotoUrl(teacher['photoUrl'] as String?);
           } on Object {
             if (stale()) return;
-            schoolName(schoolId);
+            teacherName(
+              _session.user.value?.name ?? systemL10n().teacherFallbackName,
+            );
+            teacherPhotoUrl(null);
+          }
+
+          final schoolId = _session.schoolIdHeader;
+          if (schoolId != null && schoolId.isNotEmpty) {
+            try {
+              final school = await client.schools.get(schoolId);
+              if (stale()) return;
+              schoolTimeZone(school['timeZone'] as String? ?? 'UTC');
+              schoolName(school['name'] as String? ?? schoolId);
+            } on Object {
+              if (stale()) return;
+              schoolName(schoolId);
+            }
           }
         }
-
-        final assignmentRows = await client.teacherAssignments.list(
-          teacherAssignmentsForTeacherAndYear(
-            teacherId: resolvedTeacherId,
-            academicYearId: yearId,
-          ),
+        final data = await readTeacherAssignmentCatalog(
+          client,
+          workspace,
+          previous: preview,
         );
         if (stale()) return;
-        // Read grants also include subject teachers' classes. Only actual
-        // homeroom assignments may produce a homeroom context option.
-        final teachingScope = teachingScopeFromTeacherAssignments(
-          assignmentRows,
-        );
-
-        final classGroupIds = teachingScope.classGroupIds;
-        final taughtSubjectIds = teachingScope.classSubjectIds;
-        taughtClassSubjectIds(taughtSubjectIds);
-        assignedClassGroupIds(classGroupIds);
-
-        final classSubjectRows = taughtSubjectIds.isEmpty
-            ? <Map<String, dynamic>>[]
-            : await client.classSubjects.list(
-                entitiesByIds(taughtSubjectIds.toList()),
-              );
-        if (stale()) return;
-        final groupBySubject = {
-          for (final row in classSubjectRows)
-            row['id'] as String: row['classGroupId'] as String,
-        };
-        classByAssignmentId({
-          for (final row in assignmentRows)
-            if ((row['classGroupId'] ?? groupBySubject[row['classSubjectId']])
-                case final String group)
-              row['id'] as String: group,
-        });
-        final subjectIds = classSubjectRows
-            .map((row) => row['subjectId'] as String?)
-            .whereType<String>()
-            .toSet()
-            .toList();
-        final subjectRows = subjectIds.isEmpty
-            ? <Map<String, dynamic>>[]
-            : await client.subjects.list(entitiesByIds(subjectIds));
-        if (stale()) return;
-        final subjectNameById = {
-          for (final subject in subjectRows)
-            subject['id'] as String:
-                subject['name'] as String? ?? systemL10n().subjectFallback,
-        };
-
-        final allClassGroupIds = {
-          ...classGroupIds,
-          ...classSubjectRows.map((row) => row['classGroupId'] as String),
-        };
-        final classLabelById = <String, String>{};
-        for (final classGroupId in allClassGroupIds) {
-          try {
-            final classGroup = await client.classGroups.get(classGroupId);
-            classLabelById[classGroupId] =
-                classGroup['name'] as String? ?? classGroupId;
-          } on Object {
-            classLabelById[classGroupId] = classGroupId;
-          }
-        }
-
-        if (stale()) return;
-        final classes = [
-          for (final entry in classLabelById.entries)
-            AssignedClass(id: entry.key, label: entry.value),
-        ]..sort((a, b) => a.label.compareTo(b.label));
-        assignedClasses(classes);
-
-        final options = <TeacherAssignmentOption>[];
-        for (final classGroupId in classGroupIds) {
-          if (classSubjectRows.any(
-            (row) => row['classGroupId'] == classGroupId,
-          )) {
-            continue;
-          }
-          options.add(
-            TeacherAssignmentOption(
-              id: 'homeroom-$classGroupId',
-              classGroupId: classGroupId,
-              classLabel: classLabelById[classGroupId] ?? classGroupId,
-              subjectLabel: 'Titulaire',
-              isHomeroom: true,
-            ),
-          );
-        }
-        for (final row in classSubjectRows) {
-          final classSubjectId = row['id'] as String;
-          final classGroupId = row['classGroupId'] as String;
-          final subjectId = row['subjectId'] as String?;
-          options.add(
-            TeacherAssignmentOption(
-              id: classSubjectId,
-              classGroupId: classGroupId,
-              classLabel: classLabelById[classGroupId] ?? classGroupId,
-              classSubjectId: classSubjectId,
-              subjectLabel: subjectId == null
-                  ? systemL10n().subjectFallback
-                  : subjectNameById[subjectId] ?? systemL10n().subjectFallback,
-              isHomeroom: classGroupIds.contains(classGroupId),
-            ),
-          );
-        }
-        options.sort((a, b) {
-          final byClass = a.classLabel.compareTo(b.classLabel);
-          if (byClass != 0) {
-            return byClass;
-          }
-          return a.subjectLabel.compareTo(b.subjectLabel);
-        });
-        assignments(options);
-
+        final options = data.options;
         final saved = await _sessionStorage.readClassSelection(_selectionKey);
         final legacy = saved == null
             ? await _sessionStorage.readClassSelection(_legacySelectionKey)
             : null;
-        if (stale() ||
-            revision != _selectionRevision ||
-            yearId != _academicYear.selectedYearId.value ||
-            resolvedTeacherId != _session.grants.value?.actorId) {
-          return;
-        }
+        if (stale()) return;
+        // A user selection during a same-school refresh takes priority if still eligible.
+        final preferred = revision == _selectionRevision
+            ? preferredAssignment
+            : activeAssignmentId.value;
         final selected =
+            options.where((option) => option.id == preferred).firstOrNull ??
             options.where((option) => option.id == saved).firstOrNull ??
             options
                 .where((option) => option.classGroupId == legacy)
                 .firstOrNull ??
             options.firstOrNull;
-        activeAssignmentId(selected?.id);
+        Levit.batch(() {
+          catalog = data;
+          rememberCatalog(data, _academicYear.selectedYearLabel);
+          taughtClassSubjectIds(data.scope.classSubjectIds);
+          assignedClassGroupIds(data.scope.classGroupIds);
+          classByAssignmentId(data.classByAssignmentId);
+          assignedClasses(data.classes);
+          assignments(options);
+          activeAssignmentId(selected?.id);
+        });
+        confirmedNoAssignments = selected == null;
         if (selected == null) {
           errorMessage('Aucune affectation active pour cette année scolaire.');
-        } else if (saved != null && selected.id != saved) {
+        } else if (preferredAssignment == null &&
+            saved != null &&
+            selected.id != saved) {
           errorMessage(
             'Votre affectation a changé. Un autre enseignement a été sélectionné.',
           );
@@ -432,11 +375,11 @@ class TeacherContextController extends LevitController
         await _sessionStorage.writeClassSelection(_selectionKey, selected?.id);
       } on api.ApiError catch (error) {
         if (!stale()) {
-          errorMessage(systemL10n().couldNotLoadTeachingContext('$error'));
+          recordLoadFailure(systemL10n().couldNotLoadTeachingContext('$error'));
         }
       } on Object catch (error) {
         if (!stale()) {
-          errorMessage(systemL10n().couldNotLoadTeachingContext('$error'));
+          recordLoadFailure(systemL10n().couldNotLoadTeachingContext('$error'));
         }
       } finally {
         if (!stale()) isLoading(false);
@@ -462,7 +405,12 @@ class TeacherContextController extends LevitController
 
   void _clearContext() {
     _loadGeneration++;
+    catalog = null;
+    _pendingKey = null;
     if (_closed) return;
+    confirmedNoAssignments = false;
+    loadFailed(false);
+    activeAssignmentId(null);
     teacherId(null);
     teacherName(null);
     teacherPhotoUrl(null);

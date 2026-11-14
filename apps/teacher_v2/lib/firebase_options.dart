@@ -65,10 +65,10 @@ class DefaultFirebaseOptions {
   );
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDi_st8k6OZtl5VzsouajkC7boNmoTNQLw',
-    appId: '1:839288643279:ios:c4e6bf53922e2bebea61ba',
+    appId: '1:839288643279:ios:7c5afb285dbf11b9ea61ba',
     messagingSenderId: '839288643279',
     projectId: 'edayaplus',
     storageBucket: 'edayaplus.firebasestorage.app',
-    iosBundleId: 'ca.mayainvest.edaya.staff',
+    iosBundleId: 'ca.maya-invest.edaya.staff',
   );
 }

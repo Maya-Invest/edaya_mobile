@@ -11,7 +11,7 @@
 | Production Guardian | `apps/guardian` | `edaya_guardian` |
 | Archived pre-cutover IA | `apps/guardian_legacy` | `edaya_guardian_legacy` |
 
-Identity: Android/iOS `ca.mayainvest.edaya.guardian`, Firebase configs + Play signing from the former production app.
+Identity: Android `ca.mayainvest.edaya.guardian`; iOS `ca.maya-invest.edaya.guardian`, Firebase configs + Play signing from the former production app.
 
 ## Melos
 

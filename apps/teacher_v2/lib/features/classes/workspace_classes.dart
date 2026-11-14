@@ -114,7 +114,7 @@ class _Progress extends LScopedView<LiveClassWorkspaceController> {
                   '${formatDate(l.startsAt)} · ${context.tr.logbookCompleted}',
                 ),
                 onTap: () =>
-                    context.push('/progress/cahier/${l.lessonSessionId}'),
+                    context.push('/session/${l.lessonSessionId}?tab=logbook'),
               ),
           ],
         ),
