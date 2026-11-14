@@ -3,6 +3,7 @@ library;
 
 import 'package:edaya_guardian_v2/app/workspace_shell.dart';
 import 'package:edaya_guardian_v2/design/components/list_row.dart';
+import 'package:edaya_guardian_v2/design/components/summary_metric.dart';
 import 'package:edaya_api_client/edaya_api_client.dart';
 import 'package:edaya_guardian_v2/features/home/home_page.dart';
 import 'package:edaya_guardian_v2/features/home/dashboard_controller.dart';
@@ -152,8 +153,29 @@ Future<void> main() async {
           final receipt = (history['payments'] as List).cast<Map>().firstWhere(
             (r) => r['kind'] == 'receipt',
           );
+          final allocatedChargeIds = (history['allocations'] as List)
+              .cast<Map>()
+              .where(
+                (a) =>
+                    a['causedByPaymentId'] == receipt['id'] &&
+                    a['kind'] != 'reverse',
+              )
+              .map((a) => a['chargeId'])
+              .toSet();
+          final expectedFees = charges
+              .where((c) => allocatedChargeIds.contains(c['id']))
+              .map((c) => c['label'] as String)
+              .toSet();
+          expect(expectedFees, isNotEmpty);
           h.router.push('/fees/payment/${receipt['id']}');
-          await pumpUntilFound(tester, find.text('Transport A, Scolarité A'));
+          final feeMetric = find.byWidgetPredicate(
+            (widget) => widget is SummaryMetric && widget.label == 'Frais',
+          );
+          await pumpUntilFound(tester, feeMetric);
+          expect(
+            tester.widget<SummaryMetric>(feeMetric).value.split(', '),
+            unorderedEquals(expectedFees),
+          );
           expect(find.text('Reçu de paiement'), findsOneWidget);
           h.router.pop();
           await tester.pump(const Duration(milliseconds: 400));

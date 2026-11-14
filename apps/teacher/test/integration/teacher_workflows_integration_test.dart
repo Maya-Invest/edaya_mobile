@@ -1743,6 +1743,7 @@ Future<void> main() async {
         }),
         (review) => (review['assessment'] as Map)['marksStatus'] == 'submitted',
       );
+      await until(tester, find.text('Note officielle'));
       await until(tester, find.byTooltip('Options du résultat').hitTestable());
       final submittedSummary = await readSummary();
       final officialAverages = averages(submittedSummary);
