@@ -12,18 +12,28 @@ module AppleRelease
   APPS = JSON.parse(File.read(File.join(__dir__, 'apps.json'))).freeze
 
   def self.build_number(env)
-    run = Integer(env.fetch('GITHUB_RUN_NUMBER'), 10)
+    run = Integer(env.fetch('EDAYA_RELEASE_SEQUENCE') { env.fetch('GITHUB_RUN_NUMBER') }, 10)
     attempt = Integer(env.fetch('GITHUB_RUN_ATTEMPT'), 10)
     raise 'Invalid Apple build number allocation' unless (1..999_899).cover?(run) && (1..99).cover?(attempt)
     "#{1 + run / 100}.#{run % 100}.#{attempt}"
   end
 
   def self.release_inputs
-    evidence = JSON.parse(File.read(File.join(ROOT, '.release/apple-inputs.json')))
+    evidence = prepared_inputs
+    report = JSON.parse(File.read(File.join(ROOT, '.ci-evidence/qualification.json')))
+    raise 'Qualified Apple artifacts required' unless evidence.all? { |k, v| report[k] == v } &&
+      report.dig('checks', 'verification') == true && report.dig('checks', 'integration') == true &&
+      report.dig('artifacts', 'ios', '.release/apple-build.json') == Digest::SHA256.file(File.join(ROOT, '.release/apple-build.json')).hexdigest
+    evidence
+  end
+
+  def self.prepared_inputs
+    evidence = JSON.parse(File.read(File.join(ROOT, '.ci-evidence/prepared.json')))
     target = ENV.fetch('TARGET')
     raise 'Expected qualified inputs for this branch and commit' unless %w[staging production].include?(target) &&
       evidence.fetch('environment') == target && evidence.fetch('sourceCommit') == ENV.fetch('GITHUB_SHA') &&
-      evidence.dig('checks', 'verification') == true && evidence.dig('checks', 'integration') == true
+      evidence['release'] == true && evidence['runId'] == ENV.fetch('GITHUB_RUN_ID') &&
+      evidence['attempt'] == ENV.fetch('GITHUB_RUN_ATTEMPT')
     evidence
   end
 
@@ -115,7 +125,7 @@ module AppleRelease
   def self.build(context)
     raise 'Signed Apple builds run only on GitHub-hosted macOS runners' unless ENV['GITHUB_ACTIONS'] == 'true' && RUBY_PLATFORM.include?('darwin')
     require 'xcodeproj'
-    evidence = release_inputs
+    evidence = prepared_inputs
     target = evidence.fetch('environment')
     number = build_number(ENV)
     bundle = secret_json('IOS_SIGNING_BUNDLE')

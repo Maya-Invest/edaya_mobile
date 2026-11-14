@@ -24,6 +24,10 @@ class AppleReleaseTest < Minitest::Test
     OpenStruct.new(id: id, app_version: version, version: number, processing_state: state, expired: expired)
   end
 
+  def test_cutover_version_exceeds_previous_workflow
+    assert_equal '1.4.1', AppleRelease.build_number('GITHUB_RUN_NUMBER' => '1', 'EDAYA_RELEASE_SEQUENCE' => '4', 'GITHUB_RUN_ATTEMPT' => '1')
+  end
+
   def test_build_number_limits_and_retry_ordering
     assert_equal '1.42.1', AppleRelease.build_number('GITHUB_RUN_NUMBER' => '42', 'GITHUB_RUN_ATTEMPT' => '1')
     assert_equal '1.42.2', AppleRelease.build_number('GITHUB_RUN_NUMBER' => '42', 'GITHUB_RUN_ATTEMPT' => '2')
@@ -85,6 +89,7 @@ class AppleReleaseTest < Minitest::Test
 
   def test_both_remote_builds_are_validated_before_submission_and_exact_builds_are_used
     previous = ENV.to_h
+    ENV.delete('EDAYA_RELEASE_SEQUENCE')
     ENV.update('GITHUB_RUN_NUMBER' => '42', 'GITHUB_RUN_ATTEMPT' => '1')
     evidence = { 'environment' => 'production', 'apiUrl' => 'https://api.edayaplus.com', 'sourceCommit' => 'abc' }
     records = AppleRelease::APPS.to_h do |app, config|

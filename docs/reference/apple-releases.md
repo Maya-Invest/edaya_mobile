@@ -11,7 +11,7 @@ Both stores now publish the v2 workspaces. Android keeps its existing package ID
 
 ## Pipeline
 
-**Mobile store releases** qualifies the pushed commit and runs Android and iOS jobs independently. Apple builds use the same verified client and source, Flutter 3.44.8, Xcode 26.1.1 and the locked Fastlane and CocoaPods dependencies. The IPA check verifies the bundle ID, signing certificate, team, build number and distribution push entitlement.
+**Deploy** qualifies the pushed commit and runs Android and iOS jobs independently. Apple builds use the same verified client and source, Flutter 3.44.8, Xcode 26.1.1 and the locked Fastlane and CocoaPods dependencies. The IPA check verifies the bundle ID, signing certificate, team, build number and distribution push entitlement.
 
 | Branch | Compiled API | Delivery |
 | --- | --- | --- |
@@ -57,11 +57,11 @@ The sibling frontend's `apple-app-site-association` now includes `SQFU4GGCX2.ca.
 
 ## Build versions and evidence
 
-Marketing versions come from each v2 app's `pubspec.yaml` (for example `1.0.0`). Increase them before the next public App Store version. CI build numbers are `1 + floor(run_number / 100)`, `run_number % 100`, and `run_attempt`, joined with dots: run 142, attempt 2 produces `2.42.2`. This keeps Apple's component limits and gives full reruns a new build number. Attempts above 99 and run numbers above 999899 fail rather than wrap.
+Marketing versions come from each v2 app's `pubspec.yaml` (for example `1.0.0`). Increase them before the next public App Store version. The shared release sequence is the new workflow run number plus 3 (the previous workflow ended at run 3). CI build numbers are `1 + floor(sequence / 100)`, `sequence % 100`, and `run_attempt`, joined with dots. Sequence 142, attempt 2 produces `2.42.2`. This keeps Apple's component limits and gives full reruns a new build number. Attempts above 99 and run numbers above 999899 fail rather than wrap.
 
 If existing TestFlight builds already have larger build numbers for the same marketing version, increment the app's marketing version before onboarding this workflow. Public release versions must be newer than the current public version. The workflow never lets Xcode silently change the selected build number.
 
-The `release-apple-<run_id>-<attempt>` artifact contains both IPAs, qualification evidence and per-app records with versions, hashes, source commit, API URL and upload status. Each successful review submission appears in `apple-submission.json`.
+The `stage-ios-<run_id>-<attempt>` artifact contains both signed IPAs and their manifest on release branches. The `qualified` artifact binds their hashes to the passed stages. The `receipts-ios` artifact records each successful upload and review submission.
 
 If a delivery fails, inspect both apps in App Store Connect. Uploads and review submissions are per app. Resolve any existing review conflict before rerunning **all jobs** so qualification and release share the new attempt number. Apple must accept the marketing version for each app. A different build already in review for that version requires an operator decision in App Store Connect.
 
@@ -75,4 +75,4 @@ bundle exec ruby test/release_test.rb
 bundle exec fastlane lanes
 ```
 
-`fastlane ios build` requires GitHub runner context, qualified inputs and real signing material. `fastlane ios upload_beta` and `fastlane ios submit` perform real store mutations. Without distribution credentials, local unsigned iOS compilation and tooling tests cannot verify the final App Store signing/export or Apple acceptance.
+`fastlane ios build` requires GitHub runner context, verified prepared inputs and real signing material. `fastlane ios upload_beta` and `fastlane ios submit` perform real store mutations. Without distribution credentials, local unsigned iOS compilation and tooling tests cannot verify the final App Store signing/export or Apple acceptance.

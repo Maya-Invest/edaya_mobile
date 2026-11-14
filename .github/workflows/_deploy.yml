@@ -1,73 +1,74 @@
-name: Deploy qualified artifacts
+name: Publish qualified mobile releases
 on:
   workflow_call:
     inputs:
-      target:
-        required: true
-        type: string
+      target: {type: string, required: true}
+      source_sha: {type: string, required: true}
+      backend_sha: {type: string, required: true}
+      release_mode: {type: boolean, default: false}
+    secrets:
+      GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: {required: false}
+      APP_STORE_CONNECT_API_KEY_JSON: {required: false}
 permissions:
   contents: read
   actions: read
   deployments: write
 jobs:
-  deploy:
+  android:
+    name: Google Play publication
     runs-on: ubuntu-24.04
+    environment: ${{ inputs.target }}
     concurrency:
       group: google-play-release
       cancel-in-progress: false
-    environment: ${{ inputs.target }}
-    timeout-minutes: 90
+    timeout-minutes: 60
     env:
-      GITHUB_TOKEN: ${{ github.token }}
+      CI: 'true'
       TARGET: ${{ inputs.target }}
-      PLAY_VERSION_CODE_BASE: ${{ vars.PLAY_VERSION_CODE_BASE || '1000000' }}
+      CI_SOURCE_SHA: ${{ inputs.source_sha }}
+      CI_BACKEND_SHA: ${{ inputs.backend_sha }}
+      RELEASE_MODE: ${{ inputs.release_mode }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
           persist-credentials: false
-      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+      - uses: ./.github/actions/setup
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
-          flutter-version: 3.44.8
-          channel: stable
-          cache: true
-      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6
+          name: stage-android-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
-          distribution: temurin
-          java-version: '17'
-      - name: Restore exact qualified source and artifacts
-        run: dart tooling/repo/bin/restore.dart
-      - run: dart pub get --enforce-lockfile
-      - name: Build signed artifacts
-        env:
-          ANDROID_SIGNING_BUNDLE: ${{ secrets.ANDROID_SIGNING_BUNDLE }}
-        run: dart run edaya_repo:repo ci deploy "$TARGET"
+          name: qualified-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .ci-evidence/
+      - name: Verify qualified android files
+        run: dart run edaya_repo:repo ci verify-publication android "$TARGET"
       - name: Authenticate Google Play publisher
-        id: play-auth
-        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        id: auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093
         with:
           credentials_json: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           token_format: access_token
           access_token_scopes: https://www.googleapis.com/auth/androidpublisher
           create_credentials_file: false
           export_environment_variables: false
-      - name: Publish qualified bundles to the branch’s Google Play track
+      - name: Publish qualified bundles
         env:
-          PLAY_ACCESS_TOKEN: ${{ steps.play-auth.outputs.access_token }}
+          PLAY_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
         run: dart run edaya_repo:play "$TARGET"
-      - name: Upload release evidence and artifacts
+      - name: Retain per-app receipts
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: release-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+          name: receipts-android-${{ github.run_id }}-${{ github.run_attempt }}
           include-hidden-files: true
-          path: .release/
-      - name: Remove restored signing credentials
-        if: always()
-        env:
-          ANDROID_SIGNING_BUNDLE: ${{ secrets.ANDROID_SIGNING_BUNDLE }}
-        run: dart run edaya_repo:repo ci signing-cleanup
-  apple:
-    name: Build and deliver iOS
+          if-no-files-found: warn
+          path: |
+            .release/play-*.json
+  ios:
+    name: Apple publication
     runs-on: macos-15
     environment: ${{ inputs.target }}
     concurrency:
@@ -75,55 +76,54 @@ jobs:
       cancel-in-progress: false
     timeout-minutes: 180
     env:
-      GITHUB_TOKEN: ${{ github.token }}
+      CI: 'true'
       TARGET: ${{ inputs.target }}
+      CI_SOURCE_SHA: ${{ inputs.source_sha }}
+      CI_BACKEND_SHA: ${{ inputs.backend_sha }}
+      RELEASE_MODE: ${{ inputs.release_mode }}
       DEVELOPER_DIR: /Applications/Xcode_26.1.1.app/Contents/Developer
       FASTLANE_SKIP_UPDATE_CHECK: '1'
       FASTLANE_OPT_OUT_USAGE: '1'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
           persist-credentials: false
-      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+      - uses: ./.github/actions/setup
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
-          flutter-version: 3.44.8
-          channel: stable
-          cache: true
-      - name: Restore exact qualified source and generated client
-        run: dart tooling/repo/bin/restore.dart
-      - run: dart pub get --enforce-lockfile
-      - name: Verify qualified release inputs
-        run: dart run edaya_repo:apple "$TARGET"
-      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1
+          name: stage-ios-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: qualified-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .ci-evidence/
+      - name: Verify qualified ios files
+        run: dart run edaya_repo:repo ci verify-publication ios "$TARGET"
+      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199
         with:
           ruby-version: '3.3'
           bundler-cache: true
           working-directory: tooling/apple
-      - name: Check Apple release tooling
-        working-directory: tooling/apple
-        run: bundle exec ruby test/release_test.rb
-      - name: Build and verify signed v2 IPAs
-        working-directory: tooling/apple
-        env:
-          IOS_SIGNING_BUNDLE: ${{ secrets.IOS_SIGNING_BUNDLE }}
-        run: bundle exec fastlane ios build
-      - name: Upload both apps to TestFlight
+      - name: Upload both IPAs to TestFlight
         working-directory: tooling/apple
         env:
           APP_STORE_CONNECT_API_KEY_JSON: ${{ secrets.APP_STORE_CONNECT_API_KEY_JSON }}
         run: bundle exec fastlane ios upload_beta
-      - name: Submit both production builds for App Review
+      - name: Submit production builds for App Review
         if: inputs.target == 'production'
         working-directory: tooling/apple
         env:
           APP_STORE_CONNECT_API_KEY_JSON: ${{ secrets.APP_STORE_CONNECT_API_KEY_JSON }}
         run: bundle exec fastlane ios submit
-      - name: Upload Apple release evidence and IPAs
+      - name: Retain per-app receipts
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: release-apple-${{ github.run_id }}-${{ github.run_attempt }}
+          name: receipts-ios-${{ github.run_id }}-${{ github.run_attempt }}
           include-hidden-files: true
+          if-no-files-found: warn
           path: |
-            .release/apple-*.json
-            .release/ios/*.ipa
+            .release/apple-testflight.json
+            .release/apple-submission.json

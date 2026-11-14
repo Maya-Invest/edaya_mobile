@@ -4,7 +4,6 @@ import 'package:edaya_repo/src/play.dart';
 import 'package:edaya_repo/src/runtime.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-import 'package:yaml/yaml.dart';
 
 Map<String, dynamic> track(
   String name,
@@ -100,6 +99,10 @@ void main() {
       };
       expect(releaseVersionCode({}), isNull);
       expect(releaseVersionCode(env(10, 1)), 1001001);
+      expect(
+        releaseVersionCode({...env(1, 1), 'EDAYA_RELEASE_SEQUENCE': '4'}),
+        greaterThan(releaseVersionCode(env(3, 99))!),
+      );
       expect(releaseVersionCode(env(10, 2)), 1001002);
       expect(
         releaseVersionCode(env(11, 1)),
@@ -210,87 +213,50 @@ void main() {
     },
   );
 
-  test(
-    'both artifact hashes and qualification must pass before publishing',
-    () {
-      final dir = Directory.systemTemp.createTempSync('play-artifacts-');
-      try {
-        Directory(p.join(dir.path, 'android')).createSync();
-        final manifest = <String, dynamic>{
-          'environment': 'production',
-          'apiUrl': releaseApiUrl('production'),
-          'status': 'qualified',
-          'versionCode': 123,
-          'tests': {'verification': true, 'integration': true},
-          'artifacts': <String, String>{},
-        };
-        for (final app in applicationIds.keys) {
-          final name = 'edaya-$app-production.aab';
-          final file = File(p.join(dir.path, 'android', name))
-            ..writeAsStringSync(app);
-          manifest['artifacts'][name] = digest(file.readAsBytesSync());
-        }
-        expect(qualifiedBundles(dir.path, manifest, 'production').keys, [
-          'guardian',
-          'teacher',
-        ]);
-        expect(
-          () => qualifiedBundles(dir.path, {
-            ...manifest,
-            'environment': 'staging',
-          }, 'production'),
-          throwsStateError,
-        );
-        expect(
-          () => qualifiedBundles(dir.path, {
-            ...manifest,
-            'status': 'built',
-          }, 'production'),
-          throwsStateError,
-        );
-        File(
-          p.join(dir.path, 'android/edaya-teacher-production.aab'),
-        ).writeAsStringSync('tampered');
-        expect(
-          () => qualifiedBundles(dir.path, manifest, 'production'),
-          throwsStateError,
-        );
-      } finally {
-        dir.deleteSync(recursive: true);
+  test('both artifact hashes and signed build status must match', () {
+    final dir = Directory.systemTemp.createTempSync('play-artifacts-');
+    try {
+      Directory(p.join(dir.path, 'android')).createSync();
+      final manifest = <String, dynamic>{
+        'environment': 'production',
+        'apiUrl': releaseApiUrl('production'),
+        'status': 'built',
+        'versionCode': 123,
+        'artifacts': <String, String>{},
+      };
+      for (final app in applicationIds.keys) {
+        final name = 'edaya-$app-production.aab';
+        final file = File(p.join(dir.path, 'android', name))
+          ..writeAsStringSync(app);
+        manifest['artifacts'][name] = digest(file.readAsBytesSync());
       }
-    },
-  );
-
-  test('both stores use the pushed release branch and commit', () {
-    YamlMap workflow(String name) =>
-        loadYaml(
-              File(
-                p.join(root, '.github/workflows/$name.yml'),
-              ).readAsStringSync(),
-            )
-            as YamlMap;
-    final entry = workflow('deploy-staging');
-    expect(entry['on']['push']['branches'], ['staging', 'main']);
-    final jobs = entry['jobs'];
-    expect(jobs['qualify']['with']['source_ref'], r'${{ github.sha }}');
-    for (final job in ['qualify', 'deploy']) {
+      expect(verifiedBundles(dir.path, manifest, 'production').keys, [
+        'guardian',
+        'teacher',
+      ]);
       expect(
-        jobs[job]['with']['target'],
-        "\${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}",
+        () => verifiedBundles(dir.path, {
+          ...manifest,
+          'environment': 'staging',
+        }, 'production'),
+        throwsStateError,
       );
+      expect(
+        () => verifiedBundles(dir.path, {
+          ...manifest,
+          'status': 'incomplete',
+        }, 'production'),
+        throwsStateError,
+      );
+      File(
+        p.join(dir.path, 'android/edaya-teacher-production.aab'),
+      ).writeAsStringSync('tampered');
+      expect(
+        () => verifiedBundles(dir.path, manifest, 'production'),
+        throwsStateError,
+      );
+    } finally {
+      dir.deleteSync(recursive: true);
     }
-    final deploy = workflow('_deploy')['jobs'];
-    expect(
-      deploy['deploy']['steps'].singleWhere(
-        (s) => s['run'] == r'dart run edaya_repo:play "$TARGET"',
-      )['if'],
-      isNull,
-    );
-    expect(
-      deploy['apple']['steps'].singleWhere(
-        (s) => s['run'] == 'bundle exec fastlane ios submit',
-      )['if'],
-      "inputs.target == 'production'",
-    );
   });
 }

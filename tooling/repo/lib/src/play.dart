@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'android.dart';
+import 'pipeline.dart';
 import 'runtime.dart';
 
 typedef PlayRequest =
@@ -177,17 +178,15 @@ class PlayPublisher {
   }
 }
 
-Map<String, File> qualifiedBundles(
+Map<String, File> verifiedBundles(
   String directory,
   Map<String, dynamic> manifest,
   String target,
 ) {
   if (manifest['environment'] != target ||
       manifest['apiUrl'] != releaseApiUrl(target) ||
-      manifest['status'] != 'qualified' ||
-      manifest['tests']?['verification'] != true ||
-      manifest['tests']?['integration'] != true) {
-    throw StateError('Google Play requires qualified $target bundles');
+      manifest['status'] != 'built') {
+    throw StateError('Google Play requires signed $target bundles');
   }
   playVersion('${manifest['versionCode']}');
   return {
@@ -238,9 +237,10 @@ Future<void> runPlay(List<String> args, Map<String, String> env) async {
     },
   );
   try {
+    await verifyPublication('android', mode);
     final directory = p.join(root, '.release');
     final manifest = jsonFile(p.join(directory, 'manifest.json'));
-    final bundles = qualifiedBundles(directory, manifest, mode);
+    final bundles = verifiedBundles(directory, manifest, mode);
     await publisher.publish(
       bundles,
       playVersion('${manifest['versionCode']}'),

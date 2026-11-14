@@ -9,7 +9,7 @@ const applicationIds = {'guardian': 'ca.mayainvest.edaya.guardian', 'teacher': '
 
 int? releaseVersionCode(Map<String, String> env) {
   if (env['GITHUB_RUN_NUMBER'] == null) return null;
-  final run = int.parse(env['GITHUB_RUN_NUMBER']!);
+  final run = int.parse(env['EDAYA_RELEASE_SEQUENCE'] ?? env['GITHUB_RUN_NUMBER']!);
   final attempt = int.parse(env['GITHUB_RUN_ATTEMPT']!);
   final base = int.parse(env['PLAY_VERSION_CODE_BASE'] ?? '1000000');
   final code = base + run * 100 + attempt;

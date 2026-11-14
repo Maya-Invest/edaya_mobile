@@ -2,16 +2,15 @@
 
 Each repository verifies and releases its own revision. Backend changes do not require synchronized consumer source changes, client package publication, or release manifests in sibling repositories. Cloudflare application deployments remain; no container publication is configured.
 
-| Event | Required behavior |
-| --- | --- |
-| PR into `main` or `staging` | Full verification and integrations; no deployment |
-| Other branch push | Repository checks and unit/tooling tests |
-| Push to `staging` | Qualify that commit, release staging |
-| Push to `main` | Qualify that commit, release production |
-| Manual deployment | Run **Mobile store releases** on `staging` or `main` to qualify and release its selected branch revision |
-| Manual validation | Select environment, revision, and optionally a backend reference; never deploy |
+| Entry point | Trigger | Stages |
+| --- | --- | --- |
+| `branche_check.yml` | Push outside staging/main | Prepare once, then quality and unit in parallel |
+| `pr_validation.yml` | PR into staging/main or manual validation | Prepare → quality, unit, Android and iOS builds. Integration waits for quality and unit. **Full validation** checks all six jobs. |
+| `deploy.yml` | Push or manual dispatch on staging/main | Same full graph using distribution signing, then independent Play and Apple publishing jobs |
 
-Deployments are serialized per repository/environment without cancelling active deployments. They depend on successful qualification; failure, cancellation or skipped qualification cannot deploy. Artifact restoration selects the unique qualified artifact from the same run and attempt, checks out its recorded source commit, restores frozen dependencies, and verifies file checksums. Deployment never resolves another backend branch or generates another client.
+For branch pushes and PRs, prepare uses a matching backend branch (PR head branch), falling back to backend `dev` only if that branch is absent. PRs validate the proposed merge commit. Manual validation allows explicit revisions. Releases use the selected branch SHA and its matching backend destination. Manual release accepts no revision override.
+
+All stages restore the frozen client and lockfile for the same run and attempt. Signing credentials are passed to release build jobs only. Finalization checks source, backend, target, job results and artifact checksums. The publishers restore the qualified binaries, verify their checksums and submit them without rebuilding. Re-run all jobs to qualify a new attempt. A store failure preserves the platform build and any completed app receipts.
 
 ## Remaining configuration for Guardian v2 and Teacher v2
 
@@ -85,7 +84,7 @@ with (Path(os.environ["EDAYA_SIGNING_DIR"]) / "ios.json").open("x") as out:
 PY
 ```
 
-**Upload on the current Free plan.** Repository-level Actions secrets can hold both signing bundles. The deployment callers use `secrets: inherit`, and the signing jobs reference the names below. This makes each value available to eligible workflows across this repository. It also means both Android environments use the same signing bundle. The two stores also require their publishing credentials. Each JSON payload must fit GitHub's 48 KB secret limit. The CLI reads from standard input and encrypts before sending. [GitHub secret limits](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#storing-large-secrets) · [GitHub CLI](https://cli.github.com/manual/gh_secret_set)
+**Upload on the current Free plan.** Repository-level Actions secrets can hold both signing bundles. The release caller explicitly passes the signing secrets to their platform build jobs. This makes each value available to eligible workflows across this repository. It also means both Android environments use the same signing bundle. The two stores also require their publishing credentials. Each JSON payload must fit GitHub's 48 KB secret limit. The CLI reads from standard input and encrypts before sending. [GitHub secret limits](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#storing-large-secrets) · [GitHub CLI](https://cli.github.com/manual/gh_secret_set)
 
 ```sh
 gh secret set ANDROID_SIGNING_BUNDLE --repo Maya-Invest/edaya_mobile < "$EDAYA_SIGNING_DIR/android.json"
@@ -136,7 +135,7 @@ Bun remains pinned to 1.3.14, Flutter to 3.44.8. Ubuntu CI and macOS development
 
 Production resolves backend `main`; staging resolves backend `staging`. Resolve once and detach at that SHA. A moving branch cannot change an existing checkout or generated client. The selected branch identifies the source tested, not necessarily the currently deployed backend.
 
-Local preparation defaults to staging. `--ref <branch-or-commit>` is an explicit local override. `--backend-root <clean-checkout>` accepts an already resolved checkout. Ordinary CI selects only the destination branch; overrides are exposed by Manual validation. Integrations verify the backend checkout still equals the prepared client's commit and has no tracked edits before starting services.
+Local preparation defaults to staging. `--ref <branch-or-commit>` is an explicit local override. `--backend-root <clean-checkout>` accepts an already resolved checkout. Release CI selects the destination branch. Branch checks and PRs match the feature branch, with a fallback to dev. Manual validation accepts an explicit override. Integrations verify the backend checkout still equals the prepared client's commit and has no tracked edits before starting services.
 
 `BACKEND_CHECKOUT_TOKEN` needs read-only contents access to `Maya-Invest/edaya_backend`. It is used only for source checkout. Package-registry credentials and write permissions are no longer needed. Cache identities include backend SHA, generator/runtime inputs and relevant lockfiles; invalid checksum entries are rebuilt. Generated inputs are transferred with qualification artifacts and checked again before release.
 
@@ -160,7 +159,7 @@ The `api`, `guardian_v2` and `teacher_v2` integration suites are mandatory. Thei
 
 Use `dart run edaya_repo:repo build staging` for both apps' signed APKs and AABs, or `build production` for both signed v2 AABs. Release paths are `apps/guardian` and `apps/teacher`; logical app keys remain `guardian` and `teacher`. CI uses Java 17 and Flutter 3.44.8. Environment secret `ANDROID_SIGNING_BUNDLE` contains the existing keystore/apps bundle with guardian and teacher aliases/passwords and each Firebase configuration. Local builds can use existing private signing files. Missing credentials, debug certificates, app ID mismatches or signature verification errors block output.
 
-Signed builds use the qualified source and transferred generated client. APK verification uses apksigner/aapt; AAB verification uses jarsigner/keytool, with signing certificate provenance and SHA-256 artifact hashes in `.release/manifest.json`. Both release branches publish their qualified AABs to the matching Play track. Restored private signing files are cleaned up after the build. The Apple job builds and uploads IPAs from the same qualified inputs. [Google Play releases](google-play-releases.md) · [Apple releases](apple-releases.md)
+Signed builds use the pinned source and transferred generated client. APK verification uses apksigner/aapt; AAB verification uses jarsigner/keytool, with signing certificate provenance and SHA-256 artifact hashes in `.release/manifest.json`. Both release branches publish their qualified AABs to the matching Play track. Restored private signing files are cleaned up after the build. Apple build and publishing jobs exchange the signed IPAs verified by finalization. [Google Play releases](google-play-releases.md) · [Apple releases](apple-releases.md)
 
 Brand tokens, galleries, design review, keystore setup and SVG/native icon generation are Dart/Flutter commands under `generate` and `maintenance`. The asset generator runs through Flutter rendering; Node is no longer needed.
 
