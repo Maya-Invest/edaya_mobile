@@ -1,4 +1,4 @@
-name: Publish qualified mobile releases
+name: _Publish qualified mobile releases
 on:
   workflow_call:
     inputs:

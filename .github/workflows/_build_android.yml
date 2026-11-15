@@ -1,4 +1,4 @@
-name: Android build
+name: _Android build
 on:
   workflow_call:
     inputs:
