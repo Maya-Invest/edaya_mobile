@@ -4,10 +4,10 @@ Each repository verifies and releases its own revision. Backend changes do not r
 
 | Entry point | Trigger | Stages |
 | --- | --- | --- |
-| `branche_check.yml` | Push outside staging/main | Prepare once, then quality and unit in parallel |
+| `branch_check.yml` | Push outside staging/main | Prepare once, then quality and unit in parallel |
 | `pr_validation.yml` | PR into staging/main or manual validation | Prepare → quality, unit and four independent builds (Guardian and Teacher on Android and iOS). API, Guardian and Teacher integration jobs run in parallel after quality and unit. **Full validation** requires all ten upstream jobs. |
-| `deploy-testing.yml` | Push or manual dispatch on `staging` | Fully qualify and sign both apps with the staging API, then deploy to Play internal testing and TestFlight |
-| `deploy-live.yml` | Push or manual dispatch on `main` | Fully qualify and sign both apps with the production API, then submit to Google Play production and Apple App Review |
+| `deploy_testing.yml` | Push or manual dispatch on `staging` | Fully qualify and sign both apps with the staging API, then deploy to Play internal testing and TestFlight |
+| `deploy_live.yml` | Push or manual dispatch on `main` | Fully qualify and sign both apps with the production API, then submit to Google Play production and Apple App Review |
 
 For branch pushes and PRs, prepare uses a matching backend branch (PR head branch), falling back to backend `dev` only if that branch is absent. PRs validate the proposed merge commit. Manual validation allows explicit revisions. Releases use the selected branch SHA and its matching backend destination. Manual release accepts no revision override.
 

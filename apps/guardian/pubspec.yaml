@@ -52,9 +52,3 @@ flutter_launcher_icons:
 
 flutter:
   uses-material-design: true
-  assets:
-    - assets/fonts/
-  fonts:
-    - family: Nunito
-      fonts:
-        - asset: assets/fonts/Nunito-Variable.ttf

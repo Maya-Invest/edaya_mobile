@@ -116,9 +116,6 @@ Future<void> execute(List<String> args) async {
       return;
     }
     if (name == 'commands') {
-      File(
-        p.join(root, 'tooling/repo/commands.txt'),
-      ).writeAsStringSync(commandHelp);
       commandDocs(write: true);
       return;
     }

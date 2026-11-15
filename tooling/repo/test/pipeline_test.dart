@@ -127,8 +127,8 @@ void main() {
     'testing and live releases share one queue and accept only their assigned branch',
     () {
       for (final (name, branch, target) in [
-        ('deploy-testing', 'staging', 'staging'),
-        ('deploy-live', 'main', 'production'),
+        ('deploy_testing', 'staging', 'staging'),
+        ('deploy_live', 'main', 'production'),
       ]) {
         final caller = workflow(name);
         expect(
@@ -157,7 +157,7 @@ void main() {
   test(
     'entry points gate publication and scope signing and store credentials',
     () {
-      final branch = workflow('branche_check')['jobs'] as YamlMap;
+      final branch = workflow('branch_check')['jobs'] as YamlMap;
       expect(branch.keys, unorderedEquals(['preparation', 'quality', 'unit']));
       expect(branch['preparation']['with']['match_backend_branch'], isTrue);
       for (final name in ['pr_validation', '_release']) {
