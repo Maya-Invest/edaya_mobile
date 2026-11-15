@@ -2,22 +2,14 @@ import 'dart:io';
 import 'design_review_config.dart';
 
 class DesignReviewShot {
-  const DesignReviewShot({
-    required this.relativePath,
-    required this.title,
-    required this.description,
-  });
+  const DesignReviewShot({required this.relativePath, required this.title, required this.description});
 
   final String relativePath;
   final String title;
   final String description;
 }
 
-void writeDesignReviewPack({
-  required Directory outputDir,
-  required List<DesignReviewShot> shots,
-  required String localeLabel,
-}) {
+void writeDesignReviewPack({required Directory outputDir, required List<DesignReviewShot> shots, required String localeLabel}) {
   final generatedAt = DateTime.now().toUtc().toIso8601String();
   final readme = StringBuffer()
     ..writeln('# Teacher — design review pack')
@@ -63,7 +55,7 @@ void writeDesignReviewPack({
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Edaya Guardian Prototype — design review</title>
+  <title>Edaya Guardian — design review</title>
   <style>
     :root {
       color-scheme: light;
@@ -122,7 +114,7 @@ void writeDesignReviewPack({
 </head>
 <body>
   <header>
-    <h1>Edaya Guardian Prototype — design review</h1>
+    <h1>Edaya Guardian — design review</h1>
     <p class="meta">
       Generated $generatedAt<br />
       Data: mock fixtures (no API)<br />
@@ -140,9 +132,5 @@ $cards
 }
 
 String _escapeHtml(String value) {
-  return value
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;');
+  return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }

@@ -21,9 +21,7 @@ class PrototypeWidgetTestHarness {
   LevitScope get scope {
     final resolved = _scope;
     if (resolved == null) {
-      throw StateError(
-        'Prototype harness: pump buildApp() before accessing scope/router',
-      );
+      throw StateError('harness: pump buildApp() before accessing scope/router');
     }
     return resolved;
   }
@@ -40,21 +38,11 @@ class PrototypeWidgetTestHarness {
   }
 
   Widget designReviewRoot({required Widget child}) {
-    final framed = viewportSize == null
-        ? child
-        : SizedBox(
-            width: viewportSize!.width,
-            height: viewportSize!.height,
-            child: child,
-          );
+    final framed = viewportSize == null ? child : SizedBox(width: viewportSize!.width, height: viewportSize!.height, child: child);
     return RepaintBoundary(key: designReviewRootKey, child: framed);
   }
 
-  Widget buildApp({
-    Locale locale = const Locale('fr', 'FR'),
-    double? textScale,
-    ThemeMode? themeMode,
-  }) {
+  Widget buildApp({Locale locale = const Locale('fr', 'FR'), double? textScale, ThemeMode? themeMode}) {
     _scope = null;
     return LScope(
       name: 'teacher-test-${identityHashCode(this)}',
@@ -66,21 +54,13 @@ class PrototypeWidgetTestHarness {
         builder: (context) {
           return MaterialApp.router(
             builder: (context, child) => MediaQuery(
-              data: MediaQuery.of(context).copyWith(
-                textScaler: TextScaler.linear(
-                  textScale ?? designReviewTextScale(),
-                ),
-              ),
+              data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(textScale ?? designReviewTextScale())),
               child: child!,
             ),
-            title: 'Edaya Teacher Prototype',
+            title: 'EDaya Prof',
             theme: PrototypeTheme.light,
             darkTheme: PrototypeTheme.dark,
-            themeMode:
-                themeMode ??
-                (designReviewTheme() == 'dark'
-                    ? ThemeMode.dark
-                    : ThemeMode.light),
+            themeMode: themeMode ?? (designReviewTheme() == 'dark' ? ThemeMode.dark : ThemeMode.light),
             locale: locale,
             supportedLocales: AppLocalizations.supportedLocales,
             localizationsDelegates: const [

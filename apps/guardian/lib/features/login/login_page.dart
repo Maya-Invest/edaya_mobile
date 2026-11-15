@@ -9,15 +9,10 @@ import '../../design/spacing.dart';
 import '../../live/runtime.dart';
 import '../../mock/mock_store.dart';
 
-/// Prototype-branded guardian login. Real auth via shared [LoginController];
+/// guardian login. Real auth via shared [LoginController];
 /// mock harnesses sign in through [MockStore].
 class LoginPage extends StatelessWidget {
-  const LoginPage({
-    super.key,
-    required this.defaultEmail,
-    required this.onSignInSuccess,
-    this.mockStore,
-  });
+  const LoginPage({super.key, required this.defaultEmail, required this.onSignInSuccess, this.mockStore});
 
   final String defaultEmail;
   final Future<void> Function() onSignInSuccess;
@@ -26,20 +21,14 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (prototypeIsLive(context)) {
-      return _LiveLoginPage(
-        defaultEmail: defaultEmail,
-        onSignInSuccess: onSignInSuccess,
-      );
+      return _LiveLoginPage(defaultEmail: defaultEmail, onSignInSuccess: onSignInSuccess);
     }
     return _MockLoginPage(defaultEmail: defaultEmail);
   }
 }
 
 class _LiveLoginPage extends LScopedView<LoginController> {
-  const _LiveLoginPage({
-    required this.defaultEmail,
-    required this.onSignInSuccess,
-  });
+  const _LiveLoginPage({required this.defaultEmail, required this.onSignInSuccess});
 
   final String defaultEmail;
   final Future<void> Function() onSignInSuccess;
@@ -71,10 +60,7 @@ class _MockLoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _LoginChrome(
-      child: _MockLogin(
-        defaultEmail: defaultEmail,
-        mockStore: context.levit.find<MockStore>(),
-      ),
+      child: _MockLogin(defaultEmail: defaultEmail, mockStore: context.levit.find<MockStore>()),
     );
   }
 }
@@ -96,15 +82,9 @@ class _LoginChrome extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 400),
               child: Column(
                 children: [
-                  const EdayaBrandLogo(
-                    variant: EdayaLogoVariant.vertical,
-                    width: 160,
-                  ),
+                  const EdayaBrandLogo(variant: EdayaLogoVariant.vertical, width: 160),
                   const SizedBox(height: PrototypeSpacing.xs),
-                  Text(
-                    context.tr.guardianSpace,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
+                  Text(context.tr.guardianSpace, style: Theme.of(context).textTheme.bodyMedium),
                   const SizedBox(height: PrototypeSpacing.xxl),
                   SurfaceCard(child: child),
                 ],
@@ -142,9 +122,7 @@ class _MockLoginState extends State<_MockLogin> {
         ),
         const SizedBox(height: PrototypeSpacing.xs),
         Text(
-          _codeSent
-              ? 'Saisissez le code envoyé à ${widget.defaultEmail}.'
-              : 'Accédez aux informations scolaires de vos enfants.',
+          _codeSent ? 'Saisissez le code envoyé à ${widget.defaultEmail}.' : 'Accédez aux informations scolaires de vos enfants.',
           style: Theme.of(context).textTheme.bodySmall,
           textAlign: TextAlign.center,
         ),
@@ -153,23 +131,14 @@ class _MockLoginState extends State<_MockLogin> {
           TextFormField(
             initialValue: widget.defaultEmail,
             keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(
-              labelText: 'E-mail',
-              border: OutlineInputBorder(),
-            ),
+            decoration: const InputDecoration(labelText: 'E-mail', border: OutlineInputBorder()),
           ),
           const SizedBox(height: PrototypeSpacing.xl),
-          FilledButton(
-            onPressed: () => setState(() => _codeSent = true),
-            child: const Text('Envoyer le code'),
-          ),
+          FilledButton(onPressed: () => setState(() => _codeSent = true), child: const Text('Envoyer le code')),
         ] else ...[
           const TextField(
             keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: 'Code',
-              border: OutlineInputBorder(),
-            ),
+            decoration: InputDecoration(labelText: 'Code', border: OutlineInputBorder()),
           ),
           const SizedBox(height: PrototypeSpacing.xl),
           FilledButton(

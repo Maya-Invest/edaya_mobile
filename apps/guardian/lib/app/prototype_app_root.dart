@@ -28,9 +28,7 @@ class PrototypeAppRoot extends StatelessWidget {
           store!.signIn();
         }
       },
-      child: store == null
-          ? const _ApiBootstrapApp()
-          : const _PrototypeMaterialApp(),
+      child: store == null ? const _ApiBootstrapApp() : const _PrototypeMaterialApp(),
     );
   }
 }
@@ -73,7 +71,7 @@ class _PrototypeMaterialApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Edaya Guardian Prototype',
+      title: 'EDaya Guardian',
       theme: PrototypeTheme.light,
       darkTheme: PrototypeTheme.dark,
       locale: const Locale('fr', 'FR'),

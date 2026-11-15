@@ -6,17 +6,13 @@ import '../../design/components/components.dart';
 import '../../design/spacing.dart';
 import 'settings_controller.dart';
 
-/// Prototype settings route — shared preferences + optional API URL override.
+/// Settings route — shared preferences + optional API URL override.
 class SettingsPage extends LScopedView<SettingsController> {
   const SettingsPage({super.key});
 
   @override
   SettingsController onConfigScope(LevitScope scope) {
-    return scope.put(
-      () => SettingsController(
-        settings: scope.find<edaya.AppSettingsController>(),
-      ),
-    );
+    return scope.put(() => SettingsController(settings: scope.find<edaya.AppSettingsController>()));
   }
 
   @override
@@ -33,11 +29,7 @@ class SettingsPage extends LScopedView<SettingsController> {
               title: const Text('Ouvrir les paramètres complets'),
               trailing: const Icon(Icons.open_in_new),
               onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const edaya.SettingsPage(),
-                  ),
-                );
+                Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const edaya.SettingsPage()));
               },
             ),
           ),
@@ -45,10 +37,7 @@ class SettingsPage extends LScopedView<SettingsController> {
             const SizedBox(height: PrototypeSpacing.xl),
             const SectionHeader(title: 'Développeur'),
             const SurfaceCard(
-              child: Padding(
-                padding: EdgeInsets.all(PrototypeSpacing.sm),
-                child: edaya.DevApiUrlSettings(compact: true),
-              ),
+              child: Padding(padding: EdgeInsets.all(PrototypeSpacing.sm), child: edaya.DevApiUrlSettings(compact: true)),
             ),
           ],
         ],
