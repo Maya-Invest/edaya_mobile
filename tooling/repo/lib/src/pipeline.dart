@@ -5,11 +5,16 @@ import 'client.dart';
 import 'integration.dart';
 import 'runtime.dart';
 
+final nativeStages = {
+  for (final platform in ['android', 'ios'])
+    for (final app in applicationPaths.keys)
+      '${platform}_$app': (platform: platform, app: app),
+};
+
 final stages = [
   'quality',
   'unit',
-  'android',
-  'ios',
+  ...nativeStages.keys,
   for (final suite in integrationSuites) 'integration_$suite',
 ];
 const preparedPath = '.ci-evidence/prepared.json';
@@ -62,27 +67,28 @@ Future<Map<String, dynamic>> verifyPrepared(String target) async {
 
 List<String> buildFiles(String stage, String target, bool release) {
   if (!release) return ['.ci-evidence/native/$stage.json'];
-  if (stage == 'android') {
+  final build = nativeStages[stage]!;
+  final app = build.app;
+  final dir = '.release/$app';
+  if (build.platform == 'android') {
     return [
-      '.release/manifest.json',
-      '.release/SHA256SUMS',
-      '.release/signatures.json',
-      for (final app in applicationPaths.keys) ...[
-        '.release/android/edaya-$app-$target.aab',
-        if (target == 'staging') '.release/android/edaya-$app-$target.apk',
-      ],
+      '$dir/manifest.json',
+      '$dir/SHA256SUMS',
+      '$dir/signatures.json',
+      '$dir/android/edaya-$app-$target.aab',
+      if (target == 'staging') '$dir/android/edaya-$app-$target.apk',
     ];
   }
-  return [
-    '.release/apple-build.json',
-    for (final app in applicationPaths.keys)
-      '.release/ios/edaya-$app-$target.ipa',
-  ];
+  return ['$dir/apple-build.json', '$dir/ios/edaya-$app-$target.ipa'];
 }
 
 Map<String, String> stageFiles(String stage, String target, bool release) {
   final paths = switch (stage) {
-    'android' || 'ios' => buildFiles(stage, target, release),
+    _ when nativeStages.containsKey(stage) => buildFiles(
+      stage,
+      target,
+      release,
+    ),
     _ when stages.contains(stage) && stage.startsWith('integration_') => [
       suiteEvidencePath(stage.substring('integration_'.length)),
     ],
@@ -173,7 +179,7 @@ Future<void> finalize(String target) async {
     final record = jsonFile(p.join(root, '.ci-evidence/stages/$stage.json'));
     final files = stageFiles(stage, target, input['release'] as bool);
     validateStage(record, stage, input, files);
-    if (stage == 'android' || stage == 'ios') artifacts[stage] = files;
+    if (nativeStages.containsKey(stage)) artifacts[stage] = files;
   }
   for (final suite in integrationSuites) {
     checkIntegration(
@@ -207,11 +213,14 @@ Future<void> verifyPublication(String platform, String target) async {
     'verification': true,
     'integration': true,
   }, 'qualification');
-  requireEqual(
-    report['artifacts']?[platform],
-    stageFiles(platform, target, true),
-    'qualified $platform files',
-  );
+  for (final app in releaseApps(Platform.environment['MOBILE_APP'])) {
+    final stage = '${platform}_$app';
+    requireEqual(
+      report['artifacts']?[stage],
+      stageFiles(stage, target, true),
+      'qualified $stage files',
+    );
+  }
 }
 
 Future<void> validationBuild(String platform, String target) async {
@@ -219,9 +228,8 @@ Future<void> validationBuild(String platform, String target) async {
   if (!['android', 'ios'].contains(platform)) {
     throw ArgumentError('Expected android or ios');
   }
-  final apps = <String, String>{};
-  for (final entry in applicationPaths.entries) {
-    final cwd = p.join(root, entry.value);
+  for (final app in releaseApps(Platform.environment['MOBILE_APP'])) {
+    final cwd = p.join(root, applicationPaths[app]!);
     if (platform == 'android' &&
         File(p.join(cwd, 'android/key.properties')).existsSync()) {
       throw StateError(
@@ -241,11 +249,10 @@ Future<void> validationBuild(String platform, String target) async {
     final file = platform == 'ios'
         ? 'build/ios/iphoneos/Runner.app/Runner'
         : 'build/app/outputs/flutter-apk/app-release.apk';
-    apps[entry.key] = fileHash(p.join(entry.value, file));
+    writeJson(p.join(root, '.ci-evidence/native/${platform}_$app.json'), {
+      'environment': target,
+      'apiUrl': api,
+      'apps': {app: fileHash(p.join(cwd, file))},
+    });
   }
-  writeJson(p.join(root, '.ci-evidence/native/$platform.json'), {
-    'environment': target,
-    'apiUrl': api,
-    'apps': apps,
-  });
 }

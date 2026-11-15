@@ -213,6 +213,31 @@ void main() {
     },
   );
 
+  test(
+    'per-app prepare and commit run independently and cannot switch packages',
+    () async {
+      final fake = FakePlay();
+      final publisher = fake.publisher;
+      final edit = await publisher.prepare(
+        'teacher',
+        bundles['teacher']!,
+        123,
+        'production',
+      );
+      expect(fake.calls.where((call) => call.contains(':commit')), isEmpty);
+      await expectLater(
+        publisher.commitEdit('guardian', edit, 123, 'production'),
+        throwsStateError,
+      );
+      await publisher.commitEdit('teacher', edit, 123, 'production');
+      expect(fake.recorded, ['teacher:123:production']);
+      expect(
+        fake.calls.every((call) => call.contains(applicationIds['teacher']!)),
+        isTrue,
+      );
+    },
+  );
+
   test('both artifact hashes and signed build status must match', () {
     final dir = Directory.systemTemp.createTempSync('play-artifacts-');
     try {

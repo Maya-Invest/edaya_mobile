@@ -13,7 +13,22 @@ class AppleReleaseTest < Minitest::Test
       'bundle', 'exec', 'fastlane', 'lanes', chdir: File.expand_path('..', __dir__)
     )
     assert_predicate status, :success?, output
-    %w[build upload_beta submit].each { |lane| assert_match(/\bfastlane ios #{lane}$/, output) }
+    %w[build upload_beta check_review submit].each { |lane| assert_match(/\bfastlane ios #{lane}$/, output) }
+  end
+
+  def test_verify_signer_extracts_leaf_and_rejects_a_different_distribution_certificate
+    Dir.mktmpdir do |dir|
+      prefix = File.join(dir, 'guardian-signer-')
+      extract = lambda do |*args|
+        assert_equal ['codesign', '-d', "--extract-certificates=#{prefix}", 'Runner.app'], args
+        File.binwrite("#{prefix}0", 'leaf')
+        File.binwrite("#{prefix}1", 'issuer')
+      end
+      AppleRelease.stub(:run!, extract) do
+        AppleRelease.verify_signer('Runner.app', prefix, 'leaf')
+        assert_raises(RuntimeError) { AppleRelease.verify_signer('Runner.app', prefix, 'issuer') }
+      end
+    end
   end
 
   def config
@@ -136,7 +151,14 @@ class AppleReleaseTest < Minitest::Test
               create_version = ->(**args) { versions_created << args }
               Spaceship::ConnectAPI.stub(:post_app_store_version, create_version) do
                 Spaceship::ConnectAPI::Build.stub(:all, [build]) do
-                  AppleRelease.submit(context)
+                  AppleRelease.submit(context, check_only: true)
+                  assert_empty uploads
+                  assert_empty versions_created
+                  AppleRelease::APPS.each_key do |app|
+                    ENV['MOBILE_APP'] = app
+                    AppleRelease.submit(context)
+                    assert_equal AppleRelease::APPS[app]['bundleId'], uploads.last[:app_identifier]
+                  end
                 end
               end
             end

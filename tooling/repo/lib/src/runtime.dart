@@ -10,6 +10,14 @@ const applicationPaths = {
   'teacher': 'apps/teacher',
 };
 
+Iterable<String> releaseApps([String? app]) {
+  if (app == null) return applicationPaths.keys;
+  if (!applicationPaths.containsKey(app)) {
+    throw ArgumentError('Unknown mobile app: $app');
+  }
+  return [app];
+}
+
 String get root {
   var directory = Directory.current.absolute;
   while (!File(p.join(directory.path, 'pubspec.yaml')).existsSync() ||
