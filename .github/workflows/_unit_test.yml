@@ -1,0 +1,38 @@
+name: _Unit tests
+on:
+  workflow_call:
+    inputs:
+      target: {type: string, required: true}
+      source_sha: {type: string, required: true}
+      backend_sha: {type: string, required: true}
+      release_mode: {type: boolean, default: false}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      CI: 'true'
+      TARGET: ${{ inputs.target }}
+      CI_SOURCE_SHA: ${{ inputs.source_sha }}
+      CI_BACKEND_SHA: ${{ inputs.backend_sha }}
+      RELEASE_MODE: ${{ inputs.release_mode }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: tooling/apple
+      - run: dart run edaya_repo:repo ci unit
+      - uses: ./.github/actions/stage
+        with:
+          stage: unit

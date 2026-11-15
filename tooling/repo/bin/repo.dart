@@ -6,7 +6,7 @@ import 'package:edaya_repo/src/client.dart';
 import 'package:edaya_repo/src/integration.dart';
 import 'package:edaya_repo/src/brand.dart';
 import 'package:edaya_repo/src/android.dart';
-import 'package:edaya_repo/src/release.dart';
+import 'package:edaya_repo/src/pipeline.dart';
 import 'package:edaya_repo/src/tools.dart';
 import 'package:edaya_repo/src/smoke.dart';
 
@@ -32,15 +32,15 @@ Future<void> execute(List<String> args) async {
     if ([
           'verify',
           'workflows',
-          'archive-inputs',
+          'quality',
+          'unit',
           'signing-cleanup',
-          'integration',
           'validate-integration',
         ].contains(name) &&
         rest.isNotEmpty) {
       throw ArgumentError('Unexpected CI arguments');
     }
-    if (['qualify', 'deploy'].contains(name)) {
+    if (['qualify', 'prepare', 'restore-inputs', 'finalize'].contains(name)) {
       if (rest.length != 1) {
         throw ArgumentError('Expected exactly one environment');
       }
@@ -247,23 +247,17 @@ Future<void> execute(List<String> args) async {
       }
       return;
     }
-    if (name == 'archive-inputs') {
-      Directory(p.join(root, '.release')).createSync(recursive: true);
-      File(
-        p.join(root, 'pubspec.lock'),
-      ).copySync(p.join(root, '.release/pubspec.lock'));
+    if (name == 'prepare') return prepareInputs(rest.single);
+    if (name == 'restore-inputs') {
+      await verifyPrepared(rest.single);
       return;
     }
-    if (name == 'deploy') {
-      final target = environment(rest.first);
-      final evidence = await verifyQualifiedRelease(target);
-      await androidBuild(target);
-      final manifest = jsonFile(p.join(root, '.release/manifest.json'));
-      manifest['status'] = 'qualified';
-      manifest['tests'] = evidence['checks'];
-      writeJson(p.join(root, '.release/manifest.json'), manifest);
-      return;
+    if (name == 'record-stage') return recordStage(rest.first, rest.last);
+    if (name == 'finalize') return finalize(rest.single);
+    if (name == 'verify-publication') {
+      return verifyPublication(rest.first, rest.last);
     }
+    if (name == 'native') return validationBuild(rest.first, rest.last);
     if (name == 'signing-cleanup') {
       cleanupSigning();
       return;
@@ -272,15 +266,29 @@ Future<void> execute(List<String> args) async {
       await lintWorkflows();
       return;
     }
-    if (name == 'verify') {
+    if (name == 'quality') {
       await execute(['check']);
       await lintWorkflows();
       await run(['dart', 'analyze'], cwd: p.join(root, 'tooling/repo'));
       await run(['dart', 'analyze', 'packages/edaya_api_client/tool']);
-      await execute(['test', 'tooling']);
       await run(['dart', 'run', 'melos', 'run', 'analyze']);
-      await execute(['test', 'unit']);
       await stagingSmoke(validateRunner: true);
+      return;
+    }
+    if (name == 'unit') {
+      await execute(['test', 'tooling']);
+      await execute(['test', 'unit']);
+      await run([
+        'bundle',
+        'exec',
+        'ruby',
+        'test/release_test.rb',
+      ], cwd: p.join(root, 'tooling/apple'));
+      return;
+    }
+    if (name == 'verify') {
+      await execute(['ci', 'quality']);
+      await execute(['ci', 'unit']);
       return;
     }
     if (name == 'validate-integration') {
@@ -288,6 +296,10 @@ Future<void> execute(List<String> args) async {
       return;
     }
     if (name == 'integration') {
+      if (rest.length > 1 ||
+          (rest.isNotEmpty && !integrationSuites.contains(rest.single))) {
+        throw ArgumentError('Expected one of ${integrationSuites.join(', ')}');
+      }
       checkClient();
       final backend = p.absolute(
         Platform.environment['BACKEND_ROOT'] ??
@@ -314,6 +326,7 @@ Future<void> execute(List<String> args) async {
           'edaya_repo:repo',
           'test',
           'integration',
+          ...rest,
         ],
         cwd: backend,
         env: {'EDAYA_FIXTURE_SEED': 'true'},

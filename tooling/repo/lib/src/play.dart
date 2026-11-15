@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'android.dart';
+import 'pipeline.dart';
 import 'runtime.dart';
 
 typedef PlayRequest =
@@ -104,18 +105,18 @@ class PlayPublisher {
     }
   }
 
-  Future<void> publishInternal(
+  Future<String?> prepare(
     String app,
     File bundle,
     int version,
-    String sha,
+    String track,
   ) async {
     final path = await edit(applicationIds[app]!);
     try {
-      final internal = await request('GET', '$path/tracks/internal');
-      preventDowngrade(internal, version);
-      final bundles = await request('GET', '$path/bundles');
-      final existing = (bundles['bundles'] as List? ?? [])
+      final current = await request('GET', '$path/tracks/$track');
+      preventDowngrade(current, version);
+      final inventory = await request('GET', '$path/bundles');
+      final existing = (inventory['bundles'] as List? ?? [])
           .cast<Map<String, dynamic>>()
           .where((item) => item['versionCode'] == version)
           .firstOrNull;
@@ -126,20 +127,21 @@ class PlayPublisher {
             '$path/bundles?uploadType=media',
             bundle: bundle,
           );
-      if (uploaded['versionCode'] != version || uploaded['sha256'] != sha) {
+      if (uploaded['versionCode'] != version ||
+          uploaded['sha256'] != digest(bundle.readAsBytesSync())) {
         throw StateError('$app uploaded bundle version/hash mismatch');
       }
       if (releases(
-        internal,
+        current,
       ).any((r) => r['status'] == 'completed' && containsVersion(r, version))) {
-        record(app, version, 'already-internal');
-        return;
+        await discard(path);
+        return null;
       }
       await request(
         'PUT',
-        '$path/tracks/internal',
+        '$path/tracks/$track',
         body: {
-          'track': 'internal',
+          'track': track,
           'releases': [
             {
               'name': 'EDAYA $app $version',
@@ -149,92 +151,81 @@ class PlayPublisher {
           ],
         },
       );
-      await request('POST', '$path:commit');
-      record(app, version, 'internal');
-    } finally {
+      return path;
+    } catch (_) {
       await discard(path);
+      rethrow;
     }
   }
 
-  Future<void> promote(Map<String, int> versions) async {
-    final pending =
-        <
-          ({String app, int version, String path, Map<String, dynamic> release})
-        >[];
-    final edits = <String>[];
+  Future<void> commitEdit(
+    String app,
+    String? path,
+    int version,
+    String track,
+  ) async {
+    if (path == null) {
+      record(app, version, 'already-$track');
+      return;
+    }
+    final prefix = '${applicationIds[app]!}/edits/';
+    if (!path.startsWith(prefix) ||
+        !RegExp(r'^[A-Za-z0-9_-]+$').hasMatch(path.substring(prefix.length))) {
+      throw StateError('Unexpected Play edit for $app');
+    }
     try {
-      // Validate both selected versions before changing either production track.
-      for (final app in applicationIds.keys) {
-        final version = versions[app]!;
-        final path = await edit(applicationIds[app]!);
-        edits.add(path);
-        final production = await request('GET', '$path/tracks/production');
-        preventDowngrade(production, version);
-        if (releases(production).any(
-          (r) => r['status'] == 'completed' && containsVersion(r, version),
-        )) {
-          record(app, version, 'already-production');
-          continue;
-        }
-        final internal = await request('GET', '$path/tracks/internal');
-        final tested = releases(internal)
-            .where(
-              (r) => r['status'] == 'completed' && containsVersion(r, version),
-            )
-            .firstOrNull;
-        if (tested == null) {
-          throw StateError(
-            '$app version $version is not a completed internal-testing release',
-          );
-        }
-        pending.add((
-          app: app,
-          version: version,
-          path: path,
-          release: {
-            'name': tested['name'] ?? 'EDAYA $app $version',
-            'versionCodes': ['$version'],
-            'status': 'completed',
-            if (tested['releaseNotes'] != null)
-              'releaseNotes': tested['releaseNotes'],
-          },
-        ));
+      await request('POST', '$path:commit?changesNotSentForReview=false');
+      record(app, version, track);
+    } catch (_) {
+      await discard(path);
+      rethrow;
+    }
+  }
+
+  Future<void> publish(
+    Map<String, File> bundles,
+    int version,
+    String target,
+  ) async {
+    final track = playTrack(target);
+    final edits = <String, String?>{};
+    try {
+      for (final app in bundles.keys) {
+        edits[app] = await prepare(app, bundles[app]!, version, track);
       }
-      for (final item in pending) {
-        await request(
-          'PUT',
-          '${item.path}/tracks/production',
-          body: {
-            'track': 'production',
-            'releases': [item.release],
-          },
-        );
-        await request('POST', '${item.path}:commit');
-        record(item.app, item.version, 'production');
+      for (final app in bundles.keys) {
+        await commitEdit(app, edits.remove(app), version, track);
       }
     } finally {
-      for (final path in edits) {
+      for (final path in edits.values.whereType<String>()) {
         await discard(path);
       }
     }
   }
 }
 
-Map<String, File> qualifiedBundles(
+String playTrack(String target) => switch (target) {
+  'staging' => 'internal',
+  'production' => 'production',
+  _ => throw ArgumentError('Expected staging or production'),
+};
+
+Map<String, File> verifiedBundles(
   String directory,
   Map<String, dynamic> manifest,
-) {
-  if (manifest['environment'] != 'production' ||
-      manifest['status'] != 'qualified' ||
-      manifest['tests']?['verification'] != true ||
-      manifest['tests']?['integration'] != true) {
-    throw StateError('Google Play requires qualified production bundles');
+  String target, {
+  String? selectedApp,
+}) {
+  if (manifest['environment'] != target ||
+      manifest['apiUrl'] != releaseApiUrl(target) ||
+      manifest['status'] != 'built') {
+    throw StateError('Google Play requires signed $target bundles');
   }
   playVersion('${manifest['versionCode']}');
   return {
-    for (final app in applicationIds.keys)
+    for (final app in releaseApps(selectedApp))
       app: (() {
-        final name = 'edaya-$app-production.aab';
+        final name = 'edaya-$app-$target.aab';
         final file = File(p.join(directory, 'android', name));
         if (!file.existsSync() ||
             digest(file.readAsBytesSync()) != manifest['artifacts']?[name]) {
@@ -248,8 +239,19 @@ Map<String, File> qualifiedBundles(
 }
 
 Future<void> runPlay(List<String> args, Map<String, String> env) async {
-  if (args.length != 1 || !['internal', 'promote'].contains(args.single)) {
-    throw ArgumentError('Usage: dart run edaya_repo:play internal|promote');
+  if (args.isEmpty ||
+      args.length > 2 ||
+      !['staging', 'production'].contains(args.first)) {
+    throw ArgumentError(
+      'Usage: dart run edaya_repo:play staging|production [prepare|commit]',
+    );
+  }
+  final phase = args.elementAtOrNull(1);
+  final scope = env['MOBILE_APP'];
+  final apps = releaseApps(scope);
+  if (phase != null &&
+      (!['prepare', 'commit'].contains(phase) || scope == null)) {
+    throw ArgumentError('Play prepare and commit require a single mobile app');
   }
   final token = env['PLAY_ACCESS_TOKEN'];
   if (token == null || token.isEmpty) {
@@ -257,7 +259,7 @@ Future<void> runPlay(List<String> args, Map<String, String> env) async {
   }
   final http = PlayHttp(token);
   final results = <Map<String, dynamic>>[];
-  final mode = args.single;
+  final mode = args.first;
   final publisher = PlayPublisher(
     http.request,
     record: (app, version, status) {
@@ -267,7 +269,7 @@ Future<void> runPlay(List<String> args, Map<String, String> env) async {
         'versionCode': version,
         'status': status,
       });
-      writeJson(p.join(root, '.release/play-$mode.json'), {
+      writeJson(p.join(root, '.release', scope, 'play-$mode.json'), {
         'releases': results,
       });
       final summary = env['GITHUB_STEP_SUMMARY'];
@@ -279,24 +281,42 @@ Future<void> runPlay(List<String> args, Map<String, String> env) async {
     },
   );
   try {
-    if (mode == 'internal') {
-      final directory = p.join(root, '.release');
+    await verifyPublication('android', mode);
+    final bundles = <String, File>{};
+    final versions = <int>{};
+    for (final app in apps) {
+      final directory = p.join(root, '.release', app);
       final manifest = jsonFile(p.join(directory, 'manifest.json'));
-      final bundles = qualifiedBundles(directory, manifest);
-      final version = playVersion('${manifest['versionCode']}');
-      for (final entry in bundles.entries) {
-        await publisher.publishInternal(
-          entry.key,
-          entry.value,
-          version,
-          digest(entry.value.readAsBytesSync()),
-        );
-      }
+      bundles.addAll(
+        verifiedBundles(directory, manifest, mode, selectedApp: app),
+      );
+      versions.add(playVersion('${manifest['versionCode']}'));
+    }
+    final version = versions.single;
+    if (phase == null) {
+      await publisher.publish(bundles, version, mode);
+      return;
+    }
+    final app = scope!;
+    final track = playTrack(mode);
+    final planFile = p.join(root, '.release', app, 'play-edit.json');
+    final identity = {
+      'app': app,
+      'track': track,
+      'version': version,
+      'sha256': digest(bundles[app]!.readAsBytesSync()),
+      'runId': env['GITHUB_RUN_ID'],
+      'attempt': env['GITHUB_RUN_ATTEMPT'],
+      'source': env['GITHUB_SHA'],
+    };
+    if (phase == 'prepare') {
+      final edit = await publisher.prepare(app, bundles[app]!, version, track);
+      writeJson(planFile, {'release': identity, 'edit': edit});
     } else {
-      await publisher.promote({
-        for (final app in applicationIds.keys)
-          app: playVersion(env['PLAY_${app.toUpperCase()}_VERSION'] ?? ''),
-      });
+      final plan = jsonFile(planFile);
+      requireEqual(plan['release'], identity, 'prepared Play edit');
+      if (!plan.containsKey('edit')) throw StateError('Missing Play edit');
+      await publisher.commitEdit(app, plan['edit'] as String?, version, track);
     }
   } finally {
     http.client.close(force: true);

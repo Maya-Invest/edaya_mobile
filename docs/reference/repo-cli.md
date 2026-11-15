@@ -21,7 +21,7 @@ The `api`, `guardian_v2` and `teacher_v2` integration suites are mandatory. Thei
 
 Use `dart run edaya_repo:repo build staging` for both signed APKs, or `build production` for both signed AABs. CI uses Java 17 and Flutter 3.44.8. Environment secret `ANDROID_SIGNING_BUNDLE` contains the existing keystore/apps bundle with guardian and teacher aliases/passwords and each Firebase configuration. Local builds can use existing private signing files. Missing credentials, debug certificates, app ID mismatches or signature verification errors block output.
 
-Signed builds use the qualified source and transferred generated client. APK verification uses apksigner/aapt; AAB verification uses jarsigner/keytool, with signing certificate provenance and SHA-256 artifact hashes in `.release/manifest.json`. CI uploads those exact files; it does not submit to a store or add iOS delivery. Restored private signing files are cleaned up on failure and success.
+Signed builds use the qualified source and transferred generated client. APK verification uses apksigner/aapt; AAB verification uses jarsigner/keytool, with signing certificate provenance and SHA-256 artifact hashes in `.release/manifest.json`. CI sets `MOBILE_APP` to build one app per job and writes its manifest under `.release/<app>/`. The deploy workflow publishes those qualified files. Restored private signing files are cleaned up on failure and success.
 
 Brand tokens, galleries, design review, keystore setup and SVG/native icon generation are Dart/Flutter commands under `generate` and `maintenance`. The asset generator runs through Flutter rendering; Node is no longer needed.
 

@@ -4,7 +4,6 @@ import 'package:edaya_repo/src/play.dart';
 import 'package:edaya_repo/src/runtime.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-import 'package:yaml/yaml.dart';
 
 Map<String, dynamic> track(
   String name,
@@ -34,7 +33,10 @@ class FakePlay {
     for (final app in applicationIds.keys) app: track('production', 100),
   };
   final recorded = <String>[];
-  final bundle = <String, dynamic>{'versionCode': 123, 'sha256': 'hash'};
+  final bundle = <String, dynamic>{
+    'versionCode': 123,
+    'sha256': digest([1, 2, 3]),
+  };
   bool existingBundle = false;
   bool failTeacherCommit = false;
   PlayPublisher get publisher => PlayPublisher(
@@ -69,7 +71,8 @@ class FakePlay {
     }
     if (path.endsWith('/bundles?uploadType=media')) return this.bundle;
     if (method == 'PUT') return body!;
-    if (path.endsWith(':commit')) {
+    if (path.endsWith(':commit?changesNotSentForReview=false')) {
+      path = path.split('?').first;
       if (app == 'teacher' && failTeacherCommit) {
         throw StateError('simulated failure');
       }
@@ -96,6 +99,10 @@ void main() {
       };
       expect(releaseVersionCode({}), isNull);
       expect(releaseVersionCode(env(10, 1)), 1001001);
+      expect(
+        releaseVersionCode({...env(1, 1), 'EDAYA_RELEASE_SEQUENCE': '4'}),
+        greaterThan(releaseVersionCode(env(3, 99))!),
+      );
       expect(releaseVersionCode(env(10, 2)), 1001002);
       expect(
         releaseVersionCode(env(11, 1)),
@@ -122,229 +129,159 @@ void main() {
     },
   );
 
-  test('publish uploads the signed bundle and commits only internal', () async {
-    final fake = FakePlay()..internal['guardian'] = track('internal', 100);
-    await fake.publisher.publishInternal(
-      'guardian',
-      File('bundle.aab'),
-      123,
-      'hash',
-    );
-    expect(
-      fake.calls.where((c) => c.startsWith('PUT')).single,
-      endsWith('/tracks/internal'),
-    );
-    expect(
-      fake.calls.any((c) => c.endsWith('/bundles?uploadType=media')),
-      isTrue,
-    );
-    expect(fake.recorded, ['guardian:123:internal']);
-    expect(fake.internal['guardian']!['releases'][0]['versionCodes'], ['123']);
+  late Directory dir;
+  late Map<String, File> bundles;
+  setUp(() {
+    dir = Directory.systemTemp.createTempSync('play-release-');
+    bundles = {
+      for (final app in applicationIds.keys)
+        app: File(p.join(dir.path, '$app.aab'))..writeAsBytesSync([1, 2, 3]),
+    };
   });
+  tearDown(() => dir.deleteSync(recursive: true));
 
-  test('publish retry reuses the exact existing bundle', () async {
-    final fake = FakePlay()..existingBundle = true;
-    await fake.publisher.publishInternal(
-      'guardian',
-      File('bundle.aab'),
-      123,
-      'hash',
+  for (final entry in {
+    'staging': 'internal',
+    'production': 'production',
+  }.entries) {
+    test(
+      '${entry.key} publishes both qualified AABs to ${entry.value}',
+      () async {
+        final fake = FakePlay()
+          ..internal.updateAll((_, _) => track('internal', 100));
+        await fake.publisher.publish(bundles, 123, entry.key);
+        expect(
+          fake.calls.where((c) => c.startsWith('PUT')),
+          everyElement(endsWith('/tracks/${entry.value}')),
+        );
+        expect(
+          fake.calls.where((c) => c.endsWith('uploadType=media')),
+          hasLength(2),
+        );
+        expect(
+          fake.calls.where(
+            (c) => c.endsWith(':commit?changesNotSentForReview=false'),
+          ),
+          hasLength(2),
+        );
+        expect(fake.recorded, [
+          'guardian:123:${entry.value}',
+          'teacher:123:${entry.value}',
+        ]);
+      },
     );
-    expect(
-      fake.calls.any(
-        (c) =>
-            c.startsWith('PUT') ||
-            c.endsWith(':commit') ||
-            c.contains('uploadType'),
-      ),
-      isFalse,
-    );
-    expect(fake.recorded, ['guardian:123:already-internal']);
-  });
+  }
 
   test(
-    'upload mismatch or reused version with a different hash cannot commit',
+    'bundle hash conflict and newer second app block both commits',
     () async {
-      for (final existing in [false, true]) {
-        final fake = FakePlay()..existingBundle = existing;
+      for (final fake in [
+        FakePlay()..production['teacher'] = track('production', 124),
+        FakePlay()
+          ..existingBundle = true
+          ..bundle['sha256'] = 'other',
+      ]) {
         await expectLater(
-          fake.publisher.publishInternal(
-            'guardian',
-            File('bundle.aab'),
-            123,
-            'wrong-hash',
-          ),
+          fake.publisher.publish(bundles, 123, 'production'),
           throwsStateError,
         );
-        expect(fake.calls.any((c) => c.endsWith(':commit')), isFalse);
-        expect(fake.calls.last, startsWith('DELETE'));
+        expect(fake.calls.where((c) => c.contains(':commit')), isEmpty);
       }
     },
   );
 
-  test('older internal builds cannot replace newer releases', () async {
-    final fake = FakePlay();
-    await expectLater(
-      fake.publisher.publishInternal(
-        'guardian',
-        File('bundle.aab'),
-        122,
-        'hash',
-      ),
-      throwsStateError,
-    );
-    expect(
-      fake.calls.any((c) => c.startsWith('PUT') || c.contains('uploadType')),
-      isFalse,
-    );
-  });
-
   test(
-    'promotion validates both apps then promotes exact versions without uploads',
-    () async {
-      final fake = FakePlay();
-      await fake.publisher.promote({'guardian': 123, 'teacher': 123});
-      final firstWrite = fake.calls.indexWhere((c) => c.startsWith('PUT'));
-      final lastRead = fake.calls.lastIndexWhere((c) => c.startsWith('GET'));
-      expect(firstWrite, greaterThan(lastRead));
-      expect(fake.calls.any((c) => c.contains('/bundles')), isFalse);
-      expect(fake.recorded, [
-        'guardian:123:production',
-        'teacher:123:production',
-      ]);
-      expect(fake.production['teacher']!['releases'][0]['versionCodes'], [
-        '123',
-      ]);
-      expect(
-        fake.production['teacher']!['releases'][0]['releaseNotes'][0]['text'],
-        'Tested release',
-      );
-    },
-  );
-
-  test('untested or draft second app blocks both production writes', () async {
-    for (final release in [
-      track('internal', 124),
-      track('internal', 123, status: 'draft'),
-    ]) {
-      final fake = FakePlay()..internal['teacher'] = release;
-      await expectLater(
-        fake.publisher.promote({'guardian': 123, 'teacher': 123}),
-        throwsStateError,
-      );
-      expect(
-        fake.calls.any((c) => c.startsWith('PUT') || c.endsWith(':commit')),
-        isFalse,
-      );
-    }
-  });
-
-  test('newer production version blocks downgrade of either app', () async {
-    final fake = FakePlay()..production['teacher'] = track('production', 124);
-    await expectLater(
-      fake.publisher.promote({'guardian': 123, 'teacher': 123}),
-      throwsStateError,
-    );
-    expect(fake.calls.any((c) => c.startsWith('PUT')), isFalse);
-  });
-
-  test(
-    'retry after partial promotion skips the committed app and finishes the other',
+    'retry after a partial release verifies the committed bundle and finishes the other app',
     () async {
       final fake = FakePlay()..failTeacherCommit = true;
       await expectLater(
-        fake.publisher.promote({'guardian': 123, 'teacher': 123}),
+        fake.publisher.publish(bundles, 123, 'production'),
         throwsStateError,
       );
       expect(fake.recorded, ['guardian:123:production']);
       fake.failTeacherCommit = false;
+      fake.existingBundle = true;
       fake.calls.clear();
-      await fake.publisher.promote({'guardian': 123, 'teacher': 123});
+      await fake.publisher.publish(bundles, 123, 'production');
+      expect(fake.calls.where((c) => c.endsWith('uploadType=media')), isEmpty);
+      expect(fake.calls.where((c) => c.contains(':commit')), hasLength(1));
       expect(fake.recorded, [
         'guardian:123:production',
         'guardian:123:already-production',
         'teacher:123:production',
       ]);
-      expect(fake.calls.where((c) => c.startsWith('PUT')).length, 1);
     },
   );
 
   test(
-    'both artifact hashes and qualification must pass before publishing',
-    () {
-      final dir = Directory.systemTemp.createTempSync('play-artifacts-');
-      try {
-        Directory(p.join(dir.path, 'android')).createSync();
-        final manifest = <String, dynamic>{
-          'environment': 'production',
-          'status': 'qualified',
-          'versionCode': 123,
-          'tests': {'verification': true, 'integration': true},
-          'artifacts': <String, String>{},
-        };
-        for (final app in applicationIds.keys) {
-          final name = 'edaya-$app-production.aab';
-          final file = File(p.join(dir.path, 'android', name))
-            ..writeAsStringSync(app);
-          manifest['artifacts'][name] = digest(file.readAsBytesSync());
-        }
-        expect(qualifiedBundles(dir.path, manifest).keys, [
-          'guardian',
-          'teacher',
-        ]);
-        expect(
-          () => qualifiedBundles(dir.path, {
-            ...manifest,
-            'environment': 'staging',
-          }),
-          throwsStateError,
-        );
-        expect(
-          () => qualifiedBundles(dir.path, {...manifest, 'status': 'built'}),
-          throwsStateError,
-        );
-        File(
-          p.join(dir.path, 'android/edaya-teacher-production.aab'),
-        ).writeAsStringSync('tampered');
-        expect(() => qualifiedBundles(dir.path, manifest), throwsStateError);
-      } finally {
-        dir.deleteSync(recursive: true);
-      }
-    },
-  );
-
-  test(
-    'production publishing is manual and serialized with internal publishing',
-    () {
-      final promote =
-          loadYaml(
-                File(
-                  p.join(root, '.github/workflows/promote-google-play.yml'),
-                ).readAsStringSync(),
-              )
-              as YamlMap;
-      expect((promote['on'] as YamlMap).keys, ['workflow_dispatch']);
-      final job = promote['jobs']['promote'];
-      expect(job['if'], "github.ref == 'refs/heads/main'");
-      expect(job['environment'], 'google-play-production');
-      expect(job['concurrency']['group'], 'google-play-release-production');
-      expect(job['concurrency']['cancel-in-progress'], isFalse);
-      final deploy =
-          loadYaml(
-                File(
-                  p.join(root, '.github/workflows/_deploy.yml'),
-                ).readAsStringSync(),
-              )
-              as YamlMap;
-      final steps = deploy['jobs']['deploy']['steps'] as YamlList;
-      final publish = steps.singleWhere(
-        (s) => s['run'] == 'dart run edaya_repo:play internal',
+    'per-app prepare and commit run independently and cannot switch packages',
+    () async {
+      final fake = FakePlay();
+      final publisher = fake.publisher;
+      final edit = await publisher.prepare(
+        'teacher',
+        bundles['teacher']!,
+        123,
+        'production',
       );
-      expect(publish['if'], "inputs.target == 'production'");
+      expect(fake.calls.where((call) => call.contains(':commit')), isEmpty);
+      await expectLater(
+        publisher.commitEdit('guardian', edit, 123, 'production'),
+        throwsStateError,
+      );
+      await publisher.commitEdit('teacher', edit, 123, 'production');
+      expect(fake.recorded, ['teacher:123:production']);
       expect(
-        steps.any((s) => s['run'] == 'dart run edaya_repo:play promote'),
-        isFalse,
+        fake.calls.every((call) => call.contains(applicationIds['teacher']!)),
+        isTrue,
       );
     },
   );
+
+  test('both artifact hashes and signed build status must match', () {
+    final dir = Directory.systemTemp.createTempSync('play-artifacts-');
+    try {
+      Directory(p.join(dir.path, 'android')).createSync();
+      final manifest = <String, dynamic>{
+        'environment': 'production',
+        'apiUrl': releaseApiUrl('production'),
+        'status': 'built',
+        'versionCode': 123,
+        'artifacts': <String, String>{},
+      };
+      for (final app in applicationIds.keys) {
+        final name = 'edaya-$app-production.aab';
+        final file = File(p.join(dir.path, 'android', name))
+          ..writeAsStringSync(app);
+        manifest['artifacts'][name] = digest(file.readAsBytesSync());
+      }
+      expect(verifiedBundles(dir.path, manifest, 'production').keys, [
+        'guardian',
+        'teacher',
+      ]);
+      expect(
+        () => verifiedBundles(dir.path, {
+          ...manifest,
+          'environment': 'staging',
+        }, 'production'),
+        throwsStateError,
+      );
+      expect(
+        () => verifiedBundles(dir.path, {
+          ...manifest,
+          'status': 'incomplete',
+        }, 'production'),
+        throwsStateError,
+      );
+      File(
+        p.join(dir.path, 'android/edaya-teacher-production.aab'),
+      ).writeAsStringSync('tampered');
+      expect(
+        () => verifiedBundles(dir.path, manifest, 'production'),
+        throwsStateError,
+      );
+    } finally {
+      dir.deleteSync(recursive: true);
+    }
+  });
 }

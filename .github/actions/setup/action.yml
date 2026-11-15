@@ -1,0 +1,42 @@
+name: Restore prepared mobile inputs
+description: Verify the checkout, frozen lockfile and generated API client for this run.
+inputs:
+  native-app:
+    description: App requiring native plugin registrations.
+    default: ''
+  seed-flutter:
+    description: Populate the shared macOS Flutter and Pub caches on release runs.
+    default: 'false'
+outputs:
+  sdk-key:
+    description: Installed Flutter SDK cache key.
+    value: ${{ steps.flutter.outputs.sdk-key }}
+runs:
+  using: composite
+  steps:
+    - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      with:
+        name: prepared-${{ github.run_id }}-${{ github.run_attempt }}
+        path: .
+    - shell: bash
+      run: |
+        test "$(git rev-parse HEAD)" = "$CI_SOURCE_SHA"
+        cmp pubspec.lock .release/pubspec.lock
+    - uses: ./.github/actions/flutter
+      id: flutter
+      with:
+        seed: ${{ inputs.seed-flutter }}
+    - shell: bash
+      run: |
+        dart run edaya_repo:repo ci restore-inputs "$TARGET"
+        # The previous deploy-staging.yml reached run 3 before the rename.
+        echo "EDAYA_RELEASE_SEQUENCE=$((GITHUB_RUN_NUMBER + 3))" >> "$GITHUB_ENV"
+    - name: Generate native plugin registrations
+      if: inputs.native-app != ''
+      shell: bash
+      env:
+        APP: ${{ inputs.native-app }}
+      run: |
+        case "$APP" in guardian|teacher) ;; *) exit 1 ;; esac
+        cd "apps/$APP"
+        flutter pub get --enforce-lockfile

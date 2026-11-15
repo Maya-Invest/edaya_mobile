@@ -4,7 +4,7 @@ Flutter monorepo for the Edaya mobile apps, managed with [Melos](https://melos.i
 
 ## Releases
 
-Android and iOS releases build `apps/guardian` and `apps/teacher`. Production qualification feeds Google Play internal testing and Apple TestFlight; public releases use separate manual workflows. See [CI setup](docs/reference/ci-setup.md), [Google Play](docs/reference/google-play-releases.md), and [Apple release credentials](docs/reference/apple-releases.md).
+Android and iOS releases build `apps/guardian` and `apps/teacher`. Pushes to `staging` build against the staging API for Google Play internal testing and TestFlight. Pushes to `main` build against the production API for Google Play production review and Apple App Review. See [CI setup](docs/reference/ci-setup.md), [Google Play](docs/reference/google-play-releases.md), and [Apple release credentials](docs/reference/apple-releases.md).
 
 ## Layout
 

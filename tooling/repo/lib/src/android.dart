@@ -9,7 +9,7 @@ const applicationIds = {'guardian': 'ca.mayainvest.edaya.guardian', 'teacher': '
 
 int? releaseVersionCode(Map<String, String> env) {
   if (env['GITHUB_RUN_NUMBER'] == null) return null;
-  final run = int.parse(env['GITHUB_RUN_NUMBER']!);
+  final run = int.parse(env['EDAYA_RELEASE_SEQUENCE'] ?? env['GITHUB_RUN_NUMBER']!);
   final attempt = int.parse(env['GITHUB_RUN_ATTEMPT']!);
   final base = int.parse(env['PLAY_VERSION_CODE_BASE'] ?? '1000000');
   final code = base + run * 100 + attempt;
@@ -35,7 +35,8 @@ Future<void> privateFile(String path, List<int> bytes) async {
   await run(['chmod', '600', path], quiet: true);
 }
 
-Future<void> restoreSigning() async {
+Future<void> restoreSigning([Iterable<String>? selected]) async {
+  final apps = selected ?? applicationIds.keys;
   final raw = Platform.environment['ANDROID_SIGNING_BUNDLE'];
   if (raw == null) return; // Local builds use existing private signing files.
   final Map<String, dynamic> bundle;
@@ -46,14 +47,14 @@ Future<void> restoreSigning() async {
   }
   final signingFiles = [
     p.join(root, 'android-signing/edaya-upload.jks'),
-    for (final app in applicationIds.keys) p.join(root, '${applicationPaths[app]}/android/key.properties'),
+    for (final app in apps) p.join(root, '${applicationPaths[app]}/android/key.properties'),
   ];
   if (signingFiles.any((path) => File(path).existsSync())) {
     throw StateError('Refusing to replace existing private signing files');
   }
   final owned = [
     ...signingFiles,
-    for (final app in applicationIds.keys)
+    for (final app in apps)
       if (!File(p.join(root, '${applicationPaths[app]}/android/app/google-services.json')).existsSync())
         p.join(root, '${applicationPaths[app]}/android/app/google-services.json'),
   ];
@@ -61,8 +62,8 @@ Future<void> restoreSigning() async {
   final keystore = base64Decode(bundle['keystore'] as String);
   if (keystore.isEmpty) throw StateError('Empty keystore');
   await privateFile(p.join(root, 'android-signing/edaya-upload.jks'), keystore);
-  for (final entry in applicationIds.entries) {
-    final data = bundle['apps'][entry.key] as Map<String, dynamic>;
+  for (final app in apps) {
+    final data = bundle['apps'][app] as Map<String, dynamic>;
     for (final key in ['keyAlias', 'keyPassword', 'storePassword']) {
       final value = data[key];
       if (value is! String || value.isEmpty || RegExp(r'[\r\n\\]').hasMatch(value)) {
@@ -70,25 +71,27 @@ Future<void> restoreSigning() async {
       }
     }
     final firebase = data['firebase'] as Map<String, dynamic>;
-    if (!(firebase['client'] as List).any((client) => client['client_info']['android_client_info']['package_name'] == entry.value)) {
+    if (!(firebase['client'] as List).any(
+      (client) => client['client_info']['android_client_info']['package_name'] == applicationIds[app],
+    )) {
       throw StateError('Firebase application ID mismatch');
     }
     await privateFile(
-      p.join(root, '${applicationPaths[entry.key]}/android/key.properties'),
+      p.join(root, '${applicationPaths[app]}/android/key.properties'),
       utf8.encode(
         'storeFile=../../../android-signing/edaya-upload.jks\nkeyAlias=${data['keyAlias']}\nkeyPassword=${data['keyPassword']}\nstorePassword=${data['storePassword']}\n',
       ),
     );
-    final firebasePath = p.join(root, '${applicationPaths[entry.key]}/android/app/google-services.json');
+    final firebasePath = p.join(root, '${applicationPaths[app]}/android/app/google-services.json');
     if (File(firebasePath).existsSync()) {
       // Firebase configuration is checked in. Keep it, and ensure the signing
       // bundle targets the same Firebase Android registration.
       final suppliedIds = (firebase['client'] as List)
-          .where((client) => client['client_info']['android_client_info']['package_name'] == entry.value)
+          .where((client) => client['client_info']['android_client_info']['package_name'] == applicationIds[app])
           .map((client) => client['client_info']['mobilesdk_app_id'])
           .toSet();
       final existingClients = (jsonFile(firebasePath)['client'] as List)
-          .where((client) => client['client_info']['android_client_info']['package_name'] == entry.value)
+          .where((client) => client['client_info']['android_client_info']['package_name'] == applicationIds[app])
           .toList();
       if (existingClients.length != 1 || !suppliedIds.contains(existingClients.single['client_info']['mobilesdk_app_id'])) {
         throw StateError('Checked-in Firebase configuration does not match signing bundle');
@@ -190,17 +193,20 @@ Map<String, String> signingProperties(String content) {
 
 Future<void> androidBuild(String target) async {
   environment(target);
+  final selected = Platform.environment['MOBILE_APP'];
+  final apps = releaseApps(selected);
+  final outputDir = p.join(root, '.release', selected);
   final versionCode = releaseVersionCode(Platform.environment);
   final client = checkClient();
   for (final name in ['manifest.json', 'signatures.json', 'SHA256SUMS']) {
-    final stale = File(p.join(root, '.release', name));
+    final stale = File(p.join(outputDir, name));
     if (stale.existsSync()) stale.deleteSync();
   }
   final version = jsonDecode(await run(['flutter', '--version', '--machine'], quiet: true)) as Map;
   if (version['frameworkVersion'] != '3.44.8') {
     throw StateError('Flutter 3.44.8 required');
   }
-  final directory = Directory(p.join(root, '.release/android'));
+  final directory = Directory(p.join(outputDir, 'android'));
   if (directory.existsSync()) directory.deleteSync(recursive: true);
   directory.createSync(recursive: true);
   final sdk = Platform.environment['ANDROID_HOME'] ?? Platform.environment['ANDROID_SDK_ROOT'];
@@ -216,15 +222,17 @@ Future<void> androidBuild(String target) async {
       return x.length.compareTo(y.length);
     });
   final tools = versions.last.path, signatures = <Map<String, dynamic>>[];
-  final api = target == 'production' ? 'https://api.edayaplus.com' : 'https://staging.api.edayaplus.com';
+  final api = releaseApiUrl(target);
   try {
-    await restoreSigning();
+    await restoreSigning(apps);
     final fingerprints = <String, String>{};
-    for (final entry in applicationIds.entries) {
-      final android = p.join(root, '${applicationPaths[entry.key]}/android');
+    for (final app in apps) {
+      final android = p.join(root, '${applicationPaths[app]}/android');
       final properties = signingProperties(File(p.join(android, 'key.properties')).readAsStringSync());
       final firebase = jsonFile(p.join(android, 'app/google-services.json'));
-      if (!(firebase['client'] as List).any((client) => client['client_info']['android_client_info']['package_name'] == entry.value)) {
+      if (!(firebase['client'] as List).any(
+        (client) => client['client_info']['android_client_info']['package_name'] == applicationIds[app]!,
+      )) {
         throw StateError('Firebase application ID mismatch');
       }
       final temporary = Directory.systemTemp.createTempSync('edaya-signature-');
@@ -254,13 +262,13 @@ Future<void> androidBuild(String target) async {
         if (description.toLowerCase().contains('android debug')) {
           throw StateError('Debug signing forbidden');
         }
-        fingerprints[entry.key] = digest(certificate.readAsBytesSync());
+        fingerprints[app] = digest(certificate.readAsBytesSync());
       } finally {
         temporary.deleteSync(recursive: true);
       }
     }
-    for (final entry in applicationIds.entries) {
-      final app = entry.key, cwd = p.join(root, applicationPaths[entry.key]!);
+    for (final app in apps) {
+      final cwd = p.join(root, applicationPaths[app]!);
       final fingerprint = fingerprints[app]!;
       final common = [
         '--release',
@@ -273,41 +281,41 @@ Future<void> androidBuild(String target) async {
       final apk = p.join(cwd, 'build/app/outputs/flutter-apk/app-release.apk');
       final verification = await run([p.join(tools, 'apksigner'), 'verify', '--print-certs', apk], quiet: true);
       final badging = await run([p.join(tools, 'aapt'), 'dump', 'badging', apk], quiet: true);
-      verifyApkIdentity(fingerprint, verification, entry.value, badging);
-      var artifact = apk, extension = 'apk';
-      if (target == 'production') {
-        await run(['flutter', 'build', 'appbundle', ...common], cwd: cwd);
-        artifact = p.join(cwd, 'build/app/outputs/bundle/release/app-release.aab');
-        extension = 'aab';
-        final verified = await run(['jarsigner', '-verify', artifact], quiet: true);
-        if (!verified.contains('jar verified.')) {
-          throw StateError('AAB signature verification failed');
-        }
-        final info = await run(
-          ['keytool', '-printcert', '-jarfile', artifact],
-          quiet: true,
-          env: {'JAVA_TOOL_OPTIONS': '-Duser.language=en -Duser.country=US'},
-        );
-        if (!info.toLowerCase().replaceAll(':', '').contains(fingerprint)) {
-          throw StateError('AAB certificate mismatch');
-        }
+      verifyApkIdentity(fingerprint, verification, applicationIds[app]!, badging);
+      await run(['flutter', 'build', 'appbundle', ...common], cwd: cwd);
+      final bundle = p.join(cwd, 'build/app/outputs/bundle/release/app-release.aab');
+      final verified = await run(['jarsigner', '-verify', bundle], quiet: true);
+      if (!verified.contains('jar verified.')) {
+        throw StateError('AAB signature verification failed');
       }
-      final output = File(artifact).copySync(p.join(directory.path, 'edaya-$app-$target.$extension'));
+      final info = await run(
+        ['keytool', '-printcert', '-jarfile', bundle],
+        quiet: true,
+        env: {'JAVA_TOOL_OPTIONS': '-Duser.language=en -Duser.country=US'},
+      );
+      if (!info.toLowerCase().replaceAll(':', '').contains(fingerprint)) {
+        throw StateError('AAB certificate mismatch');
+      }
+      final prefix = p.join(directory.path, 'edaya-$app-$target');
+      final signedBundle = File(bundle).copySync('$prefix.aab');
+      final output = target == 'staging' ? File(apk).copySync('$prefix.apk') : signedBundle;
       signatures.add({
         'app': app,
-        'applicationId': entry.value,
+        'applicationId': applicationIds[app]!,
         'certificateSha256': fingerprint,
+        'bundleSha256': digest(signedBundle.readAsBytesSync()),
         'sha256': digest(output.readAsBytesSync()),
       });
     }
     File(
-      p.join(root, '.release/SHA256SUMS'),
+      p.join(outputDir, 'SHA256SUMS'),
     ).writeAsStringSync('${hashes(directory.path).entries.map((entry) => '${entry.value}  android/${entry.key}').join('\n')}\n');
-    writeJson(p.join(root, '.release/signatures.json'), signatures);
-    writeJson(p.join(root, '.release/manifest.json'), {
+    writeJson(p.join(outputDir, 'signatures.json'), signatures);
+    writeJson(p.join(outputDir, 'manifest.json'), {
       'formatVersion': 1,
       'sourceCommit': commit(await run(['git', 'rev-parse', 'HEAD'], quiet: true)),
       'environment': target,
+      'apiUrl': api,
       'versionCode': versionCode,
       'runtime': 'Flutter 3.44.8 / ${Platform.version}',
       'sourceState': (await run(['git', 'status', '--porcelain'], quiet: true)).isEmpty ? 'clean' : 'working-tree',
