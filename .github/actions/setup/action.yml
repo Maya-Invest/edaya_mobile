@@ -27,10 +27,12 @@ runs:
       with:
         seed: ${{ inputs.seed-flutter }}
     - shell: bash
+      if: env.RELEASE_MODE == 'true'
       run: |
-        dart run edaya_repo:repo ci restore-inputs "$TARGET"
-        # The previous deploy-staging.yml reached run 3 before the rename.
-        echo "EDAYA_RELEASE_SEQUENCE=$((GITHUB_RUN_NUMBER + 3))" >> "$GITHUB_ENV"
+        number=$(jq -er '.storeBuild | numbers | select(. > 0 and . == floor)' .ci-evidence/prepared.json)
+        echo "EDAYA_STORE_BUILD=$number" >> "$GITHUB_ENV"
+    - shell: bash
+      run: dart run edaya_repo:repo ci restore-inputs "$TARGET"
     - name: Generate native plugin registrations
       if: inputs.native-app != ''
       shell: bash

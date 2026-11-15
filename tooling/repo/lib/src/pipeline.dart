@@ -41,6 +41,8 @@ Future<Map<String, dynamic>> identity(String target) async {
     'runId': env['GITHUB_RUN_ID'] ?? 'local',
     'attempt': env['GITHUB_RUN_ATTEMPT'] ?? '1',
     'release': env['RELEASE_MODE'] == 'true',
+    if (env['RELEASE_MODE'] == 'true')
+      'storeBuild': int.parse(env['EDAYA_STORE_BUILD']!),
     'dependencyLockChecksum': fileHash('pubspec.lock'),
     'clientChecksum': fileHash('.generated/client.json'),
   };

@@ -8,14 +8,20 @@ import 'client.dart';
 const applicationIds = {'guardian': 'ca.mayainvest.edaya.guardian', 'teacher': 'ca.mayainvest.edaya.teacher'};
 
 int? releaseVersionCode(Map<String, String> env) {
-  if (env['GITHUB_RUN_NUMBER'] == null) return null;
-  final run = int.parse(env['EDAYA_RELEASE_SEQUENCE'] ?? env['GITHUB_RUN_NUMBER']!);
-  final attempt = int.parse(env['GITHUB_RUN_ATTEMPT']!);
-  final base = int.parse(env['PLAY_VERSION_CODE_BASE'] ?? '1000000');
-  final code = base + run * 100 + attempt;
-  if (run < 1 || attempt < 1 || attempt > 99 || base < 0 || code > 2100000000) {
-    throw StateError('Invalid Google Play version code allocation');
+  final storeBuild = env['EDAYA_STORE_BUILD'];
+  final int build;
+  if (storeBuild != null) {
+    build = int.parse(storeBuild);
+  } else {
+    if (env['GITHUB_RUN_NUMBER'] == null) return null;
+    final run = int.parse(env['EDAYA_RELEASE_SEQUENCE'] ?? env['GITHUB_RUN_NUMBER']!);
+    final attempt = int.parse(env['GITHUB_RUN_ATTEMPT']!);
+    if (run < 1 || attempt < 1 || attempt > 99) throw StateError('Invalid Google Play version code allocation');
+    build = run * 100 + attempt;
   }
+  final base = int.parse(env['PLAY_VERSION_CODE_BASE'] ?? '1000000');
+  final code = base + build;
+  if (build < 1 || base < 0 || code > 2100000000) throw StateError('Invalid Google Play version code allocation');
   return code;
 }
 

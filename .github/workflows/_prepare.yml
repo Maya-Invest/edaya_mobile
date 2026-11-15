@@ -33,12 +33,26 @@ jobs:
           persist-credentials: false
       - name: Check release destination
         if: inputs.release_mode
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           case "$GITHUB_REF/$TARGET" in
             refs/heads/main/production|refs/heads/staging/staging) ;;
             *) exit 1 ;;
           esac
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          if (( GITHUB_RUN_ATTEMPT > 1 )); then
+            tip=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$GITHUB_REF_NAME" --jq .object.sha)
+            if [[ "$tip" != "$GITHUB_SHA" ]]; then
+              echo "::error::This release was superseded. Dispatch the current branch tip."
+              exit 1
+            fi
+          fi
+          # Reserve a ten-second slot under the shared release queue. Both stores
+          # read this value from the prepared artifact for the entire attempt.
+          now=$(date +%s)
+          echo "EDAYA_STORE_BUILD=$(( (now - 1577836800) / 10 ))" >> "$GITHUB_ENV"
+          sleep "$((10 - now % 10))"
       - uses: ./.github/actions/flutter
         with:
           seed: ${{ inputs.release_mode }}

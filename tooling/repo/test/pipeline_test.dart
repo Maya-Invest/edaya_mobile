@@ -124,12 +124,43 @@ void main() {
     );
   });
   test(
+    'testing and live releases share one queue and accept only their assigned branch',
+    () {
+      for (final (name, branch, target) in [
+        ('deploy-testing', 'staging', 'staging'),
+        ('deploy-live', 'main', 'production'),
+      ]) {
+        final caller = workflow(name);
+        expect(
+          caller['on'].keys,
+          unorderedEquals(['push', 'workflow_dispatch']),
+        );
+        expect(caller['on']['push']['branches'], [branch]);
+        expect(caller['concurrency'], {
+          'group': 'mobile-store-release',
+          'queue': 'max',
+        });
+        final job = caller['jobs']['release'];
+        expect(job['if'], "github.ref == 'refs/heads/$branch'");
+        expect(job['uses'], './.github/workflows/_release.yml');
+        expect(job['with'], {'target': target});
+        expect(
+          (job['secrets'] as YamlMap).keys,
+          unorderedEquals(
+            (workflow('_release')['on']['workflow_call']['secrets'] as YamlMap)
+                .keys,
+          ),
+        );
+      }
+    },
+  );
+  test(
     'entry points gate publication and scope signing and store credentials',
     () {
       final branch = workflow('branche_check')['jobs'] as YamlMap;
       expect(branch.keys, unorderedEquals(['preparation', 'quality', 'unit']));
       expect(branch['preparation']['with']['match_backend_branch'], isTrue);
-      for (final name in ['pr_validation', 'deploy']) {
+      for (final name in ['pr_validation', '_release']) {
         final caller = workflow(name);
         final jobs = caller['jobs'] as YamlMap;
         for (final stage in ['quality', 'unit', ...nativeStages.keys]) {
@@ -146,15 +177,11 @@ void main() {
           jobs['qualification']['needs'],
           unorderedEquals(['preparation', ...stages]),
         );
-        if (name == 'deploy') {
-          expect(caller['concurrency'], {
-            'group': 'mobile-store-release',
-            'queue': 'max',
-          });
-          expect(
-            caller['on']['push']['branches'],
-            unorderedEquals(['staging', 'main']),
-          );
+        if (name == '_release') {
+          expect(caller['on'].keys, ['workflow_call']);
+          for (final job in jobs.values) {
+            expect(job['with']['target'], r'${{ inputs.target }}');
+          }
           expect(
             jobs['preparation']['with']['source_ref'],
             r'${{ github.sha }}',
@@ -209,7 +236,7 @@ void main() {
               ]),
             );
             if (phase == 'submit') {
-              expect(deploy['if'], "github.ref == 'refs/heads/main'");
+              expect(deploy['if'], "inputs.target == 'production'");
             }
           }
         }

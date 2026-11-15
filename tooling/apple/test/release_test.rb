@@ -53,6 +53,16 @@ class AppleReleaseTest < Minitest::Test
     assert_equal '1.4.1', AppleRelease.build_number('GITHUB_RUN_NUMBER' => '1', 'EDAYA_RELEASE_SEQUENCE' => '4', 'GITHUB_RUN_ATTEMPT' => '1')
   end
 
+  def test_prepared_store_build_is_independent_of_per_workflow_counters
+    env = {'GITHUB_RUN_NUMBER' => '1', 'GITHUB_RUN_ATTEMPT' => '2'}
+    assert_equal '2101.0.1', AppleRelease.build_number(env.merge('EDAYA_STORE_BUILD' => '21000001'))
+    assert_equal '2102.0.0', AppleRelease.build_number(env.merge('EDAYA_STORE_BUILD' => '21010000'))
+    assert_equal '9999.99.99', AppleRelease.build_number(env.merge('EDAYA_STORE_BUILD' => '99989999'))
+    %w[0 99990000].each do |number|
+      assert_raises(RuntimeError) { AppleRelease.build_number(env.merge('EDAYA_STORE_BUILD' => number)) }
+    end
+  end
+
   def test_build_number_limits_and_retry_ordering
     assert_equal '1.42.1', AppleRelease.build_number('GITHUB_RUN_NUMBER' => '42', 'GITHUB_RUN_ATTEMPT' => '1')
     assert_equal '1.42.2', AppleRelease.build_number('GITHUB_RUN_NUMBER' => '42', 'GITHUB_RUN_ATTEMPT' => '2')
@@ -115,7 +125,7 @@ class AppleReleaseTest < Minitest::Test
   def test_both_remote_builds_are_validated_before_submission_and_exact_builds_are_used
     previous = ENV.to_h
     ENV.delete('EDAYA_RELEASE_SEQUENCE')
-    ENV.update('GITHUB_RUN_NUMBER' => '42', 'GITHUB_RUN_ATTEMPT' => '1')
+    ENV.update('EDAYA_STORE_BUILD' => '4201', 'GITHUB_RUN_NUMBER' => '42', 'GITHUB_RUN_ATTEMPT' => '1')
     evidence = { 'environment' => 'production', 'apiUrl' => 'https://api.edayaplus.com', 'sourceCommit' => 'abc' }
     records = AppleRelease::APPS.to_h do |app, config|
       [app, evidence.merge('version' => '1.0.0', 'build' => '1.42.1', 'bundleId' => config['bundleId'], 'status' => 'processed')]

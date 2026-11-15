@@ -6,7 +6,8 @@ Each repository verifies and releases its own revision. Backend changes do not r
 | --- | --- | --- |
 | `branche_check.yml` | Push outside staging/main | Prepare once, then quality and unit in parallel |
 | `pr_validation.yml` | PR into staging/main or manual validation | Prepare → quality, unit and four independent builds (Guardian and Teacher on Android and iOS). API, Guardian and Teacher integration jobs run in parallel after quality and unit. **Full validation** requires all ten upstream jobs. |
-| `deploy.yml` | Push or manual dispatch on staging/main | Same full graph using distribution signing, then four independent app/store jobs |
+| `deploy-testing.yml` | Push or manual dispatch on `staging` | Fully qualify and sign both apps with the staging API, then deploy to Play internal testing and TestFlight |
+| `deploy-live.yml` | Push or manual dispatch on `main` | Fully qualify and sign both apps with the production API, then submit to Google Play production and Apple App Review |
 
 For branch pushes and PRs, prepare uses a matching backend branch (PR head branch), falling back to backend `dev` only if that branch is absent. PRs validate the proposed merge commit. Manual validation allows explicit revisions. Releases use the selected branch SHA and its matching backend destination. Manual release accepts no revision override.
 
@@ -25,7 +26,7 @@ Staging successfully produced both signed Android APKs on November 14, 2026. [St
 | `staging` | Backend `staging`, `https://staging.api.edayaplus.com` | Google Play internal testing and internal TestFlight. Signed Android APKs are also available as artifacts. |
 | `main` | Backend `main`, `https://api.edayaplus.com` | Fresh production builds sent to Google Play production review and Apple App Review. |
 
-Production qualification requires the integration fixture command in backend `main`. The backend maintainer must land the fixture tooling there before the first production qualification. Merging into mobile `main` starts the production workflow. Both branches use one release workflow so the two stores receive distinct, increasing build numbers.
+Production qualification requires the integration fixture command in backend `main`. The backend maintainer must land the fixture tooling there before the first production qualification. Merging into mobile `main` starts the production workflow. Both entry points call `_release.yml`. Preparation allocates one store build number under their shared release queue and freezes it in the current attempt’s prepared artifact. A rerun uses a new number and must still target the branch tip.
 
 | Actions secret | Purpose |
 | --- | --- |
