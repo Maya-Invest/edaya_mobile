@@ -5,6 +5,7 @@ import 'package:edaya_guardian_v2/app/workspace_shell.dart';
 import 'package:edaya_guardian_v2/design/components/list_row.dart';
 import 'package:edaya_guardian_v2/design/components/summary_metric.dart';
 import 'package:edaya_api_client/edaya_api_client.dart';
+import 'package:edaya_guardian_v2/features/calendar/session_detail_page.dart';
 import 'package:edaya_guardian_v2/features/home/home_page.dart';
 import 'package:edaya_guardian_v2/features/home/dashboard_controller.dart';
 import 'package:edaya_guardian_v2/features/context/academic_year_controller.dart';
@@ -137,13 +138,20 @@ Future<void> main() async {
           h.router.push(
             '/session/${Uri.encodeComponent(event['id'] as String)}',
           );
+          final detailPage = find.byType(SessionDetailPage);
           await pumpUntilFound(
             tester,
-            find.text(
-              event['subjectLabel'] as String? ?? event['title'] as String,
+            find.descendant(
+              of: detailPage,
+              matching: find.text(
+                event['subjectLabel'] as String? ?? event['title'] as String,
+              ),
             ),
           );
-          expect(find.text('Horaire'), findsOneWidget);
+          expect(
+            find.descendant(of: detailPage, matching: find.text('Horaire')),
+            findsOneWidget,
+          );
           h.router.pop();
           await tester.pump(const Duration(milliseconds: 400));
         }
