@@ -26,7 +26,7 @@ Staging successfully produced both signed Android APKs on November 14, 2026. [St
 | `staging` | Backend `staging`, `https://staging.api.edayaplus.com` | Google Play internal testing and internal TestFlight. Signed Android APKs are also available as artifacts. |
 | `main` | Backend `main`, `https://api.edayaplus.com` | Fresh production builds sent to Google Play production review and Apple App Review. |
 
-Production qualification requires the integration fixture command in backend `main`. The backend maintainer must land the fixture tooling there before the first production qualification. Merging into mobile `main` starts the production workflow. Both entry points call `_release.yml`. Preparation allocates one store build number under their shared release queue and freezes it in the current attempt’s prepared artifact. A rerun uses a new number and must still target the branch tip.
+Production qualification requires the integration fixture command in backend `main`. The backend maintainer must land the fixture tooling there before the first production qualification. Merging into mobile `main` starts the production workflow. Both deployment workflows call `_qualify_release.yml` to build and qualify the exact signed binaries. Each then starts Google Play and Apple delivery in parallel. Testing ends when the internal Play edits are committed and TestFlight processes the uploads. Live checks both processed Apple builds for review eligibility before either submission. Preparation allocates one store build number under the shared release queue and freezes it in the current attempt’s prepared artifact. A rerun uses a new number and must still target the branch tip.
 
 | Actions secret | Purpose |
 | --- | --- |

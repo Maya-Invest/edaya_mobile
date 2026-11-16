@@ -140,29 +140,93 @@ void main() {
           'group': 'mobile-store-release',
           'queue': 'max',
         });
-        final job = caller['jobs']['release'];
-        expect(job['if'], "github.ref == 'refs/heads/$branch'");
-        expect(job['uses'], './.github/workflows/_release.yml');
-        expect(job['with'], {'target': target});
+        final jobs = caller['jobs'] as YamlMap;
+        final live = target == 'production';
+        final upload = live ? 'app_store_upload' : 'testflight';
         expect(
-          (job['secrets'] as YamlMap).keys,
-          unorderedEquals(
-            (workflow('_release')['on']['workflow_call']['secrets'] as YamlMap)
-                .keys,
-          ),
+          jobs.keys,
+          unorderedEquals([
+            'qualification',
+            'google_play',
+            upload,
+            if (live) 'app_review',
+          ]),
         );
+        final qualify = jobs['qualification'];
+        expect(qualify['if'], "github.ref == 'refs/heads/$branch'");
+        expect(qualify['uses'], './.github/workflows/_qualify_release.yml');
+        expect(qualify['with'], {'target': target});
+        expect(
+          (qualify['secrets'] as YamlMap).keys,
+          unorderedEquals([
+            'BACKEND_CHECKOUT_TOKEN',
+            'ANDROID_SIGNING_BUNDLE',
+            'IOS_SIGNING_BUNDLE',
+          ]),
+        );
+        final play = jobs['google_play'];
+        expect(play['needs'], 'qualification');
+        expect(play['uses'], './.github/workflows/_publish_play.yml');
+        expect(play['with']['target'], target);
+        expect((play['secrets'] as YamlMap).keys, [
+          'GOOGLE_PLAY_SERVICE_ACCOUNT_JSON',
+        ]);
+        final apple = jobs[upload];
+        expect(apple['needs'], 'qualification');
+        expect(apple['environment'], target);
+        expect(apple['env']['TARGET'], target);
+        expect(apple['strategy']['matrix']['app'], ['guardian', 'teacher']);
+        expect(apple['strategy']['fail-fast'], isFalse);
+        final steps = apple['steps'] as YamlList;
+        expect(
+          steps.map((s) => s['uses']),
+          contains('./.github/actions/upload-ios'),
+        );
+        expect(
+          steps
+              .where((s) => s['run'] == 'bundle exec fastlane ios check_review')
+              .length,
+          live ? 1 : 0,
+        );
+        if (live) {
+          final review = jobs['app_review'];
+          expect(review['needs'], upload);
+          expect(review['environment'], 'production');
+          expect(review['strategy'], apple['strategy']);
+          final reviewSteps = review['steps'] as YamlList;
+          expect(
+            reviewSteps.map((s) => s['run']),
+            contains('bundle exec fastlane ios submit'),
+          );
+          final downloads = reviewSteps.where(
+            (s) =>
+                s['uses'].toString().startsWith('actions/download-artifact@'),
+          );
+          expect(
+            downloads.map((s) => s['with']['name']),
+            unorderedEquals([
+              r'prepared-${{ github.run_id }}-${{ github.run_attempt }}',
+              r'qualified-${{ github.run_id }}-${{ github.run_attempt }}',
+              r'receipts-ios-${{ matrix.app }}-upload-${{ github.run_id }}-${{ github.run_attempt }}',
+            ]),
+          );
+        }
       }
     },
   );
   test(
-    'entry points gate publication and scope signing and store credentials',
+    'qualification gates every build and integration suite and scopes signing secrets',
     () {
       final branch = workflow('branch_check')['jobs'] as YamlMap;
       expect(branch.keys, unorderedEquals(['preparation', 'quality', 'unit']));
       expect(branch['preparation']['with']['match_backend_branch'], isTrue);
-      for (final name in ['pr_validation', '_release']) {
+      for (final name in ['pr_validation', '_qualify_release']) {
         final caller = workflow(name);
         final jobs = caller['jobs'] as YamlMap;
+        expect(
+          jobs.keys,
+          unorderedEquals(['preparation', ...stages, 'qualification']),
+        );
         for (final stage in ['quality', 'unit', ...nativeStages.keys]) {
           expect(jobs[stage]['needs'], 'preparation');
         }
@@ -177,7 +241,7 @@ void main() {
           jobs['qualification']['needs'],
           unorderedEquals(['preparation', ...stages]),
         );
-        if (name == '_release') {
+        if (name == '_qualify_release') {
           expect(caller['on'].keys, ['workflow_call']);
           for (final job in jobs.values) {
             expect(job['with']['target'], r'${{ inputs.target }}');
@@ -197,52 +261,33 @@ void main() {
           expect(job['with']['app'], app);
           if (name == 'pr_validation') {
             expect(job['secrets'], isNull);
-            expect(
-              jobs.keys.where(
-                (id) => jobs[id]['uses'] == './.github/workflows/_deploy.yml',
-              ),
-              isEmpty,
-            );
-            continue;
-          }
-          expect((job['secrets'] as YamlMap).keys, [
-            android ? 'ANDROID_SIGNING_BUNDLE' : 'IOS_SIGNING_BUNDLE',
-          ]);
-          for (final phase
-              in android ? ['prepare', 'publish'] : ['upload', 'submit']) {
-            final deploy = jobs['${phase}_${platform}_$app'];
-            expect(deploy['uses'], './.github/workflows/_deploy.yml');
-            expect(deploy['with']['app'], app);
-            expect(deploy['with']['platform'], platform);
-            expect(deploy['with']['phase'], phase);
-            expect((deploy['secrets'] as YamlMap).keys, [
-              android
-                  ? 'GOOGLE_PLAY_SERVICE_ACCOUNT_JSON'
-                  : 'APP_STORE_CONNECT_API_KEY_JSON',
+          } else {
+            expect((job['secrets'] as YamlMap).keys, [
+              android ? 'ANDROID_SIGNING_BUNDLE' : 'IOS_SIGNING_BUNDLE',
             ]);
-            expect(
-              deploy['needs'],
-              unorderedEquals([
-                'preparation',
-                'qualification',
-                if (phase == 'publish') ...[
-                  'prepare_android_guardian',
-                  'prepare_android_teacher',
-                ],
-                if (phase == 'submit') ...[
-                  'upload_ios_guardian',
-                  'upload_ios_teacher',
-                ],
-              ]),
-            );
-            if (phase == 'submit') {
-              expect(deploy['if'], "inputs.target == 'production'");
-            }
           }
         }
       }
     },
   );
+  test('Play commits both apps only after both edits have been prepared', () {
+    final jobs = workflow('_publish_play')['jobs'] as YamlMap;
+    expect(jobs.keys, unorderedEquals(['prepare', 'publish']));
+    expect(jobs['prepare']['needs'], isNull);
+    expect(jobs['publish']['needs'], 'prepare');
+    for (final id in ['prepare', 'publish']) {
+      final job = jobs[id];
+      expect(job['strategy']['matrix']['app'], ['guardian', 'teacher']);
+      expect(job['strategy']['fail-fast'], isFalse);
+      expect(job['environment'], r'${{ inputs.target }}');
+      final commands = (job['steps'] as YamlList)
+          .map((s) => s['run'])
+          .whereType<String>();
+      expect(commands, [
+        'dart run edaya_repo:play "\$TARGET" ${id == 'prepare' ? 'prepare' : 'commit'}',
+      ]);
+    }
+  });
   test(
     'release stage files and validation evidence are unique to their app and platform',
     () {

@@ -61,7 +61,7 @@ Marketing versions come from each v2 app's `pubspec.yaml` (for example `1.0.0`).
 
 If existing TestFlight builds already have larger build numbers for the same marketing version, increment the app's marketing version before onboarding this workflow. Public release versions must be newer than the current public version. The workflow never lets Xcode silently change the selected build number.
 
-Each `stage-ios_<app>-<run_id>-<attempt>` artifact contains one signed IPA and its manifest on release branches. The `qualified` artifact binds their hashes to the passed stages. Separate `receipts-ios-<app>-<phase>-<run_id>-<attempt>` artifacts record each successful upload and review submission.
+Each `stage-ios_<app>-<run_id>-<attempt>` artifact contains one signed IPA and its manifest. The qualification report records both hashes. The upload receipt artifact includes the signed manifest and the processed build record. Production review jobs restore these records, match them to the qualification report, and submit the exact processed build from App Store Connect. Each successful submission produces its own receipt.
 
 If a delivery fails, inspect both apps in App Store Connect. Uploads and review submissions are per app. Resolve any existing review conflict before rerunning **all jobs** so qualification and release share the new attempt number. Apple must accept the marketing version for each app. A different build already in review for that version requires an operator decision in App Store Connect.
 

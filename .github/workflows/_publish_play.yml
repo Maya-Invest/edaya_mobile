@@ -1,0 +1,102 @@
+name: _Publish Google Play release
+on:
+  workflow_call:
+    inputs:
+      target: {type: string, required: true}
+      backend_sha: {type: string, required: true}
+    secrets:
+      GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: {required: false}
+permissions:
+  contents: read
+  actions: read
+  deployments: write
+env:
+  TARGET: ${{ inputs.target }}
+  CI_SOURCE_SHA: ${{ github.sha }}
+  CI_BACKEND_SHA: ${{ inputs.backend_sha }}
+  RELEASE_MODE: 'true'
+jobs:
+  prepare:
+    name: Prepare edit / ${{ matrix.app }}
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [guardian, teacher]
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.target }}
+    timeout-minutes: 180
+    env:
+      MOBILE_APP: ${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/restore-publication
+        with:
+          platform: android
+      - name: Authenticate Google Play publisher
+        id: auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093
+        with:
+          credentials_json: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/androidpublisher
+          create_credentials_file: false
+          export_environment_variables: false
+      - name: Stage bundle and check Play track
+        env:
+          PLAY_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: dart run edaya_repo:play "$TARGET" prepare
+      - name: Save prepared Play edit
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: play-edit-${{ matrix.app }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .release/${{ matrix.app }}/play-edit.json
+          include-hidden-files: true
+          if-no-files-found: error
+
+  publish:
+    name: Publish edit / ${{ matrix.app }}
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [guardian, teacher]
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.target }}
+    timeout-minutes: 180
+    env:
+      MOBILE_APP: ${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/restore-publication
+        with:
+          platform: android
+      - name: Restore prepared Play edit
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: play-edit-${{ matrix.app }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .release/${{ matrix.app }}/
+      - name: Authenticate Google Play publisher
+        id: auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093
+        with:
+          credentials_json: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/androidpublisher
+          create_credentials_file: false
+          export_environment_variables: false
+      - name: Commit qualified Play edit
+        env:
+          PLAY_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: dart run edaya_repo:play "$TARGET" commit
+      - name: Retain Play receipt
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: receipts-android-${{ matrix.app }}-publish-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .release/${{ matrix.app }}/play-${{ inputs.target }}.json
+          include-hidden-files: true
+          if-no-files-found: warn

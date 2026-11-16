@@ -45,6 +45,7 @@ module AppleRelease
     evidence = JSON.parse(File.read(File.join(ROOT, '.ci-evidence/prepared.json')))
     target = ENV.fetch('TARGET')
     raise 'Expected qualified inputs for this branch and commit' unless %w[staging production].include?(target) &&
+      ENV.fetch('GITHUB_REF') == (target == 'production' ? 'refs/heads/main' : 'refs/heads/staging') &&
       evidence.fetch('environment') == target && evidence.fetch('sourceCommit') == ENV.fetch('GITHUB_SHA') &&
       evidence['release'] == true && evidence['runId'] == ENV.fetch('GITHUB_RUN_ID') &&
       evidence['attempt'] == ENV.fetch('GITHUB_RUN_ATTEMPT')
@@ -52,9 +53,10 @@ module AppleRelease
   end
 
   def self.validate_record(row, config, evidence, status)
+    number = evidence.key?('storeBuild') ? build_number('EDAYA_STORE_BUILD' => evidence.fetch('storeBuild').to_s) : build_number(ENV)
     raise 'Apple build does not match this qualified release' unless row.fetch('status') == status &&
       row.fetch('environment') == evidence.fetch('environment') && row.fetch('apiUrl') == evidence.fetch('apiUrl') &&
-      row.fetch('sourceCommit') == evidence.fetch('sourceCommit') && row.fetch('build') == build_number(ENV) &&
+      row.fetch('sourceCommit') == evidence.fetch('sourceCommit') && row.fetch('build') == number &&
       row.fetch('bundleId') == config.fetch('bundleId')
   end
 
@@ -284,7 +286,11 @@ module AppleRelease
 
   def self.upload_records
     selected_apps.keys.to_h do |app|
-      [app, JSON.parse(File.read(release_path(app, 'apple-testflight.json'))).fetch('apps').fetch(app)]
+      signed = JSON.parse(File.read(release_path(app, 'apple-build.json'))).fetch('apps').fetch(app)
+      processed = JSON.parse(File.read(release_path(app, 'apple-testflight.json'))).fetch('apps').fetch(app)
+      raise 'Upload receipt differs from the qualified signed build' unless signed.fetch('status') == 'signed' &&
+        processed == signed.merge('status' => 'processed')
+      [app, processed]
     end
   end
 

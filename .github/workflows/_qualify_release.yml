@@ -1,4 +1,4 @@
-name: _Mobile release
+name: _Qualify signed mobile builds
 on:
   workflow_call:
     inputs:
@@ -7,8 +7,10 @@ on:
       BACKEND_CHECKOUT_TOKEN: {required: true}
       ANDROID_SIGNING_BUNDLE: {required: false}
       IOS_SIGNING_BUNDLE: {required: false}
-      GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: {required: false}
-      APP_STORE_CONNECT_API_KEY_JSON: {required: false}
+    outputs:
+      backend_sha:
+        description: Backend revision used to qualify the signed builds.
+        value: ${{ jobs.preparation.outputs.backend_sha }}
 permissions:
   contents: read
   actions: read
@@ -132,117 +134,3 @@ jobs:
       backend_sha: ${{ needs.preparation.outputs.backend_sha }}
       release_mode: true
       job_results: ${{ toJSON(needs) }}
-  prepare_android_guardian:
-    name: Prepare Play edit for Guardian
-    needs: [preparation, qualification]
-    uses: ./.github/workflows/_deploy.yml
-    with:
-      platform: android
-      app: guardian
-      phase: prepare
-      target: ${{ inputs.target }}
-      source_sha: ${{ needs.preparation.outputs.source_sha }}
-      backend_sha: ${{ needs.preparation.outputs.backend_sha }}
-      release_mode: true
-    secrets:
-      GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-  prepare_android_teacher:
-    name: Prepare Play edit for Teacher
-    needs: [preparation, qualification]
-    uses: ./.github/workflows/_deploy.yml
-    with:
-      platform: android
-      app: teacher
-      phase: prepare
-      target: ${{ inputs.target }}
-      source_sha: ${{ needs.preparation.outputs.source_sha }}
-      backend_sha: ${{ needs.preparation.outputs.backend_sha }}
-      release_mode: true
-    secrets:
-      GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-  publish_android_guardian:
-    name: Deploy to Play for Guardian
-    needs: [preparation, qualification, prepare_android_guardian, prepare_android_teacher]
-    uses: ./.github/workflows/_deploy.yml
-    with:
-      platform: android
-      app: guardian
-      phase: publish
-      target: ${{ inputs.target }}
-      source_sha: ${{ needs.preparation.outputs.source_sha }}
-      backend_sha: ${{ needs.preparation.outputs.backend_sha }}
-      release_mode: true
-    secrets:
-      GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-  publish_android_teacher:
-    name: Deploy to Play for Teacher
-    needs: [preparation, qualification, prepare_android_guardian, prepare_android_teacher]
-    uses: ./.github/workflows/_deploy.yml
-    with:
-      platform: android
-      app: teacher
-      phase: publish
-      target: ${{ inputs.target }}
-      source_sha: ${{ needs.preparation.outputs.source_sha }}
-      backend_sha: ${{ needs.preparation.outputs.backend_sha }}
-      release_mode: true
-    secrets:
-      GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-  upload_ios_guardian:
-    name: Deploy to TestFlight for Guardian
-    needs: [preparation, qualification]
-    uses: ./.github/workflows/_deploy.yml
-    with:
-      platform: ios
-      app: guardian
-      phase: upload
-      target: ${{ inputs.target }}
-      source_sha: ${{ needs.preparation.outputs.source_sha }}
-      backend_sha: ${{ needs.preparation.outputs.backend_sha }}
-      release_mode: true
-    secrets:
-      APP_STORE_CONNECT_API_KEY_JSON: ${{ secrets.APP_STORE_CONNECT_API_KEY_JSON }}
-  upload_ios_teacher:
-    name: Deploy to TestFlight for Teacher
-    needs: [preparation, qualification]
-    uses: ./.github/workflows/_deploy.yml
-    with:
-      platform: ios
-      app: teacher
-      phase: upload
-      target: ${{ inputs.target }}
-      source_sha: ${{ needs.preparation.outputs.source_sha }}
-      backend_sha: ${{ needs.preparation.outputs.backend_sha }}
-      release_mode: true
-    secrets:
-      APP_STORE_CONNECT_API_KEY_JSON: ${{ secrets.APP_STORE_CONNECT_API_KEY_JSON }}
-  submit_ios_guardian:
-    name: Submit for App Review for Guardian
-    if: inputs.target == 'production'
-    needs: [preparation, qualification, upload_ios_guardian, upload_ios_teacher]
-    uses: ./.github/workflows/_deploy.yml
-    with:
-      platform: ios
-      app: guardian
-      phase: submit
-      target: ${{ inputs.target }}
-      source_sha: ${{ needs.preparation.outputs.source_sha }}
-      backend_sha: ${{ needs.preparation.outputs.backend_sha }}
-      release_mode: true
-    secrets:
-      APP_STORE_CONNECT_API_KEY_JSON: ${{ secrets.APP_STORE_CONNECT_API_KEY_JSON }}
-  submit_ios_teacher:
-    name: Submit for App Review for Teacher
-    if: inputs.target == 'production'
-    needs: [preparation, qualification, upload_ios_guardian, upload_ios_teacher]
-    uses: ./.github/workflows/_deploy.yml
-    with:
-      platform: ios
-      app: teacher
-      phase: submit
-      target: ${{ inputs.target }}
-      source_sha: ${{ needs.preparation.outputs.source_sha }}
-      backend_sha: ${{ needs.preparation.outputs.backend_sha }}
-      release_mode: true
-    secrets:
-      APP_STORE_CONNECT_API_KEY_JSON: ${{ secrets.APP_STORE_CONNECT_API_KEY_JSON }}
