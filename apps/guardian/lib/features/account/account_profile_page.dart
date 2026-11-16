@@ -7,7 +7,7 @@ import '../../design/spacing.dart';
 import '../../live/runtime.dart';
 import '../../mock/mock_store.dart';
 
-/// Prototype route page — delegates to shared profile editor.
+/// route page — delegates to shared profile editor.
 class AccountProfilePage extends StatelessWidget {
   const AccountProfilePage({super.key});
 
@@ -31,14 +31,8 @@ class AccountProfilePage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
-          ListTile(
-            title: const Text('Nom'),
-            subtitle: Text(store.guardianFullName),
-          ),
-          ListTile(
-            title: const Text('E-mail'),
-            subtitle: Text(MockStore.guardianEmail),
-          ),
+          ListTile(title: const Text('Nom'), subtitle: Text(store.guardianFullName)),
+          ListTile(title: const Text('E-mail'), subtitle: Text(MockStore.guardianEmail)),
         ],
       ),
     );

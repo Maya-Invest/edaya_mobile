@@ -84,7 +84,7 @@ class _WorkspaceHomeState extends State<WorkspaceHome>
   Widget day(BuildContext context) {
     if (!prototypeIsLive(context)) return const SizedBox.shrink();
     final teacher = context.levit.find<TeacherContextController>();
-    final now = teacher.schoolTime(DateTime.now());
+    final now = teacher.schoolTime(SchoolClock.now());
     final assignment = teacher.activeAssignment;
     final workspace = teacher.selection;
     final teacherId = teacher.teacherId.value;

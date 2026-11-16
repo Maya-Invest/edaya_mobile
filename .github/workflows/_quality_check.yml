@@ -1,4 +1,4 @@
-name: Quality checks
+name: _Quality checks
 on:
   workflow_call:
     inputs:

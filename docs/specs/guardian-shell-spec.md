@@ -307,3 +307,7 @@ Conversation details retain their captured school, participants and child indepe
 ## Separate Guardian v2 implementation
 
 The child-first Home and unified results workspace is implemented in `apps/guardian`. Its normative contract is [Guardian v2 workspace](guardian-v2-workspace-spec.md). This document describes the retired shell.
+
+## Offline demo
+
+**Essayer la démo** opens Moussa Koné’s family at Collège Lumière d’Abidjan with Amina selected. The guardian can switch to Youssef, consult the archived year, view fees and sample PDFs, send a message, answer a survey and propose a child portrait. A submitted portrait waits for school review. Youssef’s earlier review and completed survey show how resolved items appear. Work resumes on the next launch. **Quitter la démo** in Compte confirms removal of this app’s demo data.

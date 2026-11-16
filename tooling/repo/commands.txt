@@ -1,9 +1,0 @@
-Usage: dart run edaya_repo:repo <command>
-check                       Prepared client and brand integrity
- test unit|tooling|integration [api|guardian_v2|teacher_v2]
- build staging|production   Signed APK/AAB artifacts
- generate client [staging|production] [--ref REF | --backend-root PATH]
- generate brand|gallery|assets|commands|reviewed-brand-baseline
- dev guardian|teacher
- maintenance keystore|fix|design-review|smoke
- ci verify|qualify|integration|validate-integration|workflows|signing-cleanup

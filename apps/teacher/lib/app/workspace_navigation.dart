@@ -352,8 +352,12 @@ GoRoute workspaceRoute({
   List<RouteBase> routes = const [],
 }) => GoRoute(
   path: path,
-  builder: (context, state) =>
-      WorkspaceExitGuard(child: builder(context, state)),
+  builder: (context, state) => WorkspaceExitGuard(
+    child: Material(
+      type: MaterialType.transparency,
+      child: builder(context, state),
+    ),
+  ),
   onExit: workspaceCanExit,
   routes: [
     GoRoute(
@@ -963,35 +967,41 @@ class RecordSheetPage extends Page<Object?> {
   final String title;
   final Widget child;
   @override
-  Route<Object?> createRoute(BuildContext context) =>
-      ModalBottomSheetRoute<Object?>(
-        settings: this,
-        backgroundColor: Colors.transparent,
-        constraints: BoxConstraints(maxWidth: wide ? 992 : 672),
-        isScrollControlled: true,
-        useSafeArea: true,
-        builder: (context) {
-          final page = ModalRoute.of(context)!.settings as RecordSheetPage;
-          return WorkspaceExitGuard(
+  Route<Object?> createRoute(
+    BuildContext context,
+  ) => ModalBottomSheetRoute<Object?>(
+    settings: this,
+    backgroundColor: Colors.transparent,
+    constraints: BoxConstraints(maxWidth: wide ? 992 : 672),
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (context) {
+      final page = ModalRoute.of(context)!.settings as RecordSheetPage;
+      return WorkspaceExitGuard(
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.sizeOf(context).width >= 600 ? 16 : 0,
+          ),
+          child: Material(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(PrototypeRadii.lg),
+            ),
+            clipBehavior: Clip.antiAlias,
             child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: MediaQuery.sizeOf(context).width >= 600 ? 16 : 0,
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.viewInsetsOf(context).bottom,
               ),
-              child: Material(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(PrototypeRadii.lg),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.viewInsetsOf(context).bottom,
-                  ),
-                  child: WorkspaceSheet(title: page.title, child: page.child),
-                ),
+              // The sheet already reserves the keyboard space for its editors.
+              child: MediaQuery.removeViewInsets(
+                context: context,
+                removeBottom: true,
+                child: WorkspaceSheet(title: page.title, child: page.child),
               ),
             ),
-          );
-        },
+          ),
+        ),
       );
+    },
+  );
 }

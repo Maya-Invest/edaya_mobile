@@ -887,7 +887,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
   ) async {
     final context = _outboxContext?.call()?.toJson();
     final key =
-        'marks-online:${base64Url.encode(utf8.encode(jsonEncode([context, evaluationId, command, payload])))}';
+        '${schoolStoragePrefix(_schoolClient())}marks-online:${base64Url.encode(utf8.encode(jsonEncode([context, evaluationId, command, payload])))}';
     final prefs = await SharedPreferences.getInstance();
     final requestId = prefs.getString(key) ?? newSchoolRequestId();
     await prefs.setString(key, requestId);

@@ -22,17 +22,35 @@ Future<void> teacherFcmBackgroundHandler(RemoteMessage message) {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  configureEdayaFcm(
-    firebaseOptions: DefaultFirebaseOptions.currentPlatform,
-    notificationConfig: PushNotificationConfigs.teacher,
+  final demo = await DemoStore.resume(DemoRole.teacher);
+  Future<void> prepareLive() async {
+    configureEdayaFcm(
+      firebaseOptions: DefaultFirebaseOptions.currentPlatform,
+      notificationConfig: PushNotificationConfigs.teacher,
+    );
+    FirebaseMessaging.onBackgroundMessage(teacherFcmBackgroundHandler);
+    if (Firebase.apps.isEmpty)
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+  }
+
+  if (demo == null) await prepareLive();
+  ApiBaseUrlConfig.configure(
+    appDefaultUrl: await ApiConfig.resolveDefaultUrl(),
   );
-  FirebaseMessaging.onBackgroundMessage(teacherFcmBackgroundHandler);
-  ApiBaseUrlConfig.configure(appDefaultUrl: await ApiConfig.resolveDefaultUrl());
   await ApiBaseUrlConfig.load();
-  await AppSettingsController.preload();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await AppSettingsController.preload(prefix: demo?.prefix ?? '');
   Levit.enableAutoLinking();
   await initializeDateFormatting('fr_FR');
   await initializeDateFormatting('en');
-  runApp(PrototypeAppRoot(store: MockStore(), live: true));
+  runApp(
+    DemoHost(
+      role: DemoRole.teacher,
+      initial: demo,
+      prepareLive: prepareLive,
+      builder: (local) =>
+          PrototypeAppRoot(store: MockStore(), live: true, demo: local),
+    ),
+  );
 }

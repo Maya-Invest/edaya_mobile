@@ -7,6 +7,9 @@ import 'app_settings_models.dart';
 import 'app_settings_storage.dart';
 
 class AppSettingsController extends LevitController {
+  AppSettingsController({this.prefix = ''});
+  final String prefix;
+
   final theme = LxVar(ThemePreference.system);
   final language = LxVar(LanguagePreference.system);
   final timezone = LxVar(AppTimezone.device);
@@ -23,9 +26,9 @@ class AppSettingsController extends LevitController {
     _timezonesInitialized = true;
   }
 
-  static Future<void> preload() async {
+  static Future<void> preload({String prefix = ''}) async {
     await ensureInitialized();
-    await AppSettingsStorage.load();
+    await AppSettingsStorage.load(prefix: prefix);
   }
 
   @override
@@ -87,7 +90,7 @@ class AppSettingsController extends LevitController {
   }
 
   Future<void> _update(AppSettingsSnapshot snapshot) async {
-    _applySnapshot(await AppSettingsStorage.save(snapshot));
+    _applySnapshot(await AppSettingsStorage.save(snapshot, prefix: prefix));
   }
 
   void _applySnapshot(AppSettingsSnapshot snapshot) {

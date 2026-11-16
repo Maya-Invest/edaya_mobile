@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-/// Breakpoints for guardian prototype adaptive layout (aligned with teacher).
+/// Breakpoints for guardian adaptive layout (aligned with teacher).
 abstract final class PrototypeBreakpoints {
   /// Compact → medium: switch bottom nav to [NavigationRail].
   static const double compact = 600;
@@ -16,8 +16,7 @@ abstract final class PrototypeBreakpoints {
   /// Right overlay detail drawer for nested list routes.
   static bool useDetailDrawer(double width) => width >= expanded;
 
-  static bool detailDrawerActive(BuildContext context) =>
-      useDetailDrawer(MediaQuery.sizeOf(context).width);
+  static bool detailDrawerActive(BuildContext context) => useDetailDrawer(MediaQuery.sizeOf(context).width);
 
   /// @Deprecated Use [useDetailDrawer].
   static bool useMasterDetail(double width) => useDetailDrawer(width);

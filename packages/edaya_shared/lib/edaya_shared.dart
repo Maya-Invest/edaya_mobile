@@ -1,5 +1,10 @@
 library;
 
+export 'src/demo/demo_store.dart';
+export 'src/demo/demo_transport.dart' show schoolStoragePrefix, schoolMediaClient, DemoSchoolClient;
+export 'src/demo/demo_host.dart';
+export 'src/demo/school_clock.dart';
+
 export 'src/access/school_client.dart';
 export 'src/l10n/l10n_extension.dart';
 export 'src/l10n/l10n_lookup.dart';

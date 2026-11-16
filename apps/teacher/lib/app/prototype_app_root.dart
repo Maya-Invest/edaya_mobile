@@ -15,12 +15,14 @@ class PrototypeAppRoot extends StatelessWidget {
     required this.store,
     this.authenticated = false,
     this.live = false,
+    this.demo,
   });
 
   final MockStore store;
 
   /// When true, ensure the store is signed in after DI registration.
   final bool authenticated;
+  final DemoStore? demo;
 
   /// Production Accueil uses Identity OTP + school API. Tests keep [live] false.
   final bool live;
@@ -30,7 +32,12 @@ class PrototypeAppRoot extends StatelessWidget {
     return LScope(
       name: 'teacher',
       dependencyFactory: (scope) {
-        registerPrototypeDependencies(scope, store: store, live: live);
+        registerPrototypeDependencies(
+          scope,
+          demo: demo,
+          store: store,
+          live: live,
+        );
         if (authenticated && !store.isAuthenticated) {
           store.signIn();
         }
@@ -79,7 +86,7 @@ class _PrototypeMaterialApp extends StatelessWidget {
           if (!ready) {
             return const EdayaStartupScreen();
           }
-          return child ?? const SizedBox.shrink();
+          return DemoFrame(child: child ?? const SizedBox.shrink());
         },
       );
     });

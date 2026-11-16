@@ -4,9 +4,10 @@ Each repository verifies and releases its own revision. Backend changes do not r
 
 | Entry point | Trigger | Stages |
 | --- | --- | --- |
-| `branche_check.yml` | Push outside staging/main | Prepare once, then quality and unit in parallel |
+| `branch_check.yml` | Push outside staging/main | Prepare once, then quality and unit in parallel |
 | `pr_validation.yml` | PR into staging/main or manual validation | Prepare → quality, unit and four independent builds (Guardian and Teacher on Android and iOS). API, Guardian and Teacher integration jobs run in parallel after quality and unit. **Full validation** requires all ten upstream jobs. |
-| `deploy.yml` | Push or manual dispatch on staging/main | Same full graph using distribution signing, then four independent app/store jobs |
+| `deploy_testing.yml` | Push or manual dispatch on `staging` | Fully qualify and sign both apps with the staging API, then deploy to Play internal testing and TestFlight |
+| `deploy_live.yml` | Push or manual dispatch on `main` | Fully qualify and sign both apps with the production API, then submit to Google Play production and Apple App Review |
 
 For branch pushes and PRs, prepare uses a matching backend branch (PR head branch), falling back to backend `dev` only if that branch is absent. PRs validate the proposed merge commit. Manual validation allows explicit revisions. Releases use the selected branch SHA and its matching backend destination. Manual release accepts no revision override.
 
@@ -25,7 +26,7 @@ Staging successfully produced both signed Android APKs on November 14, 2026. [St
 | `staging` | Backend `staging`, `https://staging.api.edayaplus.com` | Google Play internal testing and internal TestFlight. Signed Android APKs are also available as artifacts. |
 | `main` | Backend `main`, `https://api.edayaplus.com` | Fresh production builds sent to Google Play production review and Apple App Review. |
 
-Production qualification requires the integration fixture command in backend `main`. The backend maintainer must land the fixture tooling there before the first production qualification. Merging into mobile `main` starts the production workflow. Both branches use one release workflow so the two stores receive distinct, increasing build numbers.
+Production qualification requires the integration fixture command in backend `main`. The backend maintainer must land the fixture tooling there before the first production qualification. Merging into mobile `main` starts the production workflow. Both entry points call `_release.yml`. Preparation allocates one store build number under their shared release queue and freezes it in the current attempt’s prepared artifact. A rerun uses a new number and must still target the branch tip.
 
 | Actions secret | Purpose |
 | --- | --- |
@@ -127,7 +128,7 @@ Release workflows proceed automatically after successful qualification. Deployme
 
 Deploy the backend tooling changes to the destination branches before consumers qualify against those branches: consumer integration uses the backend's typed fixture command. Configure branch protection to require **qualification / Full validation** from the PR workflow (confirm the exact displayed check name on the first rehearsal). Remove obsolete coordinator/publication checks only after that required check succeeds. GitHub may display the caller workflow name as an additional prefix.
 
-Bun remains pinned to 1.3.14, Flutter to 3.44.8. Ubuntu CI and macOS development use native Git, archive tools and PostgreSQL binaries where needed. Validators are downloaded at pinned versions and verified against committed SHA-256 checksums. Dart owns the main repository operations; pinned Ruby/Fastlane/CocoaPods tooling handles Apple signing and store delivery.
+Bun remains pinned to 1.3.14, Flutter to 3.44.8. Ubuntu CI and macOS development use native Git, archive tools and PostgreSQL binaries where needed. Validators are downloaded at pinned versions and verified against committed SHA-256 checksums. Dart owns the main repository operations. Fastlane handles Apple signing and store delivery.
 
 ## Release evidence
 
@@ -177,7 +178,7 @@ Brand tokens, galleries, design review, keystore setup and SVG/native icon gener
 | `ci_support.py`, shell service/lint launchers and workflow tests | Dart evidence/workflow tools, backend owned fixture and pinned actionlint |
 | `release-contract.py`, committed generated binding snapshots | Removed; checksummed acquisition/release outputs |
 
-Application analysis and tests run only after explicit client preparation. Flutter commands use frozen workspace dependencies (`--no-pub` after setup). Native Gradle/Flutter platform wrappers remain supported.
+Application analysis and tests run after client preparation. CI installs dependencies with `--enforce-lockfile` and checks the prepared lockfile again when recording each build. Android release builds let Flutter regenerate the plugin list in release mode so it excludes development-only plugins such as `integration_test`. Native Gradle/Flutter platform wrappers remain supported.
 
 ## Local migration rehearsal — 2026-10-11
 

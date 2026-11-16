@@ -19,7 +19,7 @@ class DailyAttendanceController extends LevitController {
     required this.client,
     required this.outbox,
     DateTime? schoolDay,
-  }) : date = LxVar(schoolDay ?? DateTime.now());
+  }) : date = LxVar(schoolDay ?? SchoolClock.now());
   final String classId;
   final SchoolClientFactory client;
   final TeacherOutboxStore outbox;
@@ -261,7 +261,7 @@ class DailyAttendanceController extends LevitController {
   }
 
   bool get arrivalWindowActive {
-    final now = DateTime.now().toUtc();
+    final now = SchoolClock.now().toUtc();
     final start = DateTime.parse(anchor['date'] as String);
     return !now.isBefore(start) &&
         now.isBefore(start.add(const Duration(days: 1)));
@@ -287,7 +287,7 @@ class DailyAttendanceController extends LevitController {
             'requestId': newSchoolRequestId(),
             'recordId': record['id'],
             'expectedVersion': record['workflowVersion'] ?? 0,
-            'occurredAt': DateTime.now().toUtc().toIso8601String(),
+            'occurredAt': SchoolClock.now().toUtc().toIso8601String(),
           },
       id,
       TeacherOutboxKind.attendance,
@@ -388,7 +388,7 @@ class DailyAttendancePage extends LScopedView<DailyAttendanceController> {
       outbox: scope.find<TeacherOutboxStore>(),
       schoolDay:
           initialDate ??
-          scope.find<TeacherContextController>().schoolTime(DateTime.now()),
+          scope.find<TeacherContextController>().schoolTime(SchoolClock.now()),
     ),
   );
   @override
@@ -416,7 +416,7 @@ class DailyAttendancePage extends LScopedView<DailyAttendanceController> {
                         firstDate: DateTime(2020),
                         lastDate: context.levit
                             .find<TeacherContextController>()
-                            .schoolTime(DateTime.now()),
+                            .schoolTime(SchoolClock.now()),
                       );
                       if (date != null) {
                         await controller.draftWrites.settled;

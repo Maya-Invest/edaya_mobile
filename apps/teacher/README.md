@@ -66,7 +66,7 @@ Family feedback from Accueil opens `/home/avis/:id` (Accueil tab stays selected)
 From the repository root:
 
 ```bash
-bash scripts/design-review.sh teacher
+dart run edaya_repo:repo maintenance design-review teacher
 ```
 
 Output: `apps/teacher/design-review/index.html` (mock harness, no API).

@@ -33,7 +33,9 @@ void registerPrototypeDependencies(
   AuthClient? authClient,
   PushNotificationService? pushNotifications,
   bool includeBootstrap = true,
+  DemoStore? demo,
 }) {
+  authClient ??= demo?.auth;
   final isLive = live ?? store == null;
   scope.put<PrototypeRuntime>(
     () => PrototypeRuntime(live: isLive),
@@ -55,6 +57,7 @@ void registerPrototypeDependencies(
     final cookieJar = authClient?.cookieJar ?? CookieJar();
     scope.put<SessionStorage>(
       () => SessionStorage(
+        prefix: demo?.prefix ?? '',
         contextKey: () =>
             '${scope.find<AppSessionController>().user.value?.id}/${scope.find<AppSessionController>().schoolIdHeader}',
       ),
@@ -66,9 +69,9 @@ void registerPrototypeDependencies(
     );
     if (authClient != null) {
       scope.put<CookieJar>(() => cookieJar, permanent: true);
-      scope.put<AuthClient>(() => authClient, permanent: true);
+      scope.put<AuthClient>(() => authClient!, permanent: true);
       scope.put<AppSettingsController>(
-        () => AppSettingsController(),
+        () => AppSettingsController(prefix: demo?.prefix ?? ''),
         permanent: true,
       );
     } else {
@@ -85,11 +88,13 @@ void registerPrototypeDependencies(
     scope.put<PushNotificationService>(
       () =>
           pushNotifications ??
-          FcmPushNotificationService(
-            schoolClientFactory: scope.find<SchoolClientFactory>(),
-            config: PushNotificationConfigs.guardian,
-            onNotificationOpened: handleGuardianNotificationOpened,
-          ),
+          (demo != null
+              ? NoOpPushNotificationService()
+              : FcmPushNotificationService(
+                  schoolClientFactory: scope.find<SchoolClientFactory>(),
+                  config: PushNotificationConfigs.guardian,
+                  onNotificationOpened: handleGuardianNotificationOpened,
+                )),
       permanent: true,
     );
     scope.put<AppSessionController>(
@@ -126,11 +131,14 @@ void registerPrototypeDependencies(
     if (includeBootstrap) {
       scope.put<AppBootstrapController>(
         () => AppBootstrapController(
+          skipAnonymousNativeRestore: authClient == null,
           authClient: scope.find<AuthClient>(),
           sessionStorage: scope.find<SessionStorage>(),
           session: scope.find<AppSessionController>(),
           pushNotifications: scope.find<PushNotificationService>(),
-          beforeRestore: () => scope.find<PendingInvitationStore>().hydrate(),
+          beforeRestore: demo == null
+              ? () => scope.find<PendingInvitationStore>().hydrate()
+              : null,
           initializeAuthenticatedContext: () =>
               initializeGuardianAuthenticatedContext(scope),
         ),
@@ -139,7 +147,7 @@ void registerPrototypeDependencies(
     }
   } else {
     scope.put<AppSettingsController>(
-      () => AppSettingsController(),
+      () => AppSettingsController(prefix: demo?.prefix ?? ''),
       permanent: true,
     );
     scope.put<PendingInvitationStore>(
@@ -158,6 +166,7 @@ void registerPrototypeDependencies(
 
   scope.put<GoRouter>(
     () => createRouter(
+      demo: demo != null,
       session: isLive ? scope.find<AppSessionController>() : null,
       studentContext: isLive ? scope.find<StudentContextController>() : null,
       academicYear: isLive ? scope.find<AcademicYearController>() : null,

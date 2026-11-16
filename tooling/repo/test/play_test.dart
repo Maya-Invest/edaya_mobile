@@ -129,6 +129,33 @@ void main() {
     },
   );
 
+  test(
+    'split workflows use the prepared build for Play even when workflow counters restart',
+    () {
+      expect(
+        releaseVersionCode({
+          'EDAYA_STORE_BUILD': '21000001',
+          'GITHUB_RUN_NUMBER': '1',
+          'GITHUB_RUN_ATTEMPT': '2',
+        }),
+        22000001,
+      );
+      expect(
+        releaseVersionCode({
+          'EDAYA_STORE_BUILD': '21000002',
+          'PLAY_VERSION_CODE_BASE': '0',
+        }),
+        21000002,
+      );
+      for (final value in ['0', '-1', '2100000000']) {
+        expect(
+          () => releaseVersionCode({'EDAYA_STORE_BUILD': value}),
+          throwsStateError,
+        );
+      }
+    },
+  );
+
   late Directory dir;
   late Map<String, File> bundles;
   setUp(() {

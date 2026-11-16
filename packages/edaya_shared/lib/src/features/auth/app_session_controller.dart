@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../demo/demo_store.dart';
 
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -69,6 +70,10 @@ class AppSessionController extends LevitController {
 
   bool get allowUnlinkedIdentity => _allowUnlinkedIdentity?.call() ?? false;
 
+  DemoStore? get demo =>
+      _authClient is DemoAuthClient ? _authClient.store : null;
+  String get _prefix => demo?.prefix ?? '';
+
   bool get hasSchoolSession => grants.value != null;
 
   bool get needsProfileSelection =>
@@ -90,6 +95,12 @@ class AppSessionController extends LevitController {
     isBootstrapping(true);
 
     try {
+      if (demo case final local?) {
+        final error = await _loadSchoolSession(local.user);
+        if (error != null) throw StateError(error);
+        _routerRefresh.refresh();
+        return;
+      }
       if (await _sessionStorage.isLoggedOut()) {
         return;
       }
@@ -115,6 +126,7 @@ class AppSessionController extends LevitController {
   }
 
   Future<String?> completeSignIn(AuthUser signedInUser) async {
+    if (demo != null) return null;
     final error = await _loadSchoolSession(signedInUser);
     if (error != null) {
       if (allowUnlinkedIdentity) {
@@ -132,7 +144,7 @@ class AppSessionController extends LevitController {
   }
 
   Future<void> signOut() async {
-    if (isSigningOut.value) {
+    if (demo != null || isSigningOut.value) {
       return;
     }
 
@@ -157,6 +169,7 @@ class AppSessionController extends LevitController {
   /// This intentionally does not call the remote sign-out endpoint because the
   /// app may already be pointing at a different server.
   Future<void> clearForApiUrlChange() async {
+    if (demo != null) return;
     await _sessionStorage.markLoggedOut();
     await _clearLocalSession();
     _routerRefresh.refresh();
@@ -290,22 +303,28 @@ class AppSessionController extends LevitController {
 
   Future<void> _restorePinnedProfile() async {
     final prefs = await SharedPreferences.getInstance();
-    _pinnedActorId ??= prefs.getString('edaya_selected_actor_id');
-    _pinnedSchoolId ??= prefs.getString('edaya_selected_school_id');
-    _pinnedActorKind ??= prefs.getString('edaya_selected_actor_kind');
+    _pinnedActorId ??= prefs.getString('${_prefix}edaya_selected_actor_id');
+    _pinnedSchoolId ??= prefs.getString('${_prefix}edaya_selected_school_id');
+    _pinnedActorKind ??= prefs.getString('${_prefix}edaya_selected_actor_kind');
   }
 
   Future<void> _persistPinnedProfile() async {
     final prefs = await SharedPreferences.getInstance();
     if (_pinnedActorId == null || _pinnedSchoolId == null) {
-      await prefs.remove('edaya_selected_actor_id');
-      await prefs.remove('edaya_selected_school_id');
-      await prefs.remove('edaya_selected_actor_kind');
+      await prefs.remove('${_prefix}edaya_selected_actor_id');
+      await prefs.remove('${_prefix}edaya_selected_school_id');
+      await prefs.remove('${_prefix}edaya_selected_actor_kind');
       return;
     }
-    await prefs.setString('edaya_selected_actor_id', _pinnedActorId!);
-    await prefs.setString('edaya_selected_school_id', _pinnedSchoolId!);
-    await prefs.setString('edaya_selected_actor_kind', _pinnedActorKind ?? '');
+    await prefs.setString('${_prefix}edaya_selected_actor_id', _pinnedActorId!);
+    await prefs.setString(
+      '${_prefix}edaya_selected_school_id',
+      _pinnedSchoolId!,
+    );
+    await prefs.setString(
+      '${_prefix}edaya_selected_actor_kind',
+      _pinnedActorKind ?? '',
+    );
   }
 
   Future<void> _clearLocalSession({bool persistCookies = true}) async {
@@ -318,9 +337,9 @@ class AppSessionController extends LevitController {
     _academicYearIdHeader = null;
     _actorKindHeader = null;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('edaya_selected_actor_id');
-    await prefs.remove('edaya_selected_school_id');
-    await prefs.remove('edaya_selected_actor_kind');
+    await prefs.remove('${_prefix}edaya_selected_actor_id');
+    await prefs.remove('${_prefix}edaya_selected_school_id');
+    await prefs.remove('${_prefix}edaya_selected_actor_kind');
     if (persistCookies) {
       await _sessionStorage.clearCookies();
       _authClient.clearCredentials();

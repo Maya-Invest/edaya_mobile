@@ -11,8 +11,7 @@ import 'models/calendar_session.dart';
 import 'models/logbook_entry.dart';
 
 /// Resolves a timetable occurrence by path id and loads attendance + logbook.
-class SessionDetailController extends LevitController
-    with LevitReactiveTasksMixin {
+class SessionDetailController extends LevitController with LevitReactiveTasksMixin {
   SessionDetailController({
     required this.sessionId,
     required StudentContextController studentContext,
@@ -60,20 +59,14 @@ class SessionDetailController extends LevitController
     autoDispose(assessmentCoefficient);
     autoDispose(activityNotes);
     autoDispose(errorMessage);
-    autoDispose(
-      _studentContext.activeStudent.stream.listen(
-        (_) => unawaited(loadDetails()),
-      ),
-    );
+    autoDispose(_studentContext.activeStudent.stream.listen((_) => unawaited(loadDetails())));
     unawaited(loadDetails());
   }
 
   Future<void> loadDetails() async {
     final generation = ++_loadGeneration;
     final studentId = _studentContext.activeStudentId;
-    bool isCurrent() =>
-        generation == _loadGeneration &&
-        studentId == _studentContext.activeStudentId;
+    bool isCurrent() => generation == _loadGeneration && studentId == _studentContext.activeStudentId;
     session(null);
     attendance(null);
     logbook(null);
@@ -107,33 +100,20 @@ class SessionDetailController extends LevitController
             'endDate': at.add(const Duration(days: 1)).toIso8601String(),
           });
           if (!isCurrent()) return;
-          if (!(timetable['events'] as List).any(
-            (event) => event['id'] == resolved.id,
-          )) {
+          if (!(timetable['events'] as List).any((event) => event['id'] == resolved.id)) {
             session(null);
-            errorMessage(
-              systemL10n().couldNotLoadSessionDetails(
-                'Subject participation required',
-              ),
-            );
+            errorMessage(systemL10n().couldNotLoadSessionDetails('Subject participation required'));
             return;
           }
         }
         session(resolved);
         {
           final attendanceRows = await client.attendance.list({
-            ...attendanceForOccurrence(
-              kind: resolved.kind,
-              occurrenceId: resolved.id,
-            ),
+            ...attendanceForOccurrence(kind: resolved.kind, occurrenceId: resolved.id),
             'studentId': studentId,
           });
           if (!isCurrent()) return;
-          attendance(
-            attendanceRows.isEmpty
-                ? null
-                : AttendanceRecord.fromJson(attendanceRows.first),
-          );
+          attendance(attendanceRows.isEmpty ? null : AttendanceRecord.fromJson(attendanceRows.first));
         }
 
         final entry = await _loadLogbook(client, resolved);
@@ -157,10 +137,7 @@ class SessionDetailController extends LevitController
       final lesson = await client.lessonSessions.get(sessionId);
       return CalendarSession(
         id: lesson['id'] as String,
-        title:
-            lesson['displayLabel'] as String? ??
-            lesson['title'] as String? ??
-            'Cours',
+        title: lesson['displayLabel'] as String? ?? lesson['title'] as String? ?? 'Cours',
         kind: 'lesson',
         startsAt: parseApiDateTime(lesson['startsAt']) ?? DateTime.now(),
         endsAt: parseApiDateTime(lesson['endsAt']) ?? DateTime.now(),
@@ -176,10 +153,7 @@ class SessionDetailController extends LevitController
       final activity = await client.activitySessions.get(sessionId);
       return CalendarSession(
         id: activity['id'] as String,
-        title:
-            activity['displayLabel'] as String? ??
-            activity['title'] as String? ??
-            'Activité',
+        title: activity['displayLabel'] as String? ?? activity['title'] as String? ?? 'Activité',
         kind: 'activity',
         startsAt: parseApiDateTime(activity['startsAt']) ?? DateTime.now(),
         endsAt: parseApiDateTime(activity['endsAt']) ?? DateTime.now(),
@@ -191,9 +165,7 @@ class SessionDetailController extends LevitController
 
     try {
       final assessment = await client.assessments.get(sessionId);
-      var startsAt = parseApiDateTime(
-        assessment['dueAt'] ?? assessment['startsAt'],
-      );
+      var startsAt = parseApiDateTime(assessment['dueAt'] ?? assessment['startsAt']);
       final lessonId = assessment['lessonSessionId'] as String?;
       if (startsAt == null && lessonId != null) {
         final lesson = await client.lessonSessions.get(lessonId);
@@ -216,12 +188,7 @@ class SessionDetailController extends LevitController
     return null;
   }
 
-  Future<void> _loadAssessmentExtras(
-    SchoolClient client,
-    CalendarSession resolved,
-    String studentId,
-    bool Function() isCurrent,
-  ) async {
+  Future<void> _loadAssessmentExtras(SchoolClient client, CalendarSession resolved, String studentId, bool Function() isCurrent) async {
     try {
       final assessment = await client.assessments.get(resolved.id);
       if (!isCurrent()) return;
@@ -231,35 +198,20 @@ class SessionDetailController extends LevitController
       assessmentMaxScore((assessment['maxScore'] as num?)?.toDouble());
       assessmentCoefficient((assessment['coefficient'] as num?)?.toDouble());
 
-      final results = await client.assessmentResults.list({
-        'studentId': studentId,
-        'assessmentId': resolved.id,
-      });
+      final results = await client.assessmentResults.list({'studentId': studentId, 'assessmentId': resolved.id});
       if (!isCurrent()) return;
       if (results.isNotEmpty) {
         final entry = results.first['originalEntry'] as Map?;
-        assessmentMention(
-          entry?['kind'] == 'mention'
-              ? '${entry!['code']} — ${entry['label']}'
-              : null,
-        );
+        assessmentMention(entry?['kind'] == 'mention' ? '${entry!['code']} — ${entry['label']}' : null);
         final rawScore = results.first['score'];
-        assessmentScore(
-          rawScore is num
-              ? rawScore.toDouble()
-              : double.tryParse(rawScore?.toString() ?? ''),
-        );
+        assessmentScore(rawScore is num ? rawScore.toDouble() : double.tryParse(rawScore?.toString() ?? ''));
       }
     } on Object {
       // Optional enrichment — leave fields null.
     }
   }
 
-  Future<void> _loadActivityExtras(
-    SchoolClient client,
-    CalendarSession resolved,
-    bool Function() isCurrent,
-  ) async {
+  Future<void> _loadActivityExtras(SchoolClient client, CalendarSession resolved, bool Function() isCurrent) async {
     try {
       final activity = await client.activitySessions.get(resolved.id);
       if (!isCurrent()) return;
@@ -269,10 +221,7 @@ class SessionDetailController extends LevitController
     }
   }
 
-  Future<LogbookEntry?> _loadLogbook(
-    SchoolClient client,
-    CalendarSession resolved,
-  ) async {
+  Future<LogbookEntry?> _loadLogbook(SchoolClient client, CalendarSession resolved) async {
     if (resolved.kind != 'lesson' || resolved.classSubjectId == null) {
       if (resolved.kind == 'activity') {
         final notes = activityNotes.value;
@@ -289,9 +238,7 @@ class SessionDetailController extends LevitController
       return null;
     }
 
-    final progressRows = await client.classSubjectProgress.list(
-      progressForLessonSessions([resolved.id]),
-    );
+    final progressRows = await client.classSubjectProgress.list(progressForLessonSessions([resolved.id]));
 
     Map<String, dynamic>? lessonSession;
     try {
@@ -309,19 +256,11 @@ class SessionDetailController extends LevitController
     String chapter = resolved.title;
     if (primaryProgress != null) {
       try {
-        final matterLinks = await client.classSubjectMatters.list({
-          'classSubjectId': resolved.classSubjectId,
-        });
-        final matterLink = matterLinks.cast<Map<String, dynamic>>().where(
-          (link) => link['id'] == primaryProgress['classSubjectMatterId'],
-        );
-        final subjectMatterId = matterLink.isEmpty
-            ? null
-            : matterLink.first['subjectMatterId'] as String?;
+        final matterLinks = await client.classSubjectMatters.list({'classSubjectId': resolved.classSubjectId});
+        final matterLink = matterLinks.cast<Map<String, dynamic>>().where((link) => link['id'] == primaryProgress['classSubjectMatterId']);
+        final subjectMatterId = matterLink.isEmpty ? null : matterLink.first['subjectMatterId'] as String?;
         if (subjectMatterId != null) {
-          final subjectMatter = await client.subjectMatters.get(
-            subjectMatterId,
-          );
+          final subjectMatter = await client.subjectMatters.get(subjectMatterId);
           chapter = subjectMatter['name'] as String? ?? chapter;
         }
       } on Object {
@@ -335,22 +274,17 @@ class SessionDetailController extends LevitController
       content: decodeStructuredSessionNote(sessionNote).guardianText.isNotEmpty
           ? decodeStructuredSessionNote(sessionNote).guardianText
           : primaryProgress?['notes'] as String? ?? '',
-      objectives: primaryProgress?['notes'] != null
-          ? [primaryProgress!['notes'] as String]
-          : const [],
+      objectives: primaryProgress?['notes'] != null ? [primaryProgress!['notes'] as String] : const [],
       progress: (primaryProgress?['completedPercentage'] as num?)?.toInt() ?? 0,
       date: resolved.startsAt,
     );
   }
 }
 
-class AttendanceListController extends LevitController
-    with LevitReactiveTasksMixin {
-  AttendanceListController({
-    required StudentContextController studentContext,
-    required SchoolClientFactory schoolClient,
-  }) : _studentContext = studentContext,
-       _schoolClient = schoolClient;
+class AttendanceListController extends LevitController with LevitReactiveTasksMixin {
+  AttendanceListController({required StudentContextController studentContext, required SchoolClientFactory schoolClient})
+    : _studentContext = studentContext,
+      _schoolClient = schoolClient;
 
   final StudentContextController _studentContext;
   final SchoolClientFactory _schoolClient;
@@ -378,22 +312,15 @@ class AttendanceListController extends LevitController
       try {
         final client = _schoolClient();
         final rows = await client.attendance.listAll(studentScope(studentId));
-        final parsed = rows.map(AttendanceRecord.fromJson).toList()
-          ..sort((a, b) => b.date.compareTo(a.date));
+        final parsed = rows.map(AttendanceRecord.fromJson).toList()..sort((a, b) => b.date.compareTo(a.date));
         records(parsed);
 
         final sessionIds = parsed.map((record) => record.occurrenceId).toSet();
         final titles = <String, String>{};
         for (final occurrenceId in sessionIds) {
-          final record = parsed.firstWhere(
-            (entry) => entry.occurrenceId == occurrenceId,
-          );
+          final record = parsed.firstWhere((entry) => entry.occurrenceId == occurrenceId);
           try {
-            titles[occurrenceId] = await _resolveOccurrenceTitle(
-              client,
-              occurrenceId: occurrenceId,
-              kind: record.occurrenceKind,
-            );
+            titles[occurrenceId] = await _resolveOccurrenceTitle(client, occurrenceId: occurrenceId, kind: record.occurrenceKind);
           } on Object {
             titles[occurrenceId] = occurrenceId;
           }
@@ -407,23 +334,17 @@ class AttendanceListController extends LevitController
   }
 }
 
-/// Prototype alias used by attendance_page.dart.
+/// alias used by attendance_page.dart.
 typedef AttendanceController = AttendanceListController;
 
-Future<String> _resolveOccurrenceTitle(
-  SchoolClient client, {
-  required String occurrenceId,
-  required String kind,
-}) async {
+Future<String> _resolveOccurrenceTitle(SchoolClient client, {required String occurrenceId, required String kind}) async {
   switch (kind) {
     case 'daily':
       return systemL10n().dailyAttendance;
     case 'activity':
       try {
         final session = await client.activitySessions.get(occurrenceId);
-        return session['displayLabel'] as String? ??
-            session['title'] as String? ??
-            occurrenceId;
+        return session['displayLabel'] as String? ?? session['title'] as String? ?? occurrenceId;
       } on api.ApiError catch (error) {
         if (error.status != 404) rethrow;
       }
@@ -434,9 +355,7 @@ Future<String> _resolveOccurrenceTitle(
     default:
       try {
         final session = await client.lessonSessions.get(occurrenceId);
-        return session['displayLabel'] as String? ??
-            session['title'] as String? ??
-            occurrenceId;
+        return session['displayLabel'] as String? ?? session['title'] as String? ?? occurrenceId;
       } on api.ApiError catch (error) {
         if (error.status != 404) rethrow;
       }

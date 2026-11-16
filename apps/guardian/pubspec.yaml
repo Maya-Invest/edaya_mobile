@@ -3,7 +3,7 @@ description: Edaya mobile app for guardians and parents.
 publish_to: none
 resolution: workspace
 
-version: 1.0.0+0
+version: 0.0.0+1
 
 environment:
   sdk: ^3.11.1
@@ -29,6 +29,8 @@ dependencies:
   url_launcher: ^6.3.2
 
 dev_dependencies:
+  integration_test:
+    sdk: flutter
   flutter_secure_storage: ^10.3.4
   flutter_test:
     sdk: flutter
@@ -52,9 +54,3 @@ flutter_launcher_icons:
 
 flutter:
   uses-material-design: true
-  assets:
-    - assets/fonts/
-  fonts:
-    - family: Nunito
-      fonts:
-        - asset: assets/fonts/Nunito-Variable.ttf

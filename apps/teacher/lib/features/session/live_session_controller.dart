@@ -408,6 +408,7 @@ class LiveSessionController extends LevitController
         _outboxContext?.call(),
         _logbookVersion,
         _proposalVersion,
+        prefix: schoolStoragePrefix(_schoolClient()),
       ),
     );
   }
@@ -555,7 +556,7 @@ class LiveSessionController extends LevitController
   }
 
   bool get arrivalWindowActive {
-    final current = session.value, now = DateTime.now();
+    final current = session.value, now = SchoolClock.now();
     return current != null &&
         now.isAfter(current.startsAt) &&
         now.isBefore(current.endsAt);
@@ -625,7 +626,7 @@ class LiveSessionController extends LevitController
             'requestId': newSchoolRequestId(),
             'recordId': row.attendanceId,
             'expectedVersion': row.workflowVersion,
-            'occurredAt': DateTime.now().toUtc().toIso8601String(),
+            'occurredAt': SchoolClock.now().toUtc().toIso8601String(),
           },
       TeacherOutboxKind.attendance,
       id,
@@ -809,6 +810,7 @@ class LiveSessionController extends LevitController
     final context = _outboxContext?.call();
     final version = _logbookVersion;
     final proposalVersion = _proposalVersion;
+    final prefix = schoolStoragePrefix(_schoolClient());
     return _draftWrite = _draftWrite.then(
       (_) => SessionLogbookDraftStorage.save(
         sessionId,
@@ -816,6 +818,7 @@ class LiveSessionController extends LevitController
         version,
         proposalVersion,
         drafts,
+        prefix: prefix,
       ),
     );
   }

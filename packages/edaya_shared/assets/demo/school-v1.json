@@ -1,0 +1,1345 @@
+{
+  "schools": [
+    {
+      "id": "demo-school",
+      "schoolId": "demo-school",
+      "name": "Collège Lumière d’Abidjan",
+      "shortName": "Collège Lumière",
+      "timezone": "Africa/Abidjan",
+      "currency": "XOF",
+      "timeZone": "Africa/Abidjan"
+    }
+  ],
+  "academic-years": [
+    {
+      "id": "demo-2026",
+      "schoolId": "demo-school",
+      "name": "2026–2027",
+      "startsAt": "2026-09-01",
+      "endsAt": "2027-07-01",
+      "status": "published"
+    },
+    {
+      "id": "demo-2025",
+      "schoolId": "demo-school",
+      "name": "2025–2026",
+      "startsAt": "2025-09-01",
+      "endsAt": "2026-07-01",
+      "status": "archived"
+    }
+  ],
+  "academic-periods": [
+    {
+      "id": "demo-t1",
+      "schoolId": "demo-school",
+      "name": "Trimestre 1",
+      "academicYearId": "demo-2026",
+      "startsAt": "2026-09-01",
+      "endsAt": "2026-12-20",
+      "status": "published",
+      "kind": "term"
+    },
+    {
+      "id": "demo-archive-t3",
+      "schoolId": "demo-school",
+      "name": "Trimestre 3",
+      "academicYearId": "demo-2025",
+      "startsAt": "2026-03-01",
+      "endsAt": "2026-07-01",
+      "status": "published",
+      "kind": "term"
+    }
+  ],
+  "teachers": [
+    {
+      "id": "demo-teacher",
+      "schoolId": "demo-school",
+      "firstName": "Aminata",
+      "lastName": "Traoré",
+      "status": "active",
+      "email": "demo-teacher@example.invalid",
+      "subjectId": "demo-teacher-account",
+      "phone": "+2250100000000"
+    }
+  ],
+  "message-deliveries": [
+    {
+      "id": "demo-teacher-notice",
+      "schoolId": "demo-school",
+      "subjectId": "demo-teacher-account",
+      "recipientKind": "teacher",
+      "recipientId": "demo-teacher",
+      "actorKind": "teacher",
+      "actorId": "demo-teacher",
+      "channel": "in_app",
+      "status": "sent",
+      "title": "Rencontre des familles",
+      "body": "Rencontrons-nous vendredi à 16 h à la bibliothèque.",
+      "createdAt": "2026-11-10T10:15:00.000Z",
+      "sentAt": "2026-11-10T10:15:00.000Z"
+    },
+    {
+      "id": "demo-guardian-notice",
+      "schoolId": "demo-school",
+      "subjectId": "demo-guardian-account",
+      "recipientKind": "guardian",
+      "recipientId": "demo-guardian",
+      "actorKind": "guardian",
+      "actorId": "demo-guardian",
+      "channel": "in_app",
+      "status": "sent",
+      "title": "Rencontre des familles",
+      "body": "Rencontrons-nous vendredi à 16 h à la bibliothèque.",
+      "createdAt": "2026-11-10T10:15:00.000Z",
+      "sentAt": "2026-11-10T10:15:00.000Z"
+    }
+  ],
+  "guardians": [
+    {
+      "id": "demo-guardian",
+      "schoolId": "demo-school",
+      "firstName": "Moussa",
+      "lastName": "Koné",
+      "status": "active",
+      "email": "demo-guardian@example.invalid",
+      "subjectId": "demo-guardian-account",
+      "phone": "+2250100000000"
+    }
+  ],
+  "subjects": [
+    {
+      "id": "demo-math",
+      "schoolId": "demo-school",
+      "name": "Mathématiques"
+    }
+  ],
+  "subject-matters": [
+    {
+      "id": "demo-fractions",
+      "schoolId": "demo-school",
+      "name": "Fractions et proportions",
+      "subjectId": "demo-math",
+      "sequenceOrder": 1
+    }
+  ],
+  "class-groups": [
+    {
+      "id": "demo-class-a",
+      "schoolId": "demo-school",
+      "name": "6e A",
+      "academicYearId": "demo-2026",
+      "attendanceMode": "session",
+      "gradeLevelId": "demo-level"
+    },
+    {
+      "id": "demo-class-b",
+      "schoolId": "demo-school",
+      "name": "6e B",
+      "academicYearId": "demo-2026",
+      "attendanceMode": "daily",
+      "gradeLevelId": "demo-level"
+    },
+    {
+      "id": "demo-class-a-archive",
+      "schoolId": "demo-school",
+      "name": "6e A",
+      "academicYearId": "demo-2025",
+      "attendanceMode": "session",
+      "gradeLevelId": "demo-level"
+    },
+    {
+      "id": "demo-class-b-archive",
+      "schoolId": "demo-school",
+      "name": "6e B",
+      "academicYearId": "demo-2025",
+      "attendanceMode": "daily",
+      "gradeLevelId": "demo-level"
+    }
+  ],
+  "class-subjects": [
+    {
+      "id": "demo-math-a",
+      "schoolId": "demo-school",
+      "subjectId": "demo-math",
+      "classGroupId": "demo-class-a",
+      "academicYearId": "demo-2026",
+      "completedPercentage": 35,
+      "coefficient": 2
+    },
+    {
+      "id": "demo-math-b",
+      "schoolId": "demo-school",
+      "subjectId": "demo-math",
+      "classGroupId": "demo-class-b",
+      "academicYearId": "demo-2026",
+      "completedPercentage": 35,
+      "coefficient": 2
+    },
+    {
+      "id": "demo-math-a-archive",
+      "schoolId": "demo-school",
+      "subjectId": "demo-math",
+      "classGroupId": "demo-class-a-archive",
+      "academicYearId": "demo-2025",
+      "completedPercentage": 35,
+      "coefficient": 2
+    },
+    {
+      "id": "demo-math-b-archive",
+      "schoolId": "demo-school",
+      "subjectId": "demo-math",
+      "classGroupId": "demo-class-b-archive",
+      "academicYearId": "demo-2025",
+      "completedPercentage": 35,
+      "coefficient": 2
+    }
+  ],
+  "class-subject-matters": [
+    {
+      "id": "demo-math-a-chapter",
+      "schoolId": "demo-school",
+      "classSubjectId": "demo-math-a",
+      "subjectMatterId": "demo-fractions",
+      "status": "in_progress",
+      "completedPercentage": 35
+    },
+    {
+      "id": "demo-math-b-chapter",
+      "schoolId": "demo-school",
+      "classSubjectId": "demo-math-b",
+      "subjectMatterId": "demo-fractions",
+      "status": "in_progress",
+      "completedPercentage": 35
+    }
+  ],
+  "teacher-assignments": [
+    {
+      "id": "demo-math-a-assignment",
+      "schoolId": "demo-school",
+      "teacherId": "demo-teacher",
+      "academicYearId": "demo-2026",
+      "kind": "subject",
+      "status": "active",
+      "classGroupId": "demo-class-a",
+      "classSubjectId": "demo-math-a"
+    },
+    {
+      "id": "demo-math-b-assignment",
+      "schoolId": "demo-school",
+      "teacherId": "demo-teacher",
+      "academicYearId": "demo-2026",
+      "kind": "subject",
+      "status": "active",
+      "classGroupId": "demo-class-b",
+      "classSubjectId": "demo-math-b"
+    },
+    {
+      "id": "demo-titulaire",
+      "schoolId": "demo-school",
+      "teacherId": "demo-teacher",
+      "academicYearId": "demo-2026",
+      "kind": "homeroom",
+      "status": "active",
+      "classGroupId": "demo-class-b"
+    }
+  ],
+  "lesson-sessions": [
+    {
+      "id": "demo-math-a-lesson-0",
+      "schoolId": "demo-school",
+      "academicYearId": "demo-2026",
+      "classGroupId": "demo-class-a",
+      "classSubjectId": "demo-math-a",
+      "teacherId": "demo-teacher",
+      "kind": "lesson",
+      "title": "Fractions et proportions",
+      "subjectLabel": "Mathématiques",
+      "displayLabel": "Fractions et proportions",
+      "teacherName": "Aminata Traoré",
+      "startsAt": "2026-11-09T09:00:00.000Z",
+      "endsAt": "2026-11-09T10:00:00.000Z",
+      "status": "scheduled",
+      "sessionNote": "Comparer deux fractions."
+    },
+    {
+      "id": "demo-math-a-lesson-1",
+      "schoolId": "demo-school",
+      "academicYearId": "demo-2026",
+      "classGroupId": "demo-class-a",
+      "classSubjectId": "demo-math-a",
+      "teacherId": "demo-teacher",
+      "kind": "lesson",
+      "title": "Fractions et proportions",
+      "subjectLabel": "Mathématiques",
+      "displayLabel": "Fractions et proportions",
+      "teacherName": "Aminata Traoré",
+      "startsAt": "2026-11-10T10:00:00.000Z",
+      "endsAt": "2026-11-10T11:00:00.000Z",
+      "status": "scheduled",
+      "sessionNote": null
+    },
+    {
+      "id": "demo-math-a-lesson-2",
+      "schoolId": "demo-school",
+      "academicYearId": "demo-2026",
+      "classGroupId": "demo-class-a",
+      "classSubjectId": "demo-math-a",
+      "teacherId": "demo-teacher",
+      "kind": "lesson",
+      "title": "Fractions et proportions",
+      "subjectLabel": "Mathématiques",
+      "displayLabel": "Fractions et proportions",
+      "teacherName": "Aminata Traoré",
+      "startsAt": "2026-11-10T13:00:00.000Z",
+      "endsAt": "2026-11-10T14:00:00.000Z",
+      "status": "scheduled",
+      "sessionNote": null
+    },
+    {
+      "id": "demo-math-a-lesson-3",
+      "schoolId": "demo-school",
+      "academicYearId": "demo-2026",
+      "classGroupId": "demo-class-a",
+      "classSubjectId": "demo-math-a",
+      "teacherId": "demo-teacher",
+      "kind": "lesson",
+      "title": "Fractions et proportions",
+      "subjectLabel": "Mathématiques",
+      "displayLabel": "Fractions et proportions",
+      "teacherName": "Aminata Traoré",
+      "startsAt": "2026-11-12T11:00:00.000Z",
+      "endsAt": "2026-11-12T12:00:00.000Z",
+      "status": "scheduled",
+      "sessionNote": null
+    },
+    {
+      "id": "demo-math-b-lesson-0",
+      "schoolId": "demo-school",
+      "academicYearId": "demo-2026",
+      "classGroupId": "demo-class-b",
+      "classSubjectId": "demo-math-b",
+      "teacherId": "demo-teacher",
+      "kind": "lesson",
+      "title": "Fractions et proportions",
+      "subjectLabel": "Mathématiques",
+      "displayLabel": "Fractions et proportions",
+      "teacherName": "Aminata Traoré",
+      "startsAt": "2026-11-09T09:00:00.000Z",
+      "endsAt": "2026-11-09T10:00:00.000Z",
+      "status": "scheduled",
+      "sessionNote": "Comparer deux fractions."
+    },
+    {
+      "id": "demo-math-b-lesson-1",
+      "schoolId": "demo-school",
+      "academicYearId": "demo-2026",
+      "classGroupId": "demo-class-b",
+      "classSubjectId": "demo-math-b",
+      "teacherId": "demo-teacher",
+      "kind": "lesson",
+      "title": "Fractions et proportions",
+      "subjectLabel": "Mathématiques",
+      "displayLabel": "Fractions et proportions",
+      "teacherName": "Aminata Traoré",
+      "startsAt": "2026-11-10T10:00:00.000Z",
+      "endsAt": "2026-11-10T11:00:00.000Z",
+      "status": "scheduled",
+      "sessionNote": null
+    },
+    {
+      "id": "demo-math-b-lesson-2",
+      "schoolId": "demo-school",
+      "academicYearId": "demo-2026",
+      "classGroupId": "demo-class-b",
+      "classSubjectId": "demo-math-b",
+      "teacherId": "demo-teacher",
+      "kind": "lesson",
+      "title": "Fractions et proportions",
+      "subjectLabel": "Mathématiques",
+      "displayLabel": "Fractions et proportions",
+      "teacherName": "Aminata Traoré",
+      "startsAt": "2026-11-10T13:00:00.000Z",
+      "endsAt": "2026-11-10T14:00:00.000Z",
+      "status": "scheduled",
+      "sessionNote": null
+    },
+    {
+      "id": "demo-math-b-lesson-3",
+      "schoolId": "demo-school",
+      "academicYearId": "demo-2026",
+      "classGroupId": "demo-class-b",
+      "classSubjectId": "demo-math-b",
+      "teacherId": "demo-teacher",
+      "kind": "lesson",
+      "title": "Fractions et proportions",
+      "subjectLabel": "Mathématiques",
+      "displayLabel": "Fractions et proportions",
+      "teacherName": "Aminata Traoré",
+      "startsAt": "2026-11-12T11:00:00.000Z",
+      "endsAt": "2026-11-12T12:00:00.000Z",
+      "status": "scheduled",
+      "sessionNote": null
+    }
+  ],
+  "assessments": [
+    {
+      "id": "demo-math-a-submitted",
+      "schoolId": "demo-school",
+      "academicYearId": "demo-2026",
+      "periodId": "demo-t1",
+      "teacherId": "demo-teacher",
+      "classSubjectId": "demo-math-a",
+      "classGroupId": "demo-class-a",
+      "title": "Proportions",
+      "maxScore": 20,
+      "coefficient": 2,
+      "kind": "quiz",
+      "startsAt": "2026-11-09T09:00:00Z",
+      "endsAt": "2026-11-09T10:00:00Z",
+      "marksRevision": 0,
+      "marksStatus": "submitted"
+    },
+    {
+      "id": "demo-math-a-draft",
+      "schoolId": "demo-school",
+      "academicYearId": "demo-2026",
+      "periodId": "demo-t1",
+      "teacherId": "demo-teacher",
+      "classSubjectId": "demo-math-a",
+      "classGroupId": "demo-class-a",
+      "title": "Fractions équivalentes",
+      "maxScore": 20,
+      "coefficient": 2,
+      "kind": "quiz",
+      "startsAt": "2026-11-09T09:00:00Z",
+      "endsAt": "2026-11-09T10:00:00Z",
+      "marksRevision": 0,
+      "marksStatus": "draft"
+    },
+    {
+      "id": "demo-math-b-submitted",
+      "schoolId": "demo-school",
+      "academicYearId": "demo-2026",
+      "periodId": "demo-t1",
+      "teacherId": "demo-teacher",
+      "classSubjectId": "demo-math-b",
+      "classGroupId": "demo-class-b",
+      "title": "Proportions",
+      "maxScore": 20,
+      "coefficient": 2,
+      "kind": "quiz",
+      "startsAt": "2026-11-09T09:00:00Z",
+      "endsAt": "2026-11-09T10:00:00Z",
+      "marksRevision": 0,
+      "marksStatus": "submitted"
+    },
+    {
+      "id": "demo-math-b-draft",
+      "schoolId": "demo-school",
+      "academicYearId": "demo-2026",
+      "periodId": "demo-t1",
+      "teacherId": "demo-teacher",
+      "classSubjectId": "demo-math-b",
+      "classGroupId": "demo-class-b",
+      "title": "Fractions équivalentes",
+      "maxScore": 20,
+      "coefficient": 2,
+      "kind": "quiz",
+      "startsAt": "2026-11-09T09:00:00Z",
+      "endsAt": "2026-11-09T10:00:00Z",
+      "marksRevision": 0,
+      "marksStatus": "draft"
+    }
+  ],
+  "students": [
+    {
+      "id": "demo-amina",
+      "schoolId": "demo-school",
+      "firstName": "Amina",
+      "lastName": "Koné",
+      "identifier": "ED-AMINA",
+      "status": "active"
+    },
+    {
+      "id": "demo-fatou",
+      "schoolId": "demo-school",
+      "firstName": "Fatou",
+      "lastName": "Diallo",
+      "identifier": "ED-FATOU",
+      "status": "active"
+    },
+    {
+      "id": "demo-yao",
+      "schoolId": "demo-school",
+      "firstName": "Yao",
+      "lastName": "Kouassi",
+      "identifier": "ED-YAO",
+      "status": "active"
+    },
+    {
+      "id": "demo-youssef",
+      "schoolId": "demo-school",
+      "firstName": "Youssef",
+      "lastName": "Koné",
+      "identifier": "ED-YOUSSEF",
+      "status": "active"
+    },
+    {
+      "id": "demo-ines",
+      "schoolId": "demo-school",
+      "firstName": "Inès",
+      "lastName": "Yao",
+      "identifier": "ED-INES",
+      "status": "active"
+    }
+  ],
+  "enrollments": [
+    {
+      "id": "demo-amina-enrollment",
+      "schoolId": "demo-school",
+      "studentId": "demo-amina",
+      "academicYearId": "demo-2026",
+      "classGroupId": "demo-class-a",
+      "status": "active",
+      "enrolledAt": "2026-09-01"
+    },
+    {
+      "id": "demo-amina-archive",
+      "schoolId": "demo-school",
+      "studentId": "demo-amina",
+      "academicYearId": "demo-2025",
+      "classGroupId": "demo-class-a-archive",
+      "status": "active",
+      "enrolledAt": "2025-09-01"
+    },
+    {
+      "id": "demo-fatou-enrollment",
+      "schoolId": "demo-school",
+      "studentId": "demo-fatou",
+      "academicYearId": "demo-2026",
+      "classGroupId": "demo-class-a",
+      "status": "active",
+      "enrolledAt": "2026-09-01"
+    },
+    {
+      "id": "demo-yao-enrollment",
+      "schoolId": "demo-school",
+      "studentId": "demo-yao",
+      "academicYearId": "demo-2026",
+      "classGroupId": "demo-class-a",
+      "status": "active",
+      "enrolledAt": "2026-09-01"
+    },
+    {
+      "id": "demo-youssef-enrollment",
+      "schoolId": "demo-school",
+      "studentId": "demo-youssef",
+      "academicYearId": "demo-2026",
+      "classGroupId": "demo-class-b",
+      "status": "active",
+      "enrolledAt": "2026-09-01"
+    },
+    {
+      "id": "demo-youssef-archive",
+      "schoolId": "demo-school",
+      "studentId": "demo-youssef",
+      "academicYearId": "demo-2025",
+      "classGroupId": "demo-class-b-archive",
+      "status": "active",
+      "enrolledAt": "2025-09-01"
+    },
+    {
+      "id": "demo-ines-enrollment",
+      "schoolId": "demo-school",
+      "studentId": "demo-ines",
+      "academicYearId": "demo-2026",
+      "classGroupId": "demo-class-b",
+      "status": "active",
+      "enrolledAt": "2026-09-01"
+    }
+  ],
+  "subject-enrollments": [
+    {
+      "id": "demo-amina-math",
+      "schoolId": "demo-school",
+      "studentId": "demo-amina",
+      "academicYearId": "demo-2026",
+      "classSubjectId": "demo-math-a",
+      "enrolledAt": "2026-09-01",
+      "scope": "year"
+    },
+    {
+      "id": "demo-fatou-math",
+      "schoolId": "demo-school",
+      "studentId": "demo-fatou",
+      "academicYearId": "demo-2026",
+      "classSubjectId": "demo-math-a",
+      "enrolledAt": "2026-09-01",
+      "scope": "year"
+    },
+    {
+      "id": "demo-yao-math",
+      "schoolId": "demo-school",
+      "studentId": "demo-yao",
+      "academicYearId": "demo-2026",
+      "classSubjectId": "demo-math-a",
+      "enrolledAt": "2026-09-01",
+      "scope": "year"
+    },
+    {
+      "id": "demo-youssef-math",
+      "schoolId": "demo-school",
+      "studentId": "demo-youssef",
+      "academicYearId": "demo-2026",
+      "classSubjectId": "demo-math-b",
+      "enrolledAt": "2026-09-01",
+      "scope": "year"
+    },
+    {
+      "id": "demo-ines-math",
+      "schoolId": "demo-school",
+      "studentId": "demo-ines",
+      "academicYearId": "demo-2026",
+      "classSubjectId": "demo-math-b",
+      "enrolledAt": "2026-09-01",
+      "scope": "year"
+    }
+  ],
+  "assessment-results": [
+    {
+      "id": "demo-amina-mark",
+      "schoolId": "demo-school",
+      "studentId": "demo-amina",
+      "assessmentId": "demo-math-a-submitted",
+      "score": 16,
+      "maxScore": 20,
+      "designation": "scored",
+      "status": "submitted",
+      "notes": "Le raisonnement est clair."
+    },
+    {
+      "id": "demo-fatou-mark",
+      "schoolId": "demo-school",
+      "studentId": "demo-fatou",
+      "assessmentId": "demo-math-a-submitted",
+      "score": 15,
+      "maxScore": 20,
+      "designation": "scored",
+      "status": "submitted",
+      "notes": "Le raisonnement est clair."
+    },
+    {
+      "id": "demo-yao-mark",
+      "schoolId": "demo-school",
+      "studentId": "demo-yao",
+      "assessmentId": "demo-math-a-submitted",
+      "score": 14,
+      "maxScore": 20,
+      "designation": "scored",
+      "status": "submitted",
+      "notes": "Le raisonnement est clair."
+    },
+    {
+      "id": "demo-youssef-mark",
+      "schoolId": "demo-school",
+      "studentId": "demo-youssef",
+      "assessmentId": "demo-math-b-submitted",
+      "score": 16,
+      "maxScore": 20,
+      "designation": "scored",
+      "status": "submitted",
+      "notes": "Le raisonnement est clair."
+    },
+    {
+      "id": "demo-ines-mark",
+      "schoolId": "demo-school",
+      "studentId": "demo-ines",
+      "assessmentId": "demo-math-b-submitted",
+      "score": 15,
+      "maxScore": 20,
+      "designation": "scored",
+      "status": "submitted",
+      "notes": "Le raisonnement est clair."
+    }
+  ],
+  "results": [
+    {
+      "id": "demo-amina-report-demo-2026",
+      "schoolId": "demo-school",
+      "studentId": "demo-amina",
+      "classGroupId": "demo-class-a",
+      "academicYearId": "demo-2026",
+      "periodId": "demo-t1",
+      "average": 16,
+      "sectionResults": [
+        {
+          "sectionKind": "subject",
+          "sectionId": "subject:demo-math-a",
+          "subjectId": "demo-math",
+          "classSubjectId": "demo-math-a",
+          "name": "Mathématiques",
+          "coefficient": 2,
+          "average": 16,
+          "comment": "Bonne maîtrise des proportions."
+        }
+      ],
+      "version": 1,
+      "status": "draft",
+      "teacherComment": "Un travail régulier.",
+      "generatedAt": "2026-11-10T10:15:00.000Z"
+    },
+    {
+      "id": "demo-amina-report-demo-2025",
+      "schoolId": "demo-school",
+      "studentId": "demo-amina",
+      "classGroupId": "demo-class-a-archive",
+      "academicYearId": "demo-2025",
+      "periodId": "demo-archive-t3",
+      "average": 16,
+      "sectionResults": [
+        {
+          "sectionKind": "subject",
+          "sectionId": "subject:demo-math-a-archive",
+          "subjectId": "demo-math",
+          "classSubjectId": "demo-math-a-archive",
+          "name": "Mathématiques",
+          "coefficient": 2,
+          "average": 16,
+          "comment": "Bonne maîtrise des proportions."
+        }
+      ],
+      "version": 1,
+      "status": "published",
+      "teacherComment": "Un travail régulier.",
+      "generatedAt": "2026-06-20"
+    },
+    {
+      "id": "demo-fatou-report-demo-2026",
+      "schoolId": "demo-school",
+      "studentId": "demo-fatou",
+      "classGroupId": "demo-class-a",
+      "academicYearId": "demo-2026",
+      "periodId": "demo-t1",
+      "average": 15,
+      "sectionResults": [
+        {
+          "sectionKind": "subject",
+          "sectionId": "subject:demo-math-a",
+          "subjectId": "demo-math",
+          "classSubjectId": "demo-math-a",
+          "name": "Mathématiques",
+          "coefficient": 2,
+          "average": 15,
+          "comment": "Bonne maîtrise des proportions."
+        }
+      ],
+      "version": 1,
+      "status": "draft",
+      "teacherComment": "Un travail régulier.",
+      "generatedAt": "2026-11-10T10:15:00.000Z"
+    },
+    {
+      "id": "demo-fatou-report-demo-2025",
+      "schoolId": "demo-school",
+      "studentId": "demo-fatou",
+      "classGroupId": "demo-class-a-archive",
+      "academicYearId": "demo-2025",
+      "periodId": "demo-archive-t3",
+      "average": 15,
+      "sectionResults": [
+        {
+          "sectionKind": "subject",
+          "sectionId": "subject:demo-math-a-archive",
+          "subjectId": "demo-math",
+          "classSubjectId": "demo-math-a-archive",
+          "name": "Mathématiques",
+          "coefficient": 2,
+          "average": 15,
+          "comment": "Bonne maîtrise des proportions."
+        }
+      ],
+      "version": 1,
+      "status": "published",
+      "teacherComment": "Un travail régulier.",
+      "generatedAt": "2026-06-20"
+    },
+    {
+      "id": "demo-yao-report-demo-2026",
+      "schoolId": "demo-school",
+      "studentId": "demo-yao",
+      "classGroupId": "demo-class-a",
+      "academicYearId": "demo-2026",
+      "periodId": "demo-t1",
+      "average": 14,
+      "sectionResults": [
+        {
+          "sectionKind": "subject",
+          "sectionId": "subject:demo-math-a",
+          "subjectId": "demo-math",
+          "classSubjectId": "demo-math-a",
+          "name": "Mathématiques",
+          "coefficient": 2,
+          "average": 14,
+          "comment": "Bonne maîtrise des proportions."
+        }
+      ],
+      "version": 1,
+      "status": "draft",
+      "teacherComment": "Un travail régulier.",
+      "generatedAt": "2026-11-10T10:15:00.000Z"
+    },
+    {
+      "id": "demo-yao-report-demo-2025",
+      "schoolId": "demo-school",
+      "studentId": "demo-yao",
+      "classGroupId": "demo-class-a-archive",
+      "academicYearId": "demo-2025",
+      "periodId": "demo-archive-t3",
+      "average": 14,
+      "sectionResults": [
+        {
+          "sectionKind": "subject",
+          "sectionId": "subject:demo-math-a-archive",
+          "subjectId": "demo-math",
+          "classSubjectId": "demo-math-a-archive",
+          "name": "Mathématiques",
+          "coefficient": 2,
+          "average": 14,
+          "comment": "Bonne maîtrise des proportions."
+        }
+      ],
+      "version": 1,
+      "status": "published",
+      "teacherComment": "Un travail régulier.",
+      "generatedAt": "2026-06-20"
+    },
+    {
+      "id": "demo-youssef-report-demo-2026",
+      "schoolId": "demo-school",
+      "studentId": "demo-youssef",
+      "classGroupId": "demo-class-b",
+      "academicYearId": "demo-2026",
+      "periodId": "demo-t1",
+      "average": 16,
+      "sectionResults": [
+        {
+          "sectionKind": "subject",
+          "sectionId": "subject:demo-math-b",
+          "subjectId": "demo-math",
+          "classSubjectId": "demo-math-b",
+          "name": "Mathématiques",
+          "coefficient": 2,
+          "average": 16,
+          "comment": "Bonne maîtrise des proportions."
+        }
+      ],
+      "version": 1,
+      "status": "draft",
+      "teacherComment": "Un travail régulier.",
+      "generatedAt": "2026-11-10T10:15:00.000Z"
+    },
+    {
+      "id": "demo-youssef-report-demo-2025",
+      "schoolId": "demo-school",
+      "studentId": "demo-youssef",
+      "classGroupId": "demo-class-b-archive",
+      "academicYearId": "demo-2025",
+      "periodId": "demo-archive-t3",
+      "average": 16,
+      "sectionResults": [
+        {
+          "sectionKind": "subject",
+          "sectionId": "subject:demo-math-b-archive",
+          "subjectId": "demo-math",
+          "classSubjectId": "demo-math-b-archive",
+          "name": "Mathématiques",
+          "coefficient": 2,
+          "average": 16,
+          "comment": "Bonne maîtrise des proportions."
+        }
+      ],
+      "version": 1,
+      "status": "published",
+      "teacherComment": "Un travail régulier.",
+      "generatedAt": "2026-06-20"
+    },
+    {
+      "id": "demo-ines-report-demo-2026",
+      "schoolId": "demo-school",
+      "studentId": "demo-ines",
+      "classGroupId": "demo-class-b",
+      "academicYearId": "demo-2026",
+      "periodId": "demo-t1",
+      "average": 15,
+      "sectionResults": [
+        {
+          "sectionKind": "subject",
+          "sectionId": "subject:demo-math-b",
+          "subjectId": "demo-math",
+          "classSubjectId": "demo-math-b",
+          "name": "Mathématiques",
+          "coefficient": 2,
+          "average": 15,
+          "comment": "Bonne maîtrise des proportions."
+        }
+      ],
+      "version": 1,
+      "status": "draft",
+      "teacherComment": "Un travail régulier.",
+      "generatedAt": "2026-11-10T10:15:00.000Z"
+    },
+    {
+      "id": "demo-ines-report-demo-2025",
+      "schoolId": "demo-school",
+      "studentId": "demo-ines",
+      "classGroupId": "demo-class-b-archive",
+      "academicYearId": "demo-2025",
+      "periodId": "demo-archive-t3",
+      "average": 15,
+      "sectionResults": [
+        {
+          "sectionKind": "subject",
+          "sectionId": "subject:demo-math-b-archive",
+          "subjectId": "demo-math",
+          "classSubjectId": "demo-math-b-archive",
+          "name": "Mathématiques",
+          "coefficient": 2,
+          "average": 15,
+          "comment": "Bonne maîtrise des proportions."
+        }
+      ],
+      "version": 1,
+      "status": "published",
+      "teacherComment": "Un travail régulier.",
+      "generatedAt": "2026-06-20"
+    }
+  ],
+  "document-issuances": [
+    {
+      "id": "demo-amina-report-demo-2025-pdf",
+      "schoolId": "demo-school",
+      "sourceId": "demo-amina-report-demo-2025",
+      "studentId": "demo-amina",
+      "academicYearId": "demo-2025",
+      "templateKey": "report-card.v1",
+      "status": "ready",
+      "title": "Bulletin scolaire",
+      "asset": "report-card-demo-amina"
+    },
+    {
+      "id": "demo-amina-receipt-payment-receipt.v1",
+      "schoolId": "demo-school",
+      "sourceId": "demo-amina-receipt",
+      "studentId": "demo-amina",
+      "academicYearId": "demo-2026",
+      "templateKey": "receipt.v1",
+      "status": "ready",
+      "title": "Reçu de paiement",
+      "asset": "receipt-demo-amina"
+    },
+    {
+      "id": "sya:demo-school:demo-amina:demo-2026:XOF-account-statement.v1",
+      "schoolId": "demo-school",
+      "sourceId": "sya:demo-school:demo-amina:demo-2026:XOF",
+      "studentId": "demo-amina",
+      "academicYearId": "demo-2026",
+      "templateKey": "account-statement.v1",
+      "status": "ready",
+      "title": "Relevé de compte",
+      "asset": "account-statement-demo-amina"
+    },
+    {
+      "id": "demo-amina-schooling-certificate.v1",
+      "schoolId": "demo-school",
+      "sourceId": "demo-amina",
+      "studentId": "demo-amina",
+      "academicYearId": "demo-2026",
+      "templateKey": "schooling-certificate.v1",
+      "status": "ready",
+      "title": "Certificat de scolarité",
+      "asset": "schooling-certificate-demo-amina"
+    },
+    {
+      "id": "demo-youssef-report-demo-2025-pdf",
+      "schoolId": "demo-school",
+      "sourceId": "demo-youssef-report-demo-2025",
+      "studentId": "demo-youssef",
+      "academicYearId": "demo-2025",
+      "templateKey": "report-card.v1",
+      "status": "ready",
+      "title": "Bulletin scolaire",
+      "asset": "report-card-demo-youssef"
+    },
+    {
+      "id": "demo-youssef-receipt-payment-receipt.v1",
+      "schoolId": "demo-school",
+      "sourceId": "demo-youssef-receipt",
+      "studentId": "demo-youssef",
+      "academicYearId": "demo-2026",
+      "templateKey": "receipt.v1",
+      "status": "ready",
+      "title": "Reçu de paiement",
+      "asset": "receipt-demo-youssef"
+    },
+    {
+      "id": "sya:demo-school:demo-youssef:demo-2026:XOF-account-statement.v1",
+      "schoolId": "demo-school",
+      "sourceId": "sya:demo-school:demo-youssef:demo-2026:XOF",
+      "studentId": "demo-youssef",
+      "academicYearId": "demo-2026",
+      "templateKey": "account-statement.v1",
+      "status": "ready",
+      "title": "Relevé de compte",
+      "asset": "account-statement-demo-youssef"
+    },
+    {
+      "id": "demo-youssef-schooling-certificate.v1",
+      "schoolId": "demo-school",
+      "sourceId": "demo-youssef",
+      "studentId": "demo-youssef",
+      "academicYearId": "demo-2026",
+      "templateKey": "schooling-certificate.v1",
+      "status": "ready",
+      "title": "Certificat de scolarité",
+      "asset": "schooling-certificate-demo-youssef"
+    },
+    {
+      "id": "sya:demo-school:demo-amina:demo-2026:XOF-account-statement.v1-invoice",
+      "schoolId": "demo-school",
+      "sourceId": "sya:demo-school:demo-amina:demo-2026:XOF",
+      "studentId": "demo-amina",
+      "academicYearId": "demo-2026",
+      "templateKey": "invoice.v1",
+      "status": "ready",
+      "title": "Avis de frais",
+      "asset": "invoice-demo-amina"
+    },
+    {
+      "id": "sya:demo-school:demo-youssef:demo-2026:XOF-account-statement.v1-invoice",
+      "schoolId": "demo-school",
+      "sourceId": "sya:demo-school:demo-youssef:demo-2026:XOF",
+      "studentId": "demo-youssef",
+      "academicYearId": "demo-2026",
+      "templateKey": "invoice.v1",
+      "status": "ready",
+      "title": "Avis de frais",
+      "asset": "invoice-demo-youssef"
+    }
+  ],
+  "attendance": [
+    {
+      "id": "demo-amina-attendance",
+      "schoolId": "demo-school",
+      "studentId": "demo-amina",
+      "classGroupId": "demo-class-a",
+      "academicYearId": "demo-2026",
+      "lessonSessionId": "demo-math-a-lesson-0",
+      "date": "2026-11-09",
+      "status": "present",
+      "workflowVersion": 1
+    },
+    {
+      "id": "demo-fatou-attendance",
+      "schoolId": "demo-school",
+      "studentId": "demo-fatou",
+      "classGroupId": "demo-class-a",
+      "academicYearId": "demo-2026",
+      "lessonSessionId": "demo-math-a-lesson-0",
+      "date": "2026-11-09",
+      "status": "present",
+      "workflowVersion": 1
+    },
+    {
+      "id": "demo-yao-attendance",
+      "schoolId": "demo-school",
+      "studentId": "demo-yao",
+      "classGroupId": "demo-class-a",
+      "academicYearId": "demo-2026",
+      "lessonSessionId": "demo-math-a-lesson-0",
+      "date": "2026-11-09",
+      "status": "present",
+      "workflowVersion": 1
+    },
+    {
+      "id": "demo-youssef-attendance",
+      "schoolId": "demo-school",
+      "studentId": "demo-youssef",
+      "classGroupId": "demo-class-b",
+      "academicYearId": "demo-2026",
+      "lessonSessionId": "demo-math-b-lesson-0",
+      "date": "2026-11-09",
+      "status": "present",
+      "workflowVersion": 1
+    },
+    {
+      "id": "demo-ines-attendance",
+      "schoolId": "demo-school",
+      "studentId": "demo-ines",
+      "classGroupId": "demo-class-b",
+      "academicYearId": "demo-2026",
+      "lessonSessionId": "demo-math-b-lesson-0",
+      "date": "2026-11-09",
+      "status": "present",
+      "workflowVersion": 1
+    }
+  ],
+  "guardian-links": [
+    {
+      "id": "demo-amina-link",
+      "schoolId": "demo-school",
+      "studentId": "demo-amina",
+      "guardianId": "demo-guardian",
+      "relationship": "parent",
+      "status": "active"
+    },
+    {
+      "id": "demo-youssef-link",
+      "schoolId": "demo-school",
+      "studentId": "demo-youssef",
+      "guardianId": "demo-guardian",
+      "relationship": "parent",
+      "status": "active"
+    }
+  ],
+  "student-charges": [
+    {
+      "id": "demo-amina-tuition",
+      "schoolId": "demo-school",
+      "studentId": "demo-amina",
+      "academicYearId": "demo-2026",
+      "label": "Scolarité du trimestre",
+      "currency": "XOF",
+      "expectedAmount": 50000,
+      "allocatedAmount": 30000,
+      "adjustmentAmount": 0,
+      "waiverAmount": 0,
+      "status": "partial",
+      "dueDate": "2026-11-20",
+      "installments": [
+        {
+          "id": "demo-amina-tuition-1",
+          "label": "Novembre",
+          "expectedAmount": 50000,
+          "dueDate": "2026-11-20"
+        }
+      ]
+    },
+    {
+      "id": "demo-youssef-tuition",
+      "schoolId": "demo-school",
+      "studentId": "demo-youssef",
+      "academicYearId": "demo-2026",
+      "label": "Scolarité du trimestre",
+      "currency": "XOF",
+      "expectedAmount": 50000,
+      "allocatedAmount": 30000,
+      "adjustmentAmount": 0,
+      "waiverAmount": 0,
+      "status": "partial",
+      "dueDate": "2026-11-20",
+      "installments": [
+        {
+          "id": "demo-youssef-tuition-1",
+          "label": "Novembre",
+          "expectedAmount": 50000,
+          "dueDate": "2026-11-20"
+        }
+      ]
+    }
+  ],
+  "payments": [
+    {
+      "id": "demo-amina-receipt",
+      "schoolId": "demo-school",
+      "studentId": "demo-amina",
+      "academicYearId": "demo-2026",
+      "accountId": "demo-amina-account",
+      "currency": "XOF",
+      "amount": 30000,
+      "paymentDate": "2026-11-03",
+      "method": "cash",
+      "status": "recorded",
+      "reference": "DEMO-001"
+    },
+    {
+      "id": "demo-youssef-receipt",
+      "schoolId": "demo-school",
+      "studentId": "demo-youssef",
+      "academicYearId": "demo-2026",
+      "accountId": "demo-youssef-account",
+      "currency": "XOF",
+      "amount": 30000,
+      "paymentDate": "2026-11-03",
+      "method": "cash",
+      "status": "recorded",
+      "reference": "DEMO-001"
+    }
+  ],
+  "allocations": [
+    {
+      "id": "demo-amina-allocation",
+      "schoolId": "demo-school",
+      "accountId": "demo-amina-account",
+      "chargeId": "demo-amina-tuition",
+      "causedByPaymentId": "demo-amina-receipt",
+      "kind": "settle",
+      "amount": 30000
+    },
+    {
+      "id": "demo-youssef-allocation",
+      "schoolId": "demo-school",
+      "accountId": "demo-youssef-account",
+      "chargeId": "demo-youssef-tuition",
+      "causedByPaymentId": "demo-youssef-receipt",
+      "kind": "settle",
+      "amount": 30000
+    }
+  ],
+  "surveys": [
+    {
+      "id": "demo-amina-survey",
+      "schoolId": "demo-school",
+      "campaignId": "demo-amina-survey",
+      "studentId": "demo-amina",
+      "slotId": "demo-amina-slot",
+      "slotState": "open",
+      "context": {
+        "studentName": "Amina Koné",
+        "teacherName": "Aminata Traoré",
+        "subjectName": "Mathématiques",
+        "className": "6e A",
+        "periodName": "Trimestre 1"
+      }
+    },
+    {
+      "id": "demo-youssef-survey",
+      "schoolId": "demo-school",
+      "campaignId": "demo-youssef-survey",
+      "studentId": "demo-youssef",
+      "slotId": "demo-youssef-slot",
+      "slotState": "completed",
+      "context": {
+        "studentName": "Youssef Koné",
+        "teacherName": "Aminata Traoré",
+        "subjectName": "Mathématiques",
+        "className": "6e B",
+        "periodName": "Trimestre 1"
+      },
+      "receipt": {
+        "completedAt": "2026-11-08T14:30:00Z"
+      }
+    }
+  ],
+  "conversations": [
+    {
+      "id": "demo-thread",
+      "assignmentIds": ["demo-math-a-assignment"],
+      "schoolId": "demo-school",
+      "destination": "teacher",
+      "studentId": "demo-amina",
+      "studentName": "Amina Koné",
+      "classGroupId": "demo-class-a",
+      "schoolName": "Collège Lumière d’Abidjan",
+      "guardianName": "Moussa Koné",
+      "guardianId": "demo-guardian",
+      "teacherId": "demo-teacher",
+      "teacherName": "Aminata Traoré",
+      "subject": "Exercices de fractions",
+      "version": 2,
+      "updatedAt": "2026-11-10T10:15:00.000Z",
+      "allowedActions": {
+        "reply": true
+      },
+      "lastMessage": "Merci, nous les reprendrons ensemble.",
+      "unread": true
+    }
+  ],
+  "messages": [
+    {
+      "id": "demo-thread-1",
+      "schoolId": "demo-school",
+      "conversationId": "demo-thread",
+      "authorKind": "teacher",
+      "authorName": "Aminata Traoré",
+      "authorId": "demo-teacher",
+      "sequence": 1,
+      "body": "Amina a bien expliqué son raisonnement en classe.",
+      "createdAt": "2026-11-10T10:15:00.000Z"
+    },
+    {
+      "id": "demo-thread-2",
+      "schoolId": "demo-school",
+      "conversationId": "demo-thread",
+      "authorKind": "guardian",
+      "authorName": "Moussa Koné",
+      "authorId": "demo-guardian",
+      "sequence": 2,
+      "body": "Merci, nous les reprendrons ensemble.",
+      "createdAt": "2026-11-10T10:15:00.000Z"
+    }
+  ],
+  "corrections": [
+    {
+      "id": "demo-approved",
+      "schoolId": "demo-school",
+      "targetId": "demo-math-a-submitted",
+      "workflow": "marks",
+      "status": "approved",
+      "version": 1,
+      "reason": "Relecture du barème",
+      "proposal": {
+        "workflow": "marks",
+        "targetId": "demo-math-a-submitted",
+        "changes": [
+          {
+            "studentId": "demo-amina",
+            "resultId": "demo-amina-mark",
+            "previous": {
+              "designation": "scored",
+              "score": 15
+            },
+            "proposed": {
+              "designation": "scored",
+              "score": 16
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "incidents": [
+    {
+      "id": "demo-incident",
+      "schoolId": "demo-school",
+      "title": "Matériel retrouvé",
+      "description": "Une trousse oubliée a été rendue à son propriétaire.",
+      "classGroupId": "demo-class-b",
+      "teacherId": "demo-teacher",
+      "academicYearId": "demo-2026",
+      "date": "2026-11-09",
+      "kind": "other",
+      "status": "open",
+      "reporterId": "demo-teacher"
+    }
+  ],
+  "student-incident-involvements": [
+    {
+      "id": "demo-involvement",
+      "schoolId": "demo-school",
+      "incidentId": "demo-incident",
+      "studentId": "demo-youssef",
+      "role": "subject"
+    }
+  ],
+  "student-photo-submissions": [
+    {
+      "id": "demo-photo-reviewed",
+      "studentId": "demo-youssef",
+      "submitterGuardianId": "demo-guardian",
+      "status": "rejected",
+      "version": 2,
+      "rejectionReason": "Le visage doit être entièrement visible.",
+      "createdAt": "2026-10-22T10:00:00Z"
+    }
+  ]
+}

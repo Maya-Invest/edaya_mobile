@@ -22,16 +22,31 @@ Future<void> guardianFcmBackgroundHandler(RemoteMessage message) {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   tzdata.initializeTimeZones();
-  configureEdayaFcm(
-    firebaseOptions: DefaultFirebaseOptions.currentPlatform,
-    notificationConfig: PushNotificationConfigs.guardian,
-  );
-  FirebaseMessaging.onBackgroundMessage(guardianFcmBackgroundHandler);
+  final demo = await DemoStore.resume(DemoRole.guardian);
+  Future<void> prepareLive() async {
+    configureEdayaFcm(
+      firebaseOptions: DefaultFirebaseOptions.currentPlatform,
+      notificationConfig: PushNotificationConfigs.guardian,
+    );
+    FirebaseMessaging.onBackgroundMessage(guardianFcmBackgroundHandler);
+    if (Firebase.apps.isEmpty)
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+  }
+
+  if (demo == null) await prepareLive();
   ApiBaseUrlConfig.configure(appDefaultUrl: ApiBaseUrlConfig.stagingUrl);
   await ApiBaseUrlConfig.load();
-  await AppSettingsController.preload();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await AppSettingsController.preload(prefix: demo?.prefix ?? '');
   Levit.enableAutoLinking();
   await initializeDateFormatting('fr_FR');
-  runApp(const PrototypeAppRoot());
+  runApp(
+    DemoHost(
+      role: DemoRole.guardian,
+      initial: demo,
+      prepareLive: prepareLive,
+      builder: (local) => PrototypeAppRoot(demo: local),
+    ),
+  );
 }

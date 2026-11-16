@@ -25,9 +25,7 @@ class PrototypeWidgetTestHarness {
   LevitScope get scope {
     final resolved = _scope;
     if (resolved == null) {
-      throw StateError(
-        'Prototype harness: pump buildApp() before accessing scope/router',
-      );
+      throw StateError('harness: pump buildApp() before accessing scope/router');
     }
     return resolved;
   }
@@ -44,13 +42,7 @@ class PrototypeWidgetTestHarness {
   }
 
   Widget designReviewRoot({required Widget child}) {
-    final framed = viewportSize == null
-        ? child
-        : SizedBox(
-            width: viewportSize!.width,
-            height: viewportSize!.height,
-            child: child,
-          );
+    final framed = viewportSize == null ? child : SizedBox(width: viewportSize!.width, height: viewportSize!.height, child: child);
     return RepaintBoundary(key: designReviewRootKey, child: framed);
   }
 
@@ -66,21 +58,13 @@ class PrototypeWidgetTestHarness {
         builder: (context) {
           return MaterialApp.router(
             builder: (context, child) => MediaQuery(
-              data: MediaQuery.of(context).copyWith(
-                textScaler: TextScaler.linear(
-                  textScale ?? designReviewTextScale(),
-                ),
-              ),
+              data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(textScale ?? designReviewTextScale())),
               child: child!,
             ),
-            title: 'Edaya Guardian Prototype',
+            title: 'EDaya',
             theme: PrototypeTheme.light,
             darkTheme: PrototypeTheme.dark,
-            themeMode:
-                mode ??
-                (designReviewTheme() == 'dark'
-                    ? ThemeMode.dark
-                    : ThemeMode.light),
+            themeMode: mode ?? (designReviewTheme() == 'dark' ? ThemeMode.dark : ThemeMode.light),
             locale: locale,
             supportedLocales: AppLocalizations.supportedLocales,
             localizationsDelegates: const [

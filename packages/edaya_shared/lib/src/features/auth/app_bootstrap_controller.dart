@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../demo/demo_store.dart';
 
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -16,6 +17,7 @@ class AppBootstrapController extends LevitController {
     required PushNotificationService pushNotifications,
     required Future<void> Function() initializeAuthenticatedContext,
     Future<void> Function()? beforeRestore,
+    this.skipAnonymousNativeRestore = false,
   }) : _authClient = authClient,
        _sessionStorage = sessionStorage,
        _session = session,
@@ -23,6 +25,7 @@ class AppBootstrapController extends LevitController {
        _initializeAuthenticatedContext = initializeAuthenticatedContext,
        _beforeRestore = beforeRestore;
 
+  final bool skipAnonymousNativeRestore;
   final AuthClient _authClient;
   final AuthSessionStorage _sessionStorage;
   final AppSessionController _session;
@@ -41,9 +44,15 @@ class AppBootstrapController extends LevitController {
 
   Future<void> _bootstrap() async {
     try {
-      await _pushNotifications.initialize();
+      if (_pushNotifications is! FcmPushNotificationService)
+        await _pushNotifications.initialize();
       await _beforeRestore?.call();
-      await _sessionStorage.restoreInto(_authClient);
+      if (_authClient is! DemoAuthClient)
+        await _sessionStorage.restoreInto(_authClient);
+      if (skipAnonymousNativeRestore &&
+          !edayaHttpUsesBrowserCredentials &&
+          _authClient.renewalCredential == null)
+        return;
       await _session.restoreSession();
       if (_session.isAuthenticated) {
         await _initializeAuthenticatedContext();

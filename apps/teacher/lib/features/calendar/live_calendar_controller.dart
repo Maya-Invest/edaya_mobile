@@ -19,7 +19,7 @@ class LiveCalendarController extends LevitController
   }) : _teacherContext = teacherContext,
        _academicYear = academicYear,
        _schoolClient = schoolClient {
-    final now = teacherContext.schoolTime(DateTime.now());
+    final now = teacherContext.schoolTime(SchoolClock.now());
     final day = DateTime(now.year, now.month, now.day);
     selectedDay(day);
     weekStart(startOfWeek(day));
@@ -29,8 +29,8 @@ class LiveCalendarController extends LevitController
   final AcademicYearController _academicYear;
   final SchoolClientFactory _schoolClient;
 
-  final weekStart = LxVar(startOfWeek(DateTime.now()));
-  final selectedDay = LxVar(DateTime.now());
+  final weekStart = LxVar(startOfWeek(SchoolClock.now()));
+  final selectedDay = LxVar(SchoolClock.now());
   final sessions = LxVar<List<TeacherSession>>(const []);
   final todaySessions = LxVar<List<TeacherSession>>(const []);
   final attendanceCompletionBySessionId =
@@ -79,7 +79,7 @@ class LiveCalendarController extends LevitController
   CalendarSessionFocus get todayFocus => resolveCalendarSessionFocus(
     sessions: todaySessions.value,
     schoolTime: _teacherContext.schoolTime,
-    now: DateTime.now(),
+    now: SchoolClock.now(),
   );
 
   List<TeacherSession> get sessionsForSelectedDay {
@@ -110,7 +110,7 @@ class LiveCalendarController extends LevitController
   }
 
   List<TeacherSession> get incompleteLogbookSessions {
-    final now = DateTime.now();
+    final now = SchoolClock.now();
     return todayFocus.todaySessions.where((session) {
       if (session.kind != 'lesson' || session.endsAt.isAfter(now)) {
         return false;
@@ -169,7 +169,7 @@ class LiveCalendarController extends LevitController
         teacherId == null ||
         _teacherContext.isLoading.value)
       return;
-    final now = _teacherContext.schoolTime(DateTime.now());
+    final now = _teacherContext.schoolTime(SchoolClock.now());
     if (!_explicitDay) {
       final day = DateTime(now.year, now.month, now.day);
       selectedDay(day);
@@ -282,7 +282,7 @@ class LiveCalendarController extends LevitController
     List<TeacherSession> loadedSessions,
     bool Function() stale,
   ) async {
-    final now = DateTime.now();
+    final now = SchoolClock.now();
     final endedLessons = loadedSessions
         .where(
           (session) => session.kind == 'lesson' && !session.endsAt.isAfter(now),

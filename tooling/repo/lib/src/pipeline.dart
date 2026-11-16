@@ -41,6 +41,8 @@ Future<Map<String, dynamic>> identity(String target) async {
     'runId': env['GITHUB_RUN_ID'] ?? 'local',
     'attempt': env['GITHUB_RUN_ATTEMPT'] ?? '1',
     'release': env['RELEASE_MODE'] == 'true',
+    if (env['RELEASE_MODE'] == 'true')
+      'storeBuild': int.parse(env['EDAYA_STORE_BUILD']!),
     'dependencyLockChecksum': fileHash('pubspec.lock'),
     'clientChecksum': fileHash('.generated/client.json'),
   };
@@ -241,8 +243,7 @@ Future<void> validationBuild(String platform, String target) async {
       'build',
       platform == 'ios' ? 'ios' : 'apk',
       '--release',
-      '--no-pub',
-      if (platform == 'ios') '--no-codesign',
+      if (platform == 'ios') ...['--no-pub', '--no-codesign'],
       '--dart-define=API_URL=$api',
       '--dart-define=TEST_OTP_ACCESS=false',
     ], cwd: cwd);

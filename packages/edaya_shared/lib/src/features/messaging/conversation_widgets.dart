@@ -228,78 +228,88 @@ class ConversationPage extends LScopedView<ConversationController> {
             ),
           ],
         ),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (controller.busy.value) const LinearProgressIndicator(),
-            if (row != null)
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  '${row['schoolName']} · ${row['guardianName']}\n${row['teacherName'] ?? context.tr.messagingSchool}${row['studentName'] == null ? '' : ' · ${row['studentName']}'}',
-                ),
-              ),
-            if (row?['destination'] == 'school')
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(_enquiryStatus(context, row?['status'])),
-              ),
-            if (row?['destination'] == 'teacher')
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  context.tr.messagingOversight,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-            if (controller.error.value.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  controller.error.value == 'CONVERSATION_CHANGED'
-                      ? context.tr.messagingChanged
-                      : context.tr.messagingFailed,
-                ),
-              ),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  if (data?['hasMore'] == true)
-                    TextButton(
-                      onPressed: () => controller.refresh(more: true),
-                      child: Text(context.tr.messagingLoadMore),
-                    ),
-                  for (final message in messages)
-                    ConversationMessageBubble(
-                      key: ValueKey(message['id']),
-                      outgoing: isOutgoingConversationMessage(
-                        authorKind: message['authorKind'] as String,
-                        authorId: message['authorId'] as String? ?? '',
-                        viewerKind: controller.session.grants.value?.kind,
-                        viewerId: controller.session.grants.value?.actorId,
+        body: LayoutBuilder(
+          builder: (context, bounds) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (controller.busy.value) const LinearProgressIndicator(),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    if (row != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Text(
+                          '${row['schoolName']} · ${row['guardianName']}\n${row['teacherName'] ?? context.tr.messagingSchool}${row['studentName'] == null ? '' : ' · ${row['studentName']}'}',
+                        ),
                       ),
-                      author:
-                          '${message['authorKind'] == 'staff' ? '${context.tr.messagingSchoolAuthor} · ' : ''}${message['authorName']}',
-                      body: message['body'] as String,
-                      timestamp:
-                          '${context.formatShortDate(DateTime.parse(message['createdAt'] as String))} · ${context.formatTimeOfDay(DateTime.parse(message['createdAt'] as String))}',
+                    if (row?['destination'] == 'school')
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(_enquiryStatus(context, row?['status'])),
+                      ),
+                    if (row?['destination'] == 'teacher')
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          context.tr.messagingOversight,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    if (controller.error.value.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(
+                          controller.error.value == 'CONVERSATION_CHANGED'
+                              ? context.tr.messagingChanged
+                              : context.tr.messagingFailed,
+                        ),
+                      ),
+                    if (data?['hasMore'] == true)
+                      TextButton(
+                        onPressed: () => controller.refresh(more: true),
+                        child: Text(context.tr.messagingLoadMore),
+                      ),
+                    for (final message in messages)
+                      ConversationMessageBubble(
+                        key: ValueKey(message['id']),
+                        outgoing: isOutgoingConversationMessage(
+                          authorKind: message['authorKind'] as String,
+                          authorId: message['authorId'] as String? ?? '',
+                          viewerKind: controller.session.grants.value?.kind,
+                          viewerId: controller.session.grants.value?.actorId,
+                        ),
+                        author:
+                            '${message['authorKind'] == 'staff' ? '${context.tr.messagingSchoolAuthor} · ' : ''}${message['authorName']}',
+                        body: message['body'] as String,
+                        timestamp:
+                            '${context.formatShortDate(DateTime.parse(message['createdAt'] as String))} · ${context.formatTimeOfDay(DateTime.parse(message['createdAt'] as String))}',
+                      ),
+                  ],
+                ),
+              ),
+              if (row != null &&
+                  (row['allowedActions'] as Map)['reply'] == true)
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: bounds.maxHeight * .8),
+                  child: SingleChildScrollView(
+                    child: _ReplyComposer(
+                      key: ValueKey(
+                        '${controller.identity.value}|$conversationId',
+                      ),
+                      controller: controller,
+                      version: (row['version'] as num).toInt(),
                     ),
-                ],
-              ),
-            ),
-            if (row != null && (row['allowedActions'] as Map)['reply'] == true)
-              _ReplyComposer(
-                key: ValueKey('${controller.identity.value}|$conversationId'),
-                controller: controller,
-                version: (row['version'] as num).toInt(),
-              )
-            else if (row != null)
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(context.tr.messagingHistory),
-              ),
-          ],
+                  ),
+                )
+              else if (row != null)
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(context.tr.messagingHistory),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -331,12 +341,7 @@ class _ReplyComposerState extends State<_ReplyComposer> {
   Widget build(BuildContext context) => SafeArea(
     top: false,
     child: Padding(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        8,
-        16,
-        8 + MediaQuery.viewInsetsOf(context).bottom,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         children: [
           TextField(

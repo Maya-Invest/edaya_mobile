@@ -3,13 +3,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Persists auth cookies on native platforms and guardian UI context.
 class SessionStorage extends AuthSessionStorage {
-  SessionStorage({this.contextKey});
+  SessionStorage({this.contextKey, this.prefix = ''});
+  final String prefix;
   final String Function()? contextKey;
   String get _activeStudentIdKey =>
-      'guardian_v2_child::${contextKey?.call() ?? ''}';
-  static const _academicYearIdKey = 'guardian_academic_year_id';
+      '${prefix}guardian_v2_child::${contextKey?.call() ?? ''}';
+  String get _academicYearIdKey => '${prefix}guardian_academic_year_id';
 
-  static String _academicYearIdKeyForSchool(String schoolId) =>
+  String _academicYearIdKeyForSchool(String schoolId) =>
       '$_academicYearIdKey::$schoolId';
 
   Future<String?> readActiveStudentId() async {

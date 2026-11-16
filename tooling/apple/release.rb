@@ -21,6 +21,11 @@ module AppleRelease
   end
 
   def self.build_number(env)
+    if env.key?('EDAYA_STORE_BUILD')
+      build = Integer(env.fetch('EDAYA_STORE_BUILD'), 10)
+      raise 'Invalid Apple build number allocation' unless (1..99_989_999).cover?(build)
+      return "#{1 + build / 10_000}.#{build / 100 % 100}.#{build % 100}"
+    end
     run = Integer(env.fetch('EDAYA_RELEASE_SEQUENCE') { env.fetch('GITHUB_RUN_NUMBER') }, 10)
     attempt = Integer(env.fetch('GITHUB_RUN_ATTEMPT'), 10)
     raise 'Invalid Apple build number allocation' unless (1..999_899).cover?(run) && (1..99).cover?(attempt)

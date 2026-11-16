@@ -2,8 +2,10 @@ import 'package:edaya_shared/edaya_shared.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SessionStorage extends AuthSessionStorage {
-  static const _academicYearIdKey = 'teacher_academic_year_id';
-  static const _assignmentIdKey = 'teacher_assignment_id';
+  SessionStorage({this.prefix = ''});
+  final String prefix;
+  String get _academicYearIdKey => '${prefix}teacher_academic_year_id';
+  String get _assignmentIdKey => '${prefix}teacher_assignment_id';
 
   Future<String?> readAcademicYearId() async {
     final prefs = await SharedPreferences.getInstance();
@@ -20,14 +22,14 @@ class SessionStorage extends AuthSessionStorage {
   }
 
   Future<String?> readClassSelection(String key) async =>
-      (await SharedPreferences.getInstance()).getString(key);
+      (await SharedPreferences.getInstance()).getString('$prefix$key');
 
   Future<void> writeClassSelection(String key, String? classId) async {
     final prefs = await SharedPreferences.getInstance();
     if (classId == null) {
-      await prefs.remove(key);
+      await prefs.remove('$prefix$key');
     } else {
-      await prefs.setString(key, classId);
+      await prefs.setString('$prefix$key', classId);
     }
   }
 

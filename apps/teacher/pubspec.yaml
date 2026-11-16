@@ -3,7 +3,7 @@ description: Edaya mobile app for teachers and classroom workflows.
 publish_to: none
 resolution: workspace
 
-version: 1.0.0+0
+version: 0.0.0+1
 
 environment:
   sdk: ^3.11.1
@@ -34,6 +34,8 @@ dependencies:
   signature: ^6.4.0
 
 dev_dependencies:
+  integration_test:
+    sdk: flutter
   image_picker_platform_interface: ^2.11.1
   flutter_secure_storage: ^10.3.4
   flutter_test:

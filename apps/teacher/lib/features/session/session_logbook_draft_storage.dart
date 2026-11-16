@@ -51,10 +51,11 @@ abstract final class SessionLogbookDraftStorage {
     String sessionId,
     TeacherOutboxContext? context,
     int revision,
-    int? proposalVersion,
-  ) async {
+    int? proposalVersion, {
+    String prefix = '',
+  }) async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_key(sessionId, context));
+    final raw = prefs.getString(prefix + _key(sessionId, context));
     if (raw == null) return {};
     try {
       final data = jsonDecode(raw) as Map<String, dynamic>;
@@ -102,10 +103,11 @@ abstract final class SessionLogbookDraftStorage {
     TeacherOutboxContext? context,
     int revision,
     int? proposalVersion,
-    Map<String, LogbookEdit> sections,
-  ) async {
+    Map<String, LogbookEdit> sections, {
+    String prefix = '',
+  }) async {
     final prefs = await SharedPreferences.getInstance();
-    final key = _key(sessionId, context);
+    final key = prefix + _key(sessionId, context);
     if (sections.isEmpty) {
       await prefs.remove(key);
       return;

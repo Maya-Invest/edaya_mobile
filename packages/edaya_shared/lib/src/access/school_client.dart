@@ -3,6 +3,8 @@ import 'package:edaya_auth/edaya_auth.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../config/api_base_url_config.dart';
+import '../demo/demo_store.dart';
+import '../demo/demo_transport.dart';
 
 typedef SchoolClientFactory = api.SchoolClient Function();
 
@@ -20,6 +22,13 @@ api.SchoolClient createEdayaSchoolClient(
   String? Function()? getSchoolId,
   api.Transport Function(api.Transport)? decorateTransport,
 }) {
+  if (authClient is DemoAuthClient) {
+    final local = DemoTransport(authClient.store, getAcademicYearId);
+    return DemoSchoolClient(
+      decorateTransport?.call(local) ?? local,
+      authClient.store,
+    );
+  }
   final transport = api.HttpTransport(
     baseUrl: ApiBaseUrlConfig.apiBaseUrl,
     client: authClient.businessHttpClient,

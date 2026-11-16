@@ -200,13 +200,16 @@ class _LiveAccountPage extends LScopedView<AccountController> {
               ),
             ),
             const SizedBox(height: PrototypeSpacing.xl),
-            OutlinedButton(
-              onPressed: () async {
-                await controller.signOut();
-                if (context.mounted) context.go('/login');
-              },
-              child: Text(user == null ? 'Se déconnecter' : 'Se déconnecter'),
-            ),
+            if (DemoAccess.of(context)?.store != null)
+              const DemoButton()
+            else
+              OutlinedButton(
+                onPressed: () async {
+                  await controller.signOut();
+                  if (context.mounted) context.go('/login');
+                },
+                child: Text(user == null ? 'Se déconnecter' : 'Se déconnecter'),
+              ),
           ],
         ),
       ),
