@@ -21,10 +21,9 @@ Future<void> showDemoDocument(String asset, String title) async {
               onPressed: () async {
                 try {
                   final data = await rootBundle.load('$path.pdf');
-                  await FilePicker.platform.saveFile(
+                  await FilePicker.saveFile(
                     fileName: '$asset.pdf',
-                    type: FileType.custom,
-                    allowedExtensions: ['pdf'],
+                    mimeType: 'application/pdf',
                     bytes: data.buffer.asUint8List(
                       data.offsetInBytes,
                       data.lengthInBytes,
