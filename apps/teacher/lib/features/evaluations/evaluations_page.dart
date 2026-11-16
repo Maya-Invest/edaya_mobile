@@ -736,7 +736,7 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
   final _maxScore = TextEditingController(text: '20');
   String _kind = 'quiz';
   String? _classSubjectId;
-  DateTime _date = DateTime.now();
+  DateTime _date = SchoolClock.now();
   DateTime? _dueDate;
   String? _error;
   bool _saving = false;

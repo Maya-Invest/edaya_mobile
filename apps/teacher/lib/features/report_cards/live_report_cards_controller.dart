@@ -484,6 +484,7 @@ class LiveReportCardCommentController extends LevitController
       return;
     }
     await ReportCardCommentDraftStorage.save(
+      prefix: schoolStoragePrefix(_schoolClient()),
       resultId: resultId,
       studentId: _draftOwner,
       draft: ReportCardCommentDraft(
@@ -499,6 +500,7 @@ class LiveReportCardCommentController extends LevitController
     String resultId,
   ) async {
     final draft = await ReportCardCommentDraftStorage.load(
+      prefix: schoolStoragePrefix(_schoolClient()),
       resultId: resultId,
       studentId: _draftOwner,
     );
@@ -649,6 +651,7 @@ class LiveReportCardCommentController extends LevitController
       await _outboxStore.removeByIdempotencyKey(requestId);
       if (resultId.isNotEmpty) {
         await ReportCardCommentDraftStorage.clear(
+          prefix: schoolStoragePrefix(_schoolClient()),
           resultId: resultId,
           studentId: _draftOwner,
         );

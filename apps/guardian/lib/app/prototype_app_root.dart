@@ -10,25 +10,38 @@ import '../mock/mock_store.dart';
 
 /// Root widget: app-lifetime [LScope] + MaterialApp.router (prototype theme).
 class PrototypeAppRoot extends StatelessWidget {
-  const PrototypeAppRoot({super.key, this.store, this.authenticated = false});
+  const PrototypeAppRoot({
+    super.key,
+    this.store,
+    this.authenticated = false,
+    this.demo,
+  });
 
   /// When non-null, registers mock harness DI (widget / design-review tests).
   final MockStore? store;
 
   /// When true with [store], ensure the store is signed in after DI registration.
   final bool authenticated;
+  final DemoStore? demo;
 
   @override
   Widget build(BuildContext context) {
     return LScope(
       name: store == null ? 'guardian-prototype' : 'guardian-prototype-test',
       dependencyFactory: (scope) {
-        registerPrototypeDependencies(scope, store: store, live: store == null);
+        registerPrototypeDependencies(
+          scope,
+          demo: demo,
+          store: store,
+          live: store == null,
+        );
         if (store != null && authenticated && !store!.isAuthenticated) {
           store!.signIn();
         }
       },
-      child: store == null ? const _ApiBootstrapApp() : const _PrototypeMaterialApp(),
+      child: store == null
+          ? const _ApiBootstrapApp()
+          : const _PrototypeMaterialApp(),
     );
   }
 }
@@ -58,7 +71,7 @@ class _ApiBootstrapApp extends LView<AppBootstrapController> {
           if (!controller.isReady.value) {
             return const EdayaStartupScreen();
           }
-          return child ?? const SizedBox.shrink();
+          return DemoFrame(child: child ?? const SizedBox.shrink());
         },
       );
     });

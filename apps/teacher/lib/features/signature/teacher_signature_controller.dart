@@ -13,7 +13,7 @@ class TeacherSignatureController extends LevitController {
     required this.session,
     required this.schoolClient,
     http.Client? httpClient,
-  }) : _http = httpClient ?? http.Client();
+  }) : _http = httpClient ?? schoolMediaClient(schoolClient());
   final AppSessionController session;
   final SchoolClientFactory schoolClient;
   final http.Client _http;

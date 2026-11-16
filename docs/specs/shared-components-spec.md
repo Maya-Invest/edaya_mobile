@@ -131,3 +131,9 @@ Draft and submitted evaluation rows share the same full-width card, name/result/
 `apps/guardian` follows [Guardian v2 workspace](guardian-v2-workspace-spec.md). `WorkspaceShell` owns page chrome; `ChildContextCard` and `ChildPicker` provide the selected child. `ChildWorkspace` owns captured request headers and child-specific page lifetimes. `ArchiveWorkspace` owns a local academic year for Results, Attendance and Fees. `GuardianSheetPage` provides routed Close sheets. `SurfaceCard` supplies a clipped Material/InkWell target with semantic theme colors. Period modules and expandable marks reuse `ExpansionTile`; published values use the shared grading formatter. The original Guardian shell primitives retain their original app scope.
 
 Guardian v2's Home watch runs inside its layout builder and subscribes to menu highlights before deferred grid builds. Session, logbook and charge detail bodies retain their record headings when `PrototypeDetailScaffold` delegates chrome to the workspace. Routed sheet titles identify the destination; message-sheet dismissal refreshes the owning inbox.
+
+## Offline demo controls
+
+On Android and iOS, `DemoButton` offers **Try demo** on the signed-out Guardian and Teacher screens. In the demo, Account uses the same control for **Exit demo**. The confirmation explains that exit clears the device’s demo changes. Cancel returns to the current screen.
+
+`DemoFrame` displays the localized demo label and the sample school date above the navigator, including detail views and sheets. Conversation details scroll with the messages so the reply field fits above the keyboard. The current examples are Guardian Home for Amina Koné and Teacher Home for Aminata Traoré on 10 November 2026. The native journeys in each app’s `integration_test/offline_demo_test.dart` exercise these controls.

@@ -43,11 +43,12 @@ abstract final class ReportCardCommentDraftStorage {
       'teacher_report_comment_v2_${resultId}_$studentId';
 
   static Future<ReportCardCommentDraft?> load({
+    String prefix = '',
     required String resultId,
     required String studentId,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_key(resultId, studentId));
+    final raw = prefs.getString(prefix + _key(resultId, studentId));
     if (raw == null || raw.isEmpty) {
       return null;
     }
@@ -66,22 +67,24 @@ abstract final class ReportCardCommentDraftStorage {
   }
 
   static Future<void> save({
+    String prefix = '',
     required String resultId,
     required String studentId,
     required ReportCardCommentDraft draft,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(
-      _key(resultId, studentId),
+      prefix + _key(resultId, studentId),
       jsonEncode(draft.toJson()),
     );
   }
 
   static Future<void> clear({
+    String prefix = '',
     required String resultId,
     required String studentId,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_key(resultId, studentId));
+    await prefs.remove(prefix + _key(resultId, studentId));
   }
 }

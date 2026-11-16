@@ -31,6 +31,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInEmailSubtitle => 'Sign in with your email address.';
 
   @override
+  String get demoTry => 'Try demo';
+
+  @override
+  String get demoExit => 'Exit demo';
+
+  @override
+  String get demoExitDetail =>
+      'Exit and clear your demo changes on this device?';
+
+  @override
+  String get demoLabel => 'Demo';
+
+  @override
   String get appTitleGuardian => 'Edaya';
 
   @override

@@ -24,6 +24,10 @@ Future<void> persistStoredId(String key, String value) async {
   await prefs.setString(key, value);
 }
 
+Future<void> clearStoredId(String key) async {
+  await (await SharedPreferences.getInstance()).remove(key);
+}
+
 String newProfilePhotoRequestId() {
   final random = Random.secure();
   return '${DateTime.now().toUtc().microsecondsSinceEpoch}-${random.nextInt(1 << 32)}';

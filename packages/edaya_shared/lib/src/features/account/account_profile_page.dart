@@ -1,4 +1,5 @@
 import '../auth/account_security_page.dart';
+import '../../demo/demo_host.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -143,7 +144,7 @@ class _ProfileForm extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
       children: [
         ?profileActions,
-        ListTile(
+        if (DemoAccess.of(context)?.store != null) const DemoButton() else ListTile(
           title: Text(context.tr.accountSecurity),
           leading: const Icon(Icons.security),
           onTap:

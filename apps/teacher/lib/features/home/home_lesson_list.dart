@@ -29,7 +29,7 @@ class HomeLessonList extends LScopedView<HomeTimetableController> {
     return scope.put(
       () => HomeTimetableController(
         classId: classId,
-        schoolNow: () => tz.TZDateTime.now(location),
+        schoolNow: () => tz.TZDateTime.from(SchoolClock.now(), location),
         read: (range) async {
           final events = await fetchTeacherTimetableOccurrences(
             client(),

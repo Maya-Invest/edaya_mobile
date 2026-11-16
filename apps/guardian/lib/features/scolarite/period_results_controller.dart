@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:edaya_shared/edaya_shared.dart' show SchoolClock;
 import 'package:edaya_api_client/edaya_api_client.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
@@ -50,7 +51,7 @@ class PeriodResultsController extends LevitController {
         loading(false);
         return;
       }
-      final now = DateTime.now();
+      final now = SchoolClock.now();
       final selected =
           rows.where((p) => p['id'] == initialPeriod).firstOrNull ??
           rows.where((p) {

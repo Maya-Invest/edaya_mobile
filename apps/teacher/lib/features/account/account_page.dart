@@ -284,14 +284,17 @@ class _LiveAccountPage extends StatelessWidget {
                 ),
                 const SizedBox(height: PrototypeSpacing.md),
                 const SizedBox(height: PrototypeSpacing.xl),
-                OutlinedButton(
-                  onPressed: () async {
-                    await session.signOut();
-                    if (!context.mounted) return;
-                    context.go('/login');
-                  },
-                  child: Text(context.tr.signOut),
-                ),
+                if (DemoAccess.of(context)?.store != null)
+                  const DemoButton()
+                else
+                  OutlinedButton(
+                    onPressed: () async {
+                      await session.signOut();
+                      if (!context.mounted) return;
+                      context.go('/login');
+                    },
+                    child: Text(context.tr.signOut),
+                  ),
               ],
               second: [
                 Text(

@@ -23,12 +23,14 @@ import '../features/login/login_page.dart';
 import '../features/session/session_detail_page.dart';
 
 GoRouter createRouter({
+  bool demo = false,
   required Listenable routerRefresh,
   required bool Function() isAuthenticated,
   bool Function()? isBootstrapping,
 }) {
   GoRouter.optionURLReflectsImperativeAPIs = true;
   return GoRouter(
+    overridePlatformDefaultLocation: demo,
     initialLocation: '/login',
     onEnter: workspaceCanEnter,
     refreshListenable: routerRefresh,

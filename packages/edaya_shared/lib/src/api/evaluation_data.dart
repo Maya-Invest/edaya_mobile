@@ -1,4 +1,5 @@
 import 'dart:math';
+import '../demo/school_clock.dart';
 
 String newSchoolRequestId() => List.generate(
   24,
@@ -30,7 +31,7 @@ Map<String, dynamic> assessmentResultPayload({
       'designation': designation ?? 'scored',
     'requestId': requestId,
     'expectedRevision': expectedRevision,
-    'createdAt': (createdAt ?? DateTime.now().toUtc()).toIso8601String(),
+    'createdAt': (createdAt ?? SchoolClock.now().toUtc()).toIso8601String(),
   };
 }
 
@@ -56,7 +57,7 @@ Map<String, dynamic> createAssessmentPayload({
   DateTime? createdAt,
   DateTime? homeworkDueDate,
 }) {
-  final now = createdAt ?? DateTime.now().toUtc();
+  final now = createdAt ?? SchoolClock.now().toUtc();
   final payload = <String, dynamic>{
     'id': id,
     'classGroupId': classGroupId,

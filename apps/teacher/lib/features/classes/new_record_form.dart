@@ -23,7 +23,7 @@ class _NewRecordFormState extends State<NewRecordForm> {
   String? classId, studentId, guardianId;
   List<Map<String, dynamic>> pupils = [], guardians = [];
   Set<String> participants = {}, savedParticipants = {};
-  DateTime date = DateTime.now();
+  DateTime date = SchoolClock.now();
   String kind = 'minor_infraction', error = '';
   bool busy = false, dirty = false, confirming = false, recorded = false;
   String pupilSearch = '';
@@ -335,7 +335,7 @@ class _NewRecordFormState extends State<NewRecordForm> {
                             context: context,
                             initialDate: date,
                             firstDate: DateTime(2000),
-                            lastDate: DateTime.now(),
+                            lastDate: SchoolClock.now(),
                           );
                           if (selected != null && mounted) {
                             setState(() {

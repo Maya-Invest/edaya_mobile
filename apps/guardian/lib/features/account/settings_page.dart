@@ -33,7 +33,7 @@ class SettingsPage extends LScopedView<SettingsController> {
               },
             ),
           ),
-          if (edaya.DeveloperSettingsConfig.enabled) ...[
+          if (edaya.DemoAccess.of(context)?.store == null && edaya.DeveloperSettingsConfig.enabled) ...[
             const SizedBox(height: PrototypeSpacing.xl),
             const SectionHeader(title: 'Développeur'),
             const SurfaceCard(

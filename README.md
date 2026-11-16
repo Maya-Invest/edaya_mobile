@@ -246,3 +246,9 @@ Integration tests run against two demo-ci teacher profiles automatically:
 Covered API chains mirror the teacher app: bootstrap/context, calendar/timetable enrichment, evaluations, session detail (enrollments, students, attendance, logbook reads), and `recordAttendance` write-back. `EDAYA_TEACHER_EMAIL` only overrides the subject-teacher defaults when running a single profile manually.
 
 Guardian v2 is available in `apps/guardian`, with a child picker, two Home menu groups and unified period results. See [its workspace specification](docs/specs/guardian-v2-workspace-spec.md).
+
+## Offline mobile demo
+
+Choose **Try demo** or **Essayer la démo** at sign-in. Guardian opens as Moussa Koné and Teacher opens as Aminata Traoré. Both apps use the school day of 10 November 2026. Each installation has its own copy of the fictional school. Edits persist on the device and messages stay in the app where they were composed. Use **Exit demo** in Account to clear that copy. A PDF exported through the device file picker belongs to the user.
+
+The shared fixture and PDF assets live in `packages/edaya_shared/assets/demo`. The demo uses the production screens and school client with a local SQLite transport. Run `flutter test test/offline_demo_test.dart` in `packages/edaya_shared` for persistence and workflow coverage. Run `flutter test integration_test/offline_demo_test.dart -d <device-id>` from either app on a disposable Android or iOS device for the sign-in, restart and exit journey.

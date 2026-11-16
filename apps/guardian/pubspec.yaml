@@ -29,6 +29,8 @@ dependencies:
   url_launcher: ^6.3.2
 
 dev_dependencies:
+  integration_test:
+    sdk: flutter
   flutter_secure_storage: ^10.3.4
   flutter_test:
     sdk: flutter

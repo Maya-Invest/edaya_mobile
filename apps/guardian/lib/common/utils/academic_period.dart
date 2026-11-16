@@ -8,7 +8,7 @@ String? currentAcademicPeriodId(
     return null;
   }
 
-  final date = onDate ?? DateTime.now();
+  final date = onDate ?? SchoolClock.now();
   final calendarDay = DateTime(date.year, date.month, date.day);
 
   for (final period in periods) {

@@ -1,3 +1,4 @@
+import 'package:edaya_shared/src/demo/school_clock.dart';
 import 'package:intl/intl.dart';
 
 DateTime? parseApiDateTime(Object? value) {
@@ -24,7 +25,7 @@ bool isSameCalendarDay(DateTime a, DateTime b) {
 }
 
 DateTime defaultCalendarDay([DateTime? reference]) {
-  final local = reference ?? DateTime.now();
+  final local = reference ?? SchoolClock.now();
   final day = DateTime(local.year, local.month, local.day);
   if (day.weekday == DateTime.saturday) {
     return day.subtract(const Duration(days: 5));

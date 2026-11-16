@@ -140,6 +140,30 @@ abstract class AppLocalizations {
   /// **'Sign in with your email address.'**
   String get signInEmailSubtitle;
 
+  /// No description provided for @demoTry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try demo'**
+  String get demoTry;
+
+  /// No description provided for @demoExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit demo'**
+  String get demoExit;
+
+  /// No description provided for @demoExitDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit and clear your demo changes on this device?'**
+  String get demoExitDetail;
+
+  /// No description provided for @demoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo'**
+  String get demoLabel;
+
   /// No description provided for @appTitleGuardian.
   ///
   /// In en, this message translates to:

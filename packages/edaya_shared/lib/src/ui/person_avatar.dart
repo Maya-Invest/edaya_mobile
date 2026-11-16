@@ -7,6 +7,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import '../config/api_base_url_config.dart';
 import '../access/school_client.dart';
+import '../demo/demo_store.dart';
 
 /// Read-only avatar for staff, students, and guardians.
 ///
@@ -69,6 +70,18 @@ class _PersonAvatarState extends State<PersonAvatar> {
     if (source == null || source.isEmpty) return;
     try {
       final auth = context.levit.find<AuthClient>();
+      if (auth is DemoAuthClient) {
+        final segments = Uri.parse(source).pathSegments;
+        if (segments.length != 4 ||
+            segments[0] != 'core' ||
+            segments[1] != 'files' ||
+            segments[3] != 'content')
+          return;
+        final bytes = await auth.store.readMedia(segments[2]);
+        if (bytes != null && mounted && generation == _generation)
+          setState(() => _image = MemoryImage(bytes));
+        return;
+      }
       final apiBase = Uri.parse(ApiBaseUrlConfig.apiBaseUrl);
       final parsed = Uri.parse(source);
       final uri = parsed.hasScheme ? parsed : apiBase.resolve(source);

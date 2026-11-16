@@ -46,7 +46,7 @@ class DashboardController extends LevitController {
   final attendance = LxVar<Map<String, String>>({});
   final highlights = LxVar<Map<String, Object?>>({});
   final errors = LxVar<Set<String>>({});
-  final now = LxVar<DateTime>(DateTime.now());
+  final now = LxVar<DateTime>(SchoolClock.now());
   tz.Location location = tz.UTC;
   Timer? _poll, _boundary;
   bool _visible = false;
@@ -111,7 +111,7 @@ class DashboardController extends LevitController {
     } catch (_) {
       location = tz.UTC;
     }
-    final clock = tz.TZDateTime.now(location);
+    final clock = tz.TZDateTime.from(SchoolClock.now(), location);
     if (isClosed || generation != _generation) return;
     if (now.value.year != clock.year ||
         now.value.month != clock.month ||
@@ -288,14 +288,14 @@ class DashboardController extends LevitController {
     }
     highlights({...highlights.value, ...next});
     errors(failed);
-    now(tz.TZDateTime.now(location));
+    now(tz.TZDateTime.from(SchoolClock.now(), location));
     _schedule();
   }
 
   void _schedule() {
     _boundary?.cancel();
     if (!_visible || isClosed) return;
-    final clock = tz.TZDateTime.now(location);
+    final clock = tz.TZDateTime.from(SchoolClock.now(), location);
     var at = tz.TZDateTime(location, clock.year, clock.month, clock.day + 1);
     for (final s in sessions.value ?? <CalendarSession>[]) {
       for (final t in [s.startsAt, s.endsAt]) {
@@ -308,7 +308,7 @@ class DashboardController extends LevitController {
       at.difference(clock) + const Duration(milliseconds: 20),
       () {
         if (isClosed) return;
-        now(tz.TZDateTime.now(location));
+        now(tz.TZDateTime.from(SchoolClock.now(), location));
         unawaited(refresh());
         _schedule();
       },

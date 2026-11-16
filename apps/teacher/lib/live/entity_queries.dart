@@ -28,7 +28,7 @@ TeachingScope teachingScopeFromTeacherAssignments(
       continue;
     }
 
-    final now = DateTime.now();
+    final now = SchoolClock.now();
     final starts = DateTime.tryParse(assignment['startsAt'] as String? ?? '');
     final ends = DateTime.tryParse(assignment['endsAt'] as String? ?? '');
     if ((starts != null && starts.isAfter(now)) ||
@@ -128,7 +128,7 @@ String? currentAcademicPeriodId(List<Map<String, dynamic>> periods) {
     return null;
   }
 
-  final date = DateTime.now();
+  final date = SchoolClock.now();
   final calendarDay = DateTime(date.year, date.month, date.day);
 
   for (final period in periods) {

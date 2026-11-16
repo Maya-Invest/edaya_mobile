@@ -11,31 +11,35 @@ abstract final class AppSettingsStorage {
   static const _dateFormatKey = 'edaya_settings_date_format';
   static const _timeFormatKey = 'edaya_settings_time_format';
 
+  static String _activePrefix = '';
   static AppSettingsSnapshot _cached = AppSettingsSnapshot.defaults;
 
   static AppSettingsSnapshot get cached => _cached;
 
-  static Future<AppSettingsSnapshot> load() async {
+  static Future<AppSettingsSnapshot> load({String prefix = ''}) async {
+    _activePrefix = prefix;
     final prefs = await SharedPreferences.getInstance();
+    String? read(String key) =>
+        prefs.getString('$prefix$key') ?? prefs.getString(key);
     _cached = AppSettingsSnapshot(
       theme: _readEnum(
-        prefs.getString(_themeKey),
+        read(_themeKey),
         ThemePreference.values,
         ThemePreference.system,
       ),
       language: _readEnum(
-        prefs.getString(_languageKey),
+        read(_languageKey),
         LanguagePreference.values,
         LanguagePreference.system,
       ),
-      timezone: AppTimezoneX.fromStorage(prefs.getString(_timezoneKey)),
+      timezone: AppTimezoneX.fromStorage(read(_timezoneKey)),
       dateFormat: _readEnum(
-        prefs.getString(_dateFormatKey),
+        read(_dateFormatKey),
         DateFormatPreference.values,
         DateFormatPreference.system,
       ),
       timeFormat: _readEnum(
-        prefs.getString(_timeFormatKey),
+        read(_timeFormatKey),
         TimeFormatPreference.values,
         TimeFormatPreference.system,
       ),
@@ -43,15 +47,18 @@ abstract final class AppSettingsStorage {
     return _cached;
   }
 
-  static Future<AppSettingsSnapshot> save(AppSettingsSnapshot snapshot) async {
+  static Future<AppSettingsSnapshot> save(
+    AppSettingsSnapshot snapshot, {
+    String prefix = '',
+  }) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_themeKey, snapshot.theme.name);
-    await prefs.setString(_languageKey, snapshot.language.name);
-    await prefs.setString(_timezoneKey, snapshot.timezone.name);
-    await prefs.setString(_dateFormatKey, snapshot.dateFormat.name);
-    await prefs.setString(_timeFormatKey, snapshot.timeFormat.name);
-    _cached = snapshot;
-    return _cached;
+    await prefs.setString('$prefix$_themeKey', snapshot.theme.name);
+    await prefs.setString('$prefix$_languageKey', snapshot.language.name);
+    await prefs.setString('$prefix$_timezoneKey', snapshot.timezone.name);
+    await prefs.setString('$prefix$_dateFormatKey', snapshot.dateFormat.name);
+    await prefs.setString('$prefix$_timeFormatKey', snapshot.timeFormat.name);
+    if (_activePrefix == prefix) _cached = snapshot;
+    return snapshot;
   }
 
   static T _readEnum<T extends Enum>(String? raw, List<T> values, T fallback) {

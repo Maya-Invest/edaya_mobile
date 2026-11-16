@@ -18,6 +18,7 @@ import '../features/report_cards/live_report_cards_controller.dart';
 import '../features/home/home_controller.dart';
 import '../features/offline/teacher_outbox_controller.dart';
 import '../live/prototype_runtime.dart';
+import '../live/noop_push.dart';
 import '../mock/mock_store.dart';
 import '../navigation/notification_navigation.dart';
 import '../app/router.dart';
@@ -94,7 +95,9 @@ void registerPrototypeDependencies(
   AuthClient? authClient,
   PushNotificationService? pushNotifications,
   bool includeBootstrap = true,
+  DemoStore? demo,
 }) {
+  authClient ??= demo?.auth;
   scope.put<PrototypeRuntime>(
     () => PrototypeRuntime(live: live),
     permanent: true,
@@ -111,9 +114,9 @@ void registerPrototypeDependencies(
     final resolvedCookieJar = cookieJar ?? CookieJar();
     if (authClient != null) {
       scope.put<CookieJar>(() => resolvedCookieJar, permanent: true);
-      scope.put<AuthClient>(() => authClient, permanent: true);
+      scope.put<AuthClient>(() => authClient!, permanent: true);
       scope.put<AppSettingsController>(
-        () => AppSettingsController(),
+        () => AppSettingsController(prefix: demo?.prefix ?? ''),
         permanent: true,
       );
     } else {
@@ -127,7 +130,10 @@ void registerPrototypeDependencies(
       () => TeacherPortraitSource(scope.find<AuthClient>()),
       permanent: true,
     );
-    scope.put<SessionStorage>(() => SessionStorage(), permanent: true);
+    scope.put<SessionStorage>(
+      () => SessionStorage(prefix: demo?.prefix ?? ''),
+      permanent: true,
+    );
     registerSchoolClientFactory(
       scope,
       getAcademicYearId: () =>
@@ -146,11 +152,13 @@ void registerPrototypeDependencies(
     scope.put<PushNotificationService>(
       () =>
           pushNotifications ??
-          FcmPushNotificationService(
-            schoolClientFactory: scope.find<SchoolClientFactory>(),
-            config: PushNotificationConfigs.teacher,
-            onNotificationOpened: handleTeacherNotificationOpened,
-          ),
+          (demo != null
+              ? NoOpPushNotificationService()
+              : FcmPushNotificationService(
+                  schoolClientFactory: scope.find<SchoolClientFactory>(),
+                  config: PushNotificationConfigs.teacher,
+                  onNotificationOpened: handleTeacherNotificationOpened,
+                )),
       permanent: true,
     );
     scope.put<AppSessionController>(
@@ -247,7 +255,9 @@ void registerPrototypeDependencies(
       permanent: true,
     );
     scope.put<TeacherOutboxStore>(
-      () => openTeacherOutboxStore(),
+      () => demo == null
+          ? openTeacherOutboxStore()
+          : SharedPrefsTeacherOutboxStore(storageKey: '${demo.prefix}outbox'),
       permanent: true,
     );
     scope.put<TeacherOutboxController>(
@@ -267,6 +277,7 @@ void registerPrototypeDependencies(
     if (includeBootstrap) {
       scope.put<AppBootstrapController>(
         () => AppBootstrapController(
+          skipAnonymousNativeRestore: authClient == null,
           authClient: scope.find<AuthClient>(),
           sessionStorage: scope.find<SessionStorage>(),
           session: scope.find<AppSessionController>(),
@@ -284,7 +295,7 @@ void registerPrototypeDependencies(
     }
   } else {
     scope.put<AppSettingsController>(
-      () => AppSettingsController(),
+      () => AppSettingsController(prefix: demo?.prefix ?? ''),
       permanent: true,
     );
     var signedIn = store.isAuthenticated;
@@ -297,6 +308,7 @@ void registerPrototypeDependencies(
 
   scope.put<GoRouter>(
     () => createRouter(
+      demo: demo != null,
       routerRefresh: scope.find<EdayaRouterRefresh>(),
       isAuthenticated: () {
         if (live) {

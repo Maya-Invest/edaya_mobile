@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
+
+import 'package:levit_flutter/levit_flutter.dart' show LevitScopeDisposable;
 
 import 'package:drift/drift.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,10 +14,14 @@ TeacherOutboxStore openTeacherOutboxStore() {
   return DriftTeacherOutboxStore(TeacherOutboxDatabase());
 }
 
-class DriftTeacherOutboxStore implements TeacherOutboxStore {
+class DriftTeacherOutboxStore extends LevitScopeDisposable
+    implements TeacherOutboxStore {
   DriftTeacherOutboxStore(this._database);
 
   final TeacherOutboxDatabase _database;
+
+  @override
+  void onClose() => unawaited(_database.close());
   Future<void>? _migration;
   TeacherOutboxContext? _context;
 

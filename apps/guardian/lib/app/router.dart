@@ -40,6 +40,7 @@ import '../features/inbox/inbox_page.dart';
 import '../features/scolarite/results_page.dart';
 
 GoRouter createRouter({
+  bool demo = false,
   required Listenable routerRefresh,
   AppSessionController? session,
   StudentContextController? studentContext,
@@ -80,6 +81,7 @@ GoRouter createRouter({
   }
 
   return GoRouter(
+    overridePlatformDefaultLocation: demo,
     initialLocation: guardianLoginRoute,
     refreshListenable: routerRefresh,
     redirect: (context, state) {
@@ -101,6 +103,11 @@ GoRouter createRouter({
       }
 
       final incoming = parseInvitationDeepLink(state.uri);
+      if (demo &&
+          (incoming != null ||
+              state.matchedLocation.startsWith('/invite/') ||
+              state.matchedLocation == '/waiting'))
+        return guardianHomeRoute;
       if (incoming != null) {
         livePending.remember(incoming.token);
       } else {

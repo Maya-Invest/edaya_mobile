@@ -141,13 +141,15 @@ class ChildProfileController extends LevitController
         ownerId: current.id,
         jpegBytes: jpegBytes,
       );
+      final key =
+          schoolStoragePrefix(client) +
+          studentPhotoCommandStorageKey('submit', current.id);
       await client.submitStudentPhoto({
-        'requestId': await stableRequestId(
-          studentPhotoCommandStorageKey('submit', current.id),
-        ),
+        'requestId': await stableRequestId(key),
         'studentId': current.id,
         'attachmentId': uploaded.attachmentId,
       });
+      if (client is DemoSchoolClient) await clearStoredId(key);
       await load();
       await _studentContext.reloadContext();
       statusMessage(systemL10n().childProfileSubmitted);
@@ -183,13 +185,16 @@ class ChildProfileController extends LevitController
     statusMessage('');
     isSaving(true);
     try {
-      await _schoolClient().withdrawStudentPhotoSubmission({
-        'requestId': await stableRequestId(
-          studentPhotoCommandStorageKey('withdraw', current.id),
-        ),
+      final client = _schoolClient();
+      final key =
+          schoolStoragePrefix(client) +
+          studentPhotoCommandStorageKey('withdraw', current.id);
+      await client.withdrawStudentPhotoSubmission({
+        'requestId': await stableRequestId(key),
         'submissionId': row['id'],
         'expectedVersion': row['version'],
       });
+      if (client is DemoSchoolClient) await clearStoredId(key);
       await load();
       statusMessage(systemL10n().childProfileWithdrawn);
       return true;

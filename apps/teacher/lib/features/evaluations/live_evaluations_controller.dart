@@ -438,7 +438,7 @@ class LiveEvaluationsController extends LevitController
           title: '${evaluation.title} (copy)',
           maxScore: evaluation.maxScore,
           kind: source['kind'] as String? ?? 'quiz',
-          assessmentDate: DateTime.now(),
+          assessmentDate: SchoolClock.now(),
           coefficient: (source['coefficient'] as num?)?.toDouble() ?? 1,
         ),
       );

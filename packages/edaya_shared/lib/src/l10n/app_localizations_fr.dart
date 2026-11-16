@@ -31,6 +31,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get signInEmailSubtitle => 'Connectez-vous avec votre adresse e-mail.';
 
   @override
+  String get demoTry => 'Essayer la démo';
+
+  @override
+  String get demoExit => 'Quitter la démo';
+
+  @override
+  String get demoExitDetail =>
+      'Quitter et effacer vos modifications de démonstration sur cet appareil ?';
+
+  @override
+  String get demoLabel => 'Démo';
+
+  @override
   String get appTitleGuardian => 'Edaya';
 
   @override

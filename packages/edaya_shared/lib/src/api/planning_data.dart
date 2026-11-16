@@ -1,3 +1,4 @@
+import 'package:edaya_shared/src/demo/school_clock.dart';
 import 'package:edaya_api_client/edaya_api_client.dart';
 
 import 'optional_entity_list.dart';
@@ -13,7 +14,7 @@ class PlanningDateRange {
 }
 
 PlanningDateRange defaultPlanningDateRange([DateTime? reference]) {
-  final ref = (reference ?? DateTime.now()).toUtc();
+  final ref = (reference ?? SchoolClock.now()).toUtc();
   final start = DateTime.utc(ref.year, ref.month - 6, ref.day);
   final end = DateTime.utc(ref.year, ref.month + 6, ref.day);
   return PlanningDateRange(

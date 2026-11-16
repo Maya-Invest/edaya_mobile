@@ -1,4 +1,6 @@
 import 'dart:math';
+import '../demo/demo_document.dart';
+import '../demo/demo_transport.dart';
 
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:flutter/material.dart';
@@ -218,6 +220,10 @@ Future<DocumentIssuanceRecord> requestDocumentIssuance(
 }
 
 Future<void> openGrantedDocument(api.SchoolClient client, String id) async {
+  if (client is DemoSchoolClient) {
+    final doc = await client.getDocumentIssuance({'id': id});
+    return showDemoDocument(doc['asset'] as String, doc['title'] as String);
+  }
   final grant = await client.runQuery('grant-document-download', {'id': id});
   final url = grant['downloadUrl'] as String?;
   if (url == null || url.isEmpty) {

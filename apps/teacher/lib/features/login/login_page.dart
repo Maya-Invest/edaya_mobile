@@ -154,6 +154,7 @@ class _LoginChrome extends StatelessWidget {
                   ),
                   const SizedBox(height: PrototypeSpacing.xl),
                   SurfaceCard(child: child),
+                  const DemoButton(),
                 ],
               ),
             ),

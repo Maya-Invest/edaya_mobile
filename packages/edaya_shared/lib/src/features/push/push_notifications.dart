@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../demo/demo_host.dart';
 import '../messaging/messaging_events.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -312,6 +313,7 @@ Future<void> handleEdayaFcmBackgroundMessage(
   required PushNotificationConfig notificationConfig,
 }) async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (await demoActiveInBackground()) return;
   if (Firebase.apps.isEmpty) {
     await Firebase.initializeApp(options: firebaseOptions);
   }
@@ -424,6 +426,8 @@ class FcmPushNotificationService implements PushNotificationService {
     }
 
     try {
+      await _messaging.setAutoInitEnabled(true);
+      await initialize();
       final token = await _messaging.getToken();
       if (token == null || token.isEmpty) {
         return;
@@ -453,6 +457,7 @@ class FcmPushNotificationService implements PushNotificationService {
     }
 
     try {
+      await _messaging.setAutoInitEnabled(false);
       final token = _registeredToken ?? await _messaging.getToken();
       if (token != null) {
         try {
@@ -469,7 +474,11 @@ class FcmPushNotificationService implements PushNotificationService {
       _registeredToken = null;
       await _messaging.deleteToken();
     } on Object {
+      // The device may be offline during sign-out.
+    } finally {
       _registeredToken = null;
+      _pendingOpenedMessage = null;
+      await dispose();
     }
   }
 

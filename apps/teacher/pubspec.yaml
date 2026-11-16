@@ -34,6 +34,8 @@ dependencies:
   signature: ^6.4.0
 
 dev_dependencies:
+  integration_test:
+    sdk: flutter
   image_picker_platform_interface: ^2.11.1
   flutter_secure_storage: ^10.3.4
   flutter_test:

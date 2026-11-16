@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import '../../config/api_base_url_config.dart';
 import 'profile_photo_config.dart';
 import 'profile_photo_ids.dart';
+import '../../demo/demo_transport.dart';
 
 class UploadedProfilePhoto {
   const UploadedProfilePhoto({
@@ -28,7 +29,9 @@ Future<UploadedProfilePhoto> uploadProfilePhoto({
   required String ownerId,
   required Uint8List jpegBytes,
 }) async {
-  final storageKey = profilePhotoAttachmentStorageKey(ownerKind, ownerId);
+  final prefix = client is DemoSchoolClient ? client.store.prefix : '';
+  final storageKey =
+      prefix + profilePhotoAttachmentStorageKey(ownerKind, ownerId);
   final storedAttachmentId = await readStoredId(storageKey);
   final intent = await client.createProfilePhotoUpload({
     'ownerKind': ownerKind,
@@ -56,7 +59,10 @@ Future<UploadedProfilePhoto> uploadProfilePhoto({
     headers['Content-Type'] = profilePhotoJpegMime;
   }
 
-  final put = await http.put(
+  final upload = client is DemoSchoolClient
+      ? client.store.auth.httpClient.put
+      : http.put;
+  final put = await upload(
     Uri.parse(uploadUrl),
     headers: headers,
     body: jpegBytes,

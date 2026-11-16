@@ -1,3 +1,4 @@
+import 'package:edaya_shared/src/demo/school_clock.dart';
 import 'package:edaya_api_client/edaya_api_client.dart';
 
 /// Child-specific current selections; shared family scopes may contain several siblings.
@@ -26,7 +27,7 @@ class StudentSubjectParticipation {
   });
 
   List<Map<String, dynamic>> currentSubjects([DateTime? at]) => offerings
-      .where((row) => includes(row['id'] as String?, at ?? DateTime.now()))
+      .where((row) => includes(row['id'] as String?, at ?? SchoolClock.now()))
       .toList();
 
   static Future<StudentSubjectParticipation> load(
