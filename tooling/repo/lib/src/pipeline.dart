@@ -243,8 +243,7 @@ Future<void> validationBuild(String platform, String target) async {
       'build',
       platform == 'ios' ? 'ios' : 'apk',
       '--release',
-      '--no-pub',
-      if (platform == 'ios') '--no-codesign',
+      if (platform == 'ios') ...['--no-pub', '--no-codesign'],
       '--dart-define=API_URL=$api',
       '--dart-define=TEST_OTP_ACCESS=false',
     ], cwd: cwd);

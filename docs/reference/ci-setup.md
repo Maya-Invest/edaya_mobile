@@ -178,7 +178,7 @@ Brand tokens, galleries, design review, keystore setup and SVG/native icon gener
 | `ci_support.py`, shell service/lint launchers and workflow tests | Dart evidence/workflow tools, backend owned fixture and pinned actionlint |
 | `release-contract.py`, committed generated binding snapshots | Removed; checksummed acquisition/release outputs |
 
-Application analysis and tests run only after explicit client preparation. Flutter commands use frozen workspace dependencies (`--no-pub` after setup). Native Gradle/Flutter platform wrappers remain supported.
+Application analysis and tests run after client preparation. CI installs dependencies with `--enforce-lockfile` and checks the prepared lockfile again when recording each build. Android release builds let Flutter regenerate the plugin list in release mode so it excludes development-only plugins such as `integration_test`. Native Gradle/Flutter platform wrappers remain supported.
 
 ## Local migration rehearsal — 2026-10-11
 
