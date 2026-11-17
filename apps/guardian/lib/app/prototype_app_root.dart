@@ -39,64 +39,53 @@ class PrototypeAppRoot extends StatelessWidget {
           store!.signIn();
         }
       },
-      child: store == null
-          ? const _ApiBootstrapApp()
-          : const _PrototypeMaterialApp(),
+      child: _PrototypeMaterialApp(live: store == null),
     );
   }
 }
 
-class _ApiBootstrapApp extends LView<AppBootstrapController> {
-  const _ApiBootstrapApp();
+class _PrototypeMaterialApp extends StatelessWidget {
+  const _PrototypeMaterialApp({required this.live});
+
+  final bool live;
+
+  static const _localizationDelegates = [
+    AppLocalizations.delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ];
 
   @override
-  Widget buildView(BuildContext context, AppBootstrapController controller) {
+  Widget build(BuildContext context) {
+    final settings = context.levit.find<AppSettingsController>();
     return LWatch(() {
-      controller.isReady.value;
+      settings.theme.value;
+      settings.language.value;
+      settings.timezone.value;
+      settings.dateFormat.value;
+      settings.timeFormat.value;
+      final ready = live
+          ? context.levit.find<AppBootstrapController>().isReady.value
+          : true;
       return MaterialApp.router(
-        title: 'Edaya Guardian',
+        title: systemL10n().appTitleGuardian,
         theme: PrototypeTheme.light,
         darkTheme: PrototypeTheme.dark,
-        locale: const Locale('fr', 'FR'),
-        supportedLocales: const [Locale('fr', 'FR')],
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
+        themeMode: settings.themeMode,
+        locale: settings.locale,
+        localeResolutionCallback: settings.resolveLocale,
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: _localizationDelegates,
         routerConfig: context.levit.find<GoRouter>(),
         debugShowCheckedModeBanner: false,
         builder: (context, child) {
-          if (!controller.isReady.value) {
+          if (!ready) {
             return const EdayaStartupScreen();
           }
           return DemoFrame(child: child ?? const SizedBox.shrink());
         },
       );
     });
-  }
-}
-
-class _PrototypeMaterialApp extends StatelessWidget {
-  const _PrototypeMaterialApp();
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'EDaya Guardian',
-      theme: PrototypeTheme.light,
-      darkTheme: PrototypeTheme.dark,
-      locale: const Locale('fr', 'FR'),
-      supportedLocales: const [Locale('fr', 'FR')],
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      routerConfig: context.levit.find<GoRouter>(),
-      debugShowCheckedModeBanner: false,
-    );
   }
 }

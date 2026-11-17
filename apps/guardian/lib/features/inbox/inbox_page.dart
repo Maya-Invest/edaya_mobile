@@ -54,7 +54,9 @@ class _MockInboxPage extends LScopedView<StoreBoundController> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: Text(
-              showingAvis ? '0 ouvert(s)' : '${store.unreadCount} non lu(s)',
+              showingAvis
+                  ? context.tr.openSurveyCount(0)
+                  : context.tr.unreadCount(store.unreadCount),
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
@@ -62,7 +64,7 @@ class _MockInboxPage extends LScopedView<StoreBoundController> {
             child: showingAvis
                 ? EmptyState(title: context.tr.familyFeedbackEmpty)
                 : messages.isEmpty
-                ? const EmptyState(title: 'Aucun message')
+                ? EmptyState(title: context.tr.noMessages)
                 : ListView.separated(
                     padding: const EdgeInsets.all(PrototypeSpacing.md),
                     itemCount: messages.length,
@@ -79,8 +81,8 @@ class _MockInboxPage extends LScopedView<StoreBoundController> {
                         unread: !m.read,
                         selected: selected,
                         badge: m.read
-                            ? 'Lu · ${formatDate(m.sentAt)}'
-                            : 'Nouveau',
+                            ? context.tr.read(formatDate(m.sentAt))
+                            : context.tr.inboxStatusNew,
                         leading: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
@@ -160,8 +162,8 @@ class _LiveInboxPage extends LScopedView<InboxController> {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: Text(
                 showingAvis
-                    ? '${controller.openCampaignCount} ouvert(s)'
-                    : '${controller.unreadCount} non lu(s)',
+                    ? context.tr.openSurveyCount(controller.openCampaignCount)
+                    : context.tr.unreadCount(controller.unreadCount),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),

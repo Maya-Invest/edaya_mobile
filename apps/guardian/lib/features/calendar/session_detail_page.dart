@@ -1,3 +1,4 @@
+import 'attendance_label.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -20,17 +21,6 @@ HomeDayCategory _categoryForKind(String kind) {
     'activity' => HomeDayCategory.activity,
     'assessment' => HomeDayCategory.assessment,
     _ => HomeDayCategory.lesson,
-  };
-}
-
-String _frenchAttendance(String? status) {
-  if (status == null) return 'Non renseignée';
-  return switch (status) {
-    'present' => 'Présent',
-    'absent' => 'Absent',
-    'late' => 'Retard',
-    'excused' => 'Excusé',
-    _ => status,
   };
 }
 
@@ -63,10 +53,10 @@ class _MockSessionDetailPage extends LScopedView<StoreBoundController> {
     controller.storeTick.value;
     final session = controller.store.sessionById(sessionId);
     if (session == null) {
-      return const PrototypeDetailScaffold(
+      return PrototypeDetailScaffold(
         fallbackRoute: '/calendar',
-        title: 'Séance',
-        body: EmptyState(title: 'Séance introuvable'),
+        title: context.tr.session,
+        body: EmptyState(title: context.tr.sessionNotFound),
       );
     }
 
@@ -92,7 +82,9 @@ class _MockSessionDetailPage extends LScopedView<StoreBoundController> {
         children: [
           Text(session.subject, style: textTheme.titleLarge),
           const SizedBox(height: PrototypeSpacing.xs),
-          Text(DateFormat.yMMMMEEEEd('fr_FR').format(session.date)),
+          Text(
+            DateFormat.yMMMMEEEEd(context.tr.localeName).format(session.date),
+          ),
           const SizedBox(height: PrototypeSpacing.md),
           SurfaceCard(
             child: Column(
@@ -101,7 +93,14 @@ class _MockSessionDetailPage extends LScopedView<StoreBoundController> {
                 Row(
                   children: [
                     StatusChip(
-                      label: category.label,
+                      label: switch (category) {
+                        HomeDayCategory.lesson =>
+                          context.tr.timetableSessionKindLesson,
+                        HomeDayCategory.activity =>
+                          context.tr.timetableSessionKindActivity,
+                        HomeDayCategory.assessment =>
+                          context.tr.timetableSessionKindAssessment,
+                      },
                       tone: switch (category) {
                         HomeDayCategory.lesson => SemanticTone.info,
                         HomeDayCategory.activity => SemanticTone.neutral,
@@ -110,7 +109,7 @@ class _MockSessionDetailPage extends LScopedView<StoreBoundController> {
                     ),
                     const Spacer(),
                     StatusChip(
-                      label: session.attendance,
+                      label: attendanceLabel(context.tr, session.attendance),
                       tone: switch (session.attendance) {
                         'Absent' => SemanticTone.error,
                         'Retard' => SemanticTone.warning,
@@ -120,7 +119,7 @@ class _MockSessionDetailPage extends LScopedView<StoreBoundController> {
                   ],
                 ),
                 const SizedBox(height: PrototypeSpacing.sm),
-                Text('Horaire', style: textTheme.labelSmall),
+                Text(context.tr.schedule, style: textTheme.labelSmall),
                 Text(
                   '${session.startHour.toString().padLeft(2, '0')}:00 – ${session.endHour.toString().padLeft(2, '0')}:00',
                 ),
@@ -164,7 +163,7 @@ class _MockAssessmentSection extends StatelessWidget {
     if (assessment == null) {
       return SurfaceCard(
         child: Text(
-          'Aucun détail disponible pour cette évaluation.',
+          context.tr.noDetailsAvailableForThisAssessment,
           style: textTheme.bodyMedium,
         ),
       );
@@ -174,7 +173,7 @@ class _MockAssessmentSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionHeader(title: 'Évaluation'),
+        SectionHeader(title: context.tr.timetableSessionKindAssessment),
         SurfaceCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,7 +190,7 @@ class _MockAssessmentSection extends StatelessWidget {
               ],
               if (assessment!.instructions.isNotEmpty) ...[
                 const SizedBox(height: PrototypeSpacing.sm),
-                Text('Consignes', style: textTheme.labelSmall),
+                Text(context.tr.instructions, style: textTheme.labelSmall),
                 Text(assessment!.instructions, style: textTheme.bodyMedium),
               ],
             ],
@@ -199,10 +198,10 @@ class _MockAssessmentSection extends StatelessWidget {
         ),
         if (score != null && maxScore != null) ...[
           const SizedBox(height: PrototypeSpacing.md),
-          const SectionHeader(title: 'Note de l\'élève'),
+          SectionHeader(title: context.tr.studentSMark),
           SurfaceCard(
             child: Text(
-              '${score.toStringAsFixed(0)}/${maxScore.toStringAsFixed(0)}',
+              '${formatGradeNumber(score)}/${formatGradeNumber(maxScore)}',
               style: textTheme.titleLarge?.copyWith(
                 color: Theme.of(context).colorScheme.primary,
               ),
@@ -225,11 +224,11 @@ class _MockActivitySection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionHeader(title: 'Commentaire de l\'équipe'),
+        SectionHeader(title: context.tr.staffComment),
         SurfaceCard(
           child: Text(
             (notes == null || notes.isEmpty)
-                ? 'Aucun commentaire partagé pour cette activité.'
+                ? context.tr.noCommentHasBeenSharedForThisActivity
                 : notes,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
@@ -260,7 +259,7 @@ class _LiveSessionDetailPage extends LScopedView<SessionDetailController> {
     if (controller.isBusy.value && controller.session.value == null) {
       return PrototypeDetailScaffold(
         fallbackRoute: '/calendar',
-        title: 'Séance',
+        title: context.tr.session,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -269,21 +268,25 @@ class _LiveSessionDetailPage extends LScopedView<SessionDetailController> {
     if (session == null) {
       return PrototypeDetailScaffold(
         fallbackRoute: '/calendar',
-        title: 'Séance',
+        title: context.tr.session,
         body: EmptyState(
           title: controller.errorMessage.value.isEmpty
-              ? 'Séance introuvable'
+              ? context.tr.sessionNotFound
               : controller.errorMessage.value,
         ),
       );
     }
 
     final category = _categoryForKind(session.kind);
-    final attendanceLabel = _frenchAttendance(
+    final label = attendanceLabel(
+      context.tr,
       controller.attendance.value?.status,
     );
     final textTheme = Theme.of(context).textTheme;
-    final timeFmt = DateFormat('HH:mm', 'fr_FR');
+    final timeFmt = AppDateFormatting.clockFormat(
+      context.appSettings.timeFormat.value,
+      context.tr.localeName,
+    );
 
     return PrototypeDetailScaffold(
       fallbackRoute: '/calendar',
@@ -307,7 +310,11 @@ class _LiveSessionDetailPage extends LScopedView<SessionDetailController> {
             style: textTheme.titleLarge,
           ),
           const SizedBox(height: PrototypeSpacing.xs),
-          Text(DateFormat.yMMMMEEEEd('fr_FR').format(session.startsAt)),
+          Text(
+            DateFormat.yMMMMEEEEd(
+              context.tr.localeName,
+            ).format(session.startsAt),
+          ),
           const SizedBox(height: PrototypeSpacing.md),
           SurfaceCard(
             child: Column(
@@ -317,9 +324,12 @@ class _LiveSessionDetailPage extends LScopedView<SessionDetailController> {
                   children: [
                     StatusChip(
                       label: switch (category) {
-                        HomeDayCategory.lesson => 'Cours',
-                        HomeDayCategory.activity => 'Activité',
-                        HomeDayCategory.assessment => 'Évaluation',
+                        HomeDayCategory.lesson =>
+                          context.tr.timetableSessionKindLesson,
+                        HomeDayCategory.activity =>
+                          context.tr.timetableSessionKindActivity,
+                        HomeDayCategory.assessment =>
+                          context.tr.timetableSessionKindAssessment,
                       },
                       tone: switch (category) {
                         HomeDayCategory.lesson => SemanticTone.info,
@@ -329,18 +339,18 @@ class _LiveSessionDetailPage extends LScopedView<SessionDetailController> {
                     ),
                     const Spacer(),
                     StatusChip(
-                      label: attendanceLabel,
-                      tone: switch (attendanceLabel) {
-                        'Absent' => SemanticTone.error,
-                        'Retard' => SemanticTone.warning,
-                        'Non renseignée' => SemanticTone.neutral,
+                      label: label,
+                      tone: switch (controller.attendance.value?.status) {
+                        'absent' => SemanticTone.error,
+                        'late' => SemanticTone.warning,
+                        null => SemanticTone.neutral,
                         _ => SemanticTone.success,
                       },
                     ),
                   ],
                 ),
                 const SizedBox(height: PrototypeSpacing.sm),
-                Text('Horaire', style: textTheme.labelSmall),
+                Text(context.tr.schedule, style: textTheme.labelSmall),
                 Text(
                   '${timeFmt.format(session.startsAt)} – ${timeFmt.format(session.endsAt)}',
                 ),
@@ -370,11 +380,11 @@ class _LessonSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionHeader(title: 'Cahier de textes'),
+        SectionHeader(title: context.tr.logbook),
         SurfaceCard(
           child: logbook == null
               ? Text(
-                  'Aucune entrée de cahier de textes pour cette séance.',
+                  context.tr.noLogbookEntryForSession,
                   style: textTheme.bodyMedium,
                 )
               : Column(
@@ -390,7 +400,7 @@ class _LessonSection extends StatelessWidget {
                     Text(logbook!.content, style: textTheme.bodyMedium),
                     const SizedBox(height: PrototypeSpacing.xs),
                     Text(
-                      'Progression : ${logbook!.progress} %',
+                      context.tr.progressPercent(logbook!.progress),
                       style: textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -415,7 +425,7 @@ class _AssessmentSection extends StatelessWidget {
     if (title == null) {
       return SurfaceCard(
         child: Text(
-          'Aucun détail disponible pour cette évaluation.',
+          context.tr.noDetailsAvailableForThisAssessment,
           style: textTheme.bodyMedium,
         ),
       );
@@ -427,7 +437,7 @@ class _AssessmentSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionHeader(title: 'Évaluation'),
+        SectionHeader(title: context.tr.timetableSessionKindAssessment),
         SurfaceCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -449,7 +459,7 @@ class _AssessmentSection extends StatelessWidget {
               if ((controller.assessmentInstructions.value ?? '')
                   .isNotEmpty) ...[
                 const SizedBox(height: PrototypeSpacing.sm),
-                Text('Consignes', style: textTheme.labelSmall),
+                Text(context.tr.instructions, style: textTheme.labelSmall),
                 Text(
                   controller.assessmentInstructions.value!,
                   style: textTheme.bodyMedium,
@@ -467,10 +477,10 @@ class _AssessmentSection extends StatelessWidget {
           ),
         if (score != null && maxScore != null) ...[
           const SizedBox(height: PrototypeSpacing.md),
-          const SectionHeader(title: 'Note de l\'élève'),
+          SectionHeader(title: context.tr.studentSMark),
           SurfaceCard(
             child: Text(
-              '${score.toStringAsFixed(0)}/${maxScore.toStringAsFixed(0)}',
+              '${formatGradeNumber(score)}/${formatGradeNumber(maxScore)}',
               style: textTheme.titleLarge?.copyWith(
                 color: Theme.of(context).colorScheme.primary,
               ),
@@ -494,11 +504,11 @@ class _ActivitySection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionHeader(title: 'Commentaire de l\'équipe'),
+        SectionHeader(title: context.tr.staffComment),
         SurfaceCard(
           child: Text(
             (notes == null || notes.isEmpty)
-                ? 'Aucun commentaire partagé pour cette activité.'
+                ? context.tr.noCommentHasBeenSharedForThisActivity
                 : notes,
             style: Theme.of(context).textTheme.bodyMedium,
           ),

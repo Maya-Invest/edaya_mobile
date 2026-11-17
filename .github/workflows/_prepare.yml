@@ -7,6 +7,8 @@ on:
       backend_ref: {type: string, default: ''}
       match_backend_branch: {type: boolean, default: false}
       release_mode: {type: boolean, default: false}
+      store_build: {type: string, default: ''}
+      reservation_attempt: {type: string, default: ''}
     secrets:
       BACKEND_CHECKOUT_TOKEN: {required: true}
     outputs:
@@ -26,33 +28,17 @@ jobs:
     env:
       TARGET: ${{ inputs.target }}
       RELEASE_MODE: ${{ inputs.release_mode }}
+      EDAYA_STORE_BUILD: ${{ inputs.store_build }}
     steps:
+      - name: Check store build reservation
+        if: inputs.release_mode && inputs.reservation_attempt != github.run_attempt
+        run: |
+          echo "::error::Re-run all jobs to reserve a store build for this attempt."
+          exit 1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ inputs.source_ref }}
           persist-credentials: false
-      - name: Check release destination
-        if: inputs.release_mode
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          case "$GITHUB_REF/$TARGET" in
-            refs/heads/main/production|refs/heads/staging/staging) ;;
-            *) exit 1 ;;
-          esac
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          if (( GITHUB_RUN_ATTEMPT > 1 )); then
-            tip=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$GITHUB_REF_NAME" --jq .object.sha)
-            if [[ "$tip" != "$GITHUB_SHA" ]]; then
-              echo "::error::This release was superseded. Dispatch the current branch tip."
-              exit 1
-            fi
-          fi
-          # Reserve a ten-second slot under the shared release queue. Both stores
-          # read this value from the prepared artifact for the entire attempt.
-          now=$(date +%s)
-          echo "EDAYA_STORE_BUILD=$(( (now - 1577836800) / 10 ))" >> "$GITHUB_ENV"
-          sleep "$((10 - now % 10))"
       - uses: ./.github/actions/flutter
         with:
           seed: ${{ inputs.release_mode }}

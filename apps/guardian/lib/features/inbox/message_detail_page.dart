@@ -50,15 +50,15 @@ class _MockMessageDetailPage extends LScopedView<StoreBoundController> {
     controller.storeTick.value;
     final message = controller.store.messageById(messageId);
     if (message == null) {
-      return const PrototypeDetailScaffold(
+      return PrototypeDetailScaffold(
         fallbackRoute: '/inbox',
-        title: 'Message',
-        body: EmptyState(title: 'Message introuvable'),
+        title: context.tr.messageDefaultTitle,
+        body: EmptyState(title: context.tr.messageNotFound),
       );
     }
     return PrototypeDetailScaffold(
       fallbackRoute: '/inbox',
-      title: 'Message',
+      title: context.tr.messageDefaultTitle,
       body: ListView(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
@@ -118,7 +118,7 @@ class _LiveMessageDetailPage extends LScopedView<MessageDetailController> {
     if (controller.isBusy.value && controller.delivery.value == null) {
       return PrototypeDetailScaffold(
         fallbackRoute: '/inbox',
-        title: 'Message',
+        title: context.tr.messageDefaultTitle,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -127,10 +127,10 @@ class _LiveMessageDetailPage extends LScopedView<MessageDetailController> {
     if (message == null) {
       return PrototypeDetailScaffold(
         fallbackRoute: '/inbox',
-        title: 'Message',
+        title: context.tr.messageDefaultTitle,
         body: EmptyState(
           title: controller.errorMessage.value.isEmpty
-              ? 'Message introuvable'
+              ? context.tr.messageNotFound
               : controller.errorMessage.value,
         ),
       );
@@ -140,7 +140,7 @@ class _LiveMessageDetailPage extends LScopedView<MessageDetailController> {
 
     return PrototypeDetailScaffold(
       fallbackRoute: '/inbox',
-      title: 'Message',
+      title: context.tr.messageDefaultTitle,
       body: ListView(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [

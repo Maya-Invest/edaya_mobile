@@ -452,7 +452,7 @@ class LiveSessionController extends LevitController
     }
     saveMessage('');
     if (attendanceSubmitted.value) {
-      saveMessage(systemL10n().marksCorrectionHint);
+      saveMessage(systemL10n().attendanceCorrectionHint);
       return false;
     }
     final previous = students.value;
@@ -550,8 +550,8 @@ class LiveSessionController extends LevitController
       _attendanceVersion = (result['version'] as num).toInt();
       attendanceSubmitted(true);
       await load();
-    } on Object catch (error) {
-      saveMessage(systemL10n().couldNotSaveMark('$error'));
+    } on Object {
+      saveMessage(systemL10n().attendanceSubmitFailed);
     }
   }
 
@@ -677,7 +677,7 @@ class LiveSessionController extends LevitController
         retryable
             ? systemL10n().attendanceSavedLocally
             : logbookSection == null
-            ? systemL10n().couldNotSaveMark('$error')
+            ? systemL10n().attendanceSaveFailed
             : '${systemL10n().logbookNotSaved} · $error',
       );
       return null;

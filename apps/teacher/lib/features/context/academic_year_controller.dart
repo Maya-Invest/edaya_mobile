@@ -128,7 +128,7 @@ class AcademicYearController extends LevitController
     selectedYearId(activeYear?['id'] as String?);
     if (activeYear == null) {
       confirmedNoPublishedYear = true;
-      errorMessage('Aucune année scolaire publiée pour cet établissement.');
+      errorMessage(systemL10n().thisSchoolHasNoPublishedSchoolYear);
     }
   }
 }

@@ -12,7 +12,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navInboxShort => 'Inbox';
 
   @override
-  String get navEvaluationsShort => 'Grades';
+  String get navEvaluationsShort => 'Assessments';
 
   @override
   String get navMessages => 'Messages';
@@ -44,10 +44,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get demoLabel => 'Demo';
 
   @override
-  String get appTitleGuardian => 'Edaya';
+  String get appTitleGuardian => 'EDaya';
 
   @override
-  String get appTitleTeacher => 'Edaya Staff';
+  String get appTitleTeacher => 'EDaya Prof';
 
   @override
   String get accountTitle => 'Account';
@@ -230,15 +230,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signedInNoGuardianProfile =>
-      'Signed in, but no linked guardian/staff profile. Run: bun seed --scope auth:link';
+      'Your account has no linked family profile. Contact your school.';
 
   @override
   String get signedInNoStaffProfile =>
-      'Signed in, but no linked staff profile. Run: bun seed --scope auth:link';
+      'Your account has no linked staff profile. Contact your school.';
 
   @override
   String get signedInNoTeacherProfile =>
-      'Signed in, but no linked teacher profile. Run: bun seed --scope auth:link';
+      'Your account has no linked teacher profile. Contact your school.';
 
   @override
   String get accountNotLinkedToStaff =>
@@ -273,7 +273,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navInbox => 'Inbox';
 
   @override
-  String get navEvaluations => 'Evaluations';
+  String get navEvaluations => 'Assessments';
 
   @override
   String get teacherMockSignInHint =>
@@ -631,6 +631,7 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: '$count assessments',
       one: '1 assessment',
+      zero: '0 assessments',
     );
     return '$_temp0';
   }
@@ -765,6 +766,7 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: '$count overdue fee lines',
       one: '1 overdue fee line',
+      zero: '0 overdue fee lines',
     );
     return '$_temp0';
   }
@@ -781,6 +783,7 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: '$count payments',
       one: '1 payment',
+      zero: '0 payments',
     );
     return '$_temp0';
   }
@@ -807,7 +810,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String unreadCount(int count) {
-    return '$count unread';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count unread messages',
+      one: '1 unread message',
+      zero: '0 unread messages',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -848,7 +858,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allClasses => 'All classes';
 
   @override
-  String get evaluationsTitle => 'Evaluations';
+  String get evaluationsTitle => 'Assessments';
 
   @override
   String get calendarTitle => 'Calendar';
@@ -860,6 +870,7 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: '$count evaluations',
       one: '1 evaluation',
+      zero: '0 evaluations',
     );
     return '$_temp0';
   }
@@ -871,6 +882,7 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: '$count sessions',
       one: '1 session',
+      zero: '0 sessions',
     );
     return '$_temp0';
   }
@@ -1164,7 +1176,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookProgress => 'Progress';
 
   @override
-  String get rollMarkRemaining => 'Rest present';
+  String get rollMarkRemaining => 'Mark remaining pupils present';
 
   @override
   String get rollOneByOne => 'Photo mode';
@@ -1442,6 +1454,7 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: '$count items waiting to sync',
       one: '1 item waiting to sync',
+      zero: '0 items waiting to sync',
     );
     return '$_temp0';
   }
@@ -1649,7 +1662,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your account is linked. Opening your family view.';
 
   @override
-  String get invitationWrongKind => 'This invitation is for another Edaya app.';
+  String get invitationWrongKind => 'This invitation is for another EDaya app.';
 
   @override
   String get invitationWrongAccount =>
@@ -1763,8 +1776,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilePhotoCropTitle => 'Adjust portrait';
 
   @override
-  String get profilePhotoCropHint =>
-      'Rotate and confirm a square JPEG under 1 MiB.';
+  String profilePhotoCropHint(String limit) {
+    return 'Rotate and confirm a square JPEG of $limit or smaller.';
+  }
 
   @override
   String get profilePhotoRotate => 'Rotate';
@@ -1773,8 +1787,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilePhotoConfirmCrop => 'Use this photo';
 
   @override
-  String get profilePhotoTooLarge =>
-      'The photo is still larger than 1 MiB after compression.';
+  String profilePhotoTooLarge(String limit) {
+    return 'The photo still exceeds $limit after compression.';
+  }
 
   @override
   String get profilePhotoUpdateSuccess => 'Profile photo updated.';
@@ -1905,10 +1920,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get documentStatusSuperseded => 'Replaced';
 
   @override
-  String get documentStatusVoided => 'Replaced';
+  String get documentStatusVoided => 'Voided';
 
   @override
-  String get documentStatusPreview => 'Issued';
+  String get documentStatusPreview => 'Preview';
 
   @override
   String get exportLogbookPdf => 'Logbook PDF';
@@ -2117,7 +2132,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get contactMethod => 'Verify with';
 
   @override
-  String get verifyContactTitle => 'Verify your contact';
+  String get verifyContactTitle => 'Enter your verification code';
 
   @override
   String verificationContact(String contact) {
@@ -2312,7 +2327,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get messagingAwaitingSchool => 'Awaiting school';
 
   @override
-  String get messagingAwaitingGuardian => 'Awaiting guardian';
+  String get messagingAwaitingGuardian => 'Awaiting guardian reply';
 
   @override
   String get messagingResolved => 'Resolved';
@@ -2428,7 +2443,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get gradingMention => 'Mention';
+  String get gradingMention => 'Grade band';
 
   @override
   String get termsConfirm => 'Accept';
@@ -2597,4 +2612,871 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gradebookOptions => 'Result options';
+
+  @override
+  String get seeYourChildrenSSchoolInformation =>
+      'See your children’s school information.';
+
+  @override
+  String get assignments => 'Assignments';
+
+  @override
+  String get showMore => 'Show more';
+
+  @override
+  String get quickOverview => 'Quick overview';
+
+  @override
+  String get dailyAttendanceRegisters => 'Daily attendance registers';
+
+  @override
+  String get approved => 'Approved';
+
+  @override
+  String get approvedAwaitingPublication => 'Approved, awaiting publication';
+
+  @override
+  String get reportComment => 'Report comment';
+
+  @override
+  String get subjectCommentLabel => 'Subject comment';
+
+  @override
+  String publishedComment(Object comment) {
+    return 'Published comment · $comment';
+  }
+
+  @override
+  String get commentEntered => 'Comment entered';
+
+  @override
+  String get commentNeeded => 'Comment needed';
+
+  @override
+  String get archive => 'Archive';
+
+  @override
+  String get noPdfIsAvailableForThisReportCard =>
+      'No PDF is available for this report card.';
+
+  @override
+  String get noSchoolNotices => 'No school notices';
+
+  @override
+  String get noFeedbackPublishedForThisClassAndSubject =>
+      'No feedback published for this class and subject';
+
+  @override
+  String get noReportCardsPrepared => 'No report cards prepared.';
+
+  @override
+  String get noEditableFields => 'No editable fields';
+
+  @override
+  String get noCommentHasBeenSharedForThisActivity =>
+      'No comment has been shared for this activity.';
+
+  @override
+  String get noClassesScheduled => 'No classes scheduled';
+
+  @override
+  String get noDetailsAvailableForThisAssessment =>
+      'No details available for this assessment.';
+
+  @override
+  String get noTeachingAssignmentSelected => 'No teaching assignment selected.';
+
+  @override
+  String get noIncidents => 'No incidents';
+
+  @override
+  String get noMessages => 'No messages';
+
+  @override
+  String get noCurriculum => 'No curriculum';
+
+  @override
+  String get noStudents => 'No students';
+
+  @override
+  String get noStudentsEnrolledInThisClassAndSubject =>
+      'No students enrolled in this class and subject.';
+
+  @override
+  String get noStudentsFound => 'No students found.';
+
+  @override
+  String get noAssignment => 'No assignment';
+
+  @override
+  String get noActiveAssignmentForThisSchoolYear =>
+      'No active assignment for this school year.';
+
+  @override
+  String get noAssignmentsAvailable => 'No assignments available.';
+
+  @override
+  String get thisSchoolHasNoPublishedSchoolYear =>
+      'This school has no published school year.';
+
+  @override
+  String get noPublishedSchoolYear => 'No published school year.';
+
+  @override
+  String get noAssignedClasses => 'No assigned classes';
+
+  @override
+  String get noLogbookEntriesForThisSubject =>
+      'No logbook entries for this subject';
+
+  @override
+  String get noMarks => 'No marks';
+
+  @override
+  String get noSessionsToday => 'No sessions today';
+
+  @override
+  String get otherMarks => 'Other marks';
+
+  @override
+  String get feedback => 'Feedback';
+
+  @override
+  String get reportCard => 'Report card';
+
+  @override
+  String get reportCardNotGenerated => 'Report card not generated';
+
+  @override
+  String get reportCardNotPrepared => 'Report card not prepared';
+
+  @override
+  String get reportCardPrepared => 'Report card prepared';
+
+  @override
+  String reportCardLabel(Object period) {
+    return 'Report card · $period';
+  }
+
+  @override
+  String get reportCardNeedsUpdating => 'Report card needs updating';
+
+  @override
+  String get campaignsAndArchives => 'Campaigns and archives';
+
+  @override
+  String get thisRecordIsUnavailableOrYourAccessHas =>
+      'This record is unavailable or your access has changed.';
+
+  @override
+  String get thisProfileIsNoLongerAvailable =>
+      'This profile is no longer available.';
+
+  @override
+  String get helpCenter => 'Help center';
+
+  @override
+  String get thisAssignmentIsNoLongerAvailable =>
+      'This assignment is no longer available.';
+
+  @override
+  String get thisAssessmentIsUnavailableOrYourAccessHas =>
+      'This assessment is unavailable or your access has changed.';
+
+  @override
+  String get changeClass => 'Change class';
+
+  @override
+  String get chapters => 'Chapters';
+
+  @override
+  String couldNotLoadStudents(Object error) {
+    return 'Could not load students. $error';
+  }
+
+  @override
+  String get chooseDate => 'Choose date';
+
+  @override
+  String get chooseAClass => 'Choose a class';
+
+  @override
+  String get classAndSubject => 'Class and subject';
+
+  @override
+  String get selectAClassAndAPeriod => 'Select a class and a period.';
+
+  @override
+  String get code => 'Code';
+
+  @override
+  String coefficient(Object coefficient) {
+    return 'Coefficient $coefficient';
+  }
+
+  @override
+  String get comment => 'Comment';
+
+  @override
+  String get staffComment => 'Staff comment';
+
+  @override
+  String get commentSaved => 'Comment saved';
+
+  @override
+  String get generalComment => 'General comment';
+
+  @override
+  String get homeroomTeacherComment => 'Homeroom teacher comment';
+
+  @override
+  String get complete => 'Complete';
+
+  @override
+  String get theReportCardHasChangedReloadItAnd =>
+      'The report card has changed. Reload it and review your comment.';
+
+  @override
+  String get instructions => 'Instructions';
+
+  @override
+  String get viewDailyAttendance => 'View daily attendance';
+
+  @override
+  String get viewComment => 'View comment';
+
+  @override
+  String get conversation => 'Conversation';
+
+  @override
+  String get create => 'Create';
+
+  @override
+  String get createAssessment => 'Create assessment';
+
+  @override
+  String get latestMark => 'Latest mark';
+
+  @override
+  String get documents => 'Documents';
+
+  @override
+  String get chargeDetails => 'Charge details';
+
+  @override
+  String pendingPupilCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Pending · $count pupils',
+      one: 'Pending · 1 pupil',
+      zero: 'Pending · 0 pupils',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get couldNotSaveChanges => 'Could not save changes.';
+
+  @override
+  String couldNotSaveChangesLabel(Object error) {
+    return 'Could not save changes. $error';
+  }
+
+  @override
+  String get saveIncident => 'Save incident';
+
+  @override
+  String get teachingAssignments => 'Teaching assignments';
+
+  @override
+  String get entries => 'Entries';
+
+  @override
+  String get invoice => 'Invoice';
+
+  @override
+  String get takeDailyAttendance => 'Take daily attendance';
+
+  @override
+  String get positiveIncident => 'Positive incident';
+
+  @override
+  String get whatHappened => 'What happened?';
+
+  @override
+  String get closeAction => 'Close';
+
+  @override
+  String get dismissMessage => 'Dismiss message';
+
+  @override
+  String get chargeNotFound => 'Charge not found';
+
+  @override
+  String get schedule => 'Schedule';
+
+  @override
+  String get couldNotLoadTheCalendar => 'Could not load the calendar';
+
+  @override
+  String get couldNotLoadAssignmentsTryAgain =>
+      'Could not load assignments. Try again.';
+
+  @override
+  String get couldNotLoadResultsTryAgain =>
+      'Could not load results. Try again.';
+
+  @override
+  String get incident => 'Incident';
+
+  @override
+  String incidentSavedStillToLink(Object students, Object error) {
+    return 'Incident saved. Still to link: $students. $error';
+  }
+
+  @override
+  String get incidents => 'Incidents';
+
+  @override
+  String get thePdfIsBeingGeneratedTryAgainShortly =>
+      'The PDF is being generated. Try again shortly.';
+
+  @override
+  String get logbookEntriesWillAppearHereAsTheyAre =>
+      'Logbook entries will appear here as they are added.';
+
+  @override
+  String get reportCardsAreAvailableToTheHomeroomTeacher =>
+      'Report cards are available to the homeroom teacher for this class.';
+
+  @override
+  String get detailsAreHiddenUntilTheConfidentialityThresholdIs =>
+      'Details are hidden until the confidentiality threshold is met.';
+
+  @override
+  String get theseResultsReflectTheMostRecentCalculation =>
+      'These results reflect the most recent calculation.';
+
+  @override
+  String get downloadLinkUnavailable => 'Download link unavailable.';
+
+  @override
+  String read(Object date) {
+    return 'Read · $date';
+  }
+
+  @override
+  String get theCommentWillBeAvailableOnceTheSchool =>
+      'The comment will be available once the school prepares the report card.';
+
+  @override
+  String get myClassesAndRoles => 'My classes and roles';
+
+  @override
+  String get messageNotFound => 'Message not found';
+
+  @override
+  String get unreadMessages => 'Unread messages';
+
+  @override
+  String get paymentMethod => 'Payment method';
+
+  @override
+  String get change => 'Change';
+
+  @override
+  String get editComment => 'Edit comment';
+
+  @override
+  String get myAccount => 'My account';
+
+  @override
+  String get myProfile => 'My profile';
+
+  @override
+  String avgRank(Object average, Object rank) {
+    return 'Avg. $average · Rank $rank';
+  }
+
+  @override
+  String get periodAverage => 'Period average';
+
+  @override
+  String get indicativeAverageAcrossTheSubjectsTracked =>
+      'Indicative average across the subjects tracked.';
+
+  @override
+  String averageRank(Object average, Object rank) {
+    return 'Average $average · Rank $rank';
+  }
+
+  @override
+  String get incidentType => 'Incident type';
+
+  @override
+  String get name => 'Name';
+
+  @override
+  String get studentSMark => 'Student’s mark';
+
+  @override
+  String get maximumScore => 'Maximum score';
+
+  @override
+  String officialMark(Object result) {
+    return 'Official mark · $result';
+  }
+
+  @override
+  String get marks => 'Marks';
+
+  @override
+  String get newFeedbackFromHomePastFeedbackHere =>
+      'New feedback from Home, past feedback here';
+
+  @override
+  String get newFeedbackIsAvailablePastFeedbackStaysUnder =>
+      'New feedback is available. Past feedback stays under Assessments.';
+
+  @override
+  String get newConversation => 'New conversation';
+
+  @override
+  String get newAssessment => 'New assessment';
+
+  @override
+  String get openAllSettings => 'Open all settings';
+
+  @override
+  String get paymentNotFound => 'Payment not found';
+
+  @override
+  String get parent => 'Parent';
+
+  @override
+  String get noSchool => 'No school';
+
+  @override
+  String get photo => 'Photo';
+
+  @override
+  String get firstMessage => 'First message';
+
+  @override
+  String get studentProfile => 'Student profile';
+
+  @override
+  String curriculum(Object percent) {
+    return 'Curriculum · $percent%';
+  }
+
+  @override
+  String get preferences => 'Preferences';
+
+  @override
+  String period(Object period) {
+    return 'Period · $period';
+  }
+
+  @override
+  String get searchForAStudent => 'Search for a student';
+
+  @override
+  String get accountStatement => 'Account statement';
+
+  @override
+  String get fillWithMaximumScore => 'Fill with maximum score';
+
+  @override
+  String get guardianRecipient => 'Guardian recipient';
+
+  @override
+  String guardiansUnavailable(Object error) {
+    return 'Guardians unavailable. $error';
+  }
+
+  @override
+  String get backAction => 'Back';
+
+  @override
+  String get paymentReceipt => 'Payment receipt';
+
+  @override
+  String get nothingScheduledForThisDay => 'Nothing scheduled for this day';
+
+  @override
+  String get retryLoadingAttendance => 'Retry loading attendance';
+
+  @override
+  String get retryLinkingStudents => 'Retry linking students';
+
+  @override
+  String get archivedResultsForThisCampaign =>
+      'Archived results for this campaign.';
+
+  @override
+  String get resultNotFound => 'Result not found';
+
+  @override
+  String get results => 'Results';
+
+  @override
+  String enterTheCodeSentTo(Object contact) {
+    return 'Enter the code sent to $contact.';
+  }
+
+  @override
+  String cannotAssess(Object count) {
+    return 'Cannot assess · $count';
+  }
+
+  @override
+  String get noClassSpecified => 'No class specified';
+
+  @override
+  String get academics => 'Academics';
+
+  @override
+  String get confidentialityThreshold => 'Confidentiality threshold';
+
+  @override
+  String get reportAnIncident => 'Report an incident';
+
+  @override
+  String couldNotSubmit(Object error) {
+    return 'Could not submit: $error';
+  }
+
+  @override
+  String get status => 'Status';
+
+  @override
+  String get followUp => 'Follow-up';
+
+  @override
+  String get session => 'Session';
+
+  @override
+  String get sessionNotFound => 'Session not found';
+
+  @override
+  String responseRate(Object percent) {
+    return 'Response rate · $percent%';
+  }
+
+  @override
+  String get homeroomTeacher => 'Homeroom teacher';
+
+  @override
+  String get viewAllAttendance => 'View all attendance';
+
+  @override
+  String get downloadReceipt => 'Download receipt';
+
+  @override
+  String get confirmEachMarkWithEnterOrNext =>
+      'Confirm each mark with Enter or Next.';
+
+  @override
+  String get yourAssignmentHasChangedAnotherTeachingAssignmentHas =>
+      'Your assignment has changed. Another teaching assignment has been selected.';
+
+  @override
+  String get verifyCode => 'Verify code';
+
+  @override
+  String ofTheCurriculumCovered(Object percent) {
+    return '$percent% of the curriculum covered';
+  }
+
+  @override
+  String paidLabel(Object percent) {
+    return '$percent% paid';
+  }
+
+  @override
+  String returnToResults(Object error) {
+    return '$error Return to results.';
+  }
+
+  @override
+  String pendingCommentCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count comments pending',
+      one: '1 comment pending',
+      zero: '0 comments pending',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String overdueChargesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count overdue charges',
+      one: '1 overdue charge',
+      zero: '0 overdue charges',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String responseCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count responses',
+      one: '1 response',
+      zero: '0 responses',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rank(Object label, Object average, Object rank) {
+    return '$label $average · Rank $rank';
+  }
+
+  @override
+  String pendingApproval(Object label, Object proposal) {
+    return '$label · Pending approval: $proposal';
+  }
+
+  @override
+  String homeroomTeacherLabel(Object subject) {
+    return '$subject · Homeroom teacher';
+  }
+
+  @override
+  String pendingLabel(Object className, Object count) {
+    return '$className · $count pending';
+  }
+
+  @override
+  String gradedLabel(
+    Object className,
+    Object period,
+    Object graded,
+    Object total,
+  ) {
+    return '$className · $period · $graded/$total graded';
+  }
+
+  @override
+  String subjectPupilCount(Object subject, Object count) {
+    return '$subject · $count students';
+  }
+
+  @override
+  String toRead(Object count) {
+    return '$count to read';
+  }
+
+  @override
+  String surveyResponseRatio(Object completed, Object eligible) {
+    return '$completed/$eligible responses';
+  }
+
+  @override
+  String get dueDateLabel => 'Due date';
+
+  @override
+  String get dueDateRequired => 'Due date required';
+
+  @override
+  String due(Object date) {
+    return 'Due · $date';
+  }
+
+  @override
+  String get feeInstallments => 'Installments';
+
+  @override
+  String get student => 'Student';
+
+  @override
+  String get studentNotFound => 'Student not found';
+
+  @override
+  String get studentNotFoundForThisSurvey =>
+      'Student not found for this survey.';
+
+  @override
+  String get students => 'Students';
+
+  @override
+  String get assessmentNotFound => 'Assessment not found';
+
+  @override
+  String get assessmentWorkspace => 'Assessments';
+
+  @override
+  String get attendanceSubmitFailed => 'Couldn’t submit attendance. Try again.';
+
+  @override
+  String get attendanceSaveFailed => 'Couldn’t save the attendance change.';
+
+  @override
+  String get attendanceCorrectionHint =>
+      'Request a correction to change submitted attendance.';
+
+  @override
+  String get commentCorrectionFailed =>
+      'Couldn’t send the comment correction. Try again.';
+
+  @override
+  String get calendarHoliday => 'Holiday';
+
+  @override
+  String get calendarBreak => 'School break';
+
+  @override
+  String get calendarEvent => 'Event';
+
+  @override
+  String get paperSchoolCertificate => 'Certificate of school attendance';
+
+  @override
+  String get paperEnrollment => 'Enrollment record';
+
+  @override
+  String get paperStudentId => 'Student ID card';
+
+  @override
+  String get paperWithdrawal => 'School withdrawal certificate';
+
+  @override
+  String get paperSummons => 'School summons';
+
+  @override
+  String get feedbackCommunication => 'Communication';
+
+  @override
+  String get feedbackClarity => 'Clarity of expectations';
+
+  @override
+  String get feedbackSupport => 'Student support';
+
+  @override
+  String get feedbackExperience => 'Student experience';
+
+  @override
+  String get feedbackQuestion => 'Survey question';
+
+  @override
+  String get guardianPushDescription =>
+      'School updates and alerts for families';
+
+  @override
+  String get teacherPushDescription => 'School updates and alerts for staff';
+
+  @override
+  String duplicateTitle(String title) {
+    return '$title (copy)';
+  }
+
+  @override
+  String get schoolSessionUnavailable =>
+      'Couldn’t open your school session. Try again.';
+
+  @override
+  String get verificationInvalid => 'Invalid or expired code.';
+
+  @override
+  String sessionsToday(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sessions today',
+      one: '1 session today',
+      zero: '0 sessions today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String availableMarks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count marks available',
+      one: '1 mark available',
+      zero: '0 marks available',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String absenceCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count absences',
+      one: '1 absence',
+      zero: '0 absences',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String lateArrivals(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count late arrivals',
+      one: '1 late arrival',
+      zero: '0 late arrivals',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String surveyCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count surveys',
+      one: '1 survey',
+      zero: '0 surveys',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String openSurveyCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count open surveys',
+      one: '1 open survey',
+      zero: '0 open surveys',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String availableDocuments(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count documents available',
+      one: '1 document available',
+      zero: '0 documents available',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get outboxCorrection => 'Correction request';
+
+  @override
+  String get accountActionFailed =>
+      'Couldn’t complete this account action. Try again.';
+
+  @override
+  String get academicSubjects => 'Subjects';
 }

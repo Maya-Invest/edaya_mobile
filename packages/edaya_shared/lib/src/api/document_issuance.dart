@@ -6,8 +6,8 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../features/settings/app_settings_models.dart';
-import '../features/settings/app_settings_storage.dart';
+import '../l10n/app_localizations.dart';
+import '../l10n/l10n_lookup.dart';
 import '../l10n/l10n_extension.dart';
 import 'mutation_feedback.dart';
 
@@ -44,13 +44,13 @@ const leftoverFamilyPaperTemplates = {
 bool isLeftoverFamilyPaper(String templateKey) =>
     leftoverFamilyPaperTemplates.contains(templateKey);
 
-String leftoverFamilyPaperLabel(String templateKey) {
+String leftoverFamilyPaperLabel(String templateKey, AppLocalizations tr) {
   return switch (templateKey) {
-    'schooling-certificate.v1' => 'Certificat de scolarité',
-    'enrollment-record.v1' => "Dossier d'inscription",
-    'student-id.v1' || 'student-id-card.v1' => "Carte d'élève",
-    'withdrawal-certificate.v1' => 'Certificat de radiation',
-    'convocation.v1' => 'Convocation',
+    'schooling-certificate.v1' => tr.paperSchoolCertificate,
+    'enrollment-record.v1' => tr.paperEnrollment,
+    'student-id.v1' || 'student-id-card.v1' => tr.paperStudentId,
+    'withdrawal-certificate.v1' => tr.paperWithdrawal,
+    'convocation.v1' => tr.paperSummons,
     _ => templateKey,
   };
 }
@@ -101,12 +101,7 @@ class DocumentIssuanceRecord {
   bool get isReplaced => status == 'superseded' || status == 'voided';
 }
 
-String documentRequestLocale() {
-  final locale =
-      AppSettingsStorage.cached.language.locale ??
-      WidgetsBinding.instance.platformDispatcher.locale;
-  return locale.languageCode == 'en' ? 'en' : 'fr';
-}
+String documentRequestLocale() => systemL10n().localeName;
 
 String newDocumentRequestId() {
   final random = Random.secure();

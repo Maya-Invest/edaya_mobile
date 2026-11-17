@@ -43,7 +43,7 @@ class TeacherGradebookPage extends LScopedView<TeacherGradebookController> {
       return Center(
         child: TextButton(
           onPressed: () => context.replace('/evaluations'),
-          child: Text('${c.assessmentError.value} Retour aux résultats.'),
+          child: Text(context.tr.returnToResults(c.assessmentError.value)),
         ),
       );
     }
@@ -51,7 +51,7 @@ class TeacherGradebookPage extends LScopedView<TeacherGradebookController> {
       return const Center(child: CircularProgressIndicator());
     }
     if (active?.classSubjectId == null) {
-      return const Center(child: Text('Aucun enseignement sélectionné.'));
+      return Center(child: Text(context.tr.noTeachingAssignmentSelected));
     }
     final period = _GradebookPicker(
       key: ValueKey(('period', ev.selectedPeriodId.value)),
@@ -60,7 +60,7 @@ class TeacherGradebookPage extends LScopedView<TeacherGradebookController> {
           ? ev.selectedPeriodId.value
           : null,
       isExpanded: true,
-      decoration: const InputDecoration(labelText: 'Période'),
+      decoration: InputDecoration(labelText: context.tr.periodFallback),
       items: [
         for (final p in ev.periods.value)
           DropdownMenuItem(
@@ -85,11 +85,14 @@ class TeacherGradebookPage extends LScopedView<TeacherGradebookController> {
           ? selected
           : 'average',
       isExpanded: true,
-      decoration: const InputDecoration(labelText: 'Résultats'),
+      decoration: InputDecoration(labelText: context.tr.results),
       items: [
-        const DropdownMenuItem(
+        DropdownMenuItem(
           value: 'average',
-          child: Text('Moyenne de la période', overflow: TextOverflow.ellipsis),
+          child: Text(
+            context.tr.periodAverage,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
         for (final e in evaluations)
           DropdownMenuItem(
@@ -107,7 +110,7 @@ class TeacherGradebookPage extends LScopedView<TeacherGradebookController> {
       },
     );
     final add = IconButton.filled(
-      tooltip: 'Nouvelle évaluation',
+      tooltip: context.tr.newAssessment,
       icon: const Icon(Icons.add),
       onPressed: ev.selectedPeriodId.value == null
           ? null
@@ -186,15 +189,15 @@ class _AverageRows extends StatelessWidget {
       (row['grading'] as Map?)?.cast<String, dynamic>(),
     );
     String appreciation(Map row) => row['comment'] == null
-        ? 'Bulletin non préparé'
+        ? context.tr.reportCardNotPrepared
         : (row['comment'] as Map)['proposal'] != null
         ? ((row['comment'] as Map)['proposal'] as Map)['status'] ==
                   'approved_pending_publication'
-              ? 'Approuvée · En attente de publication'
-              : 'En attente d’approbation'
+              ? context.tr.approvedAwaitingPublication
+              : context.tr.gradebookPending
         : ((row['comment'] as Map)['text'] as String).isEmpty
-        ? 'Appréciation à compléter'
-        : 'Appréciation renseignée';
+        ? context.tr.commentNeeded
+        : context.tr.commentEntered;
     return RefreshIndicator(
       onRefresh: c.load,
       child: ListView(
@@ -206,9 +209,13 @@ class _AverageRows extends StatelessWidget {
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
           if (c.students.value.isNotEmpty)
-            const ComparisonHeading(['Élève', 'Moyenne', 'Appréciation']),
+            ComparisonHeading([
+              context.tr.student,
+              context.tr.average,
+              context.tr.reportComment,
+            ]),
           if (c.students.value.isEmpty)
-            const Text('Aucun élève inscrit à cet enseignement.'),
+            Text(context.tr.noStudentsEnrolledInThisClassAndSubject),
           for (final row in c.students.value)
             Padding(
               padding: const EdgeInsets.only(bottom: PrototypeSpacing.xs),
@@ -259,7 +266,7 @@ class _SubjectSummary extends StatelessWidget {
     padding: const EdgeInsets.all(16),
     children: [
       Text(
-        'Moyenne de la période',
+        context.tr.periodAverage,
         style: Theme.of(context).textTheme.titleMedium,
       ),
       Text(
@@ -276,25 +283,27 @@ class _SubjectSummary extends StatelessWidget {
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(result['title'] as String),
-              subtitle: Text('Coefficient ${result['coefficient']}'),
+              subtitle: Text(
+                context.tr.coefficient(
+                  formatGradeNumber(result['coefficient'] as num?),
+                ),
+              ),
               trailing: Text(
                 result['designation'] == 'absent'
                     ? 'Absent'
                     : result['designation'] == 'exempt'
-                    ? 'Dispensé'
-                    : '${result['score'] ?? '—'} / ${result['maxScore']}',
+                    ? context.tr.marksExempt
+                    : '${formatGradeNumber(result['score'] as num?)} / ${formatGradeNumber(result['maxScore'] as num?)}',
               ),
             ),
           const SizedBox(height: 16),
         ],
         second: [
           if (row['comment'] == null)
-            const Text(
-              'L’appréciation sera disponible lorsque l’établissement aura préparé le bulletin.',
-            )
+            Text(context.tr.theCommentWillBeAvailableOnceTheSchool)
           else ...[
             Text(
-              'Appréciation de la matière',
+              context.tr.subjectCommentLabel,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             Text((row['comment'] as Map)['text'] as String),
@@ -305,7 +314,7 @@ class _SubjectSummary extends StatelessWidget {
             FilledButton(
               onPressed: () => showWorkspaceEditor<Object?>(
                 context: context,
-                title: 'Appréciation',
+                title: context.tr.reportComment,
                 builder: (_, close) => ReportCardCommentPage(
                   classId: controller.teacher.activeAssignment!.classGroupId,
                   periodId: controller.evaluations.selectedPeriodId.value!,
@@ -317,8 +326,8 @@ class _SubjectSummary extends StatelessWidget {
               child: Text(
                 (row['comment'] as Map)['proposal']?['status'] ==
                         'approved_pending_publication'
-                    ? 'Consulter l’appréciation'
-                    : 'Modifier l’appréciation',
+                    ? context.tr.viewComment
+                    : context.tr.editComment,
               ),
             ),
           ],
@@ -358,16 +367,19 @@ class EvaluationMarksPane extends LScopedView<LiveMarksController> {
 String markValue(LiveMarkRow row) => row.designation == 'absent'
     ? 'Absent'
     : row.designation == 'exempt'
-    ? 'Dispensé'
-    : row.mentionCode ?? row.score?.toString() ?? 'À compléter';
+    ? systemL10n().marksExempt
+    : row.mentionCode ??
+          (row.score == null
+              ? systemL10n().gradebookMissing
+              : formatGradeNumber(row.score));
 String proposalValue(LiveMarksController c, Map row) =>
     row['designation'] == 'absent'
     ? 'Absent'
     : row['designation'] == 'exempt'
-    ? 'Dispensé'
+    ? systemL10n().marksExempt
     : row['mentionId'] != null
     ? c.mentionLabel(row['mentionId'] as String)
-    : '${row['score'] ?? '—'}';
+    : formatGradeNumber(row['score'] as num?);
 
 /// Restore the displayed selection while an unsaved-edit prompt is pending.
 class _GradebookPicker extends StatefulWidget {

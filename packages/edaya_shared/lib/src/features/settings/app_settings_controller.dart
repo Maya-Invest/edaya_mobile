@@ -3,6 +3,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../../l10n/l10n_lookup.dart';
 import 'app_settings_models.dart';
 import 'app_settings_storage.dart';
 
@@ -50,17 +51,7 @@ class AppSettingsController extends LevitController {
     Locale? deviceLocale,
     Iterable<Locale> supportedLocales,
   ) {
-    final preferred = language.value.locale;
-    if (preferred != null) {
-      return preferred;
-    }
-    if (deviceLocale == null) {
-      return supportedLocales.first;
-    }
-    return supportedLocales.firstWhere(
-      (locale) => locale.languageCode == deviceLocale.languageCode,
-      orElse: () => supportedLocales.first,
-    );
+    return supportedAppLocale(locale ?? deviceLocale, supportedLocales);
   }
 
   Future<void> setTheme(ThemePreference value) =>

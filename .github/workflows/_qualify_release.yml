@@ -16,12 +16,33 @@ permissions:
   actions: read
   deployments: write
 jobs:
+  reserve_build:
+    name: Reserve store build number
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      actions: read
+    outputs:
+      store_build: ${{ steps.reserve.outputs.store_build }}
+      attempt: ${{ steps.reserve.outputs.attempt }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - id: reserve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET: ${{ inputs.target }}
+        run: bash .github/scripts/reserve-store-build.sh
   preparation:
+    needs: reserve_build
     uses: ./.github/workflows/_prepare.yml
     with:
       target: ${{ inputs.target }}
       source_ref: ${{ github.sha }}
       release_mode: true
+      store_build: ${{ needs.reserve_build.outputs.store_build }}
+      reservation_attempt: ${{ needs.reserve_build.outputs.attempt }}
     secrets:
       BACKEND_CHECKOUT_TOKEN: ${{ secrets.BACKEND_CHECKOUT_TOKEN }}
   quality:

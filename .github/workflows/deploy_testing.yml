@@ -13,6 +13,10 @@ concurrency:
 jobs:
   qualification:
     if: github.ref == 'refs/heads/staging'
+    permissions:
+      contents: write
+      actions: read
+      deployments: write
     uses: ./.github/workflows/_qualify_release.yml
     with:
       target: staging

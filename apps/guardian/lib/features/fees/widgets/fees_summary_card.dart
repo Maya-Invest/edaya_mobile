@@ -31,19 +31,31 @@ class FeesSummaryCard extends StatelessWidget {
                 Expanded(
                   child: _Metric(
                     label: l10n.availableAmount,
-                    value: formatMoney(summary.available, summary.currency),
+                    value: formatMoney(
+                      summary.available,
+                      summary.currency,
+                      context.tr.localeName,
+                    ),
                   ),
                 ),
                 Expanded(
                   child: _Metric(
                     label: l10n.outstandingAmount,
-                    value: formatMoney(summary.outstanding, summary.currency),
+                    value: formatMoney(
+                      summary.outstanding,
+                      summary.currency,
+                      context.tr.localeName,
+                    ),
                   ),
                 ),
                 Expanded(
                   child: _Metric(
                     label: l10n.overdueAmount,
-                    value: formatMoney(summary.overdue, summary.currency),
+                    value: formatMoney(
+                      summary.overdue,
+                      summary.currency,
+                      context.tr.localeName,
+                    ),
                     valueStyle: overdueStyle,
                   ),
                 ),

@@ -1,3 +1,4 @@
+import 'localized_auth_error.dart';
 import 'dart:async';
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -163,7 +164,9 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
     await runTask(() async {
       final result = await _authClient.beginTotpEnrollment();
       if (!result.isSuccess) {
-        errorMessage(result.error?.message ?? systemL10n().signInFailed);
+        errorMessage(
+          localizedAuthError(result.error, systemL10n().signInFailed),
+        );
         return;
       }
       enrollmentSecret(_authClient.enrollmentSecret ?? '');
@@ -281,7 +284,7 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
           errorMessage(
             result.error?.code == 'terms_unavailable'
                 ? systemL10n().termsUnavailable
-                : result.error?.message ?? systemL10n().otpSendFailed,
+                : localizedAuthError(result.error, systemL10n().otpSendFailed),
           );
         }
         return;
@@ -332,7 +335,7 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
           errorMessage(
             result.error?.code == 'terms_unavailable'
                 ? systemL10n().termsUnavailable
-                : result.error?.message ?? systemL10n().otpSendFailed,
+                : localizedAuthError(result.error, systemL10n().otpSendFailed),
           );
         }
       } else {
@@ -450,7 +453,9 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
     if (result.error?.code == 'enrollment_required') {
       final enrollment = await _authClient.beginTotpEnrollment();
       if (!enrollment.isSuccess) {
-        errorMessage(enrollment.error?.message ?? systemL10n().signInFailed);
+        errorMessage(
+          localizedAuthError(enrollment.error, systemL10n().signInFailed),
+        );
         return;
       }
       enrollmentSecret(_authClient.enrollmentSecret ?? '');
@@ -459,7 +464,7 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
       return;
     }
     if (!result.isSuccess || result.data == null) {
-      errorMessage(result.error?.message ?? systemL10n().signInFailed);
+      errorMessage(localizedAuthError(result.error, systemL10n().signInFailed));
       return;
     }
     if (_authClient.recoveryCodes.isNotEmpty) {

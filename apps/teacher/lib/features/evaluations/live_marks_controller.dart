@@ -85,7 +85,7 @@ class LiveMarkRow {
 class MarkDraft {
   const MarkDraft({this.text = '', this.designation, this.mentionId});
   factory MarkDraft.fromRow(LiveMarkRow row) => MarkDraft(
-    text: row.score?.toString() ?? '',
+    text: row.score == null ? '' : formatGradeNumber(row.score),
     designation: row.designation,
     mentionId: row.mentionId,
   );
@@ -548,7 +548,9 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
         local.putIfAbsent(
           value['studentId'] as String,
           () => MarkDraft(
-            text: '${value['score'] ?? ''}',
+            text: value['score'] == null
+                ? ''
+                : formatGradeNumber(value['score'] as num),
             mentionId: value['mentionId'] as String?,
             designation: value['designation'] as String?,
           ),
@@ -1035,7 +1037,7 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
       await load();
       saveMessage(systemL10n().marksSubmitted);
     } on Object catch (error) {
-      saveMessage('Soumission impossible : $error');
+      saveMessage(systemL10n().couldNotSubmit(error));
     } finally {
       _saving = false;
       if (!isClosed) submitting(false);

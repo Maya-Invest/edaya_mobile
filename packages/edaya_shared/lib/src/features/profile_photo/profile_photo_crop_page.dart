@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../app/edaya_tokens.g.dart';
 import '../../l10n/l10n_extension.dart';
@@ -26,6 +27,19 @@ class ProfilePhotoCropPage extends StatefulWidget {
 }
 
 class _ProfilePhotoCropPageState extends State<ProfilePhotoCropPage> {
+  String _limit(BuildContext context) {
+    final bytes = profilePhotoMaxBytes();
+    final french = context.tr.localeName == 'fr';
+    final wholeMebibytes = bytes % defaultProfilePhotoMaxBytes == 0;
+    final count = NumberFormat.decimalPattern(
+      context.tr.localeName,
+    ).format(wholeMebibytes ? bytes ~/ defaultProfilePhotoMaxBytes : bytes);
+    final unit = wholeMebibytes
+        ? (french ? 'Mio' : 'MiB')
+        : (french ? 'octets' : 'bytes');
+    return '$count $unit';
+  }
+
   var _turns = 0;
   var _busy = false;
 
@@ -45,7 +59,9 @@ class _ProfilePhotoCropPageState extends State<ProfilePhotoCropPage> {
     } on ProfilePhotoTooLargeException {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.tr.profilePhotoTooLarge)),
+          SnackBar(
+            content: Text(context.tr.profilePhotoTooLarge(_limit(context))),
+          ),
         );
       }
     } finally {
@@ -63,7 +79,7 @@ class _ProfilePhotoCropPageState extends State<ProfilePhotoCropPage> {
         padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
         child: Column(
           children: [
-            Text(context.tr.profilePhotoCropHint),
+            Text(context.tr.profilePhotoCropHint(_limit(context))),
             const SizedBox(height: 24),
             Expanded(
               child: Center(

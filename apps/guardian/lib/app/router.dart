@@ -326,8 +326,8 @@ GoRouter createRouter({
                         }
                       }
                       if (studentId == null || studentId.isEmpty) {
-                        return const RouteErrorPage(
-                          message: 'Élève introuvable pour cet avis.',
+                        return RouteErrorPage(
+                          message: context.tr.studentNotFoundForThisSurvey,
                         );
                       }
                       return GuardianFamilyFeedbackQuestionnairePage(
@@ -425,7 +425,7 @@ GoRoute guardianRoute({
         ? null
         : (context, state) => sheet
               ? GuardianSheetPage(
-                  key: state.pageKey,
+                  key: ValueKey((state.pageKey, state.matchedLocation)),
                   title: switch (path) {
                     '/children' => words(context, 'Mes enfants', 'My children'),
                     '/account/profile' => words(
@@ -441,8 +441,8 @@ GoRoute guardianRoute({
                     ),
                     'payment/:id' => words(
                       context,
-                      'Reçu de paiement',
-                      'Payment receipt',
+                      'Détails du paiement',
+                      'Payment details',
                     ),
                     'message/:id' => words(context, 'Message', 'Message'),
                     ':campaignId' => words(

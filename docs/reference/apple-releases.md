@@ -57,7 +57,7 @@ The sibling frontend's `apple-app-site-association` now includes `SQFU4GGCX2.ca.
 
 ## Build versions and evidence
 
-Marketing versions come from each v2 app's `pubspec.yaml` (for example `1.0.0`). Increase them before the next public App Store version. Both entry points use the same prepared `storeBuild`, the number of ten-second intervals since January 1, 2020 UTC. The iOS build number is `1 + floor(storeBuild / 10000)`, `floor(storeBuild / 100) % 100`, and `storeBuild % 100`, joined with dots. For example, `21000001` produces `2101.0.1`. A full rerun at the branch tip receives a fresh number. The build fails if it would exceed `9999.99.99`.
+Marketing versions come from each v2 app's `pubspec.yaml` (for example `1.0.0`). Increase them before the next public App Store version. Testing and live releases share one `storeBuild` counter, which advances by one per release attempt. The iOS build number is `1 + floor(storeBuild / 10000)`, `floor(storeBuild / 100) % 100`, and `storeBuild % 100`, joined with dots. For example, `21000001` and `21000002` produce `2101.0.1` and `2101.0.2`. A full rerun at the branch tip receives a fresh number. The build fails if it would exceed `9999.99.99`. [Build number allocation](ci-setup.md#store-build-counter)
 
 If existing TestFlight builds already have larger build numbers for the same marketing version, increment the app's marketing version before onboarding this workflow. Public release versions must be newer than the current public version. The workflow never lets Xcode silently change the selected build number.
 

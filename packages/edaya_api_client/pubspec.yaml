@@ -1,5 +1,5 @@
 name: edaya_api_client
-description: Domain-shaped HTTP client for the Edaya Core API in Flutter and Dart.
+description: Domain-shaped HTTP client for the EDaya Core API in Flutter and Dart.
 publish_to: none
 resolution: workspace
 

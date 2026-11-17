@@ -119,7 +119,7 @@ class TeacherGradebookController extends LevitController {
     } on Object {
       if (!isClosed) {
         assessmentError(
-          'Cette évaluation est indisponible ou vos droits ont changé.',
+          systemL10n().thisAssessmentIsUnavailableOrYourAccessHas,
         );
       }
     } finally {
@@ -148,7 +148,7 @@ class TeacherGradebookController extends LevitController {
       );
     } on Object {
       if (!isClosed && request == generation) {
-        error('Impossible de charger les résultats. Réessayez.');
+        error(systemL10n().couldNotLoadResultsTryAgain);
       }
     } finally {
       if (!isClosed && request == generation) loading(false);

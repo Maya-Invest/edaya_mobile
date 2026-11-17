@@ -153,9 +153,11 @@ class ProgressController extends LevitController with LevitReactiveTasksMixin {
                   title: m.name,
                   progress: m.completedPercentage / 100.0,
                   status: switch (m.status) {
-                    CurriculumMatterStatus.completed => 'Terminé',
-                    CurriculumMatterStatus.inProgress => 'En cours',
-                    CurriculumMatterStatus.notStarted => 'Non commencé',
+                    CurriculumMatterStatus.completed => systemL10n().done,
+                    CurriculumMatterStatus.inProgress =>
+                      systemL10n().matterStatusInProgress,
+                    CurriculumMatterStatus.notStarted =>
+                      systemL10n().matterStatusNotStarted,
                   },
                 ),
               )
@@ -167,7 +169,7 @@ class ProgressController extends LevitController with LevitReactiveTasksMixin {
               classSubjectId: option.id,
               progress: pct,
               status: topics.isEmpty
-                  ? 'Aucun programme'
+                  ? systemL10n().noCurriculum
                   : '${(pct * 100).round()} %',
               topicCount: topics.length,
             ),

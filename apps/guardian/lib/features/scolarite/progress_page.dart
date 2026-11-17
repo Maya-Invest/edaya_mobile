@@ -42,7 +42,7 @@ class _MockProgressOverviewPage extends LScopedView<StoreBoundController> {
         .toList();
     return PrototypeDetailScaffold(
       fallbackRoute: '/scolarite/notes',
-      title: 'Avancement du programme',
+      title: context.tr.curriculumProgressTitle,
       body: ListView(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
@@ -51,14 +51,16 @@ class _MockProgressOverviewPage extends LScopedView<StoreBoundController> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${(store.overallProgramProgress * 100).round()} % du programme couvert',
+                  context.tr.ofTheCurriculumCovered(
+                    (store.overallProgramProgress * 100).round(),
+                  ),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: PrototypeSpacing.xs),
                 PrototypeProgressBar(value: store.overallProgramProgress),
                 const SizedBox(height: PrototypeSpacing.xs),
                 Text(
-                  'Moyenne indicative sur les matières suivies.',
+                  context.tr.indicativeAverageAcrossTheSubjectsTracked,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -131,14 +133,14 @@ class _LiveProgressOverviewPage extends LScopedView<ProgressController> {
     if (controller.isBusy.value && summaries.isEmpty) {
       return PrototypeDetailScaffold(
         fallbackRoute: '/scolarite/notes',
-        title: 'Avancement du programme',
+        title: context.tr.curriculumProgressTitle,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return PrototypeDetailScaffold(
       fallbackRoute: '/scolarite/notes',
-      title: 'Avancement du programme',
+      title: context.tr.curriculumProgressTitle,
       body: ListView(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
@@ -147,14 +149,14 @@ class _LiveProgressOverviewPage extends LScopedView<ProgressController> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${(overall * 100).round()} % du programme couvert',
+                  context.tr.ofTheCurriculumCovered((overall * 100).round()),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: PrototypeSpacing.xs),
                 PrototypeProgressBar(value: overall),
                 const SizedBox(height: PrototypeSpacing.xs),
                 Text(
-                  'Moyenne indicative sur les matières suivies.',
+                  context.tr.indicativeAverageAcrossTheSubjectsTracked,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -243,7 +245,7 @@ class _SubjectProgressSectionHeader extends StatelessWidget {
                   ),
                   TextButton(
                     onPressed: onOpenLogbook,
-                    child: const Text('Cahier'),
+                    child: Text(context.tr.teachingLogbookTab),
                   ),
                   Icon(expanded ? Icons.expand_less : Icons.expand_more),
                 ],

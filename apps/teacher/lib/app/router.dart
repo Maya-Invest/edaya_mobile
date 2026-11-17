@@ -64,7 +64,7 @@ GoRouter createRouter({
             routes: [
               record(
                 'student/:classId/:studentId',
-                'Élève',
+                (context) => context.tr.student,
                 (s) => StudentProfilePage(
                   classId: s.pathParameters['classId']!,
                   studentId: s.pathParameters['studentId']!,
@@ -165,13 +165,13 @@ GoRouter createRouter({
             routes: [
               record(
                 'new',
-                'Signaler un incident',
+                (context) => context.tr.reportAnIncident,
                 (_) => const NewRecordForm(message: false),
                 wide: true,
               ),
               record(
                 ':classId/:incidentId',
-                'Incident',
+                (context) => context.tr.incident,
                 (s) => TeacherDisciplinePage(
                   classId: s.pathParameters['classId']!,
                   incidentId: s.pathParameters['incidentId']!,
@@ -189,7 +189,7 @@ GoRouter createRouter({
             routes: [
               record(
                 'create',
-                'Créer une évaluation',
+                (context) => context.tr.createAssessment,
                 (s) => const EvaluationCreatePage(),
               ),
               GoRoute(
@@ -203,7 +203,7 @@ GoRouter createRouter({
               ),
               record(
                 'subject-comment/:classId/:periodId/:studentId',
-                'Appréciation',
+                (context) => context.tr.reportComment,
                 (s) => ReportCardCommentPage(
                   classId: s.pathParameters['classId']!,
                   periodId: s.pathParameters['periodId']!,
@@ -219,7 +219,7 @@ GoRouter createRouter({
             routes: [
               record(
                 ':feedbackId',
-                'Avis des familles',
+                (context) => context.tr.teacherTaskFamilyFeedback,
                 (s) => FamilyFeedbackDetailPage(
                   feedbackId: s.pathParameters['feedbackId']!,
                 ),
@@ -283,9 +283,9 @@ GoRouter createRouter({
                   evaluations.selectPeriod(s.pathParameters['periodId']!);
                   return '/evaluations/subject-comment/${s.pathParameters['classId']}/${s.pathParameters['periodId']}/${s.pathParameters['rosterId']}?subject=${own.classSubjectId}';
                 },
-                pageBuilder: (_, s) => RecordSheetPage(
+                pageBuilder: (context, s) => RecordSheetPage(
                   key: s.pageKey,
-                  title: 'Bulletin',
+                  title: context.tr.reportCard,
                   wide: true,
                   child: ReportCardCommentPage(
                     classId: s.pathParameters['classId']!,
@@ -312,20 +312,20 @@ GoRouter createRouter({
             routes: [
               record(
                 'new',
-                'Nouvelle conversation',
+                (context) => context.tr.newConversation,
                 (_) => const NewRecordForm(message: true),
                 wide: true,
               ),
               record(
                 'conversation/:conversationId',
-                'Conversation',
+                (context) => context.tr.conversation,
                 (s) => ConversationPage(
                   conversationId: s.pathParameters['conversationId']!,
                 ),
               ),
               record(
                 'message/:id',
-                'Message',
+                (context) => context.tr.messageDefaultTitle,
                 (s) => MessageDetailPage(messageId: s.pathParameters['id']!),
               ),
             ],
@@ -336,10 +336,14 @@ GoRouter createRouter({
             routes: [
               record(
                 'profile',
-                'Mon compte',
+                (context) => context.tr.myAccount,
                 (s) => const AccountProfilePage(),
               ),
-              record('settings', 'Préférences', (s) => const SettingsPage()),
+              record(
+                'settings',
+                (context) => context.tr.preferences,
+                (s) => const SettingsPage(),
+              ),
             ],
           ),
           GoRoute(path: '/settings', redirect: (_, _) => '/account/settings'),
@@ -356,16 +360,15 @@ GoRouter createRouter({
 
 GoRoute record(
   String path,
-  String title,
+  String Function(BuildContext) title,
   Widget Function(GoRouterState) build, {
   bool wide = false,
-  String Function(BuildContext)? titleBuilder,
 }) => GoRoute(
   path: path,
   onExit: workspaceCanExit,
   pageBuilder: (context, s) => RecordSheetPage(
     key: s.pageKey,
-    title: titleBuilder?.call(context) ?? title,
+    title: title(context),
     wide: wide,
     child: build(s),
   ),

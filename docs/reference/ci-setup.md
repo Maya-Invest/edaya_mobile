@@ -26,7 +26,7 @@ Staging successfully produced both signed Android APKs on November 14, 2026. [St
 | `staging` | Backend `staging`, `https://staging.api.edayaplus.com` | Google Play internal testing and internal TestFlight. Signed Android APKs are also available as artifacts. |
 | `main` | Backend `main`, `https://api.edayaplus.com` | Fresh production builds sent to Google Play production review and Apple App Review. |
 
-Production qualification requires the integration fixture command in backend `main`. The backend maintainer must land the fixture tooling there before the first production qualification. Merging into mobile `main` starts the production workflow. Both deployment workflows call `_qualify_release.yml` to build and qualify the exact signed binaries. Each then starts Google Play and Apple delivery in parallel. Testing ends when the internal Play edits are committed and TestFlight processes the uploads. Live checks both processed Apple builds for review eligibility before either submission. Preparation allocates one store build number under the shared release queue and freezes it in the current attempt’s prepared artifact. A rerun uses a new number and must still target the branch tip.
+Production qualification requires the integration fixture command in backend `main`. The backend maintainer must land the fixture tooling there before the first production qualification. Merging into mobile `main` starts the production workflow. Both deployment workflows call `_qualify_release.yml` to build and qualify the exact signed binaries. Each then starts Google Play and Apple delivery in parallel. Testing ends when the internal Play edits are committed and TestFlight processes the uploads. Live checks both processed Apple builds for review eligibility before either submission.
 
 | Actions secret | Purpose |
 | --- | --- |
@@ -37,6 +37,12 @@ Production qualification requires the integration fixture command in backend `ma
 | `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | Full Google service-account key for both apps. Still required as of November 14, 2026. |
 
 Repository secrets apply to both release jobs. Where environment secrets are available, configure testing credentials in `staging` and public-release credentials in `production`. Restrict production to `main` where supported. With a shared Play account, grant it both testing and production release permissions. The optional repository variable `PLAY_VERSION_CODE_BASE` defaults to `1000000` and must be consistent across branches. Store builds ignore saved developer endpoint overrides. [Actions secrets](https://github.com/Maya-Invest/edaya_mobile/settings/secrets/actions)
+
+### Store build counter
+
+Testing and live share the `mobile-store-release` queue. Each release reserves the highest `mobile-store-build/<number>` Git tag plus one by creating a tag on the release commit. Both apps and both platforms read the reserved `storeBuild` from the same prepared artifact. PR and branch checks skip allocation. A failed release keeps its number, and rerunning all jobs at the branch tip reserves the next one.
+
+At cutover, use the counter workflow on both release branches for subsequent releases. The first reservation reads `storeBuild` from the latest completed testing or live release’s prepared artifact. If that artifact is unavailable, create a `mobile-store-build/<last-storeBuild>` tag on the corresponding release commit using the highest verified prior value across both branches. For a repository with no previous store builds, use `mobile-store-build/0`. Keep the reservation tags so the counter survives artifact expiry.
 
 ### Upload the signing bundles
 

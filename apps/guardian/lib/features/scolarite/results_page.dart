@@ -136,7 +136,8 @@ class ResultsPage extends LScopedView<PeriodResultsController> {
                   collapsedShape: const Border(),
                   maintainState: true,
                   title: Text(
-                    '${section['name']}',
+                    section['name']?.toString() ??
+                        context.tr.academicSubjects,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   subtitle: Text(resultLabel(section)),
@@ -199,7 +200,7 @@ class _SubjectRow extends StatelessWidget {
               ),
             ),
             Text(
-              '${words(context, 'Coefficient', 'Coefficient')} ${subject['coefficient'] ?? '—'}',
+              '${words(context, 'Coefficient', 'Coefficient')} ${formatGradeNumber(subject['coefficient'] as num?)}',
             ),
           ],
         ),

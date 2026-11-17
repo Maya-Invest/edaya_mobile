@@ -48,12 +48,11 @@ class _MockSubjectLogbookPage extends LScopedView<StoreBoundController> {
         children: [
           Text(resolvedSubject, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: PrototypeSpacing.md),
-          const SectionHeader(title: 'Entrées'),
+          SectionHeader(title: context.tr.entries),
           if (entries.isEmpty)
-            const EmptyState(
-              title: 'Aucune entrée pour cette matière',
-              message:
-                  'Le cahier de textes sera affiché ici au fur et à mesure.',
+            EmptyState(
+              title: context.tr.noLogbookEntriesForThisSubject,
+              message: context.tr.logbookEntriesWillAppearHereAsTheyAre,
             )
           else
             for (final entry in entries) ...[
@@ -105,12 +104,11 @@ class _LiveSubjectLogbookPage extends LScopedView<SubjectLogbookController> {
         children: [
           Text(subject, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: PrototypeSpacing.md),
-          const SectionHeader(title: 'Entrées'),
+          SectionHeader(title: context.tr.entries),
           if (entries.isEmpty)
-            const EmptyState(
-              title: 'Aucune entrée pour cette matière',
-              message:
-                  'Le cahier de textes sera affiché ici au fur et à mesure.',
+            EmptyState(
+              title: context.tr.noLogbookEntriesForThisSubject,
+              message: context.tr.logbookEntriesWillAppearHereAsTheyAre,
             )
           else
             for (final entry in entries) ...[

@@ -1,5 +1,5 @@
 name: edaya_guardian_v2
-description: Edaya mobile app for guardians and parents.
+description: EDaya mobile app for guardians and parents.
 publish_to: none
 resolution: workspace
 
@@ -29,6 +29,7 @@ dependencies:
   url_launcher: ^6.3.2
 
 dev_dependencies:
+  sqflite: ^2.4.2
   integration_test:
     sdk: flutter
   flutter_secure_storage: ^10.3.4

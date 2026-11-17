@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 
 import '../../app/formatters.dart';
@@ -32,7 +33,7 @@ class NoSchoolDayBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Pas d\'école',
+                  context.tr.noSchool,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: Theme.of(context).colorScheme.error,
                   ),
@@ -99,7 +100,7 @@ class SchoolEventRow extends StatelessWidget {
                 ],
               ),
             ),
-            StatusChip(label: 'Sans école', tone: SemanticTone.error),
+            StatusChip(label: context.tr.noSchool, tone: SemanticTone.error),
           ],
         ),
       );

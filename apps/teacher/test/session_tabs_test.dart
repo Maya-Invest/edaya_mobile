@@ -325,7 +325,7 @@ void main() {
             .onPressed,
         isNull,
       );
-      await tap(find.text('Restants présents'));
+      await tap(find.text('Marquer les élèves restants présents'));
       expect(rows[1].status, AttendanceStatus.absent);
       expect(s.attendanceComplete, isFalse);
       await tap(find.text('Terminer'));

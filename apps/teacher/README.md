@@ -1,4 +1,4 @@
-# Edaya Teacher
+# EDaya Teacher
 
 Flutter app for teachers — Accueil-first IA with live Identity OTP, school API, FCM, and offline outbox.
 

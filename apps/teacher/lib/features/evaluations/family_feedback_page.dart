@@ -68,7 +68,7 @@ class _MockFamilyFeedbackListPage extends LScopedView<StoreBoundController> {
 
     return PrototypeDetailScaffold(
       fallbackRoute: '/evaluations',
-      title: 'Avis des familles',
+      title: context.tr.teacherTaskFamilyFeedback,
       embedded: embedded,
       body: ListView(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
@@ -77,7 +77,7 @@ class _MockFamilyFeedbackListPage extends LScopedView<StoreBoundController> {
             ListRow(
               title: item.title,
               subtitle: item.subtitle,
-              badge: item.open ? 'Nouveau' : 'Archive',
+              badge: item.open ? context.tr.inboxStatusNew : context.tr.archive,
               badgeTone: item.open ? SemanticTone.warning : SemanticTone.info,
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.go('/evaluations/avis/${item.id}'),
@@ -112,17 +112,17 @@ class _MockFamilyFeedbackDetailPage extends LScopedView<StoreBoundController> {
 
     return PrototypeDetailScaffold(
       fallbackRoute: fromHome ? '/home' : '/evaluations/avis',
-      title: item?.title ?? 'Avis',
+      title: item?.title ?? context.tr.feedback,
       embedded: embedded && !fromHome,
       body: ListView(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
-          Text(item?.subtitle ?? 'Résultat introuvable'),
+          Text(item?.subtitle ?? context.tr.resultNotFound),
           const SizedBox(height: PrototypeSpacing.md),
           Text(
             item?.open == true
-                ? 'Nouveaux retours à consulter. L\'archive reste dans Évaluations.'
-                : 'Résultat archivé pour cette campagne.',
+                ? context.tr.newFeedbackIsAvailablePastFeedbackStaysUnder
+                : context.tr.archivedResultsForThisCampaign,
           ),
         ],
       ),
@@ -157,12 +157,15 @@ class _LiveFamilyFeedbackListPage extends LView<LiveFamilyFeedbackController> {
         title: Text(
           item.themes?.trim().isNotEmpty == true && !item.overallSuppressed
               ? item.themes!
-              : 'Avis des familles',
+              : context.tr.teacherTaskFamilyFeedback,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(
-          '${item.completedSlotCount}/${item.eligibleSlotCount} réponses',
+          context.tr.surveyResponseRatio(
+            item.completedSlotCount,
+            item.eligibleSlotCount,
+          ),
         ),
         onTap: () => context.push('/evaluations/avis/${item.campaignId}'),
       );
@@ -174,12 +177,12 @@ class _LiveFamilyFeedbackListPage extends LView<LiveFamilyFeedbackController> {
               child: Text(controller.errorMessage.value),
             ),
           if (selected.isEmpty)
-            const ListTile(
-              title: Text('Aucun avis publié pour cet enseignement'),
+            ListTile(
+              title: Text(context.tr.noFeedbackPublishedForThisClassAndSubject),
             ),
           for (final item in selected) tile(item),
           if (unattributed.isNotEmpty) ...[
-            const ListTile(title: Text('Sans classe précisée')),
+            ListTile(title: Text(context.tr.noClassSpecified)),
             for (final item in unattributed) tile(item),
           ],
         ],
@@ -217,13 +220,13 @@ class _LiveFamilyFeedbackDetailPage extends LScopedView<_FeedbackDetailLoader> {
       final embedded = ModalRoute.of(context) is ModalBottomSheetRoute;
       return PrototypeDetailScaffold(
         fallbackRoute: fromHome ? '/home' : '/evaluations/avis',
-        title: 'Avis des familles',
+        title: context.tr.teacherTaskFamilyFeedback,
         embedded: embedded && !fromHome,
         body: item == null
             ? EmptyState(
-                title: 'Avis',
+                title: context.tr.feedback,
                 message: loader.controller.errorMessage.value.isEmpty
-                    ? 'Chargement…'
+                    ? context.tr.loading
                     : loader.controller.errorMessage.value,
               )
             : ListView(
@@ -233,12 +236,17 @@ class _LiveFamilyFeedbackDetailPage extends LScopedView<_FeedbackDetailLoader> {
                     firstFraction: 0.4,
                     first: [
                       Text(
-                        '${item.completedSlotCount}/${item.eligibleSlotCount} réponses',
+                        context.tr.surveyResponseRatio(
+                          item.completedSlotCount,
+                          item.eligibleSlotCount,
+                        ),
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: PrototypeSpacing.sm),
                       Text(
-                        'Taux de réponse · ${(item.responseRate * 100).toStringAsFixed(0)} %',
+                        context.tr.responseRate(
+                          (item.responseRate * 100).toStringAsFixed(0),
+                        ),
                       ),
                       if (!item.overallSuppressed &&
                           item.themes != null &&
@@ -250,16 +258,26 @@ class _LiveFamilyFeedbackDetailPage extends LScopedView<_FeedbackDetailLoader> {
                     ],
                     second: [
                       if (item.overallSuppressed)
-                        const Text(
-                          'Les détails sont masqués tant que le seuil de confidentialité n\'est pas atteint.',
+                        Text(
+                          context
+                              .tr
+                              .detailsAreHiddenUntilTheConfidentialityThresholdIs,
                         )
                       else
                         for (final question in item.questions) ...[
                           ListRow(
-                            title: question.questionId,
+                            title: switch (question.questionId) {
+                              'communication' =>
+                                context.tr.feedbackCommunication,
+                              'clarity' => context.tr.feedbackClarity,
+                              'support' => context.tr.feedbackSupport,
+                              'student_experience' =>
+                                context.tr.feedbackExperience,
+                              _ => context.tr.feedbackQuestion,
+                            },
                             subtitle: question.suppressed
-                                ? 'Seuil de confidentialité'
-                                : '${question.nScored} réponses',
+                                ? context.tr.confidentialityThreshold
+                                : context.tr.responseCount(question.nScored),
                           ),
                           if (!question.suppressed)
                             Wrap(
@@ -270,7 +288,11 @@ class _LiveFamilyFeedbackDetailPage extends LScopedView<_FeedbackDetailLoader> {
                                     in question.distribution.entries)
                                   Text('${score.key}/5 · ${score.value}'),
                                 if (question.nCannotAssess > 0)
-                                  Text('Sans avis · ${question.nCannotAssess}'),
+                                  Text(
+                                    context.tr.cannotAssess(
+                                      question.nCannotAssess,
+                                    ),
+                                  ),
                               ],
                             ),
                           const SizedBox(height: PrototypeSpacing.xs),

@@ -31,7 +31,7 @@ class InboxPage extends StatelessWidget {
             child: TextButton.icon(
               onPressed: () => context.push('/inbox/new'),
               icon: const Icon(Icons.edit_outlined),
-              label: const Text('Nouvelle conversation'),
+              label: Text(context.tr.newConversation),
             ),
           ),
           const Expanded(child: _LiveInboxPage()),
@@ -142,7 +142,7 @@ class _ThreadGroups extends LScopedView<ConversationController> {
           WorkspaceColumns(
             first: [
               Text(
-                'Conversations',
+                context.tr.messagingConversations,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               ClassSections(
@@ -153,7 +153,7 @@ class _ThreadGroups extends LScopedView<ConversationController> {
                   return Column(
                     children: [
                       if (rows.isEmpty)
-                        const ListTile(title: Text('Aucune conversation')),
+                        ListTile(title: Text(context.tr.messagingEmpty)),
                       for (final row in rows) thread(row),
                     ],
                   );
@@ -162,7 +162,7 @@ class _ThreadGroups extends LScopedView<ConversationController> {
               if (tc.activeAssignment == null) ...[
                 if (threads.rows.value.any((r) => group(r) == null))
                   ExpansionTile(
-                    title: const Text('Sans classe précisée'),
+                    title: Text(context.tr.noClassSpecified),
                     children: [
                       for (final row in threads.rows.value.where(
                         (r) => group(r) == null,
@@ -174,12 +174,12 @@ class _ThreadGroups extends LScopedView<ConversationController> {
               if (threads.rows.value.length < threads.total.value)
                 TextButton(
                   onPressed: () => threads.refresh(more: true),
-                  child: const Text('Afficher la suite'),
+                  child: Text(context.tr.showMore),
                 ),
             ],
             second: [
               Text(
-                'Établissement',
+                context.tr.messagingSchool,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               for (final m in inbox.deliveries.value.where(
@@ -198,7 +198,7 @@ class _ThreadGroups extends LScopedView<ConversationController> {
               if (!inbox.deliveries.value.any(
                 (m) => m.eventKey != 'conversation.message',
               ))
-                const ListTile(title: Text('Aucun avis')),
+                ListTile(title: Text(context.tr.noSchoolNotices)),
             ],
           ),
         ],
@@ -349,7 +349,7 @@ class _LiveMessageDetailPage extends LScopedView<MessageDetailController> {
           title: context.tr.navInbox,
           body: EmptyState(
             title: controller.errorMessage.value.isEmpty
-                ? context.tr.missingMessageDetailsRouteData
+                ? context.tr.messageNotFound
                 : controller.errorMessage.value,
           ),
         );
@@ -410,7 +410,7 @@ class _MockMessageDetailPage extends LScopedView<StoreBoundController> {
     if (message == null) {
       return PrototypeDetailScaffold(
         title: context.tr.navInbox,
-        body: EmptyState(title: context.tr.missingMessageDetailsRouteData),
+        body: EmptyState(title: context.tr.messageNotFound),
       );
     }
 

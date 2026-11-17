@@ -1,3 +1,5 @@
+import 'package:edaya_shared/edaya_shared.dart';
+
 class TeachingClassSubjectOption {
   const TeachingClassSubjectOption({
     required this.id,
@@ -28,9 +30,9 @@ enum TeachingMatterStatus {
   }
 
   String get labelFr => switch (this) {
-    TeachingMatterStatus.notStarted => 'Non commencé',
-    TeachingMatterStatus.inProgress => 'En cours',
-    TeachingMatterStatus.completed => 'Terminé',
+    TeachingMatterStatus.notStarted => systemL10n().matterStatusNotStarted,
+    TeachingMatterStatus.inProgress => systemL10n().matterStatusInProgress,
+    TeachingMatterStatus.completed => systemL10n().done,
   };
 }
 

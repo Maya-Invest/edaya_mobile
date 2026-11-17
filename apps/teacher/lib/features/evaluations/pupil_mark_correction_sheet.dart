@@ -16,7 +16,7 @@ String pupilResultLabel(
   }
   return value['score'] == null
       ? '—'
-      : '${value['score']} / ${c.evaluation.value?.maxScore ?? 20}';
+      : '${formatGradeNumber(value['score'] as num?)} / ${formatGradeNumber(c.evaluation.value?.maxScore ?? 20)}';
 }
 
 class PupilMarkCorrectionSheet extends StatefulWidget {
@@ -60,7 +60,11 @@ class _PupilMarkCorrectionState extends State<PupilMarkCorrectionSheet> {
             'status': row.deadlineStatus,
           }
         : Map<String, dynamic>.from(proposed);
-    score = TextEditingController(text: '${initialValues['score'] ?? ''}');
+    score = TextEditingController(
+      text: initialValues['score'] == null
+          ? ''
+          : formatGradeNumber(initialValues['score'] as num),
+    );
     reason = TextEditingController(text: pending?['reason'] as String? ?? '');
     designation = initialValues['designation'] as String? ?? 'scored';
     mention = initialValues['mentionId'] as String?;
@@ -165,7 +169,8 @@ class _PupilMarkCorrectionState extends State<PupilMarkCorrectionSheet> {
                 ),
                 decoration: InputDecoration(
                   labelText: tr.gradebookProposed,
-                  suffixText: '/ ${c.evaluation.value?.maxScore ?? 20}',
+                  suffixText:
+                      '/ ${formatGradeNumber(c.evaluation.value?.maxScore ?? 20)}',
                 ),
                 onChanged: (_) => changed(),
               ),

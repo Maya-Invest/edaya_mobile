@@ -131,7 +131,7 @@ class _WorkspaceHomeState extends State<WorkspaceHome>
             if (snapshot.hasError) {
               return TextButton(
                 onPressed: () => setState(() => registerKey = ''),
-                child: const Text('Réessayer le chargement de l’appel'),
+                child: Text(context.tr.retryLoadingAttendance),
               );
             }
             final entries = snapshot.data;
@@ -147,10 +147,10 @@ class _WorkspaceHomeState extends State<WorkspaceHome>
                   leading: const Icon(Icons.fact_check_outlined),
                   title: Text(
                     entries.length > 1
-                        ? 'Appels du jour'
+                        ? context.tr.dailyAttendanceRegisters
                         : entries.first.done
-                        ? 'Consulter l’appel du jour'
-                        : 'Faire l’appel du jour',
+                        ? context.tr.viewDailyAttendance
+                        : context.tr.takeDailyAttendance,
                   ),
                   onTap: () async {
                     var id = entries.first.id;
@@ -158,7 +158,7 @@ class _WorkspaceHomeState extends State<WorkspaceHome>
                       final selected = await showModalBottomSheet<String>(
                         context: context,
                         builder: (sheet) => WorkspaceSheet(
-                          title: 'Appels du jour',
+                          title: context.tr.dailyAttendanceRegisters,
                           child: ListView(
                             children: [
                               for (final e in entries)
@@ -217,7 +217,7 @@ class _WorkspaceHomeState extends State<WorkspaceHome>
           ? ''
           : [
               if (active.classSubjectId != null) active.subjectLabel,
-              if (active.isHomeroom) 'Titulaire',
+              if (active.isHomeroom) context.tr.homeroomTeacher,
             ].join(' · ');
       bool available(WorkspaceDestination w) {
         if (!live) return true;
@@ -233,9 +233,7 @@ class _WorkspaceHomeState extends State<WorkspaceHome>
         return true;
       }
 
-      Widget tiles(
-        List<({String label, String path, IconData icon})> entries,
-      ) => GridView.count(
+      Widget tiles(List<WorkspaceDestination> entries) => GridView.count(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         crossAxisCount: box.maxWidth >= 700
@@ -270,7 +268,10 @@ class _WorkspaceHomeState extends State<WorkspaceHome>
                     ),
                   ),
                   const SizedBox(height: PrototypeSpacing.xs),
-                  Text(w.label, style: Theme.of(context).textTheme.titleSmall),
+                  Text(
+                    w.label(context.tr),
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                 ],
               ),
             ),
@@ -328,13 +329,13 @@ class _WorkspaceHomeState extends State<WorkspaceHome>
                           ? context.tr.loading
                           : tc?.loadFailed.value == true
                           ? context.tr.classLabel
-                          : 'Aucune affectation'),
+                          : context.tr.noAssignment),
                   tc?.schoolName.value,
                   year,
                 ].whereType<String>().join(' · '),
               ),
               subtitle: Text(
-                roles.isEmpty ? 'Mes classes et mes missions' : roles,
+                roles.isEmpty ? context.tr.myClassesAndRoles : roles,
               ),
               trailing: const Icon(Icons.expand_more),
               onTap: live ? () => chooseContext(context) : null,

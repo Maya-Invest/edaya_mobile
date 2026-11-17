@@ -117,13 +117,15 @@ class _MockLoginState extends State<_MockLogin> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          _codeSent ? 'Vérifiez votre e-mail' : 'Connexion',
+          _codeSent ? context.tr.verifyEmailTitle : context.tr.signInTitle,
           style: Theme.of(context).textTheme.headlineSmall,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: PrototypeSpacing.xs),
         Text(
-          _codeSent ? 'Saisissez le code envoyé à ${widget.defaultEmail}.' : 'Accédez aux informations scolaires de vos enfants.',
+          _codeSent
+              ? context.tr.enterTheCodeSentTo(widget.defaultEmail)
+              : context.tr.seeYourChildrenSSchoolInformation,
           style: Theme.of(context).textTheme.bodySmall,
           textAlign: TextAlign.center,
         ),
@@ -135,11 +137,17 @@ class _MockLoginState extends State<_MockLogin> {
             decoration: const InputDecoration(labelText: 'E-mail', border: OutlineInputBorder()),
           ),
           const SizedBox(height: PrototypeSpacing.xl),
-          FilledButton(onPressed: () => setState(() => _codeSent = true), child: const Text('Envoyer le code')),
+          FilledButton(
+            onPressed: () => setState(() => _codeSent = true),
+            child: Text(context.tr.sendCodeButton),
+          ),
         ] else ...[
-          const TextField(
+          TextField(
             keyboardType: TextInputType.number,
-            decoration: InputDecoration(labelText: 'Code', border: OutlineInputBorder()),
+            decoration: InputDecoration(
+              labelText: context.tr.code,
+              border: OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: PrototypeSpacing.xl),
           FilledButton(
@@ -147,7 +155,7 @@ class _MockLoginState extends State<_MockLogin> {
               widget.mockStore.signIn();
               context.go('/home');
             },
-            child: const Text('Vérifier le code'),
+            child: Text(context.tr.verifyCode),
           ),
         ],
       ],

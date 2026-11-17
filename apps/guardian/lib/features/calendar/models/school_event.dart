@@ -37,6 +37,13 @@ class SchoolEvent {
   final bool isNonSchoolDay;
   final String? description;
 
+  String kindLabel(AppLocalizations tr) => switch (kind) {
+    'holiday' => tr.calendarHoliday,
+    'break' => tr.calendarBreak,
+    'event' => tr.calendarEvent,
+    _ => tr.evaluationKindOther,
+  };
+
   bool occursOn(DateTime day) {
     final start = DateTime(startDate.year, startDate.month, startDate.day);
     final end = DateTime(endDate.year, endDate.month, endDate.day);

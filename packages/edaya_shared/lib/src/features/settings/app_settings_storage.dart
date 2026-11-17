@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_settings_models.dart';
@@ -10,6 +12,9 @@ abstract final class AppSettingsStorage {
   static const _timezoneKey = 'edaya_settings_timezone';
   static const _dateFormatKey = 'edaya_settings_date_format';
   static const _timeFormatKey = 'edaya_settings_time_format';
+
+  static final _languageChanges = StreamController<void>.broadcast();
+  static Stream<void> get languageChanges => _languageChanges.stream;
 
   static String _activePrefix = '';
   static AppSettingsSnapshot _cached = AppSettingsSnapshot.defaults;
@@ -57,7 +62,11 @@ abstract final class AppSettingsStorage {
     await prefs.setString('$prefix$_timezoneKey', snapshot.timezone.name);
     await prefs.setString('$prefix$_dateFormatKey', snapshot.dateFormat.name);
     await prefs.setString('$prefix$_timeFormatKey', snapshot.timeFormat.name);
-    if (_activePrefix == prefix) _cached = snapshot;
+    if (_activePrefix == prefix) {
+      final changed = _cached.language != snapshot.language;
+      _cached = snapshot;
+      if (changed) _languageChanges.add(null);
+    }
     return snapshot;
   }
 

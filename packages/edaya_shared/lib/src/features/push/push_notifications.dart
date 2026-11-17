@@ -1,4 +1,8 @@
+import 'package:flutter/services.dart' show PlatformException;
 import 'dart:async';
+import '../../l10n/l10n_lookup.dart';
+import '../../l10n/app_localizations.dart';
+import '../settings/app_settings_storage.dart';
 import '../../demo/demo_host.dart';
 import '../messaging/messaging_events.dart';
 import 'dart:convert';
@@ -46,28 +50,35 @@ class PushNotificationConfig {
     required this.androidChannelId,
     this.appId = 'guardian',
     required this.androidChannelName,
-    this.androidChannelDescription = '',
-  });
+    String androidChannelDescription = '',
+    this.descriptionBuilder,
+  }) : _description = androidChannelDescription;
 
   final String appId;
   final String androidChannelId;
   final String androidChannelName;
-  final String androidChannelDescription;
+  final String _description;
+  final String Function(AppLocalizations)? descriptionBuilder;
+  String get androidChannelDescription =>
+      descriptionBuilder?.call(systemL10n()) ?? _description;
 }
 
 /// Default push notification channel settings per app.
 abstract final class PushNotificationConfigs {
+  static String _guardian(AppLocalizations tr) => tr.guardianPushDescription;
+  static String _teacher(AppLocalizations tr) => tr.teacherPushDescription;
+
   static const guardian = PushNotificationConfig(
     androidChannelId: 'edaya_guardian_default',
-    androidChannelName: 'Edaya Guardian',
-    androidChannelDescription: 'School updates and alerts for guardians',
+    androidChannelName: 'EDaya Guardian',
+    descriptionBuilder: _guardian,
   );
 
   static const teacher = PushNotificationConfig(
     appId: 'teacher',
     androidChannelId: 'edaya_teacher_default',
-    androidChannelName: 'Edaya Staff',
-    androidChannelDescription: 'School updates and alerts for staff',
+    androidChannelName: 'EDaya Prof',
+    descriptionBuilder: _teacher,
   );
 }
 
@@ -193,7 +204,7 @@ NotificationDisplayContent? resolveNotificationDisplayContent(
   }
 
   return NotificationDisplayContent(
-    title: title?.isNotEmpty == true ? title! : 'Edaya',
+    title: title?.isNotEmpty == true ? title! : 'EDaya',
     body: body?.isNotEmpty == true ? body! : '',
   );
 }
@@ -317,6 +328,7 @@ Future<void> handleEdayaFcmBackgroundMessage(
   if (Firebase.apps.isEmpty) {
     await Firebase.initializeApp(options: firebaseOptions);
   }
+  await AppSettingsStorage.load();
   await _ensureBackgroundLocalNotifications(notificationConfig);
   await displayEdayaPushNotification(message, notificationConfig);
 }
@@ -339,7 +351,9 @@ Future<void> edayaFcmBackgroundHandler(RemoteMessage message) async {
 // --- FCM implementation ------------------------------------------------------
 
 /// FCM push notifications with foreground display via local notifications.
-class FcmPushNotificationService implements PushNotificationService {
+class FcmPushNotificationService
+    with WidgetsBindingObserver
+    implements PushNotificationService {
   FcmPushNotificationService({
     required api.SchoolClient Function() schoolClientFactory,
     required PushNotificationConfig config,
@@ -358,6 +372,23 @@ class FcmPushNotificationService implements PushNotificationService {
   final FlutterLocalNotificationsPlugin _localNotificationsPlugin;
 
   final void Function(RemoteMessage message)? onNotificationOpened;
+
+  StreamSubscription<void>? _languageSubscription;
+
+  @override
+  void didChangeLocales(List<Locale>? locales) => unawaited(_refreshChannel());
+
+  Future<void> _refreshChannel() async {
+    if (!_localNotificationsInitialized) return;
+    try {
+      await _ensureAndroidNotificationChannel(
+        _localNotificationsPlugin,
+        _config,
+      );
+    } on PlatformException catch (error) {
+      debugPrint('Unable to update notification channel: ${error.code}');
+    }
+  }
 
   StreamSubscription<String>? _tokenRefreshSubscription;
   StreamSubscription<RemoteMessage>? _foregroundMessageSubscription;
@@ -383,6 +414,12 @@ class FcmPushNotificationService implements PushNotificationService {
 
     try {
       await _initializeLocalNotifications();
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        WidgetsBinding.instance.addObserver(this);
+        _languageSubscription = AppSettingsStorage.languageChanges.listen(
+          (_) => unawaited(_refreshChannel()),
+        );
+      }
 
       final settings = await _messaging.requestPermission();
       if (settings.authorizationStatus == AuthorizationStatus.denied) {
@@ -483,6 +520,8 @@ class FcmPushNotificationService implements PushNotificationService {
   }
 
   Future<void> dispose() async {
+    WidgetsBinding.instance.removeObserver(this);
+    await _languageSubscription?.cancel();
     await _tokenRefreshSubscription?.cancel();
     await _foregroundMessageSubscription?.cancel();
     await _openedAppSubscription?.cancel();

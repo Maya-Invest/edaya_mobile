@@ -5,9 +5,9 @@
 	<key>FirebaseMessagingAutoInitEnabled</key>
 	<false/>
 	<key>NSCameraUsageDescription</key>
-	<string>Edaya uses the camera so you can take a profile portrait.</string>
+	<string>EDaya uses the camera to photograph your profile portrait.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Edaya uses your photo library so you can choose a profile portrait.</string>
+	<string>EDaya uses your photo library so you can select a profile portrait.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

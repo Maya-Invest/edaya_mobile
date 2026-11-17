@@ -161,7 +161,7 @@ Future<void> createKeystore() async {
         '-validity',
         '10000',
         '-dname',
-        'CN=Edaya $app, OU=Mobile, O=SoftiLab, L=Abidjan, ST=Abidjan, C=CI',
+        'CN=EDaya $app, OU=Mobile, O=SoftiLab, L=Abidjan, ST=Abidjan, C=CI',
       ],
       env: {'STORE_PASSWORD': password, 'KEY_PASSWORD': keyPassword},
       quiet: true,

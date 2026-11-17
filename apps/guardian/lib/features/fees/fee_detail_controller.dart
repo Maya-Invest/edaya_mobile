@@ -6,27 +6,6 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import 'models/student_charge_line.dart';
 
-String frenchChargeStatus(ChargeStatus status) {
-  return switch (status) {
-    ChargeStatus.paid => 'Payé',
-    ChargeStatus.partial => 'Partiel',
-    ChargeStatus.overdue => 'En retard',
-    ChargeStatus.cancelled => 'Annulé',
-    ChargeStatus.waived => 'Exonéré',
-    ChargeStatus.pending => 'À payer',
-  };
-}
-
-String frenchPaymentMethod(String method) {
-  return switch (method) {
-    'cash' => 'Espèces',
-    'card' => 'Carte',
-    'bank_transfer' => 'Virement',
-    'mobile_money' => 'Mobile money',
-    _ => 'Autre',
-  };
-}
-
 class FeeDetailController extends LevitController with LevitReactiveTasksMixin {
   FeeDetailController({
     required this.feeId,

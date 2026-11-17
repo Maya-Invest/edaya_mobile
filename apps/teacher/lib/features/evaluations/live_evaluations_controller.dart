@@ -435,7 +435,7 @@ class LiveEvaluationsController extends LevitController
           classGroupId: evaluation.classGroupId,
           classSubjectId: evaluation.classSubjectId,
           periodId: evaluation.periodId,
-          title: '${evaluation.title} (copy)',
+          title: systemL10n().duplicateTitle(evaluation.title),
           maxScore: evaluation.maxScore,
           kind: source['kind'] as String? ?? 'quiz',
           assessmentDate: SchoolClock.now(),

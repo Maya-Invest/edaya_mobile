@@ -53,8 +53,10 @@ class LiveHomeController extends LevitController {
           id: 'ff-${item.campaignId}',
           kind: 'feedback',
           title: systemL10n().teacherTaskFamilyFeedback,
-          subtitle:
-              '${item.completedSlotCount}/${item.eligibleSlotCount} réponses',
+          subtitle: systemL10n().surveyResponseRatio(
+            item.completedSlotCount,
+            item.eligibleSlotCount,
+          ),
           route: '/home/avis/${item.campaignId}',
           priority: 1,
         ),
@@ -103,8 +105,10 @@ class LiveHomeController extends LevitController {
           id: 'rc-${bulletin.classGroupId}-${bulletin.periodId}',
           kind: 'bulletin',
           title: systemL10n().teacherTaskReportComments,
-          subtitle:
-              '${bulletin.classLabel} · ${bulletin.pendingComments} en attente',
+          subtitle: systemL10n().pendingLabel(
+            bulletin.classLabel,
+            bulletin.pendingComments,
+          ),
           route:
               '/evaluations/report-cards/${bulletin.classGroupId}/${bulletin.periodId}',
           priority: 5,
@@ -116,8 +120,8 @@ class LiveHomeController extends LevitController {
         AccueilTask(
           id: 'inbox-unread',
           kind: 'inbox',
-          title: 'Messages non lus',
-          subtitle: '${_inbox.unreadCount} à lire',
+          title: systemL10n().unreadMessages,
+          subtitle: systemL10n().toRead(_inbox.unreadCount),
           route: '/inbox',
           priority: 6,
         ),

@@ -40,7 +40,7 @@ class _MockAccountPage extends LScopedView<StoreBoundController> {
     final hubPath = GuardianShellScope.maybeOf(context)?.hubPath ?? '/home';
 
     return PrototypeDetailScaffold(
-      title: 'Compte',
+      title: context.tr.accountTitle,
       fallbackRoute: hubPath,
       body: AdaptiveContent(
         child: ListView(
@@ -75,7 +75,7 @@ class _MockAccountPage extends LScopedView<StoreBoundController> {
                 children: [
                   ListTile(
                     leading: const Icon(Icons.person_outline),
-                    title: const Text('Profil de contact'),
+                    title: Text(context.tr.accountProfileTitle),
                     trailing: const Icon(Icons.chevron_right),
                     selected: selected == '/account/profile',
                     onTap: () => context.push('/account/profile'),
@@ -83,7 +83,7 @@ class _MockAccountPage extends LScopedView<StoreBoundController> {
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.settings_outlined),
-                    title: const Text('Paramètres'),
+                    title: Text(context.tr.settingsTitle),
                     trailing: const Icon(Icons.chevron_right),
                     selected: selected == '/settings',
                     onTap: () => context.push('/settings'),
@@ -91,11 +91,11 @@ class _MockAccountPage extends LScopedView<StoreBoundController> {
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.help_outline),
-                    title: const Text('Assistance'),
+                    title: Text(context.tr.help),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Centre d\'aide')),
+                        SnackBar(content: Text(context.tr.helpCenter)),
                       );
                     },
                   ),
@@ -108,7 +108,7 @@ class _MockAccountPage extends LScopedView<StoreBoundController> {
                 store.signOut();
                 context.go('/login');
               },
-              child: const Text('Se déconnecter'),
+              child: Text(context.tr.signOut),
             ),
           ],
         ),
@@ -137,7 +137,7 @@ class _LiveAccountPage extends LScopedView<AccountController> {
     final hubPath = GuardianShellScope.maybeOf(context)?.hubPath ?? '/home';
 
     return PrototypeDetailScaffold(
-      title: 'Compte',
+      title: context.tr.accountTitle,
       fallbackRoute: hubPath,
       body: AdaptiveContent(
         child: ListView(
@@ -172,7 +172,7 @@ class _LiveAccountPage extends LScopedView<AccountController> {
                 children: [
                   ListTile(
                     leading: const Icon(Icons.person_outline),
-                    title: const Text('Profil de contact'),
+                    title: Text(context.tr.accountProfileTitle),
                     trailing: const Icon(Icons.chevron_right),
                     selected: selected == '/account/profile',
                     onTap: () => context.push('/account/profile'),
@@ -180,7 +180,7 @@ class _LiveAccountPage extends LScopedView<AccountController> {
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.settings_outlined),
-                    title: const Text('Paramètres'),
+                    title: Text(context.tr.settingsTitle),
                     trailing: const Icon(Icons.chevron_right),
                     selected: selected == '/settings',
                     onTap: () => context.push('/settings'),
@@ -188,11 +188,11 @@ class _LiveAccountPage extends LScopedView<AccountController> {
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.help_outline),
-                    title: const Text('Assistance'),
+                    title: Text(context.tr.help),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Centre d\'aide')),
+                        SnackBar(content: Text(context.tr.helpCenter)),
                       );
                     },
                   ),
@@ -208,7 +208,9 @@ class _LiveAccountPage extends LScopedView<AccountController> {
                   await controller.signOut();
                   if (context.mounted) context.go('/login');
                 },
-                child: Text(user == null ? 'Se déconnecter' : 'Se déconnecter'),
+                child: Text(
+                  user == null ? context.tr.signOut : context.tr.signOut,
+                ),
               ),
           ],
         ),

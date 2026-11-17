@@ -1,5 +1,5 @@
 name: edaya_shared
-description: Shared configuration, UI, and app scaffolding for Edaya mobile apps.
+description: Shared configuration, UI, and app scaffolding for EDaya mobile apps.
 publish_to: none
 resolution: workspace
 

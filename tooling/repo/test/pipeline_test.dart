@@ -153,6 +153,7 @@ void main() {
           ]),
         );
         final qualify = jobs['qualification'];
+        expect(qualify['permissions']['contents'], 'write');
         expect(qualify['if'], "github.ref == 'refs/heads/$branch'");
         expect(qualify['uses'], './.github/workflows/_qualify_release.yml');
         expect(qualify['with'], {'target': target});
@@ -225,7 +226,12 @@ void main() {
         final jobs = caller['jobs'] as YamlMap;
         expect(
           jobs.keys,
-          unorderedEquals(['preparation', ...stages, 'qualification']),
+          unorderedEquals([
+            if (name == '_qualify_release') 'reserve_build',
+            'preparation',
+            ...stages,
+            'qualification',
+          ]),
         );
         for (final stage in ['quality', 'unit', ...nativeStages.keys]) {
           expect(jobs[stage]['needs'], 'preparation');
@@ -243,9 +249,20 @@ void main() {
         );
         if (name == '_qualify_release') {
           expect(caller['on'].keys, ['workflow_call']);
-          for (final job in jobs.values) {
-            expect(job['with']['target'], r'${{ inputs.target }}');
+          expect(jobs['reserve_build']['permissions'], {
+            'contents': 'write',
+            'actions': 'read',
+          });
+          for (final entry in jobs.entries.where(
+            (e) => e.key != 'reserve_build',
+          )) {
+            expect(entry.value['with']['target'], r'${{ inputs.target }}');
           }
+          expect(jobs['preparation']['needs'], 'reserve_build');
+          expect(
+            jobs['preparation']['with']['store_build'],
+            r'${{ needs.reserve_build.outputs.store_build }}',
+          );
           expect(
             jobs['preparation']['with']['source_ref'],
             r'${{ github.sha }}',

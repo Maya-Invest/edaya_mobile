@@ -73,7 +73,7 @@ class _MockCalendarPage extends LScopedView<StoreBoundController> {
           ),
           Expanded(
             child: store.selectedDaySessions.isEmpty
-                ? const EmptyState(title: 'Aucune séance ce jour')
+                ? EmptyState(title: context.tr.noSessionsToday)
                 : ListView.separated(
                     padding: const EdgeInsets.all(PrototypeSpacing.md),
                     itemCount: store.selectedDaySessions.length,
@@ -87,7 +87,7 @@ class _MockCalendarPage extends LScopedView<StoreBoundController> {
                         subtitle: [
                           '${formatTimeRange(s.startHour, s.endHour)} · ${s.room}',
                           [
-                            if (!s.attendanceComplete) 'Présences',
+                            if (!s.attendanceComplete) context.tr.attendance,
                             if (!s.logbookComplete) context.tr.logbook,
                           ].join(' · '),
                         ].where((line) => line.isNotEmpty).join('\n'),
@@ -176,7 +176,7 @@ class _LiveCalendarPage extends LView<LiveCalendarController> {
                   ? const Center(child: CircularProgressIndicator())
                   : sessions.isEmpty
                   ? EmptyState(
-                      title: 'Aucune séance ce jour',
+                      title: context.tr.noSessionsToday,
                       message: controller.errorMessage.value,
                     )
                   : ListView.separated(
@@ -204,7 +204,7 @@ class _LiveCalendarPage extends LView<LiveCalendarController> {
                             ),
                             [
                               if (s.kind == 'lesson' && !attendanceDone)
-                                'Présences',
+                                context.tr.attendance,
                               if (s.kind == 'lesson' && !cahierDone)
                                 context.tr.logbook,
                             ].join(' · '),

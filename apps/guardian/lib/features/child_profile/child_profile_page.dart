@@ -55,7 +55,7 @@ class _LiveChildProfilePage extends LScopedView<ChildProfileController> {
     return LWatch(() {
       final hubPath = GuardianShellScope.maybeOf(context)?.hubPath ?? '/home';
       return PrototypeDetailScaffold(
-        title: controller.student.value?.fullName ?? 'Profil élève',
+        title: controller.student.value?.fullName ?? context.tr.studentProfile,
         fallbackRoute: hubPath,
         body: AdaptiveContent(
           child: DataState(
@@ -94,7 +94,7 @@ class _ChildProfileBody extends StatelessWidget {
       children: [
         Text(student.fullName, style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: PrototypeSpacing.xl),
-        const SectionHeader(title: 'Photo'),
+        SectionHeader(title: context.tr.photo),
         const SizedBox(height: PrototypeSpacing.sm),
         PersonAvatar(
           initials: student.initials,
@@ -167,7 +167,7 @@ class _ChildProfileBody extends StatelessWidget {
           const LinearProgressIndicator(),
         ],
         const SizedBox(height: PrototypeSpacing.xl),
-        const SectionHeader(title: 'Documents'),
+        SectionHeader(title: context.tr.documents),
         const SizedBox(height: PrototypeSpacing.sm),
         if (papers.isEmpty)
           Text(
@@ -180,7 +180,7 @@ class _ChildProfileBody extends StatelessWidget {
         else
           for (final paper in papers) ...[
             ListRow(
-              title: leftoverFamilyPaperLabel(paper.templateKey),
+              title: leftoverFamilyPaperLabel(paper.templateKey, context.tr),
               subtitle:
                   paper.number ?? documentStatusLabel(context.tr, paper.status),
               trailing: paper.isDownloadable
