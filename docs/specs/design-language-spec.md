@@ -203,6 +203,10 @@ The UI must remain usable when the platform text scale factor is **2.0** (200%).
 
 **Verification:** Manual QA on device/OS large-text settings before release. Automated text-scale pumps are not required for now.
 
+### Page transitions
+
+Full-page Material routes paint the active scaffold background inside the platform transition. Empty space between cards and text moves with the page on push and pop. Modal sheets retain their scrim and the visible workspace behind them.
+
 ### Reduced motion
 
 When `MediaQuery.disableAnimations` is **true** (or the platform equivalent for reduced motion):
