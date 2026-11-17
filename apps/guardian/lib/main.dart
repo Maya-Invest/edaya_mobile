@@ -40,7 +40,7 @@ Future<void> main() async {
   await ApiBaseUrlConfig.load();
   await AppSettingsController.preload(prefix: demo?.prefix ?? '');
   Levit.enableAutoLinking();
-  await initializeDateFormatting('fr_FR');
+  await initializeDateFormatting();
   runApp(
     DemoHost(
       role: DemoRole.guardian,

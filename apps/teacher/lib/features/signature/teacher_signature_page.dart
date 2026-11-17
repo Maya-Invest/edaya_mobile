@@ -87,7 +87,7 @@ class TeacherSignaturePage extends LScopedView<TeacherSignatureController> {
             Text(context.tr.teacherSignatureRemoveConfirm),
             TextButton(
               onPressed: () => finish(false),
-              child: const Text('Annuler'),
+              child: Text(context.tr.cancel),
             ),
             FilledButton(
               onPressed: () => finish(true),

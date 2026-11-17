@@ -17,10 +17,10 @@ class AccountController extends LevitController {
 
   String get displayName {
     final user = _session.user.value;
-    if (user == null) return 'Parent';
+    if (user == null) return systemL10n().parent;
     final name = user.name?.trim();
     if (name != null && name.isNotEmpty) return name;
-    return user.email.isNotEmpty ? user.email : 'Parent';
+    return user.email.isNotEmpty ? user.email : systemL10n().parent;
   }
 
   String get email => _session.user.value?.email ?? '';

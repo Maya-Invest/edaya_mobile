@@ -1,4 +1,4 @@
-# Edaya Guardian app — Historical feature proposal
+# EDaya Guardian app — Historical feature proposal
 
 | Field | Value |
 |---|---|

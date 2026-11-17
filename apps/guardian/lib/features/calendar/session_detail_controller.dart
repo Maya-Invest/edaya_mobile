@@ -87,7 +87,7 @@ class SessionDetailController extends LevitController with LevitReactiveTasksMix
 
         if (!isCurrent()) return;
         if (resolved == null) {
-          errorMessage('Séance introuvable');
+          errorMessage(systemL10n().sessionNotFound);
           return;
         }
 
@@ -137,7 +137,10 @@ class SessionDetailController extends LevitController with LevitReactiveTasksMix
       final lesson = await client.lessonSessions.get(sessionId);
       return CalendarSession(
         id: lesson['id'] as String,
-        title: lesson['displayLabel'] as String? ?? lesson['title'] as String? ?? 'Cours',
+        title:
+            lesson['displayLabel'] as String? ??
+            lesson['title'] as String? ??
+            systemL10n().timetableSessionKindLesson,
         kind: 'lesson',
         startsAt: parseApiDateTime(lesson['startsAt']) ?? DateTime.now(),
         endsAt: parseApiDateTime(lesson['endsAt']) ?? DateTime.now(),
@@ -153,7 +156,10 @@ class SessionDetailController extends LevitController with LevitReactiveTasksMix
       final activity = await client.activitySessions.get(sessionId);
       return CalendarSession(
         id: activity['id'] as String,
-        title: activity['displayLabel'] as String? ?? activity['title'] as String? ?? 'Activité',
+        title:
+            activity['displayLabel'] as String? ??
+            activity['title'] as String? ??
+            systemL10n().timetableSessionKindActivity,
         kind: 'activity',
         startsAt: parseApiDateTime(activity['startsAt']) ?? DateTime.now(),
         endsAt: parseApiDateTime(activity['endsAt']) ?? DateTime.now(),
@@ -174,7 +180,9 @@ class SessionDetailController extends LevitController with LevitReactiveTasksMix
       if (startsAt == null) return null;
       return CalendarSession(
         id: assessment['id'] as String,
-        title: assessment['title'] as String? ?? 'Évaluation',
+        title:
+            assessment['title'] as String? ??
+            systemL10n().timetableSessionKindAssessment,
         kind: 'assessment',
         startsAt: startsAt,
         endsAt: startsAt.add(const Duration(hours: 1)),

@@ -161,10 +161,13 @@ class _PendingInvitationCard extends StatelessWidget {
                 ),
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
-              if (invitation.expiresAt != null) ...[
+              if (DateTime.tryParse(invitation.expiresAt ?? '')
+                  case final expiry?) ...[
                 const SizedBox(height: 8),
                 Text(
-                  context.tr.invitationExpires(invitation.expiresAt!),
+                  context.tr.invitationExpires(
+                    '${context.formatShortDate(expiry)} · ${context.formatTimeOfDay(expiry)}',
+                  ),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],

@@ -1,4 +1,4 @@
-/// Shared harness for live Edaya API integration tests in the mobile repo.
+/// Shared harness for live EDaya API integration tests in the mobile repo.
 library;
 
 export 'src/config/guardian_portal_profile.dart';

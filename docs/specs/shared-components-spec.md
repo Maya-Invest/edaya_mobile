@@ -4,7 +4,7 @@ Normative for the current Guardian and Teacher apps. Extend these components bef
 
 | Component | Source | Reuse contract |
 |---|---|---|
-| AppTheme / EdayaColors / EdayaTypography | shared `lib/src/app/` | Existing light/dark/system entry points; generated tokens and bundled fonts |
+| AppTheme / EdayaColors / EdayaTypography | shared `lib/src/app/` | Light/dark/system entry points, generated tokens and bundled fonts. AppTheme paints the canvas inside full-page transitions, including Home to Calendar in both apps. |
 | EdayaBrandLogo | shared `lib/src/ui/` | Supplied color/white horizontal, vertical, symbol artwork; minimum size and clear space; artwork width remains bounded in stretched layouts |
 | Android app / notification icons | app `android/app/src/main/res/`; shared `features/push/push_notifications.dart` | Teacher v2 pairs its white adaptive foreground with primary blue; local notifications and FCM metadata use the monochrome `ic_stat_notification` small icon |
 | CalendarWeekStrip | shared `lib/src/ui/` | Theme-aware day buttons, 48dp targets, full-date labels and selected semantics; scrolling at large text; optional `daySpacing` (default 0) preserves existing callers; localized week chevrons use caller callbacks |

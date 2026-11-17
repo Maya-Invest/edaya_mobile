@@ -1,3 +1,4 @@
+import 'localized_auth_error.dart';
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
@@ -61,7 +62,7 @@ class AccountSecurityController extends LevitController
     if (result.isSuccess) {
       identifiers(result.data ?? []);
     } else {
-      error(result.error?.message ?? '');
+      error(localizedAuthError(result.error, systemL10n().accountActionFailed));
     }
   }
 
@@ -74,7 +75,7 @@ class AccountSecurityController extends LevitController
     } else if (failure?.code == 'NETWORK_ERROR') {
       error(systemL10n().emailSendUnconfirmed);
     } else {
-      error(failure?.message ?? '');
+      error(localizedAuthError(failure, systemL10n().accountActionFailed));
     }
   }
 
@@ -147,7 +148,9 @@ class AccountSecurityController extends LevitController
     await runTask(() async {
       final result = await auth.unlinkIdentifier(id);
       if (!result.isSuccess) {
-        error(result.error?.message ?? '');
+        error(
+          localizedAuthError(result.error, systemL10n().accountActionFailed),
+        );
         return;
       }
       await session.signOut();

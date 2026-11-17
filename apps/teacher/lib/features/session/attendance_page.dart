@@ -95,9 +95,9 @@ class AttendancePage extends StatelessWidget {
           ),
         );
       if (!c.supportsAttendanceRecording)
-        return const EmptyState(
-          title: 'Présences',
-          message: 'La saisie des présences est réservée aux séances de cours.',
+        return EmptyState(
+          title: context.tr.attendance,
+          message: context.tr.attendanceRecordingLessonOnly,
         );
       return RollCall(
         rows: c.students.value,

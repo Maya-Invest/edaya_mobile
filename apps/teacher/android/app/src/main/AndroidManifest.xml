@@ -4,7 +4,7 @@
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <application
         android:allowBackup="false"
-        android:label="Edaya Staff"
+        android:label="EDaya Prof"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <meta-data android:name="firebase_messaging_auto_init_enabled" android:value="false"/>

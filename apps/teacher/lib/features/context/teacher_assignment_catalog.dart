@@ -22,7 +22,7 @@ class TeacherAssignmentOption {
   String get label => [
     classLabel,
     if (classSubjectId != null) subjectLabel,
-    if (isHomeroom) 'Titulaire',
+    if (isHomeroom) systemL10n().homeroomTeacher,
   ].join(' · ');
 }
 
@@ -157,7 +157,7 @@ Future<TeacherAssignmentCatalog> readTeacherAssignmentCatalog(
               id: 'homeroom-$id',
               classGroupId: id,
               classLabel: classLabel(id),
-              subjectLabel: 'Titulaire',
+              subjectLabel: systemL10n().homeroomTeacher,
               isHomeroom: true,
             ),
         for (final s in subjects)

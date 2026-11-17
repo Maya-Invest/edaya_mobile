@@ -163,7 +163,7 @@ class AcademicYearController extends LevitController
         sortedYears.where((y) => y['id'] == requested).firstOrNull ??
         sortedYears.where((y) => y['status'] == 'published').firstOrNull;
     selectedYearId(selected?['id'] as String?);
-    if (selected == null) errorMessage('Aucune année scolaire publiée.');
+    if (selected == null) errorMessage(systemL10n().noPublishedSchoolYear);
   }
 
   void _indexYearsBySchool(List<Map<String, dynamic>> rows) {

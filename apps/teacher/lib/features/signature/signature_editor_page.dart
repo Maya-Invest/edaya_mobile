@@ -174,7 +174,7 @@ class _SignatureEditorPageState extends State<SignatureEditorPage> {
           leading: widget.onComplete == null
               ? null
               : IconButton(
-                  tooltip: 'Annuler',
+                  tooltip: context.tr.cancel,
                   icon: const Icon(Icons.close),
                   onPressed: () => widget.onComplete!(null),
                 ),

@@ -11,16 +11,7 @@ import '../../mock/mock_store.dart';
 import '../context/store_bound_controller.dart';
 import '../context/student_context_controller.dart';
 import 'attendance_controller.dart';
-
-String _frenchAttendanceStatus(String status) {
-  return switch (status) {
-    'present' => 'Présent',
-    'absent' => 'Absent',
-    'late' => 'Retard',
-    'excused' => 'Excusé',
-    _ => status,
-  };
-}
+import 'attendance_label.dart';
 
 class AttendanceListPage extends StatelessWidget {
   const AttendanceListPage({super.key});
@@ -47,16 +38,16 @@ class _MockAttendanceListPage extends LScopedView<StoreBoundController> {
     controller.storeTick.value;
     final records = controller.store.attendance;
     if (records.isEmpty) {
-      return const PrototypeDetailScaffold(
+      return PrototypeDetailScaffold(
         fallbackRoute: '/calendar',
-        title: 'Présences',
-        body: EmptyState(title: 'Aucune présence enregistrée'),
+        title: context.tr.attendance,
+        body: EmptyState(title: context.tr.noAttendanceRecorded),
       );
     }
 
     return PrototypeDetailScaffold(
       fallbackRoute: '/calendar',
-      title: 'Présences',
+      title: context.tr.attendance,
       body: ListView.separated(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         itemCount: records.length,
@@ -71,7 +62,7 @@ class _MockAttendanceListPage extends LScopedView<StoreBoundController> {
           return ListRow(
             title: a.subject,
             subtitle: formatDate(a.date),
-            badge: a.status,
+            badge: attendanceLabel(context.tr, a.status),
             badgeTone: tone,
           );
         },
@@ -101,7 +92,7 @@ class _LiveAttendanceListPage extends LScopedView<AttendanceController> {
     if (controller.isBusy.value && records.isEmpty) {
       return PrototypeDetailScaffold(
         fallbackRoute: '/calendar',
-        title: 'Présences',
+        title: context.tr.attendance,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -109,7 +100,7 @@ class _LiveAttendanceListPage extends LScopedView<AttendanceController> {
     if (controller.errorMessage.value.isNotEmpty && records.isEmpty) {
       return PrototypeDetailScaffold(
         fallbackRoute: '/calendar',
-        title: 'Présences',
+        title: context.tr.attendance,
         body: EmptyState(title: controller.errorMessage.value),
       );
     }
@@ -117,24 +108,24 @@ class _LiveAttendanceListPage extends LScopedView<AttendanceController> {
     if (records.isEmpty) {
       return PrototypeDetailScaffold(
         fallbackRoute: '/calendar',
-        title: 'Présences',
-        body: const EmptyState(title: 'Aucune présence enregistrée'),
+        title: context.tr.attendance,
+        body: EmptyState(title: context.tr.noAttendanceRecorded),
       );
     }
 
     return PrototypeDetailScaffold(
       fallbackRoute: '/calendar',
-      title: 'Présences',
+      title: context.tr.attendance,
       body: ListView.separated(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         itemCount: records.length,
         separatorBuilder: (_, _) => const SizedBox(height: PrototypeSpacing.xs),
         itemBuilder: (context, i) {
           final a = records[i];
-          final label = _frenchAttendanceStatus(a.status);
-          final tone = label == 'Absent'
+          final label = attendanceLabel(context.tr, a.status);
+          final tone = a.status == 'absent'
               ? SemanticTone.error
-              : label == 'Retard'
+              : a.status == 'late'
               ? SemanticTone.warning
               : SemanticTone.success;
           return ListRow(

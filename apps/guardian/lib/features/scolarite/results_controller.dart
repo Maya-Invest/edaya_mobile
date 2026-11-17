@@ -54,7 +54,9 @@ class SubjectPeriodResult {
     return '$formatted / ${maxScore.toInt()}';
   }
 
-  String get stateLabel => gradeCount == 0 ? 'Aucune note' : 'Publié';
+  String get stateLabel => gradeCount == 0
+      ? systemL10n().noMarks
+      : systemL10n().reportCardStatusPublished;
 }
 
 /// Notes + bulletins for the Scolarité list tab (from EvaluationsController).

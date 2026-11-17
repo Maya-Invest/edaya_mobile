@@ -1,6 +1,6 @@
-# Edaya Mobile
+# EDaya Mobile
 
-Flutter monorepo for the Edaya mobile apps, managed with [Melos](https://melos.invertase.dev/) and [pub workspaces](https://dart.dev/tools/pub/workspaces).
+Flutter monorepo for the EDaya mobile apps, managed with [Melos](https://melos.invertase.dev/) and [pub workspaces](https://dart.dev/tools/pub/workspaces).
 
 ## Releases
 

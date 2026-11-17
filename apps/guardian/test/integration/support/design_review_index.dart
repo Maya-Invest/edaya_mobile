@@ -55,7 +55,7 @@ void writeDesignReviewPack({required Directory outputDir, required List<DesignRe
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Edaya Guardian — design review</title>
+  <title>EDaya Guardian — design review</title>
   <style>
     :root {
       color-scheme: light;
@@ -114,7 +114,7 @@ void writeDesignReviewPack({required Directory outputDir, required List<DesignRe
 </head>
 <body>
   <header>
-    <h1>Edaya Guardian — design review</h1>
+    <h1>EDaya Guardian — design review</h1>
     <p class="meta">
       Generated $generatedAt<br />
       Data: mock fixtures (no API)<br />

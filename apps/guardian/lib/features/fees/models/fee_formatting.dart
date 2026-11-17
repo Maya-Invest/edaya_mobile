@@ -1,17 +1,16 @@
 import 'dart:math' as math;
+import 'package:intl/intl.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
 
 import 'money_amount.dart';
 import 'student_charge_line.dart';
 
-String formatMoney(int minorUnits, String currency) {
+String formatMoney(int minorUnits, String currency, [String? locale]) {
   final digits = currencyFractionDigits(currency);
   final major = minorUnits / math.pow(10, digits);
-  final formatted = digits == 0
-      ? major.round().toString()
-      : major.toStringAsFixed(digits);
-  return '$formatted $currency';
+  return NumberFormat.currency(locale: locale ?? Intl.getCurrentLocale(), name: currency,
+      symbol: currency == 'EUR' ? '€' : currency, decimalDigits: digits).format(major);
 }
 
 String formatPaymentMethod(AppLocalizations l10n, String method) {

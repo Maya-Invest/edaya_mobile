@@ -1,9 +1,15 @@
+import 'package:edaya_guardian_v2/features/fees/models/fee_formatting.dart';
 import 'package:edaya_guardian_v2/features/fees/models/money_amount.dart';
 import 'package:edaya_guardian_v2/features/fees/models/payment_record.dart';
 import 'package:edaya_guardian_v2/features/fees/models/student_charge_line.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('cash amounts retain minor units and use the selected language', () {
+    expect(formatMoney(123450, 'EUR', 'en'), '€1,234.50');
+    expect(formatMoney(123450, 'EUR', 'fr').replaceAll(RegExp(r'[\s\u202f]+'), ' '), '1 234,50 €');
+    expect(formatMoney(12345, 'KWD', 'fr'), contains('12,345'));
+  });
   test('finance summaries and charges require explicit currency', () {
     expect(
       () => FeesSummary.fromJson({

@@ -1,5 +1,5 @@
 name: edaya_integration_tests
-description: Live API integration tests for Edaya mobile portal clients.
+description: Live API integration tests for EDaya mobile portal clients.
 publish_to: none
 resolution: workspace
 

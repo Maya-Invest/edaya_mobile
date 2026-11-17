@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart' hide PersonAvatar;
 import 'package:flutter/material.dart';
 
 import '../spacing.dart';
@@ -16,7 +17,7 @@ class ParentAccountCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: 'Mon compte',
+      message: context.tr.myAccount,
       child: SizedBox.square(
         dimension: side,
         child: SurfaceCard(

@@ -49,7 +49,10 @@ class _MockAccountPage extends LScopedView<StoreBoundController> {
       child: ListView(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
-          Text('Compte', style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            edaya.systemL10n().accountTitle,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
           const SizedBox(height: PrototypeSpacing.md),
           SurfaceCard(
             child: Row(
@@ -80,7 +83,7 @@ class _MockAccountPage extends LScopedView<StoreBoundController> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.person_outline),
-                  title: const Text('Profil de contact'),
+                  title: Text(edaya.systemL10n().accountProfileTitle),
                   trailing: const Icon(Icons.chevron_right),
                   selected: selected == '/account/profile',
                   onTap: () => context.go('/account/profile'),
@@ -88,7 +91,7 @@ class _MockAccountPage extends LScopedView<StoreBoundController> {
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.settings_outlined),
-                  title: const Text('Paramètres'),
+                  title: Text(edaya.systemL10n().settingsTitle),
                   trailing: const Icon(Icons.chevron_right),
                   selected: selected == '/settings',
                   onTap: () => context.go('/settings'),
@@ -102,7 +105,7 @@ class _MockAccountPage extends LScopedView<StoreBoundController> {
               store.signOut();
               context.go('/login');
             },
-            child: const Text('Se déconnecter'),
+            child: Text(edaya.systemL10n().signOut),
           ),
         ],
       ),
@@ -233,7 +236,7 @@ class _LiveAccountPage extends StatelessWidget {
             WorkspaceColumns(
               first: [
                 Text(
-                  'Compte',
+                  edaya.systemL10n().accountTitle,
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: PrototypeSpacing.md),
@@ -298,7 +301,7 @@ class _LiveAccountPage extends StatelessWidget {
               ],
               second: [
                 Text(
-                  'Affectations',
+                  edaya.systemL10n().assignments,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 for (final c in teacherContext.assignedClasses.value)
@@ -310,7 +313,8 @@ class _LiveAccountPage extends StatelessWidget {
                           .expand(
                             (a) => [
                               if (a.classSubjectId != null) a.subjectLabel,
-                              if (a.isHomeroom) 'Titulaire',
+                              if (a.isHomeroom)
+                                edaya.systemL10n().homeroomTeacher,
                             ],
                           )
                           .toSet()

@@ -107,7 +107,7 @@ abstract class AppLocalizations {
   /// No description provided for @navEvaluationsShort.
   ///
   /// In en, this message translates to:
-  /// **'Grades'**
+  /// **'Assessments'**
   String get navEvaluationsShort;
 
   /// No description provided for @navMessages.
@@ -167,13 +167,13 @@ abstract class AppLocalizations {
   /// No description provided for @appTitleGuardian.
   ///
   /// In en, this message translates to:
-  /// **'Edaya'**
+  /// **'EDaya'**
   String get appTitleGuardian;
 
   /// No description provided for @appTitleTeacher.
   ///
   /// In en, this message translates to:
-  /// **'Edaya Staff'**
+  /// **'EDaya Prof'**
   String get appTitleTeacher;
 
   /// No description provided for @accountTitle.
@@ -491,19 +491,19 @@ abstract class AppLocalizations {
   /// No description provided for @signedInNoGuardianProfile.
   ///
   /// In en, this message translates to:
-  /// **'Signed in, but no linked guardian/staff profile. Run: bun seed --scope auth:link'**
+  /// **'Your account has no linked family profile. Contact your school.'**
   String get signedInNoGuardianProfile;
 
   /// No description provided for @signedInNoStaffProfile.
   ///
   /// In en, this message translates to:
-  /// **'Signed in, but no linked staff profile. Run: bun seed --scope auth:link'**
+  /// **'Your account has no linked staff profile. Contact your school.'**
   String get signedInNoStaffProfile;
 
   /// No description provided for @signedInNoTeacherProfile.
   ///
   /// In en, this message translates to:
-  /// **'Signed in, but no linked teacher profile. Run: bun seed --scope auth:link'**
+  /// **'Your account has no linked teacher profile. Contact your school.'**
   String get signedInNoTeacherProfile;
 
   /// No description provided for @accountNotLinkedToStaff.
@@ -569,7 +569,7 @@ abstract class AppLocalizations {
   /// No description provided for @navEvaluations.
   ///
   /// In en, this message translates to:
-  /// **'Evaluations'**
+  /// **'Assessments'**
   String get navEvaluations;
 
   /// No description provided for @teacherMockSignInHint.
@@ -601,6 +601,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You can find today’s sessions in the agenda.'**
   String get teacherSessionsAgendaHint;
+
+  /// No description provided for @guardianSchoolLife.
+  ///
+  /// In en, this message translates to:
+  /// **'School life'**
+  String get guardianSchoolLife;
+
+  /// No description provided for @teacherSchoolNotices.
+  ///
+  /// In en, this message translates to:
+  /// **'School notices'**
+  String get teacherSchoolNotices;
 
   /// No description provided for @teacherClassLife.
   ///
@@ -1169,7 +1181,7 @@ abstract class AppLocalizations {
   /// No description provided for @assessmentCount.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 assessment} other{{count} assessments}}'**
+  /// **'{count, plural, =0{0 assessments} =1{1 assessment} other{{count} assessments}}'**
   String assessmentCount(int count);
 
   /// No description provided for @subjectAverage.
@@ -1385,7 +1397,7 @@ abstract class AppLocalizations {
   /// No description provided for @overdueFeeLinesCount.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 overdue fee line} other{{count} overdue fee lines}}'**
+  /// **'{count, plural, =0{0 overdue fee lines} =1{1 overdue fee line} other{{count} overdue fee lines}}'**
   String overdueFeeLinesCount(int count);
 
   /// No description provided for @dueDate.
@@ -1397,7 +1409,7 @@ abstract class AppLocalizations {
   /// No description provided for @paymentCount.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 payment} other{{count} payments}}'**
+  /// **'{count, plural, =0{0 payments} =1{1 payment} other{{count} payments}}'**
   String paymentCount(int count);
 
   /// No description provided for @paidAmount.
@@ -1439,7 +1451,7 @@ abstract class AppLocalizations {
   /// No description provided for @unreadCount.
   ///
   /// In en, this message translates to:
-  /// **'{count} unread'**
+  /// **'{count, plural, =0{0 unread messages} =1{1 unread message} other{{count} unread messages}}'**
   String unreadCount(int count);
 
   /// No description provided for @noMessagesInInbox.
@@ -1511,7 +1523,7 @@ abstract class AppLocalizations {
   /// No description provided for @evaluationsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Evaluations'**
+  /// **'Assessments'**
   String get evaluationsTitle;
 
   /// No description provided for @calendarTitle.
@@ -1523,13 +1535,13 @@ abstract class AppLocalizations {
   /// No description provided for @evaluationCount.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 evaluation} other{{count} evaluations}}'**
+  /// **'{count, plural, =0{0 evaluations} =1{1 evaluation} other{{count} evaluations}}'**
   String evaluationCount(int count);
 
   /// No description provided for @sessionCount.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 session} other{{count} sessions}}'**
+  /// **'{count, plural, =0{0 sessions} =1{1 session} other{{count} sessions}}'**
   String sessionCount(int count);
 
   /// No description provided for @tooltipNewEvaluation.
@@ -1613,7 +1625,7 @@ abstract class AppLocalizations {
   /// No description provided for @attendanceRecordingLessonOnly.
   ///
   /// In en, this message translates to:
-  /// **'Attendance can only be recorded for lesson sessions.'**
+  /// **'You can only record attendance for lessons you teach.'**
   String get attendanceRecordingLessonOnly;
 
   /// No description provided for @noCurriculumChaptersLinked.
@@ -2027,7 +2039,7 @@ abstract class AppLocalizations {
   /// No description provided for @rollMarkRemaining.
   ///
   /// In en, this message translates to:
-  /// **'Rest present'**
+  /// **'Mark remaining pupils present'**
   String get rollMarkRemaining;
 
   /// No description provided for @rollOneByOne.
@@ -2507,7 +2519,7 @@ abstract class AppLocalizations {
   /// No description provided for @accountPendingSyncSummary.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 item waiting to sync} other{{count} items waiting to sync}}'**
+  /// **'{count, plural, =0{0 items waiting to sync} =1{1 item waiting to sync} other{{count} items waiting to sync}}'**
   String accountPendingSyncSummary(int count);
 
   /// No description provided for @accountPendingSyncOldest.
@@ -2867,7 +2879,7 @@ abstract class AppLocalizations {
   /// No description provided for @invitationWrongKind.
   ///
   /// In en, this message translates to:
-  /// **'This invitation is for another Edaya app.'**
+  /// **'This invitation is for another EDaya app.'**
   String get invitationWrongKind;
 
   /// No description provided for @invitationWrongAccount.
@@ -3059,8 +3071,8 @@ abstract class AppLocalizations {
   /// No description provided for @profilePhotoCropHint.
   ///
   /// In en, this message translates to:
-  /// **'Rotate and confirm a square JPEG under 1 MiB.'**
-  String get profilePhotoCropHint;
+  /// **'Rotate and confirm a square JPEG of {limit} or smaller.'**
+  String profilePhotoCropHint(String limit);
 
   /// No description provided for @profilePhotoRotate.
   ///
@@ -3077,8 +3089,8 @@ abstract class AppLocalizations {
   /// No description provided for @profilePhotoTooLarge.
   ///
   /// In en, this message translates to:
-  /// **'The photo is still larger than 1 MiB after compression.'**
-  String get profilePhotoTooLarge;
+  /// **'The photo still exceeds {limit} after compression.'**
+  String profilePhotoTooLarge(String limit);
 
   /// No description provided for @profilePhotoUpdateSuccess.
   ///
@@ -3305,13 +3317,13 @@ abstract class AppLocalizations {
   /// No description provided for @documentStatusVoided.
   ///
   /// In en, this message translates to:
-  /// **'Replaced'**
+  /// **'Voided'**
   String get documentStatusVoided;
 
   /// No description provided for @documentStatusPreview.
   ///
   /// In en, this message translates to:
-  /// **'Issued'**
+  /// **'Preview'**
   String get documentStatusPreview;
 
   /// No description provided for @exportLogbookPdf.
@@ -3707,7 +3719,7 @@ abstract class AppLocalizations {
   /// No description provided for @verifyContactTitle.
   ///
   /// In en, this message translates to:
-  /// **'Verify your contact'**
+  /// **'Enter your verification code'**
   String get verifyContactTitle;
 
   /// No description provided for @verificationContact.
@@ -4073,7 +4085,7 @@ abstract class AppLocalizations {
   /// No description provided for @messagingAwaitingGuardian.
   ///
   /// In en, this message translates to:
-  /// **'Awaiting guardian'**
+  /// **'Awaiting guardian reply'**
   String get messagingAwaitingGuardian;
 
   /// No description provided for @messagingResolved.
@@ -4277,7 +4289,7 @@ abstract class AppLocalizations {
   /// No description provided for @gradingMention.
   ///
   /// In en, this message translates to:
-  /// **'Mention'**
+  /// **'Grade band'**
   String get gradingMention;
 
   /// No description provided for @termsConfirm.
@@ -4597,6 +4609,1349 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Result options'**
   String get gradebookOptions;
+
+  /// No description provided for @seeYourChildrenSSchoolInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'See your children’s school information.'**
+  String get seeYourChildrenSSchoolInformation;
+
+  /// No description provided for @assignments.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignments'**
+  String get assignments;
+
+  /// No description provided for @showMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Show more'**
+  String get showMore;
+
+  /// No description provided for @quickOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick overview'**
+  String get quickOverview;
+
+  /// No description provided for @dailyAttendanceRegisters.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily attendance registers'**
+  String get dailyAttendanceRegisters;
+
+  /// No description provided for @approved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get approved;
+
+  /// No description provided for @approvedAwaitingPublication.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved, awaiting publication'**
+  String get approvedAwaitingPublication;
+
+  /// No description provided for @reportComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Report comment'**
+  String get reportComment;
+
+  /// No description provided for @subjectCommentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject comment'**
+  String get subjectCommentLabel;
+
+  /// No description provided for @publishedComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Published comment · {comment}'**
+  String publishedComment(Object comment);
+
+  /// No description provided for @commentEntered.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment entered'**
+  String get commentEntered;
+
+  /// No description provided for @commentNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment needed'**
+  String get commentNeeded;
+
+  /// No description provided for @archive.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get archive;
+
+  /// No description provided for @noPdfIsAvailableForThisReportCard.
+  ///
+  /// In en, this message translates to:
+  /// **'No PDF is available for this report card.'**
+  String get noPdfIsAvailableForThisReportCard;
+
+  /// No description provided for @noSchoolNotices.
+  ///
+  /// In en, this message translates to:
+  /// **'No school notices'**
+  String get noSchoolNotices;
+
+  /// No description provided for @noFeedbackPublishedForThisClassAndSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'No feedback published for this class and subject'**
+  String get noFeedbackPublishedForThisClassAndSubject;
+
+  /// No description provided for @noReportCardsPrepared.
+  ///
+  /// In en, this message translates to:
+  /// **'No report cards prepared.'**
+  String get noReportCardsPrepared;
+
+  /// No description provided for @noEditableFields.
+  ///
+  /// In en, this message translates to:
+  /// **'No editable fields'**
+  String get noEditableFields;
+
+  /// No description provided for @noCommentHasBeenSharedForThisActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'No comment has been shared for this activity.'**
+  String get noCommentHasBeenSharedForThisActivity;
+
+  /// No description provided for @noClassesScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'No classes scheduled'**
+  String get noClassesScheduled;
+
+  /// No description provided for @noDetailsAvailableForThisAssessment.
+  ///
+  /// In en, this message translates to:
+  /// **'No details available for this assessment.'**
+  String get noDetailsAvailableForThisAssessment;
+
+  /// No description provided for @noTeachingAssignmentSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No teaching assignment selected.'**
+  String get noTeachingAssignmentSelected;
+
+  /// No description provided for @noIncidents.
+  ///
+  /// In en, this message translates to:
+  /// **'No incidents'**
+  String get noIncidents;
+
+  /// No description provided for @noMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages'**
+  String get noMessages;
+
+  /// No description provided for @noCurriculum.
+  ///
+  /// In en, this message translates to:
+  /// **'No curriculum'**
+  String get noCurriculum;
+
+  /// No description provided for @noStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'No students'**
+  String get noStudents;
+
+  /// No description provided for @noStudentsEnrolledInThisClassAndSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'No students enrolled in this class and subject.'**
+  String get noStudentsEnrolledInThisClassAndSubject;
+
+  /// No description provided for @noStudentsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No students found.'**
+  String get noStudentsFound;
+
+  /// No description provided for @noAssignment.
+  ///
+  /// In en, this message translates to:
+  /// **'No assignment'**
+  String get noAssignment;
+
+  /// No description provided for @noActiveAssignmentForThisSchoolYear.
+  ///
+  /// In en, this message translates to:
+  /// **'No active assignment for this school year.'**
+  String get noActiveAssignmentForThisSchoolYear;
+
+  /// No description provided for @noAssignmentsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No assignments available.'**
+  String get noAssignmentsAvailable;
+
+  /// No description provided for @thisSchoolHasNoPublishedSchoolYear.
+  ///
+  /// In en, this message translates to:
+  /// **'This school has no published school year.'**
+  String get thisSchoolHasNoPublishedSchoolYear;
+
+  /// No description provided for @noPublishedSchoolYear.
+  ///
+  /// In en, this message translates to:
+  /// **'No published school year.'**
+  String get noPublishedSchoolYear;
+
+  /// No description provided for @noAssignedClasses.
+  ///
+  /// In en, this message translates to:
+  /// **'No assigned classes'**
+  String get noAssignedClasses;
+
+  /// No description provided for @noLogbookEntriesForThisSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'No logbook entries for this subject'**
+  String get noLogbookEntriesForThisSubject;
+
+  /// No description provided for @noMarks.
+  ///
+  /// In en, this message translates to:
+  /// **'No marks'**
+  String get noMarks;
+
+  /// No description provided for @noSessionsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'No sessions today'**
+  String get noSessionsToday;
+
+  /// No description provided for @otherMarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Other marks'**
+  String get otherMarks;
+
+  /// No description provided for @feedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback'**
+  String get feedback;
+
+  /// No description provided for @reportCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Report card'**
+  String get reportCard;
+
+  /// No description provided for @reportCardNotGenerated.
+  ///
+  /// In en, this message translates to:
+  /// **'Report card not generated'**
+  String get reportCardNotGenerated;
+
+  /// No description provided for @reportCardNotPrepared.
+  ///
+  /// In en, this message translates to:
+  /// **'Report card not prepared'**
+  String get reportCardNotPrepared;
+
+  /// No description provided for @reportCardPrepared.
+  ///
+  /// In en, this message translates to:
+  /// **'Report card prepared'**
+  String get reportCardPrepared;
+
+  /// No description provided for @reportCardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Report card · {period}'**
+  String reportCardLabel(Object period);
+
+  /// No description provided for @reportCardNeedsUpdating.
+  ///
+  /// In en, this message translates to:
+  /// **'Report card needs updating'**
+  String get reportCardNeedsUpdating;
+
+  /// No description provided for @campaignsAndArchives.
+  ///
+  /// In en, this message translates to:
+  /// **'Campaigns and archives'**
+  String get campaignsAndArchives;
+
+  /// No description provided for @thisRecordIsUnavailableOrYourAccessHas.
+  ///
+  /// In en, this message translates to:
+  /// **'This record is unavailable or your access has changed.'**
+  String get thisRecordIsUnavailableOrYourAccessHas;
+
+  /// No description provided for @thisProfileIsNoLongerAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This profile is no longer available.'**
+  String get thisProfileIsNoLongerAvailable;
+
+  /// No description provided for @helpCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Help center'**
+  String get helpCenter;
+
+  /// No description provided for @thisAssignmentIsNoLongerAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This assignment is no longer available.'**
+  String get thisAssignmentIsNoLongerAvailable;
+
+  /// No description provided for @thisAssessmentIsUnavailableOrYourAccessHas.
+  ///
+  /// In en, this message translates to:
+  /// **'This assessment is unavailable or your access has changed.'**
+  String get thisAssessmentIsUnavailableOrYourAccessHas;
+
+  /// No description provided for @changeClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Change class'**
+  String get changeClass;
+
+  /// No description provided for @chapters.
+  ///
+  /// In en, this message translates to:
+  /// **'Chapters'**
+  String get chapters;
+
+  /// No description provided for @couldNotLoadStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load students. {error}'**
+  String couldNotLoadStudents(Object error);
+
+  /// No description provided for @chooseDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose date'**
+  String get chooseDate;
+
+  /// No description provided for @chooseAClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a class'**
+  String get chooseAClass;
+
+  /// No description provided for @classAndSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Class and subject'**
+  String get classAndSubject;
+
+  /// No description provided for @selectAClassAndAPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a class and a period.'**
+  String get selectAClassAndAPeriod;
+
+  /// No description provided for @code.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get code;
+
+  /// No description provided for @coefficient.
+  ///
+  /// In en, this message translates to:
+  /// **'Coefficient {coefficient}'**
+  String coefficient(Object coefficient);
+
+  /// No description provided for @comment.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment'**
+  String get comment;
+
+  /// No description provided for @staffComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff comment'**
+  String get staffComment;
+
+  /// No description provided for @commentSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment saved'**
+  String get commentSaved;
+
+  /// No description provided for @generalComment.
+  ///
+  /// In en, this message translates to:
+  /// **'General comment'**
+  String get generalComment;
+
+  /// No description provided for @homeroomTeacherComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Homeroom teacher comment'**
+  String get homeroomTeacherComment;
+
+  /// No description provided for @complete.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete'**
+  String get complete;
+
+  /// No description provided for @theReportCardHasChangedReloadItAnd.
+  ///
+  /// In en, this message translates to:
+  /// **'The report card has changed. Reload it and review your comment.'**
+  String get theReportCardHasChangedReloadItAnd;
+
+  /// No description provided for @instructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Instructions'**
+  String get instructions;
+
+  /// No description provided for @viewDailyAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'View daily attendance'**
+  String get viewDailyAttendance;
+
+  /// No description provided for @viewComment.
+  ///
+  /// In en, this message translates to:
+  /// **'View comment'**
+  String get viewComment;
+
+  /// No description provided for @conversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation'**
+  String get conversation;
+
+  /// No description provided for @create.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get create;
+
+  /// No description provided for @createAssessment.
+  ///
+  /// In en, this message translates to:
+  /// **'Create assessment'**
+  String get createAssessment;
+
+  /// No description provided for @latestMark.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest mark'**
+  String get latestMark;
+
+  /// No description provided for @documents.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get documents;
+
+  /// No description provided for @chargeDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Charge details'**
+  String get chargeDetails;
+
+  /// No description provided for @pendingPupilCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Pending · 0 pupils} =1{Pending · 1 pupil} other{Pending · {count} pupils}}'**
+  String pendingPupilCount(int count);
+
+  /// No description provided for @couldNotSaveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save changes.'**
+  String get couldNotSaveChanges;
+
+  /// No description provided for @couldNotSaveChangesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save changes. {error}'**
+  String couldNotSaveChangesLabel(Object error);
+
+  /// No description provided for @saveIncident.
+  ///
+  /// In en, this message translates to:
+  /// **'Save incident'**
+  String get saveIncident;
+
+  /// No description provided for @teachingAssignments.
+  ///
+  /// In en, this message translates to:
+  /// **'Teaching assignments'**
+  String get teachingAssignments;
+
+  /// No description provided for @entries.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries'**
+  String get entries;
+
+  /// No description provided for @invoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice'**
+  String get invoice;
+
+  /// No description provided for @takeDailyAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Take daily attendance'**
+  String get takeDailyAttendance;
+
+  /// No description provided for @positiveIncident.
+  ///
+  /// In en, this message translates to:
+  /// **'Positive incident'**
+  String get positiveIncident;
+
+  /// No description provided for @whatHappened.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened?'**
+  String get whatHappened;
+
+  /// No description provided for @closeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get closeAction;
+
+  /// No description provided for @dismissMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss message'**
+  String get dismissMessage;
+
+  /// No description provided for @chargeNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Charge not found'**
+  String get chargeNotFound;
+
+  /// No description provided for @schedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get schedule;
+
+  /// No description provided for @couldNotLoadTheCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the calendar'**
+  String get couldNotLoadTheCalendar;
+
+  /// No description provided for @couldNotLoadAssignmentsTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load assignments. Try again.'**
+  String get couldNotLoadAssignmentsTryAgain;
+
+  /// No description provided for @couldNotLoadResultsTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load results. Try again.'**
+  String get couldNotLoadResultsTryAgain;
+
+  /// No description provided for @incident.
+  ///
+  /// In en, this message translates to:
+  /// **'Incident'**
+  String get incident;
+
+  /// No description provided for @incidentSavedStillToLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Incident saved. Still to link: {students}. {error}'**
+  String incidentSavedStillToLink(Object students, Object error);
+
+  /// No description provided for @incidents.
+  ///
+  /// In en, this message translates to:
+  /// **'Incidents'**
+  String get incidents;
+
+  /// No description provided for @thePdfIsBeingGeneratedTryAgainShortly.
+  ///
+  /// In en, this message translates to:
+  /// **'The PDF is being generated. Try again shortly.'**
+  String get thePdfIsBeingGeneratedTryAgainShortly;
+
+  /// No description provided for @logbookEntriesWillAppearHereAsTheyAre.
+  ///
+  /// In en, this message translates to:
+  /// **'Logbook entries will appear here as they are added.'**
+  String get logbookEntriesWillAppearHereAsTheyAre;
+
+  /// No description provided for @reportCardsAreAvailableToTheHomeroomTeacher.
+  ///
+  /// In en, this message translates to:
+  /// **'Report cards are available to the homeroom teacher for this class.'**
+  String get reportCardsAreAvailableToTheHomeroomTeacher;
+
+  /// No description provided for @detailsAreHiddenUntilTheConfidentialityThresholdIs.
+  ///
+  /// In en, this message translates to:
+  /// **'Details are hidden until the confidentiality threshold is met.'**
+  String get detailsAreHiddenUntilTheConfidentialityThresholdIs;
+
+  /// No description provided for @theseResultsReflectTheMostRecentCalculation.
+  ///
+  /// In en, this message translates to:
+  /// **'These results reflect the most recent calculation.'**
+  String get theseResultsReflectTheMostRecentCalculation;
+
+  /// No description provided for @downloadLinkUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Download link unavailable.'**
+  String get downloadLinkUnavailable;
+
+  /// No description provided for @read.
+  ///
+  /// In en, this message translates to:
+  /// **'Read · {date}'**
+  String read(Object date);
+
+  /// No description provided for @theCommentWillBeAvailableOnceTheSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'The comment will be available once the school prepares the report card.'**
+  String get theCommentWillBeAvailableOnceTheSchool;
+
+  /// No description provided for @myClassesAndRoles.
+  ///
+  /// In en, this message translates to:
+  /// **'My classes and roles'**
+  String get myClassesAndRoles;
+
+  /// No description provided for @messageNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Message not found'**
+  String get messageNotFound;
+
+  /// No description provided for @unreadMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread messages'**
+  String get unreadMessages;
+
+  /// No description provided for @paymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment method'**
+  String get paymentMethod;
+
+  /// No description provided for @change.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get change;
+
+  /// No description provided for @editComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit comment'**
+  String get editComment;
+
+  /// No description provided for @myAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'My account'**
+  String get myAccount;
+
+  /// No description provided for @myProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'My profile'**
+  String get myProfile;
+
+  /// No description provided for @avgRank.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg. {average} · Rank {rank}'**
+  String avgRank(Object average, Object rank);
+
+  /// No description provided for @periodAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Period average'**
+  String get periodAverage;
+
+  /// No description provided for @indicativeAverageAcrossTheSubjectsTracked.
+  ///
+  /// In en, this message translates to:
+  /// **'Indicative average across the subjects tracked.'**
+  String get indicativeAverageAcrossTheSubjectsTracked;
+
+  /// No description provided for @averageRank.
+  ///
+  /// In en, this message translates to:
+  /// **'Average {average} · Rank {rank}'**
+  String averageRank(Object average, Object rank);
+
+  /// No description provided for @incidentType.
+  ///
+  /// In en, this message translates to:
+  /// **'Incident type'**
+  String get incidentType;
+
+  /// No description provided for @name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get name;
+
+  /// No description provided for @studentSMark.
+  ///
+  /// In en, this message translates to:
+  /// **'Student’s mark'**
+  String get studentSMark;
+
+  /// No description provided for @maximumScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum score'**
+  String get maximumScore;
+
+  /// No description provided for @officialMark.
+  ///
+  /// In en, this message translates to:
+  /// **'Official mark · {result}'**
+  String officialMark(Object result);
+
+  /// No description provided for @marks.
+  ///
+  /// In en, this message translates to:
+  /// **'Marks'**
+  String get marks;
+
+  /// No description provided for @newFeedbackFromHomePastFeedbackHere.
+  ///
+  /// In en, this message translates to:
+  /// **'New feedback from Home, past feedback here'**
+  String get newFeedbackFromHomePastFeedbackHere;
+
+  /// No description provided for @newFeedbackIsAvailablePastFeedbackStaysUnder.
+  ///
+  /// In en, this message translates to:
+  /// **'New feedback is available. Past feedback stays under Assessments.'**
+  String get newFeedbackIsAvailablePastFeedbackStaysUnder;
+
+  /// No description provided for @newConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'New conversation'**
+  String get newConversation;
+
+  /// No description provided for @newAssessment.
+  ///
+  /// In en, this message translates to:
+  /// **'New assessment'**
+  String get newAssessment;
+
+  /// No description provided for @openAllSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open all settings'**
+  String get openAllSettings;
+
+  /// No description provided for @paymentNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment not found'**
+  String get paymentNotFound;
+
+  /// No description provided for @parent.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent'**
+  String get parent;
+
+  /// No description provided for @noSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'No school'**
+  String get noSchool;
+
+  /// No description provided for @photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get photo;
+
+  /// No description provided for @firstMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'First message'**
+  String get firstMessage;
+
+  /// No description provided for @studentProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Student profile'**
+  String get studentProfile;
+
+  /// No description provided for @curriculum.
+  ///
+  /// In en, this message translates to:
+  /// **'Curriculum · {percent}%'**
+  String curriculum(Object percent);
+
+  /// No description provided for @preferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get preferences;
+
+  /// No description provided for @period.
+  ///
+  /// In en, this message translates to:
+  /// **'Period · {period}'**
+  String period(Object period);
+
+  /// No description provided for @searchForAStudent.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a student'**
+  String get searchForAStudent;
+
+  /// No description provided for @accountStatement.
+  ///
+  /// In en, this message translates to:
+  /// **'Account statement'**
+  String get accountStatement;
+
+  /// No description provided for @fillWithMaximumScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill with maximum score'**
+  String get fillWithMaximumScore;
+
+  /// No description provided for @guardianRecipient.
+  ///
+  /// In en, this message translates to:
+  /// **'Guardian recipient'**
+  String get guardianRecipient;
+
+  /// No description provided for @guardiansUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Guardians unavailable. {error}'**
+  String guardiansUnavailable(Object error);
+
+  /// No description provided for @backAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get backAction;
+
+  /// No description provided for @paymentReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment receipt'**
+  String get paymentReceipt;
+
+  /// No description provided for @nothingScheduledForThisDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing scheduled for this day'**
+  String get nothingScheduledForThisDay;
+
+  /// No description provided for @retryLoadingAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry loading attendance'**
+  String get retryLoadingAttendance;
+
+  /// No description provided for @retryLinkingStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry linking students'**
+  String get retryLinkingStudents;
+
+  /// No description provided for @archivedResultsForThisCampaign.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived results for this campaign.'**
+  String get archivedResultsForThisCampaign;
+
+  /// No description provided for @resultNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Result not found'**
+  String get resultNotFound;
+
+  /// No description provided for @results.
+  ///
+  /// In en, this message translates to:
+  /// **'Results'**
+  String get results;
+
+  /// No description provided for @enterTheCodeSentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code sent to {contact}.'**
+  String enterTheCodeSentTo(Object contact);
+
+  /// No description provided for @cannotAssess.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot assess · {count}'**
+  String cannotAssess(Object count);
+
+  /// No description provided for @noClassSpecified.
+  ///
+  /// In en, this message translates to:
+  /// **'No class specified'**
+  String get noClassSpecified;
+
+  /// No description provided for @academics.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning'**
+  String get academics;
+
+  /// No description provided for @confidentialityThreshold.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidentiality threshold'**
+  String get confidentialityThreshold;
+
+  /// No description provided for @reportAnIncident.
+  ///
+  /// In en, this message translates to:
+  /// **'Report an incident'**
+  String get reportAnIncident;
+
+  /// No description provided for @couldNotSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not submit: {error}'**
+  String couldNotSubmit(Object error);
+
+  /// No description provided for @status.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get status;
+
+  /// No description provided for @followUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-up'**
+  String get followUp;
+
+  /// No description provided for @session.
+  ///
+  /// In en, this message translates to:
+  /// **'Session'**
+  String get session;
+
+  /// No description provided for @sessionNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Session not found'**
+  String get sessionNotFound;
+
+  /// No description provided for @responseRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Response rate · {percent}%'**
+  String responseRate(Object percent);
+
+  /// No description provided for @homeroomTeacher.
+  ///
+  /// In en, this message translates to:
+  /// **'Homeroom teacher'**
+  String get homeroomTeacher;
+
+  /// No description provided for @viewAllAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'View all attendance'**
+  String get viewAllAttendance;
+
+  /// No description provided for @downloadReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Download receipt'**
+  String get downloadReceipt;
+
+  /// No description provided for @confirmEachMarkWithEnterOrNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm each mark with Enter or Next.'**
+  String get confirmEachMarkWithEnterOrNext;
+
+  /// No description provided for @yourAssignmentHasChangedAnotherTeachingAssignmentHas.
+  ///
+  /// In en, this message translates to:
+  /// **'Your assignment has changed. Another teaching assignment has been selected.'**
+  String get yourAssignmentHasChangedAnotherTeachingAssignmentHas;
+
+  /// No description provided for @verifyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify code'**
+  String get verifyCode;
+
+  /// No description provided for @ofTheCurriculumCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of the curriculum covered'**
+  String ofTheCurriculumCovered(Object percent);
+
+  /// No description provided for @paidLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% paid'**
+  String paidLabel(Object percent);
+
+  /// No description provided for @returnToResults.
+  ///
+  /// In en, this message translates to:
+  /// **'{error} Return to results.'**
+  String returnToResults(Object error);
+
+  /// No description provided for @pendingCommentCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 comments pending} =1{1 comment pending} other{{count} comments pending}}'**
+  String pendingCommentCount(int count);
+
+  /// No description provided for @overdueChargesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 overdue charges} =1{1 overdue charge} other{{count} overdue charges}}'**
+  String overdueChargesCount(int count);
+
+  /// No description provided for @responseCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 responses} =1{1 response} other{{count} responses}}'**
+  String responseCount(int count);
+
+  /// No description provided for @rank.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} {average} · Rank {rank}'**
+  String rank(Object label, Object average, Object rank);
+
+  /// No description provided for @pendingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} · Pending approval: {proposal}'**
+  String pendingApproval(Object label, Object proposal);
+
+  /// No description provided for @homeroomTeacherLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{subject} · Homeroom teacher'**
+  String homeroomTeacherLabel(Object subject);
+
+  /// No description provided for @pendingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{className} · {count} pending'**
+  String pendingLabel(Object className, Object count);
+
+  /// No description provided for @gradedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{className} · {period} · {graded}/{total} graded'**
+  String gradedLabel(
+    Object className,
+    Object period,
+    Object graded,
+    Object total,
+  );
+
+  /// No description provided for @subjectPupilCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{subject} · {count} students'**
+  String subjectPupilCount(Object subject, Object count);
+
+  /// No description provided for @toRead.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} to read'**
+  String toRead(Object count);
+
+  /// No description provided for @surveyResponseRatio.
+  ///
+  /// In en, this message translates to:
+  /// **'{completed}/{eligible} responses'**
+  String surveyResponseRatio(Object completed, Object eligible);
+
+  /// No description provided for @dueDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date'**
+  String get dueDateLabel;
+
+  /// No description provided for @dueDateRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date required'**
+  String get dueDateRequired;
+
+  /// No description provided for @due.
+  ///
+  /// In en, this message translates to:
+  /// **'Due · {date}'**
+  String due(Object date);
+
+  /// No description provided for @feeInstallments.
+  ///
+  /// In en, this message translates to:
+  /// **'Installments'**
+  String get feeInstallments;
+
+  /// No description provided for @student.
+  ///
+  /// In en, this message translates to:
+  /// **'Student'**
+  String get student;
+
+  /// No description provided for @studentNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Student not found'**
+  String get studentNotFound;
+
+  /// No description provided for @studentNotFoundForThisSurvey.
+  ///
+  /// In en, this message translates to:
+  /// **'Student not found for this survey.'**
+  String get studentNotFoundForThisSurvey;
+
+  /// No description provided for @students.
+  ///
+  /// In en, this message translates to:
+  /// **'Students'**
+  String get students;
+
+  /// No description provided for @assessmentNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Assessment not found'**
+  String get assessmentNotFound;
+
+  /// No description provided for @assessmentWorkspace.
+  ///
+  /// In en, this message translates to:
+  /// **'Assessments'**
+  String get assessmentWorkspace;
+
+  /// No description provided for @attendanceSubmitFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t submit attendance. Try again.'**
+  String get attendanceSubmitFailed;
+
+  /// No description provided for @attendanceSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t save the attendance change.'**
+  String get attendanceSaveFailed;
+
+  /// No description provided for @attendanceCorrectionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Request a correction to change submitted attendance.'**
+  String get attendanceCorrectionHint;
+
+  /// No description provided for @commentCorrectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t send the comment correction. Try again.'**
+  String get commentCorrectionFailed;
+
+  /// No description provided for @calendarHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday'**
+  String get calendarHoliday;
+
+  /// No description provided for @calendarBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'School break'**
+  String get calendarBreak;
+
+  /// No description provided for @calendarEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Event'**
+  String get calendarEvent;
+
+  /// No description provided for @paperSchoolCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate of school attendance'**
+  String get paperSchoolCertificate;
+
+  /// No description provided for @paperEnrollment.
+  ///
+  /// In en, this message translates to:
+  /// **'Enrollment record'**
+  String get paperEnrollment;
+
+  /// No description provided for @paperStudentId.
+  ///
+  /// In en, this message translates to:
+  /// **'Student ID card'**
+  String get paperStudentId;
+
+  /// No description provided for @paperWithdrawal.
+  ///
+  /// In en, this message translates to:
+  /// **'School withdrawal certificate'**
+  String get paperWithdrawal;
+
+  /// No description provided for @paperSummons.
+  ///
+  /// In en, this message translates to:
+  /// **'School summons'**
+  String get paperSummons;
+
+  /// No description provided for @feedbackCommunication.
+  ///
+  /// In en, this message translates to:
+  /// **'Communication'**
+  String get feedbackCommunication;
+
+  /// No description provided for @feedbackClarity.
+  ///
+  /// In en, this message translates to:
+  /// **'Clarity of expectations'**
+  String get feedbackClarity;
+
+  /// No description provided for @feedbackSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Student support'**
+  String get feedbackSupport;
+
+  /// No description provided for @feedbackExperience.
+  ///
+  /// In en, this message translates to:
+  /// **'Student experience'**
+  String get feedbackExperience;
+
+  /// No description provided for @feedbackQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Survey question'**
+  String get feedbackQuestion;
+
+  /// No description provided for @guardianPushDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'School updates and alerts for families'**
+  String get guardianPushDescription;
+
+  /// No description provided for @teacherPushDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'School updates and alerts for staff'**
+  String get teacherPushDescription;
+
+  /// No description provided for @duplicateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} (copy)'**
+  String duplicateTitle(String title);
+
+  /// No description provided for @schoolSessionUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t open your school session. Try again.'**
+  String get schoolSessionUnavailable;
+
+  /// No description provided for @verificationInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid or expired code.'**
+  String get verificationInvalid;
+
+  /// No description provided for @sessionsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 sessions today} =1{1 session today} other{{count} sessions today}}'**
+  String sessionsToday(int count);
+
+  /// No description provided for @availableMarks.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 marks available} =1{1 mark available} other{{count} marks available}}'**
+  String availableMarks(int count);
+
+  /// No description provided for @absenceCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 absences} =1{1 absence} other{{count} absences}}'**
+  String absenceCount(int count);
+
+  /// No description provided for @lateArrivals.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 late arrivals} =1{1 late arrival} other{{count} late arrivals}}'**
+  String lateArrivals(int count);
+
+  /// No description provided for @surveyCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 surveys} =1{1 survey} other{{count} surveys}}'**
+  String surveyCount(int count);
+
+  /// No description provided for @openSurveyCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 open surveys} =1{1 open survey} other{{count} open surveys}}'**
+  String openSurveyCount(int count);
+
+  /// No description provided for @availableDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 documents available} =1{1 document available} other{{count} documents available}}'**
+  String availableDocuments(int count);
+
+  /// No description provided for @outboxCorrection.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction request'**
+  String get outboxCorrection;
+
+  /// No description provided for @accountActionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t complete this account action. Try again.'**
+  String get accountActionFailed;
+
+  /// No description provided for @academicSubjects.
+  ///
+  /// In en, this message translates to:
+  /// **'Subjects'**
+  String get academicSubjects;
 }
 
 class _AppLocalizationsDelegate

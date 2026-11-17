@@ -49,7 +49,10 @@ class _MockClassesPage extends LScopedView<StoreBoundController> {
           final selected = selectedClassId == a.classId;
           return ListRow(
             title: a.classLabel,
-            subtitle: '${a.subjectLabel} · ${a.studentCount} élèves',
+            subtitle: context.tr.subjectPupilCount(
+              a.subjectLabel,
+              a.studentCount,
+            ),
             selected: selected,
             leading: Icon(
               a.isHomeroom ? Icons.star_outline : Icons.groups_outlined,
@@ -101,7 +104,7 @@ class _MockClassRosterPage extends LScopedView<StoreBoundController> {
     ).pathParameters['studentId'];
 
     return PrototypeDetailScaffold(
-      title: assignment?.classLabel ?? 'Classe',
+      title: assignment?.classLabel ?? context.tr.teachingSelectClass,
       fallbackRoute: '/classes',
       body: ListView.separated(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
@@ -160,9 +163,9 @@ class _MockStudentProfilePage extends LScopedView<StoreBoundController> {
     controller.storeTick.value;
     final student = controller.store.studentById(studentId);
     if (student == null) {
-      return const PrototypeDetailScaffold(
-        title: 'Élève',
-        body: EmptyState(title: 'Élève introuvable'),
+      return PrototypeDetailScaffold(
+        title: context.tr.student,
+        body: EmptyState(title: context.tr.studentNotFound),
       );
     }
 
@@ -199,16 +202,16 @@ class _MockStudentProfilePage extends LScopedView<StoreBoundController> {
             ),
           ),
           const SizedBox(height: PrototypeSpacing.md),
-          const SectionHeader(title: 'Aperçu rapide'),
+          SectionHeader(title: context.tr.quickOverview),
           const SizedBox(height: PrototypeSpacing.sm),
-          const ListRow(
-            title: 'Assiduité',
+          ListRow(
+            title: context.tr.attendance,
             subtitle: 'Présent · 94 % ce mois',
             badge: 'OK',
           ),
           const SizedBox(height: PrototypeSpacing.xs),
-          const ListRow(
-            title: 'Dernière note',
+          ListRow(
+            title: context.tr.latestMark,
             subtitle: 'Mathématiques · DS Fractions',
             trailing: Text('14/20'),
           ),
@@ -232,7 +235,7 @@ class _LiveClassesPage extends LView<TeacherContextController> {
       final assignments = controller.assignments.value;
       return AdaptiveContent(
         child: assignments.isEmpty
-            ? const EmptyState(title: 'Aucune classe affectée')
+            ? EmptyState(title: context.tr.noAssignedClasses)
             : ListView.separated(
                 padding: const EdgeInsets.all(PrototypeSpacing.md),
                 itemCount: assignments.length,
@@ -244,7 +247,7 @@ class _LiveClassesPage extends LView<TeacherContextController> {
                   return ListRow(
                     title: a.classLabel,
                     subtitle: a.isHomeroom
-                        ? '${a.subjectLabel} · Titulaire'
+                        ? context.tr.homeroomTeacherLabel(a.subjectLabel)
                         : a.subjectLabel,
                     selected: selected,
                     leading: Icon(
@@ -308,8 +311,8 @@ class _LiveClassRosterPage extends LScopedView<LiveRosterController> {
               ),
             TabBar(
               tabs: [
-                const Tab(text: 'Élèves'),
-                const Tab(text: 'Progression'),
+                Tab(text: context.tr.students),
+                Tab(text: context.tr.teachingProgressTab),
                 Tab(text: context.tr.logbook),
               ],
             ),
@@ -346,7 +349,7 @@ class _LiveRosterList extends StatelessWidget {
       final students = controller.students.value;
       if (students.isEmpty) {
         return EmptyState(
-          title: 'Aucun élève',
+          title: context.tr.noStudents,
           message: controller.errorMessage.value,
         );
       }
@@ -393,8 +396,8 @@ class _LiveProgressTab extends LView<LiveClassWorkspaceController> {
           if (controller.classSubjectOptions.value.isNotEmpty)
             DropdownButtonFormField<String>(
               initialValue: controller.selectedClassSubjectId.value,
-              decoration: const InputDecoration(
-                labelText: 'Matière',
+              decoration: InputDecoration(
+                labelText: context.tr.teachingSelectSubject,
                 border: OutlineInputBorder(),
               ),
               items: [
@@ -409,12 +412,12 @@ class _LiveProgressTab extends LView<LiveClassWorkspaceController> {
           const SizedBox(height: PrototypeSpacing.md),
           if (overview == null)
             EmptyState(
-              title: 'Progression',
+              title: context.tr.teachingProgressTab,
               message: controller.errorMessage.value,
             )
           else ...[
             Text(
-              'Programme · ${overview.classSubjectCompletedPercentage} %',
+              context.tr.curriculum(overview.classSubjectCompletedPercentage),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: PrototypeSpacing.md),
@@ -459,7 +462,9 @@ class _LiveClassLogbookTab extends LView<LiveClassWorkspaceController> {
           final entry = entries[i];
           return ListRow(
             title: entry.displayLabel,
-            subtitle: entry.hasContent ? 'Complété' : 'À saisir',
+            subtitle: entry.hasContent
+                ? context.tr.matterStatusCompleted
+                : context.tr.notRecorded,
             onTap: () =>
                 context.go('/session/${entry.lessonSessionId}/logbook'),
           );
@@ -497,9 +502,9 @@ class _LiveStudentProfilePage extends LScopedView<LiveRosterController> {
       controller.students.value;
       final student = controller.selectedStudent;
       if (student == null) {
-        return const PrototypeDetailScaffold(
-          title: 'Élève',
-          body: EmptyState(title: 'Élève introuvable'),
+        return PrototypeDetailScaffold(
+          title: context.tr.student,
+          body: EmptyState(title: context.tr.studentNotFound),
         );
       }
       return PrototypeDetailScaffold(

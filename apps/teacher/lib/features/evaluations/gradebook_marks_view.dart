@@ -356,7 +356,8 @@ class _DraftMarkRowState extends State<DraftMarkRow>
               decoration: InputDecoration(
                 labelText: tr.gradebookResult,
                 floatingLabelBehavior: FloatingLabelBehavior.always,
-                suffixText: '/ ${c.evaluation.value?.maxScore ?? 20}',
+                suffixText:
+                    '/ ${formatGradeNumber(c.evaluation.value?.maxScore ?? 20)}',
                 errorText: error,
                 hintText: '—',
               ),

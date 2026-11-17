@@ -67,9 +67,18 @@ void main() {
               }
               h.router.push('/scolarite/notes');
               await tester.pumpAndSettle();
-              expect(find.text('Enseignements'), findsOneWidget);
+              expect(
+                find.text(
+                  lookupAppLocalizations(Locale(locale)).academicSubjects,
+                ),
+                findsOneWidget,
+              );
               expect(find.text('Anglais').hitTestable(), findsNothing);
-              await tester.tap(find.text('Enseignements'));
+              await tester.tap(
+                find.text(
+                  lookupAppLocalizations(Locale(locale)).academicSubjects,
+                ),
+              );
               await tester.pumpAndSettle();
               final subject = find.text('Anglais');
               await tester.ensureVisible(subject);

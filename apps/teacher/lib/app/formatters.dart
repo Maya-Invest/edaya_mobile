@@ -1,45 +1,38 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:intl/intl.dart';
 
 String formatMoney(double amount, String currency) {
   final formatter = NumberFormat.currency(
-    locale: 'fr_FR',
-    symbol: currency == 'EUR' ? 'EUR' : currency,
-    decimalDigits: 0,
+    locale: systemL10n().localeName,
+    symbol: currency == 'EUR' ? '€' : currency,
+    name: currency,
   );
   return formatter.format(amount);
 }
 
-String formatDayOfMonth(DateTime date) {
-  return DateFormat('d', 'fr_FR').format(date);
-}
+String formatDayOfMonth(DateTime date) =>
+    DateFormat.d(systemL10n().localeName).format(date);
 
-String formatMonthAbbrev(DateTime date) {
-  final raw = DateFormat(
-    'MMM',
-    'fr_FR',
-  ).format(date).replaceAll('.', '').trim();
-  if (raw.length <= 3) return raw;
-  return raw.substring(0, 3);
-}
+String formatMonthAbbrev(DateTime date) =>
+    DateFormat.MMM(systemL10n().localeName).format(date);
 
-String formatDate(DateTime date) {
-  return DateFormat('d MMM yyyy', 'fr_FR').format(date);
-}
+String formatDate(DateTime date) =>
+    DateFormat.yMMMd(systemL10n().localeName).format(date);
 
-String formatDateTime(DateTime date) {
-  return DateFormat('d MMM yyyy · HH:mm', 'fr_FR').format(date);
-}
+String formatDateTime(DateTime date) => '${formatDate(date)} · ${_clock(date)}';
 
-String formatFullDate(DateTime date) {
-  final formatted = DateFormat('EEEE d MMMM yyyy', 'fr_FR').format(date);
-  if (formatted.isEmpty) return formatted;
-  return '${formatted[0].toUpperCase()}${formatted.substring(1)}';
-}
+String formatFullDate(DateTime date) =>
+    DateFormat.yMMMMEEEEd(systemL10n().localeName).format(date);
 
-String formatTimeRange(int startHour, int endHour) {
-  return '${startHour.toString().padLeft(2, '0')}:00 – ${endHour.toString().padLeft(2, '0')}:00';
-}
+String _clock(DateTime date) => AppDateFormatting.clockFormat(
+  AppSettingsStorage.cached.timeFormat,
+  systemL10n().localeName,
+).format(date);
 
-String formatClockRange(DateTime start, DateTime end) {
-  return '${DateFormat.Hm('fr_FR').format(start)} – ${DateFormat.Hm('fr_FR').format(end)}';
-}
+String formatTimeRange(int startHour, int endHour) => formatClockRange(
+  DateTime(2000, 1, 1, startHour),
+  DateTime(2000, 1, 1, endHour),
+);
+
+String formatClockRange(DateTime start, DateTime end) =>
+    '${_clock(start)} – ${_clock(end)}';

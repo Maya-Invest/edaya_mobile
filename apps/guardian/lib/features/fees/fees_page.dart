@@ -11,7 +11,6 @@ import '../../mock/mock_store.dart';
 import '../context/academic_year_controller.dart';
 import '../context/store_bound_controller.dart';
 import '../context/student_context_controller.dart';
-import 'fee_detail_controller.dart';
 import 'fee_widgets.dart';
 import 'fees_controller.dart';
 import 'models/fee_formatting.dart';
@@ -59,7 +58,7 @@ class _MockFeesPage extends LScopedView<StoreBoundController> {
       child: ListView(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
-          const SectionHeader(title: 'Résumé'),
+          SectionHeader(title: context.tr.summary),
           SurfaceCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,19 +67,19 @@ class _MockFeesPage extends LScopedView<StoreBoundController> {
                   children: [
                     Expanded(
                       child: SummaryMetric(
-                        label: 'Attendu',
+                        label: context.tr.expected,
                         value: proto.formatMoney(store.feeExpected, currency),
                       ),
                     ),
                     Expanded(
                       child: SummaryMetric(
-                        label: 'Payé',
+                        label: context.tr.feeStatusPaid,
                         value: proto.formatMoney(store.feePaid, currency),
                       ),
                     ),
                     Expanded(
                       child: SummaryMetric(
-                        label: 'Solde',
+                        label: context.tr.balance,
                         value: proto.formatMoney(store.feeBalance, currency),
                       ),
                     ),
@@ -90,7 +89,7 @@ class _MockFeesPage extends LScopedView<StoreBoundController> {
                 PrototypeProgressBar(value: progress),
                 const SizedBox(height: PrototypeSpacing.xs),
                 Text(
-                  '${(progress * 100).round()} % réglé',
+                  context.tr.paidLabel((progress * 100).round()),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -107,7 +106,7 @@ class _MockFeesPage extends LScopedView<StoreBoundController> {
                       const SizedBox(width: PrototypeSpacing.xxs),
                       Expanded(
                         child: Text(
-                          '${store.overdueFeeCount} ligne de frais en retard',
+                          context.tr.overdueChargesCount(store.overdueFeeCount),
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Theme.of(context).colorScheme.error,
@@ -121,13 +120,13 @@ class _MockFeesPage extends LScopedView<StoreBoundController> {
             ),
           ),
           const SizedBox(height: PrototypeSpacing.xl),
-          const SectionHeader(title: 'Lignes de frais'),
+          SectionHeader(title: context.tr.feeLinesSection),
           for (final fee in store.feeLines) ...[
             ListRow(
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: fee.status == 'En retard'
+                  color: fee.status == 'overdue'
                       ? Theme.of(context).colorScheme.errorContainer
                       : Theme.of(context).colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(10),
@@ -135,20 +134,22 @@ class _MockFeesPage extends LScopedView<StoreBoundController> {
                 child: Icon(
                   Icons.receipt_long_outlined,
                   size: 20,
-                  color: fee.status == 'En retard'
+                  color: fee.status == 'overdue'
                       ? Theme.of(context).colorScheme.error
                       : Theme.of(context).colorScheme.primary,
                 ),
               ),
               title: fee.label,
               subtitle:
-                  'Échéance ${fee.dueDate != null ? proto.formatDate(fee.dueDate!) : '—'} · '
-                  '${fee.paymentCount} paiement${fee.paymentCount > 1 ? 's' : ''}',
+                  '${context.tr.dueDate(fee.dueDate != null ? proto.formatDate(fee.dueDate!) : '—')} · ${context.tr.paymentCount(fee.paymentCount)}',
               selected: selectedFeeId == fee.id,
               trailing: FeeAmountTrailing(
                 amount: proto.formatMoney(fee.balance, fee.currency),
-                label: fee.status,
-                labelColor: fee.status == 'En retard'
+                label: formatChargeStatus(
+                  context.tr,
+                  parseChargeStatus(fee.status),
+                ),
+                labelColor: fee.status == 'overdue'
                     ? Theme.of(context).colorScheme.error
                     : null,
                 showChevron: true,
@@ -165,16 +166,16 @@ class _MockFeesPage extends LScopedView<StoreBoundController> {
             const SizedBox(height: PrototypeSpacing.xs),
           ],
           const SizedBox(height: PrototypeSpacing.xl),
-          const SectionHeader(title: 'Paiements'),
+          SectionHeader(title: context.tr.paymentsSection),
           for (final payment in store.payments) ...[
             ListRow(
-              title: payment.method,
+              title: formatPaymentMethod(context.tr, payment.method),
               subtitle:
                   '${payment.feeLabel} · ${proto.formatDate(payment.date)}',
               selected: selectedPaymentId == payment.id,
               trailing: FeeAmountTrailing(
                 amount: proto.formatMoney(payment.amount, payment.currency),
-                label: 'Reçu',
+                label: context.tr.paymentKindReceipt,
                 showChevron: true,
               ),
               onTap: () => context.push(
@@ -247,7 +248,7 @@ class _LiveFeesPage extends LScopedView<FeesController> {
       child: ListView(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
-          const SectionHeader(title: 'Résumé'),
+          SectionHeader(title: context.tr.summary),
           SurfaceCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,20 +257,32 @@ class _LiveFeesPage extends LScopedView<FeesController> {
                   children: [
                     Expanded(
                       child: SummaryMetric(
-                        label: 'Attendu',
-                        value: formatMoney(controller.totalExpected, currency),
+                        label: context.tr.expected,
+                        value: formatMoney(
+                          controller.totalExpected,
+                          currency,
+                          context.tr.localeName,
+                        ),
                       ),
                     ),
                     Expanded(
                       child: SummaryMetric(
-                        label: 'Payé',
-                        value: formatMoney(controller.totalPaid, currency),
+                        label: context.tr.feeStatusPaid,
+                        value: formatMoney(
+                          controller.totalPaid,
+                          currency,
+                          context.tr.localeName,
+                        ),
                       ),
                     ),
                     Expanded(
                       child: SummaryMetric(
-                        label: 'Solde',
-                        value: formatMoney(controller.totalBalance, currency),
+                        label: context.tr.balance,
+                        value: formatMoney(
+                          controller.totalBalance,
+                          currency,
+                          context.tr.localeName,
+                        ),
                       ),
                     ),
                   ],
@@ -278,7 +291,7 @@ class _LiveFeesPage extends LScopedView<FeesController> {
                 PrototypeProgressBar(value: progress),
                 const SizedBox(height: PrototypeSpacing.xs),
                 Text(
-                  '${(progress * 100).round()} % réglé',
+                  context.tr.paidLabel((progress * 100).round()),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -295,7 +308,9 @@ class _LiveFeesPage extends LScopedView<FeesController> {
                       const SizedBox(width: PrototypeSpacing.xxs),
                       Expanded(
                         child: Text(
-                          '${controller.overdueCount} ligne de frais en retard',
+                          context.tr.overdueChargesCount(
+                            controller.overdueCount,
+                          ),
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Theme.of(context).colorScheme.error,
@@ -307,14 +322,14 @@ class _LiveFeesPage extends LScopedView<FeesController> {
                 ],
                 const SizedBox(height: PrototypeSpacing.md),
                 DocumentActionButton(
-                  label: 'Relevé de compte',
+                  label: context.tr.accountStatement,
                   run: () => controller.downloadStatement(schoolId: schoolId),
                 ),
               ],
             ),
           ),
           const SizedBox(height: PrototypeSpacing.xl),
-          const SectionHeader(title: 'Lignes de frais'),
+          SectionHeader(title: context.tr.feeLinesSection),
           for (final fee in controller.charges.value) ...[
             ListRow(
               leading: Container(
@@ -335,12 +350,15 @@ class _LiveFeesPage extends LScopedView<FeesController> {
               ),
               title: fee.label,
               subtitle:
-                  'Échéance ${fee.dueDate != null ? context.formatShortDate(fee.dueDate!) : '—'} · '
-                  '${fee.settlementCount} paiement${fee.settlementCount > 1 ? 's' : ''}',
+                  '${context.tr.dueDate(fee.dueDate != null ? context.formatShortDate(fee.dueDate!) : '—')} · ${context.tr.paymentCount(fee.settlementCount)}',
               selected: selectedFeeId == fee.id,
               trailing: FeeAmountTrailing(
-                amount: formatMoney(fee.remainingObligation, fee.currency),
-                label: frenchChargeStatus(fee.status),
+                amount: formatMoney(
+                  fee.remainingObligation,
+                  fee.currency,
+                  context.tr.localeName,
+                ),
+                label: formatChargeStatus(context.tr, fee.status),
                 labelColor: fee.status == ChargeStatus.overdue
                     ? Theme.of(context).colorScheme.error
                     : null,
@@ -358,16 +376,20 @@ class _LiveFeesPage extends LScopedView<FeesController> {
             const SizedBox(height: PrototypeSpacing.xs),
           ],
           const SizedBox(height: PrototypeSpacing.xl),
-          const SectionHeader(title: 'Paiements'),
+          SectionHeader(title: context.tr.paymentsSection),
           for (final payment in controller.payments.value) ...[
             ListRow(
-              title: frenchPaymentMethod(payment.method),
+              title: formatPaymentMethod(context.tr, payment.method),
               subtitle:
                   '${payment.feeLabel} · ${context.formatShortDate(payment.paymentDate)}',
               selected: selectedPaymentId == payment.id,
               trailing: FeeAmountTrailing(
-                amount: formatMoney(payment.amount, payment.currency),
-                label: 'Reçu',
+                amount: formatMoney(
+                  payment.amount,
+                  payment.currency,
+                  context.tr.localeName,
+                ),
+                label: formatPaymentKind(context.tr, payment.kind),
                 showChevron: true,
               ),
               onTap: () => context.push(

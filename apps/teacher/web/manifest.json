@@ -1,11 +1,11 @@
 {
-    "name": "Edaya Staff",
-    "short_name": "Edaya Staff",
+    "name": "EDaya Prof",
+    "short_name": "EDaya Prof",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#F0F7FF",
     "theme_color": "#2563EB",
-    "description": "Edaya teacher classroom app — Accueil, agenda, classes, evaluations, and messages.",
+    "description": "EDaya teacher classroom app — Accueil, agenda, classes, evaluations, and messages.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

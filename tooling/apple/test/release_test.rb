@@ -122,6 +122,28 @@ class AppleReleaseTest < Minitest::Test
     end
   end
 
+  def test_review_matches_the_upload_receipt_to_the_qualified_manifest_without_an_ipa
+    evidence = { 'environment' => 'production', 'apiUrl' => 'https://api.edayaplus.com', 'sourceCommit' => 'abc', 'storeBuild' => 4201 }
+    signed = evidence.merge('status' => 'signed', 'version' => '1.0.0', 'build' => '1.42.1',
+      'bundleId' => config.fetch('bundleId'), 'sha256' => 'signed-ipa-hash')
+    processed = signed.merge('status' => 'processed')
+    Dir.mktmpdir do |dir|
+      persist = ->(file, row) { File.write(File.join(dir, file), JSON.generate('apps' => { 'guardian' => row })) }
+      persist.call('apple-build.json', signed)
+      persist.call('apple-testflight.json', processed)
+      AppleRelease.stub(:selected_apps, { 'guardian' => config }) do
+        AppleRelease.stub(:release_path, ->(_app, file) { File.join(dir, file) }) do
+          assert_equal processed, AppleRelease.upload_records.fetch('guardian')
+          AppleRelease.validate_record(processed, config, evidence, 'processed')
+          %w[version build sha256 bundleId status].each do |field|
+            persist.call('apple-testflight.json', processed.merge(field => 'changed'))
+            assert_raises(RuntimeError) { AppleRelease.upload_records }
+          end
+        end
+      end
+    end
+  end
+
   def test_both_remote_builds_are_validated_before_submission_and_exact_builds_are_used
     previous = ENV.to_h
     ENV.delete('EDAYA_RELEASE_SEQUENCE')

@@ -429,14 +429,6 @@ class MockMessage {
 
 enum HomeDayCategory { lesson, activity, assessment }
 
-extension HomeDayCategoryLabels on HomeDayCategory {
-  String get label => switch (this) {
-    HomeDayCategory.lesson => 'Cours',
-    HomeDayCategory.activity => 'Activité',
-    HomeDayCategory.assessment => 'Évaluation',
-  };
-}
-
 class HomeDayItem {
   const HomeDayItem({
     required this.id,

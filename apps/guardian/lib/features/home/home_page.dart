@@ -133,11 +133,7 @@ class _DashboardState extends State<_Dashboard> with WidgetsBindingObserver {
     return switch (path) {
       '/calendar' =>
         (c?.sessions.value?.isNotEmpty == true)
-            ? words(
-                context,
-                '${c!.sessions.value!.length} séances aujourd’hui',
-                '${c.sessions.value!.length} sessions today',
-              )
+            ? context.tr.sessionsToday(c!.sessions.value!.length)
             : words(context, 'Voir l’emploi du temps', 'View the timetable'),
       '/scolarite/progress' =>
         data['progress'] != null
@@ -155,11 +151,7 @@ class _DashboardState extends State<_Dashboard> with WidgetsBindingObserver {
         (data['reports'] as int? ?? 0) > 0
             ? words(context, 'Bulletin disponible', 'Report card available')
             : (data['marks'] as int? ?? 0) > 0
-            ? words(
-                context,
-                '${data['marks']} notes disponibles',
-                '${data['marks']} available marks',
-              )
+            ? context.tr.availableMarks(data['marks'] as int)
             : words(
                 context,
                 'Notes et moyennes par période',
@@ -172,18 +164,10 @@ class _DashboardState extends State<_Dashboard> with WidgetsBindingObserver {
                 'Absences et retards',
                 'Absences and late arrivals',
               )
-            : words(
-                context,
-                "${data['absent']} absence(s) · ${data['late']} retard(s)",
-                "${data['absent']} absence(s) · ${data['late']} late",
-              ),
+            : '${context.tr.absenceCount(data['absent'] as int)} · ${context.tr.lateArrivals(data['late'] as int? ?? 0)}',
       '/fees' =>
         (data['overdue'] as int? ?? 0) > 0
-            ? words(
-                context,
-                "${data['overdue']} échéance(s) en retard",
-                "${data['overdue']} overdue charge(s)",
-              )
+            ? context.tr.overdueChargesCount(data['overdue'] as int)
             : data['dueDate'] is DateTime
             ? words(
                 context,
@@ -199,11 +183,7 @@ class _DashboardState extends State<_Dashboard> with WidgetsBindingObserver {
               ),
       '/inbox' =>
         data['unread'] != null
-            ? words(
-                context,
-                '${data['unread']} message(s) non lu(s)',
-                '${data['unread']} unread message(s)',
-              )
+            ? context.tr.unreadCount(data['unread'] as int)
             : words(
                 context,
                 'Échanges avec l’école',
@@ -212,11 +192,7 @@ class _DashboardState extends State<_Dashboard> with WidgetsBindingObserver {
       '/inbox/avis' =>
         data['surveys'] == null
             ? words(context, 'Votre avis compte', 'Your feedback matters')
-            : words(
-                context,
-                "${data['surveys']} questionnaire(s)",
-                "${data['surveys']} survey(s)",
-              ),
+            : context.tr.surveyCount(data['surveys'] as int),
       _ =>
         data['photo'] == 'rejected'
             ? words(context, 'Photo à mettre à jour', 'Photo needs updating')
@@ -227,11 +203,7 @@ class _DashboardState extends State<_Dashboard> with WidgetsBindingObserver {
                 'Photo under review',
               )
             : (data['documents'] as int? ?? 0) > 0
-            ? words(
-                context,
-                '${data['documents']} document(s) disponible(s)',
-                '${data['documents']} available document(s)',
-              )
+            ? context.tr.availableDocuments(data['documents'] as int)
             : words(context, 'Photo et documents', 'Photo and documents'),
     };
   }
@@ -246,17 +218,17 @@ class _DashboardState extends State<_Dashboard> with WidgetsBindingObserver {
       c?.errors.value;
       final sessions = c?.preview ?? [];
       final large = MediaQuery.textScalerOf(context).scale(14) > 21;
-      Widget heading(String fr, String en) => Semantics(
+      Widget heading(String label) => Semantics(
         header: true,
         child: Text(
-          words(context, fr, en),
+          label,
           style: Theme.of(context).textTheme.titleLarge,
         ),
       );
       final day = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          heading('Séances du jour', 'Today’s sessions'),
+          heading(context.tr.teacherTodaySessions),
           const SizedBox(height: 12),
           if (c != null &&
               c.sessions.value == null &&
@@ -305,7 +277,7 @@ class _DashboardState extends State<_Dashboard> with WidgetsBindingObserver {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '${!s.startsAt.isAfter(c!.now.value) ? words(context, 'En cours', 'In progress') : words(context, 'À venir', 'Up next')} · ${DateFormat.Hm().format(s.startsAt)}–${DateFormat.Hm().format(s.endsAt)}',
+                      '${!s.startsAt.isAfter(c!.now.value) ? words(context, 'En cours', 'In progress') : words(context, 'À venir', 'Up next')} · ${context.formatTimeOfDay(s.startsAt)}–${context.formatTimeOfDay(s.endsAt)}',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     if (!s.startsAt.isAfter(c.now.value)) ...[
@@ -324,10 +296,7 @@ class _DashboardState extends State<_Dashboard> with WidgetsBindingObserver {
       Widget group(bool academic) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          heading(
-            academic ? 'Scolarité' : 'Vie scolaire',
-            academic ? 'Learning' : 'School life',
-          ),
+          heading(academic ? context.tr.academics : context.tr.guardianSchoolLife),
           const SizedBox(height: 12),
           LayoutBuilder(
             builder: (context, grid) {

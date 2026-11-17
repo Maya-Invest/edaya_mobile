@@ -419,6 +419,31 @@ void main() {
     );
   }
 
+  for (final language in ['en', 'fr']) {
+    testWidgets('$language signature editor labels its cancel action', (
+      tester,
+    ) async {
+      final session = SignatureSession();
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: Locale(language),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SignatureEditorPage(
+            session: session,
+            identity: signatureSessionKey(session),
+            onComplete: (_) {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byTooltip(language == 'fr' ? 'Annuler' : 'Cancel'),
+        findsOneWidget,
+      );
+    });
+  }
+
   testWidgets('draw editor supports undo and clear', (tester) async {
     final session = SignatureSession();
     await tester.pumpWidget(

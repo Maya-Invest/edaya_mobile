@@ -247,7 +247,10 @@ class TeacherDisciplinePage extends LScopedView<TeacherDisciplineController> {
                   ),
                 ],
                 second: [
-                  Text('Suivi', style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    context.tr.followUp,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   TextButton(
                     onPressed: controller.busy.value
                         ? null

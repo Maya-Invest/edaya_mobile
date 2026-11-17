@@ -5,15 +5,15 @@
 	<key>FirebaseMessagingAutoInitEnabled</key>
 	<false/>
 	<key>NSCameraUsageDescription</key>
-	<string>Edaya uses the camera so you can take a profile portrait.</string>
+	<string>EDaya Prof uses the camera to photograph your portrait or signature.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Edaya uses your photo library so you can choose a profile portrait.</string>
+	<string>EDaya Prof uses your photo library so you can select your portrait or signature.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Edaya Staff</string>
+	<string>EDaya Prof</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

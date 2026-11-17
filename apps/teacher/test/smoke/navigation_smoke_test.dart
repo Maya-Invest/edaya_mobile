@@ -1,5 +1,6 @@
 import 'package:edaya_teacher_v2/app/workspace_navigation.dart';
-import 'package:edaya_shared/edaya_shared.dart' show PersonAvatar;
+import 'package:edaya_shared/edaya_shared.dart'
+    show PersonAvatar, AppLocalizationsContext;
 import 'package:edaya_teacher_v2/mock/mock_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -52,7 +53,9 @@ void main() {
       auth.router.pop();
       await tester.pumpAndSettle();
       for (final area in workspaces) {
-        final tile = find.text(area.label);
+        final tile = find.text(
+          area.label(tester.element(find.byType(HomePage)).tr),
+        );
         await tester.ensureVisible(tile);
         await tester.tap(tile);
         await tester.pumpAndSettle();

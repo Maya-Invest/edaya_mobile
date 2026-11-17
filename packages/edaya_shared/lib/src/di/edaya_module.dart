@@ -4,16 +4,9 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../config/api_base_url_config.dart';
 import '../features/settings/app_settings_controller.dart';
 
-/// Registers shared Edaya clients in the Levit scope.
-void registerEdayaDependencies(
-  LevitScope scope, {
-  required CookieJar cookieJar,
-  bool enableTestOtpInDebug = false,
-}) {
-  scope.put<AppSettingsController>(
-    () => AppSettingsController(),
-    permanent: true,
-  );
+/// Registers shared EDaya clients in the Levit scope.
+void registerEdayaDependencies(LevitScope scope, {required CookieJar cookieJar, bool enableTestOtpInDebug = false}) {
+  scope.put<AppSettingsController>(() => AppSettingsController(), permanent: true);
   scope.put<CookieJar>(() => cookieJar, permanent: true);
   scope.put<AuthClient>(
     () => AuthClient(

@@ -1,4 +1,4 @@
-# Levit 0.0.9 — Improvement proposal (from Edaya mobile usage)
+# Levit 0.0.9 — Improvement proposal (from EDaya mobile usage)
 
 | Field | Value |
 |---|---|
@@ -10,9 +10,9 @@
 
 ## Executive summary
 
-Edaya’s Flutter monorepo is a real production-shaped consumer of Levit: three apps + a shared foundation, GoRouter shells, permanent app DI, page/sheet `LScopedView`s, widget/design-review harnesses, and Controllers that reload on context `LxVar` streams.
+EDaya’s Flutter monorepo is a real production-shaped consumer of Levit: three apps + a shared foundation, GoRouter shells, permanent app DI, page/sheet `LScopedView`s, widget/design-review harnesses, and Controllers that reload on context `LxVar` streams.
 
-Levit’s ownership model fits this stack well. The gaps that show up at scale are mostly **defaults, diagnostics, and docs** — not missing core concepts. Version **0.0.9** should make the happy path quieter and the test/overlay path more obvious, without breaking the subclass + `onConfigScope` style Edaya already standardized on.
+Levit’s ownership model fits this stack well. The gaps that show up at scale are mostly **defaults, diagnostics, and docs** — not missing core concepts. Version **0.0.9** should make the happy path quieter and the test/overlay path more obvious, without breaking the subclass + `onConfigScope` style EDaya already standardized on.
 
 This proposal expands an earlier prototype-only note into a monorepo-wide backlog, ranked for 0.0.9.
 
@@ -39,7 +39,7 @@ This proposal expands an earlier prototype-only note into a monorepo-wide backlo
 
 ---
 
-## Architectural patterns in use (canonical for Edaya)
+## Architectural patterns in use (canonical for EDaya)
 
 ```mermaid
 flowchart TB
@@ -76,7 +76,7 @@ flowchart TB
 
 `Child scope "LScope" has the same name as ancestor scope "LScope"…`
 
-on every navigation in debug/tests. Edaya has **41/41** `LScopedView`s with no `scopeName`.
+on every navigation in debug/tests. EDaya has **41/41** `LScopedView`s with no `scopeName`.
 
 **Evidence**  
 Design-review / smoke logs in `guardian_prototype`; same nesting in `apps/guardian` (`AppShellPage` + feature pages).
@@ -95,7 +95,7 @@ Pumping shell + page `LScopedView` with no `scopeName` produces **no** duplicate
 ### P0 — Fix or document `autoWatch` vs inner `LWatch`
 
 **Problem**  
-`LScopedView` / `LView` default `autoWatch: true` and wrap `buildView` in `LWatch`. Edaya (and LLM short examples) still write:
+`LScopedView` / `LView` default `autoWatch: true` and wrap `buildView` in `LWatch`. EDaya (and LLM short examples) still write:
 
 ```dart
 Widget buildView(...) {
@@ -111,7 +111,7 @@ That yields a useless outer watch + an inner watch that does the real tracking. 
 3. Optional analyzer/lint hint for nested `LWatch` under `autoWatch: true`.
 
 **Acceptance**  
-LLM short example and Edaya’s common subclass pattern agree; double-wrap is either unnecessary or automatically collapsed.
+LLM short example and EDaya’s common subclass pattern agree; double-wrap is either unnecessary or automatically collapsed.
 
 ---
 
@@ -125,7 +125,7 @@ Teacher further marks **feature** controllers permanent at root (evaluations, te
 **Proposal**
 1. DartDoc: `permanent` protects against soft `reset`; **scope `dispose` always forces cleanup**.
 2. Optional warning: `permanent: true` on a short-lived child widget scope (where dispose always forces) is a no-op for lifetime — consider documenting as root-scope intent only.
-3. Consider a named soft-reset API for logout/test isolation that preserves root permanents without full `Levit.reset()` soup (only if you want product use; Edaya does not depend on it yet).
+3. Consider a named soft-reset API for logout/test isolation that preserves root permanents without full `Levit.reset()` soup (only if you want product use; EDaya does not depend on it yet).
 
 **Acceptance**  
 A new consumer can answer “will this leak across widget tests?” from DartDoc alone.
@@ -151,7 +151,7 @@ Ship a small test utility (e.g. `LevitTest` / `pumpLevitApp`) that:
 3. Documents tearDown (`dispose` / `Levit.reset`),
 4. Defaults to unique scope names.
 
-Optional: `binding` for `GoRouter` + `refreshListenable` recipe (Edaya uses `EdayaRouterRefresh` / `PrototypeRouterRefresh` everywhere).
+Optional: `binding` for `GoRouter` + `refreshListenable` recipe (EDaya uses `EdayaRouterRefresh` / `PrototypeRouterRefresh` everywhere).
 
 **Acceptance**  
 New app can write a widget test without copying a 100+ line harness for scope capture.
@@ -189,7 +189,7 @@ across student/teacher context and academic year (~11 controllers). `LxWorker` e
 2. Optional: `controller.reactTo(lxVar, () => …)` sugar.
 
 **Acceptance**  
-LLM short docs show one recommended reload pattern; Edaya can migrate gradually.
+LLM short docs show one recommended reload pattern; EDaya can migrate gradually.
 
 ---
 
@@ -210,29 +210,29 @@ Not mandatory in core if docs + example suffice.
 ### P2 — Route ownership story (`LRouteScope` vs shell patterns)
 
 **Problem**  
-`LRouteScope` is unused. Edaya uses GoRouter `ShellRoute` + shell `LScopedView` + page `LScopedView`/`LView`. Teacher additionally keeps calendar alive by putting it in the shell scope.
+`LRouteScope` is unused. EDaya uses GoRouter `ShellRoute` + shell `LScopedView` + page `LScopedView`/`LView`. Teacher additionally keeps calendar alive by putting it in the shell scope.
 
 **Proposal**
 Either:
 1. Document the **shell + LScopedView/LView** pattern as first-class for GoRouter apps, or
-2. Provide a GoRouter-oriented `LRouteScope` example that matches Edaya’s shell/tab survival needs.
+2. Provide a GoRouter-oriented `LRouteScope` example that matches EDaya’s shell/tab survival needs.
 
-Do not require a rewrite of Edaya for 0.0.9; clarify the recommended path so guardian vs teacher divergence is intentional.
+Do not require a rewrite of EDaya for 0.0.9; clarify the recommended path so guardian vs teacher divergence is intentional.
 
 ---
 
 ### P3 — Kit adoption / unused surface
 
-Unused in Edaya today: `LBuilder`, `LSelectorBuilder`, `LStatusBuilder`, `LKeepAlive`, `LevitStore`, tags, `lazyPutAsync`, `LScopedView.put` factory (subclass style preferred).
+Unused in EDaya today: `LBuilder`, `LSelectorBuilder`, `LStatusBuilder`, `LKeepAlive`, `LevitStore`, tags, `lazyPutAsync`, `LScopedView.put` factory (subclass style preferred).
 
 **Proposal**  
-No API removal. Optionally call out in docs which kits are “page UI,” which are “DI sugar,” and that subclass + `onConfigScope` is a supported first-class style (Edaya’s 41× pattern).
+No API removal. Optionally call out in docs which kits are “page UI,” which are “DI sugar,” and that subclass + `onConfigScope` is a supported first-class style (EDaya’s 41× pattern).
 
 ---
 
 ## Docs / LLM guidance updates (ship with 0.0.9)
 
-Update `LLM-Short` / `LLM.txt` (and package READMEs) to cover what Edaya actually needs:
+Update `LLM-Short` / `LLM.txt` (and package READMEs) to cover what EDaya actually needs:
 
 | Topic | Current gap |
 |-------|-------------|
@@ -244,7 +244,7 @@ Update `LLM-Short` / `LLM.txt` (and package READMEs) to cover what Edaya actuall
 | GoRouter shell | `LRouteScope` pushed; shell pattern not documented |
 | Page-scoped vs root-permanent features | No guidance; teacher vs guardian diverge |
 
-Also sync Edaya’s `spec/levit/` copies when bumping the dependency.
+Also sync EDaya’s `spec/levit/` copies when bumping the dependency.
 
 ---
 
@@ -268,14 +268,14 @@ Also sync Edaya’s `spec/levit/` copies when bumping the dependency.
 
 ## Non-goals for 0.0.9
 
-- Forcing Edaya onto `LRouteScope` or a single lifetime style  
+- Forcing EDaya onto `LRouteScope` or a single lifetime style  
 - Replacing Controllers with stores  
 - Breaking the subclass + `onConfigScope` API  
 - Solving form `StatefulWidget` / `TextEditingController` ownership (app concern; Cursor/Levit guidance already prefers controllers)
 
 ---
 
-## How Edaya will consume 0.0.9
+## How EDaya will consume 0.0.9
 
 After bump:
 1. Remove redundant top-level `LWatch` wrappers if API/docs make that the norm.  
