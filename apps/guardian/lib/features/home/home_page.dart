@@ -218,17 +218,17 @@ class _DashboardState extends State<_Dashboard> with WidgetsBindingObserver {
       c?.errors.value;
       final sessions = c?.preview ?? [];
       final large = MediaQuery.textScalerOf(context).scale(14) > 21;
-      Widget heading(String fr, String en) => Semantics(
+      Widget heading(String label) => Semantics(
         header: true,
         child: Text(
-          words(context, fr, en),
+          label,
           style: Theme.of(context).textTheme.titleLarge,
         ),
       );
       final day = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          heading(context.tr.teacherTodaySessions, 'Today’s sessions'),
+          heading(context.tr.teacherTodaySessions),
           const SizedBox(height: 12),
           if (c != null &&
               c.sessions.value == null &&
@@ -296,10 +296,7 @@ class _DashboardState extends State<_Dashboard> with WidgetsBindingObserver {
       Widget group(bool academic) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          heading(
-            academic ? context.tr.academics : context.tr.teacherClassLife,
-            academic ? 'Learning' : 'School life',
-          ),
+          heading(academic ? context.tr.academics : context.tr.guardianSchoolLife),
           const SizedBox(height: 12),
           LayoutBuilder(
             builder: (context, grid) {

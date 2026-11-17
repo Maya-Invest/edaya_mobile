@@ -575,11 +575,13 @@ Future<void> main() async {
         alternate.alternateStudentId,
       );
       harness.router.push('/fees');
+      final labels = lookupAppLocalizations(harness.appLocale);
+      final expectedZero = formatMoney(0, 'XOF', labels.localeName);
       final zeroTotal = find.byWidgetPredicate(
         (widget) =>
             widget is SummaryMetric &&
-            widget.label == 'Attendu' &&
-            widget.value == formatMoney(0, 'XOF'),
+            widget.label == labels.expected &&
+            widget.value == expectedZero,
       );
       await pumpUntilFound(tester, zeroTotal);
       expect(
@@ -587,10 +589,7 @@ Future<void> main() async {
         alternateIds,
       );
       expect(
-        find.descendant(
-          of: zeroTotal,
-          matching: find.text(formatMoney(0, 'XOF')),
-        ),
+        find.descendant(of: zeroTotal, matching: find.text(expectedZero)),
         findsOneWidget,
       );
       expect(find.text(primaryRows.first['label'] as String), findsNothing);

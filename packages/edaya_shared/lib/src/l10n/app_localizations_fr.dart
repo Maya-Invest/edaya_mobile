@@ -297,6 +297,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les séances de la journée restent accessibles dans l’agenda.';
 
   @override
+  String get guardianSchoolLife => 'Vie scolaire';
+
+  @override
+  String get teacherSchoolNotices => 'Établissement';
+
+  @override
   String get teacherClassLife => 'Vie en classe';
 
   @override
@@ -948,7 +954,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get attendanceRecordingLessonOnly =>
-      'La présence ne peut être enregistrée que pour les cours.';
+      'Vous pouvez faire l’appel uniquement pour les cours que vous enseignez.';
 
   @override
   String get noCurriculumChaptersLinked =>

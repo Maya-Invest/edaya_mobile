@@ -293,6 +293,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'You can find today’s sessions in the agenda.';
 
   @override
+  String get guardianSchoolLife => 'School life';
+
+  @override
+  String get teacherSchoolNotices => 'School notices';
+
+  @override
   String get teacherClassLife => 'School life';
 
   @override
@@ -934,7 +940,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attendanceRecordingLessonOnly =>
-      'Attendance can only be recorded for lesson sessions.';
+      'You can only record attendance for lessons you teach.';
 
   @override
   String get noCurriculumChaptersLinked =>
@@ -3135,7 +3141,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noClassSpecified => 'No class specified';
 
   @override
-  String get academics => 'Academics';
+  String get academics => 'Learning';
 
   @override
   String get confidentialityThreshold => 'Confidentiality threshold';

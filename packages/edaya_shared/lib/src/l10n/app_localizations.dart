@@ -602,6 +602,18 @@ abstract class AppLocalizations {
   /// **'You can find today’s sessions in the agenda.'**
   String get teacherSessionsAgendaHint;
 
+  /// No description provided for @guardianSchoolLife.
+  ///
+  /// In en, this message translates to:
+  /// **'School life'**
+  String get guardianSchoolLife;
+
+  /// No description provided for @teacherSchoolNotices.
+  ///
+  /// In en, this message translates to:
+  /// **'School notices'**
+  String get teacherSchoolNotices;
+
   /// No description provided for @teacherClassLife.
   ///
   /// In en, this message translates to:
@@ -1613,7 +1625,7 @@ abstract class AppLocalizations {
   /// No description provided for @attendanceRecordingLessonOnly.
   ///
   /// In en, this message translates to:
-  /// **'Attendance can only be recorded for lesson sessions.'**
+  /// **'You can only record attendance for lessons you teach.'**
   String get attendanceRecordingLessonOnly;
 
   /// No description provided for @noCurriculumChaptersLinked.
@@ -5513,7 +5525,7 @@ abstract class AppLocalizations {
   /// No description provided for @academics.
   ///
   /// In en, this message translates to:
-  /// **'Academics'**
+  /// **'Learning'**
   String get academics;
 
   /// No description provided for @confidentialityThreshold.

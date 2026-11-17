@@ -7,6 +7,7 @@ import 'package:edaya_guardian_v2/design/components/summary_metric.dart';
 import 'package:edaya_api_client/edaya_api_client.dart';
 import 'package:edaya_guardian_v2/features/calendar/session_detail_page.dart';
 import 'package:edaya_guardian_v2/features/home/home_page.dart';
+import 'package:edaya_guardian_v2/features/fees/payment_detail_page.dart';
 import 'package:edaya_guardian_v2/features/home/dashboard_controller.dart';
 import 'package:edaya_guardian_v2/features/context/academic_year_controller.dart';
 import 'package:edaya_guardian_v2/features/context/student_context_controller.dart';
@@ -113,7 +114,7 @@ Future<void> main() async {
         await pumpUntilFound(tester, find.byType(BackButton));
         final loadedContent = switch (d.path) {
           '/calendar' => find.text('Toutes les présences'),
-          '/scolarite/progress' => find.text('Cahier'),
+          '/scolarite/progress' => find.text('Cahier de texte'),
           '/scolarite/notes' => find.text('Bulletin publié'),
           '/attendance' => find.text('Appel du jour'),
           '/fees' => find.text('Attendu'),
@@ -198,7 +199,15 @@ Future<void> main() async {
             tester.widget<SummaryMetric>(feeMetric).value.split(', '),
             unorderedEquals(expectedFees),
           );
-          expect(find.text('Reçu de paiement'), findsOneWidget);
+          expect(
+            find.descendant(
+              of: find.byType(PaymentDetailPage),
+              matching: find.text(
+                lookupAppLocalizations(h.appLocale).paymentKindReceipt,
+              ),
+            ),
+            findsOneWidget,
+          );
           h.router.pop();
           await tester.pump(const Duration(milliseconds: 400));
         }

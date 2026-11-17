@@ -187,6 +187,8 @@ Future<void> main() async {
     return;
   }
   const profile = TeacherPortalProfile.subjectTeacher;
+  const markRemainingKey = ValueKey('roll-mark-remaining');
+  final markRemaining = find.byKey(markRemainingKey);
   late TeacherLiveWidgetTestHarness harness;
   late PortalSession baseline;
   late PortalSession owner;
@@ -397,7 +399,7 @@ Future<void> main() async {
             .byWidgetPredicate(
               (w) =>
                   w is TextButton &&
-                  w.key == const ValueKey('roll-mark-remaining') &&
+                  w.key == markRemainingKey &&
                   w.onPressed != null,
             )
             .hitTestable(),
@@ -445,8 +447,15 @@ Future<void> main() async {
       expect(tester.widget<ChoiceChip>(selectedChip).selected, isTrue);
       await tester.tap(find.text('Fermer'));
       await gone(tester, BottomSheet);
-      await reveal(tester, find.text('Restants présents'));
-      await tester.tap(find.text('Restants présents'));
+      await reveal(tester, markRemaining);
+      expect(
+        find.descendant(
+          of: markRemaining,
+          matching: find.text('Marquer les élèves restants présents'),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(markRemaining);
       await until(tester, find.text('Présent'));
       expect(
         await baseline.schoolClient.attendance.list({'lessonSessionId': id}),
@@ -533,7 +542,7 @@ Future<void> main() async {
         'createdAt': '2026-09-01T00:00:00.000Z',
       });
       await mount(tester, '/classes/$classId/attendance');
-      await until(tester, find.text('Restants présents'));
+      await until(tester, markRemaining);
       final controller = findController<DailyAttendanceController>(
         tester,
         find.byType(DailyAttendancePage),
@@ -544,7 +553,7 @@ Future<void> main() async {
         (ready) => ready,
       );
       await tester.pump();
-      await tester.tap(find.text('Restants présents'));
+      await tester.tap(markRemaining);
       await until(tester, find.text('Présent'));
       await persisted(
         tester,
@@ -1221,7 +1230,6 @@ Future<void> main() async {
       final id = message['id'] as String;
       await mount(tester, '/inbox');
       await until(tester, find.text('Établissement'));
-      await tester.tap(find.text('Établissement'));
       await until(tester, find.text(message['title'] as String));
       await tester.pump(const Duration(milliseconds: 500));
       await reveal(tester, find.text(message['title'] as String));
@@ -1463,9 +1471,13 @@ Future<void> main() async {
       await mount(tester, '/session/${lessons.first['id']}/attendance');
       await until(
         tester,
-        find.text('La saisie des présences est réservée aux séances de cours.'),
+        find.text(
+          lookupAppLocalizations(
+            harness.appLocale,
+          ).attendanceRecordingLessonOnly,
+        ),
       );
-      expect(find.text('Restants présents'), findsNothing);
+      expect(markRemaining, findsNothing);
     },
   );
 
@@ -1504,13 +1516,13 @@ Future<void> main() async {
             .byWidgetPredicate(
               (w) =>
                   w is TextButton &&
-                  w.key == const ValueKey('roll-mark-remaining') &&
+                  w.key == markRemainingKey &&
                   w.onPressed != null,
             )
             .hitTestable(),
       );
       transport.offline = true;
-      await tester.tap(find.text('Restants présents'));
+      await tester.tap(markRemaining);
       await until(tester, find.text('Présent'));
       await until(tester, find.text('À envoyer · Réessayer'));
       expect(

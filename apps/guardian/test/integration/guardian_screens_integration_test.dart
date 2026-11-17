@@ -8,6 +8,8 @@ import 'package:edaya_guardian_v2/design/components/summary_metric.dart';
 import 'package:edaya_guardian_v2/features/calendar/session_detail_page.dart';
 import 'package:edaya_guardian_v2/features/context/student_context_controller.dart';
 import 'package:edaya_guardian_v2/features/fees/fees_page.dart';
+import 'package:edaya_guardian_v2/features/fees/models/fee_formatting.dart';
+import 'package:edaya_shared/edaya_shared.dart' show lookupAppLocalizations;
 import 'package:edaya_guardian_v2/features/fees/payment_detail_page.dart';
 import 'package:edaya_guardian_v2/features/home/home_page.dart';
 import 'package:edaya_guardian_v2/features/inbox/inbox_routes.dart';
@@ -247,9 +249,38 @@ void _mariamKoneSuite() {
           harness,
           location: '/fees/payment/${payment!.id}',
         );
-        await pumpUntilFound(tester, find.byType(PaymentDetailPage));
-        await pumpUntilFound(tester, find.text('Montant'));
-        expect(find.text('Frais'), findsWidgets);
+        final labels = lookupAppLocalizations(harness.appLocale);
+        final detail = find.byType(PaymentDetailPage);
+        await pumpUntilFound(
+          tester,
+          find.descendant(
+            of: detail,
+            matching: find.text(
+              formatMoney(payment.amount, payment.currency, labels.localeName),
+            ),
+          ),
+        );
+        expect(
+          find.descendant(
+            of: detail,
+            matching: find.text(formatPaymentKind(labels, payment.kind)),
+          ),
+          findsWidgets,
+        );
+        final fee = find.descendant(
+          of: detail,
+          matching: find.byWidgetPredicate(
+            (widget) =>
+                widget is SummaryMetric && widget.label == labels.navFees,
+          ),
+        );
+        final chargeLabels = probes.fees.studentCharges
+            .map((row) => row['label'])
+            .toSet();
+        expect(
+          tester.widget<SummaryMetric>(fee).value.split(', '),
+          everyElement(isIn(chargeLabels)),
+        );
       },
     );
   });

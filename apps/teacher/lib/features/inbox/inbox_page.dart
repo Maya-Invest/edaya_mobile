@@ -179,7 +179,7 @@ class _ThreadGroups extends LScopedView<ConversationController> {
             ],
             second: [
               Text(
-                context.tr.messagingSchool,
+                context.tr.teacherSchoolNotices,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               for (final m in inbox.deliveries.value.where(
