@@ -106,7 +106,8 @@ class LiveSessionController extends LevitController
   int _attendanceVersion = 0;
   int _logbookVersion = 0;
   Map<String, dynamic>? _logbookCorrection;
-  final Map<String, int> _sessionProgress = {};
+  final Map<String, String?> _chapterNotes = {};
+  final Map<String, bool> _sessionProgress = {};
 
   @override
   void onInit() {
@@ -178,17 +179,29 @@ class LiveSessionController extends LevitController
     return roster.every((row) => row.status != null);
   }
 
-  Map<String, int> get _proposedProgress => {
+  Map<String, bool> get _proposedProgress => {
     for (final entry
         in (pendingLogbook.value?['progress'] as List? ?? const [])
             .whereType<Map>())
-      entry['matterId'] as String: (entry['completedPercentage'] as num)
-          .toInt(),
+      entry['matterId'] as String: entry['completed'] as bool,
   };
 
-  Map<String, int> get savedChapterProgress =>
+  final historicalChapters = <String, String?>{};
+  String? officialChapterNotes(String id) => _chapterNotes[id];
+  String? proposedChapterNotes(String id) {
+    final rows = pendingLogbook.value?['progress'] as List?;
+    final pending = rows
+        ?.whereType<Map>()
+        .where((row) => row['matterId'] == id)
+        .firstOrNull;
+    return pending != null && pending.containsKey('notes')
+        ? pending['notes'] as String?
+        : _chapterNotes[id];
+  }
+
+  Map<String, bool> get savedChapterProgress =>
       Map.unmodifiable(_sessionProgress);
-  Map<String, int> get editableChapterProgress =>
+  Map<String, bool> get editableChapterProgress =>
       pendingLogbook.value == null ? savedChapterProgress : _proposedProgress;
   String? _officialNote;
   String? get _editableNote => pendingLogbook.value == null
@@ -352,6 +365,14 @@ class LiveSessionController extends LevitController
       return;
     }
 
+    final context = _outboxContext?.call();
+    bool currentContext() {
+      final active = _outboxContext?.call();
+      return context == null
+          ? active == null
+          : active != null && context.matches(active);
+    }
+
     final classSubjectId = current.classSubjectId!;
     final matterLinks = await client.classSubjectMatters.listAll({
       'classSubjectId': classSubjectId,
@@ -366,20 +387,37 @@ class LiveSessionController extends LevitController
     final eligibility = await client.runQuery('get-teacher-workflow-state', {
       'proposal': {
         'workflow': 'logbook',
+        'formatVersion': 2,
         'targetId': current.id,
         'sessionNote': null,
         'progress': [],
       },
     });
+    if (!currentContext()) return;
     final official = eligibility['official'] as Map;
+    historicalChapters
+      ..clear()
+      ..addEntries(
+        (eligibility['historicalReferences'] as List? ?? [])
+            .whereType<Map>()
+            .map(
+              (row) =>
+                  MapEntry(row['matterId'] as String, row['notes'] as String?),
+            ),
+      );
     _sessionProgress
       ..clear()
       ..addEntries(
         (official['progress'] as List).whereType<Map>().map(
-          (row) => MapEntry(
-            row['matterId'] as String,
-            (row['completedPercentage'] as num).toInt(),
-          ),
+          (row) =>
+              MapEntry(row['matterId'] as String, row['completed'] as bool),
+        ),
+      );
+    _chapterNotes
+      ..clear()
+      ..addEntries(
+        (official['progress'] as List).whereType<Map>().map(
+          (row) => MapEntry(row['matterId'] as String, row['notes'] as String?),
         ),
       );
     _logbookVersion = (eligibility['version'] as num).toInt();
@@ -411,6 +449,44 @@ class LiveSessionController extends LevitController
         prefix: schoolStoragePrefix(_schoolClient()),
       ),
     );
+    if (!currentContext()) return;
+    _outboxStore.bindContext(context);
+    final queued = await _outboxStore.listPending();
+    for (final entry in queued.where(isLegacyLogbookWrite)) {
+      final body = entry.payload['body'] as Map?;
+      final ops = (entry.payload['progressOps'] as List?)?.whereType<Map>();
+      final target =
+          (body?['proposal'] as Map?)?['targetId'] ??
+          (entry.payload['notePayload'] as Map?)?['id'] ??
+          (ops?.firstOrNull?['payload'] as Map?)?['lessonSessionId'] ??
+          entry.payload['lessonSessionId'];
+      if (target != current.id && entry.id != 'logbook-${current.id}') continue;
+      if (!await legacyLogbookWasDelivered(client, entry)) {
+        final remaining = await remainingLegacyLogbookPayload(client, entry);
+        if (!currentContext()) return;
+        final recovered = SessionLogbookDraftStorage.fromQueued(remaining);
+        if (recovered.isEmpty && remaining.isNotEmpty) continue;
+        await SessionLogbookDraftStorage.archiveQueue(
+          current.id,
+          context,
+          schoolStoragePrefix(client),
+          entry,
+        );
+        final sourceId = (body?['requestId'] ?? entry.idempotencyKey)
+            .toString();
+        await _persistDrafts(
+          SessionLogbookDraftStorage.mergeRecovered(
+            logbookDrafts.value,
+            recovered,
+            sourceId,
+          ),
+        );
+        if (recovered.isNotEmpty)
+          logbookMessage(systemL10n().logbookReviewDraft);
+      }
+      if (!currentContext()) return;
+      await _outboxStore.remove(entry.id);
+    }
   }
 
   final draftPending = LxVar(false);
@@ -693,17 +769,34 @@ class LiveSessionController extends LevitController
         ? _editableNote
         : encodeStructuredSessionNote(edit.note!);
     final mergedProgress = {...editableChapterProgress};
+    final notes = {..._chapterNotes};
+    for (final row
+        in (pendingLogbook.value?['progress'] as List? ?? [])
+            .whereType<Map>()) {
+      if (row.containsKey('notes'))
+        notes[row['matterId'] as String] = row['notes'] as String?;
+    }
     if (edit.chapterId case final String chapter) {
       if (!subjectMatters.value.any((m) => m.id == chapter)) return false;
-      mergedProgress[chapter] = edit.percentage!;
+      if (edit.removed) {
+        mergedProgress.remove(chapter);
+      } else {
+        mergedProgress[chapter] = edit.completed!;
+        if (edit.chapterNotes != null) notes[chapter] = edit.chapterNotes;
+      }
     }
     final proposal = <String, dynamic>{
       'workflow': 'logbook',
+      'formatVersion': 2,
       'targetId': current.id,
       'sessionNote': encodedNote,
       'progress': [
         for (final entry in mergedProgress.entries)
-          {'matterId': entry.key, 'completedPercentage': entry.value},
+          {
+            'matterId': entry.key,
+            'completed': entry.value,
+            if (notes.containsKey(entry.key)) 'notes': notes[entry.key],
+          },
       ],
     };
     if (logbookValidated.value && correctionReason.trim().isEmpty) {
@@ -729,6 +822,11 @@ class LiveSessionController extends LevitController
               entry.id == outboxId && teacherOutboxEntryIsReplayable(entry),
         )
         .firstOrNull;
+    if (previous != null && isLegacyLogbookWrite(previous)) {
+      await _loadLogbook(current, _schoolClient());
+      logbookMessage(systemL10n().logbookReviewDraft);
+      return false;
+    }
     if (previous != null) {
       final priorBody = Map<String, dynamic>.from(
         previous.payload['body'] as Map,
@@ -784,12 +882,21 @@ class LiveSessionController extends LevitController
         ..clear()
         ..addEntries(
           (proposal['progress'] as List).whereType<Map>().map(
-            (row) => MapEntry(
-              row['matterId'] as String,
-              (row['completedPercentage'] as num).toInt(),
-            ),
+            (row) =>
+                MapEntry(row['matterId'] as String, row['completed'] as bool),
           ),
         );
+      _chapterNotes
+        ..clear()
+        ..addEntries(
+          (proposal['progress'] as List).whereType<Map>().map(
+            (row) =>
+                MapEntry(row['matterId'] as String, row['notes'] as String?),
+          ),
+        );
+      historicalChapters.removeWhere(
+        (id, _) => _sessionProgress.containsKey(id),
+      );
       _officialNote = proposal['sessionNote'] as String?;
       officialLogbook(decodeStructuredSessionNote(_officialNote));
       unawaited(_calendar.loadCalendarData());
@@ -797,7 +904,10 @@ class LiveSessionController extends LevitController
       _logbookCorrection = result;
       pendingLogbook(proposal);
     }
-    final remaining = Map.of(logbookDrafts.value)..remove(completedSection);
+    final remaining = SessionLogbookDraftStorage.resolveSection(
+      logbookDrafts.value,
+      completedSection,
+    );
     await _persistDrafts(remaining);
   }
 
@@ -811,7 +921,7 @@ class LiveSessionController extends LevitController
     final version = _logbookVersion;
     final proposalVersion = _proposalVersion;
     final prefix = schoolStoragePrefix(_schoolClient());
-    return _draftWrite = _draftWrite.then(
+    final write = _draftWrite.then(
       (_) => SessionLogbookDraftStorage.save(
         sessionId,
         context,
@@ -821,6 +931,11 @@ class LiveSessionController extends LevitController
         prefix: prefix,
       ),
     );
+    _draftWrite = write.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace _) {},
+    );
+    return write;
   }
 
   LogbookEdit generalEditorValue() =>
@@ -833,10 +948,8 @@ class LiveSessionController extends LevitController
       logbookDrafts.value['chapter:$id'] ??
       LogbookEdit.chapter(
         id,
-        editableChapterProgress[id] ??
-            subjectMatters.value
-                .firstWhere((m) => m.id == id)
-                .cumulativePercentage,
+        editableChapterProgress[id] ?? false,
+        chapterNotes: proposedChapterNotes(id),
         reason: correctionReason,
       );
 

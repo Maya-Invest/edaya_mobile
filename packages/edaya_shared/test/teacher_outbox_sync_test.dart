@@ -128,6 +128,91 @@ void main() {
     },
   );
 
+  test(
+    'a lost legacy response uses the original payload and only queries its receipt',
+    () async {
+      final transport = _RecordingTransport();
+      final client = createSchoolClient(transport);
+      final body = {
+        'requestId': 'legacy',
+        'expectedVersion': 2,
+        'proposal': {
+          'workflow': 'logbook',
+          'targetId': 'lesson',
+          'sessionNote': 'Read together',
+          'progress': [
+            {'matterId': 'a', 'completedPercentage': 40},
+          ],
+        },
+      };
+      final entry = buildTeacherOutboxEntry(
+        id: 'logbook-lesson',
+        kind: TeacherOutboxKind.logbook,
+        idempotencyKey: 'legacy',
+        payload: {'command': 'save-teacher-logbook', 'body': body},
+      );
+      await expectLater(
+        syncTeacherOutboxEntry(client, entry),
+        throwsStateError,
+      );
+      transport.delivered = true;
+      await syncTeacherOutboxEntry(client, entry);
+      expect(
+        transport.paths.every(
+          (path) => path.endsWith('/get-teacher-workflow-state'),
+        ),
+        isTrue,
+      );
+      expect(transport.bodies.last['legacyReceipt'], {
+        'command': 'saveTeacherLogbook',
+        'body': body,
+      });
+    },
+  );
+
+  test(
+    'reconciles split writes individually and retains ambiguous cumulative completions',
+    () async {
+      final transport = _SplitLogbookTransport();
+      final client = createSchoolClient(transport);
+      Map<String, dynamic> op(String id, int percent) => {
+        'payload': {
+          'id': id,
+          'classSubjectMatterId': 'chapter-$id',
+          'lessonSessionId': 'lesson',
+          'completedPercentage': percent,
+          'notes': 'Read',
+        },
+      };
+      final zero = op('zero', 0);
+      final partial = op('partial', 35);
+      final review = op('repeat', 100);
+      final missing = op('missing', 20);
+      final entry = buildTeacherOutboxEntry(
+        id: 'legacy',
+        kind: TeacherOutboxKind.logbook,
+        idempotencyKey: 'legacy',
+        payload: {
+          'notePayload': {'id': 'lesson', 'sessionNote': 'Read together'},
+          'progressOps': [zero, partial, review, missing],
+        },
+      );
+      final result = await remainingLegacyLogbookPayload(client, entry);
+      expect(result, {
+        'progressOps': [review, missing],
+      });
+      transport.note = 'Other note';
+      expect(
+        (await remainingLegacyLogbookPayload(client, entry))['notePayload'],
+        entry.payload['notePayload'],
+      );
+      await expectLater(
+        syncTeacherOutboxEntry(client, entry),
+        throwsStateError,
+      );
+    },
+  );
+
   test('teacherLogbookIdempotencyKey scopes note and matter entries', () {
     expect(
       teacherLogbookIdempotencyKey(lessonSessionId: 'ls-1'),
@@ -201,6 +286,8 @@ void main() {
 }
 
 class _RecordingTransport implements Transport {
+  final paths = <String>[];
+  bool delivered = false;
   final bodies = <Map<String, dynamic>>[];
   @override
   Future<T> request<T>(
@@ -208,8 +295,42 @@ class _RecordingTransport implements Transport {
     String path, {
     TransportRequestOptions? options,
   }) async {
+    paths.add(path);
     bodies.add(Map<String, dynamic>.from(options!.body! as Map));
+    if (path.endsWith('/get-teacher-workflow-state'))
+      return {'delivered': delivered} as T;
     if (path.endsWith('/record-assessment-results')) return <dynamic>[] as T;
     return <String, dynamic>{} as T;
+  }
+}
+
+class _SplitLogbookTransport implements Transport {
+  String note = 'Read together';
+  @override
+  Future<T> request<T>(
+    String method,
+    String path, {
+    TransportRequestOptions? options,
+  }) async {
+    if (method == 'GET' && path.endsWith('/lesson'))
+      return {'sessionNote': note} as T;
+    if (method == 'POST' && path.endsWith('/list')) {
+      return [
+            for (final row in [
+              ('zero', 0, null),
+              ('partial', 35, false),
+              ('repeat', 100, false),
+            ])
+              {
+                'id': row.$1,
+                'classSubjectMatterId': 'chapter-${row.$1}',
+                'legacyPercentage': row.$2,
+                'completed': row.$3,
+                'notes': 'Read',
+              },
+          ]
+          as T;
+    }
+    throw StateError('Unexpected legacy replay: $method $path');
   }
 }

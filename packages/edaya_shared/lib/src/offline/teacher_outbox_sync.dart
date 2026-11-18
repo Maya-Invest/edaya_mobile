@@ -3,11 +3,105 @@ import 'package:edaya_api_client/edaya_api_client.dart';
 import '../api/evaluation_data.dart';
 import 'teacher_outbox_models.dart';
 
+/// A pre-upgrade request may already have committed even if its response was lost.
+bool isLegacyLogbookWrite(TeacherOutboxEntry entry) {
+  final body = entry.payload['body'];
+  final proposal = body is Map ? body['proposal'] : null;
+  return proposal is Map &&
+          proposal['workflow'] == 'logbook' &&
+          proposal['formatVersion'] != 2 ||
+      entry.kind == TeacherOutboxKind.logbook && body == null;
+}
+
+Future<bool> legacyLogbookWasDelivered(
+  SchoolClient client,
+  TeacherOutboxEntry entry,
+) async {
+  final body = entry.payload['body'];
+  if (body is! Map || body['proposal'] is! Map) return false;
+  final command = const {
+    'save-teacher-logbook': 'saveTeacherLogbook',
+    'request-teacher-correction': 'requestTeacherCorrection',
+    'revise-teacher-correction': 'reviseTeacherCorrection',
+  }[entry.payload['command']];
+  if (command == null) return false;
+  final target = (body['proposal'] as Map)['targetId'];
+  try {
+    final state = await client.runQuery('get-teacher-workflow-state', {
+      'proposal': {
+        'workflow': 'logbook',
+        'formatVersion': 2,
+        'targetId': target,
+        'sessionNote': null,
+        'progress': [],
+      },
+      'legacyReceipt': {'command': command, 'body': body},
+    });
+    return state['delivered'] == true;
+  } on ApiError catch (error) {
+    if (error.body.toString().contains('COMMAND_REPLAY_CONFLICT')) return false;
+    rethrow;
+  }
+}
+
+/// Split writes have no command receipt. Reconcile exact row identity, original
+/// percentage and notes. A missing or changed row stays available for review.
+Future<Map<String, dynamic>> remainingLegacyLogbookPayload(
+  SchoolClient client,
+  TeacherOutboxEntry entry,
+) async {
+  if (entry.payload['body'] is Map) return entry.payload;
+  final note = entry.payload['notePayload'] as Map?;
+  final ops = (entry.payload['progressOps'] as List? ?? [])
+      .whereType<Map>()
+      .toList();
+  final lesson =
+      note?['id'] ?? (ops.firstOrNull?['payload'] as Map?)?['lessonSessionId'];
+  if (lesson is! String) return entry.payload;
+  final official = await client.lessonSessions.get(lesson);
+  final rows = await client.classSubjectProgress.listAll({
+    'lessonSessionId': lesson,
+  });
+  final remaining = <Map>[];
+  for (final op in ops) {
+    final p = op['payload'] as Map?;
+    final matches =
+        p != null &&
+        p['id'] is String &&
+        p['lessonSessionId'] == lesson &&
+        rows.any(
+          (row) =>
+              row['id'] == p['id'] &&
+              row['classSubjectMatterId'] == p['classSubjectMatterId'] &&
+              row['legacyPercentage'] != null &&
+              row['legacyPercentage'] == p['completedPercentage'] &&
+              row['completed'] ==
+                  (p['completedPercentage'] == 0
+                      ? null
+                      : p['completedPercentage'] == 100) &&
+              row['notes'] == p['notes'],
+        );
+    if (!matches) remaining.add(op);
+  }
+  return {
+    if (note != null && official['sessionNote'] != note['sessionNote'])
+      'notePayload': note,
+    if (remaining.isNotEmpty) 'progressOps': remaining,
+  };
+}
+
 /// Replays a single outbox entry against the live API.
 Future<void> syncTeacherOutboxEntry(
   SchoolClient client,
   TeacherOutboxEntry entry,
 ) async {
+  if (isLegacyLogbookWrite(entry)) {
+    if (await legacyLogbookWasDelivered(client, entry) ||
+        (entry.payload['body'] == null &&
+            (await remainingLegacyLogbookPayload(client, entry)).isEmpty))
+      return;
+    throw StateError('Open this lesson to review the recovered logbook draft.');
+  }
   final command = entry.payload['command'];
   final body = entry.payload['body'];
   const workflowCommands = {
@@ -30,7 +124,7 @@ Future<void> syncTeacherOutboxEntry(
     case TeacherOutboxKind.attendance:
       await client.recordAttendance(entry.payload);
     case TeacherOutboxKind.logbook:
-      await _syncLogbookEntry(client, entry.payload);
+      throw StateError('A logbook must carry a versioned command');
     case TeacherOutboxKind.mark:
       if (entry.payload['results'] is List) {
         await client.runListCommand('record-assessment-results', entry.payload);
@@ -39,71 +133,6 @@ Future<void> syncTeacherOutboxEntry(
       }
     case TeacherOutboxKind.comment:
       await _syncCommentEntry(client, entry.payload);
-  }
-}
-
-Future<void> _syncLogbookEntry(
-  SchoolClient client,
-  Map<String, dynamic> payload,
-) async {
-  final notePayload = payload['notePayload'];
-  if (notePayload is Map<String, dynamic>) {
-    await client.lessonSessions.save(notePayload);
-  }
-
-  final progressOps = payload['progressOps'];
-  if (progressOps is! List) {
-    return;
-  }
-
-  for (final rawOp in progressOps) {
-    if (rawOp is! Map) {
-      continue;
-    }
-    final op = rawOp.cast<String, dynamic>();
-    final action = op['action'] as String?;
-    final opPayload = op['payload'];
-    if (opPayload is! Map<String, dynamic>) {
-      continue;
-    }
-
-    switch (action) {
-      case 'create':
-        await _recordOrUpdateLessonProgress(client, opPayload);
-      case 'update':
-        await client.classSubjectProgress.save(opPayload);
-    }
-  }
-}
-
-Future<void> _recordOrUpdateLessonProgress(
-  SchoolClient client,
-  Map<String, dynamic> payload,
-) async {
-  try {
-    await client.recordLessonSessionProgress(payload);
-  } on Object catch (error) {
-    if (!'$error'.contains('DUPLICATE_PROGRESS')) {
-      rethrow;
-    }
-    final rows = await client.classSubjectProgress.list({
-      'lessonSessionId': payload['lessonSessionId'],
-      'classSubjectMatterId': payload['classSubjectMatterId'],
-    });
-    if (rows.isEmpty) {
-      rethrow;
-    }
-    final existing = rows.first;
-    final existingPercentage = existing['completedPercentage'];
-    if (existingPercentage == payload['completedPercentage']) {
-      return;
-    }
-    await client.classSubjectProgress.save({
-      ...existing,
-      'completedPercentage': payload['completedPercentage'],
-      if (payload['notes'] != null) 'notes': payload['notes'],
-      'recordedAt': payload['recordedAt'],
-    });
   }
 }
 

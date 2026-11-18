@@ -68,6 +68,12 @@ CurriculumProgressOverview buildCurriculumProgressOverview({
       });
 
   return CurriculumProgressOverview(
+    chapterCount:
+        (classSubject['chapterCount'] as num?)?.toInt() ?? matters.length,
+    ongoingChapterCount:
+        (classSubject['ongoingChapterCount'] as num?)?.toInt() ?? 0,
+    completedChapterCount:
+        (classSubject['completedChapterCount'] as num?)?.toInt() ?? 0,
     classSubjectCompletedPercentage:
         (classSubject['completedPercentage'] as num?)?.toInt() ?? 0,
     matters: matters,
@@ -103,14 +109,17 @@ List<CurriculumLogEntry> buildCurriculumLogEntries({
 
   final entries = lessonSessions.map((session) {
     final sessionId = session['id'] as String;
-    final snapshots = (progressBySessionId[sessionId] ?? const []).map((row) {
-      final linkId = row['classSubjectMatterId'] as String;
-      return CurriculumLogMatterSnapshot(
-        matterName: matterNameByLinkId[linkId] ?? matterFallback,
-        completedPercentage: (row['completedPercentage'] as num?)?.toInt() ?? 0,
-        notes: row['notes'] as String?,
-      );
-    }).toList();
+    final snapshots =
+        (progressBySessionId[sessionId] ?? const <Map<String, dynamic>>[]).map((
+          row,
+        ) {
+          final linkId = row['classSubjectMatterId'] as String;
+          return CurriculumLogMatterSnapshot(
+            matterName: matterNameByLinkId[linkId] ?? matterFallback,
+            completed: row['completed'] as bool?,
+            notes: row['notes'] as String?,
+          );
+        }).toList();
 
     return CurriculumLogEntry(
       lessonSessionId: sessionId,
@@ -175,7 +184,7 @@ Future<CurriculumProgressOverview> fetchCurriculumProgressOverview({
   required String matterFallback,
 }) async {
   final classSubject = await client.classSubjects.get(classSubjectId);
-  final matterLinks = await client.classSubjectMatters.list({
+  final matterLinks = await client.classSubjectMatters.listAll({
     'classSubjectId': classSubjectId,
   });
   final subjectMatterIds = matterLinks
@@ -184,7 +193,7 @@ Future<CurriculumProgressOverview> fetchCurriculumProgressOverview({
       .toList();
   final subjectMatters = subjectMatterIds.isEmpty
       ? <Map<String, dynamic>>[]
-      : await client.subjectMatters.list(entitiesByIds(subjectMatterIds));
+      : await client.subjectMatters.listAll(entitiesByIds(subjectMatterIds));
 
   return buildCurriculumProgressOverview(
     classSubject: classSubject,
@@ -207,7 +216,7 @@ Future<List<CurriculumLogEntry>> fetchCurriculumLogEntries({
     client,
     studentId,
   );
-  final sessions = await client.lessonSessions.list({
+  final sessions = await client.lessonSessions.listAll({
     'classGroupId': classGroupId,
     'classSubjectId': classSubjectId,
   });
@@ -220,7 +229,7 @@ Future<List<CurriculumLogEntry>> fetchCurriculumLogEntries({
     return const [];
   }
 
-  final matterLinks = await client.classSubjectMatters.list({
+  final matterLinks = await client.classSubjectMatters.listAll({
     'classSubjectId': classSubjectId,
   });
   final subjectMatterIds = matterLinks
@@ -229,9 +238,9 @@ Future<List<CurriculumLogEntry>> fetchCurriculumLogEntries({
       .toList();
   final subjectMatters = subjectMatterIds.isEmpty
       ? <Map<String, dynamic>>[]
-      : await client.subjectMatters.list(entitiesByIds(subjectMatterIds));
+      : await client.subjectMatters.listAll(entitiesByIds(subjectMatterIds));
   final sessionIds = lessonSessions.map((row) => row['id'] as String).toList();
-  final progressRows = await client.classSubjectProgress.list(
+  final progressRows = await client.classSubjectProgress.listAll(
     progressForLessonSessions(sessionIds),
   );
 

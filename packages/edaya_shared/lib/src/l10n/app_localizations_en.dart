@@ -9,6 +9,29 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get logbookFinishedHere => 'Completed in this session';
+
+  @override
+  String get logbookCovered => 'Covered';
+
+  @override
+  String get logbookReference => 'Historical reference';
+
+  @override
+  String get logbookRemoveChapter => 'Remove chapter from this session';
+
+  @override
+  String get logbookReviewDraft => 'Review this recovered draft before saving.';
+
+  @override
+  String get logbookEmptyCurriculum => 'No chapters configured';
+
+  @override
+  String logbookChapterCounts(int completed, int total, int ongoing) {
+    return '$completed of $total chapters completed · $ongoing ongoing';
+  }
+
+  @override
   String get navInboxShort => 'Inbox';
 
   @override

@@ -1,3 +1,4 @@
+import '../teaching/teaching_models.dart';
 import '../../design/workspace_layout.dart';
 import '../evaluations/evaluations_page.dart';
 import 'package:flutter/material.dart';
@@ -94,10 +95,25 @@ class _Progress extends LScopedView<LiveClassWorkspaceController> {
         WorkspaceColumns(
           first: [
             Text('Chapitres', style: Theme.of(context).textTheme.titleMedium),
-            for (final m in c.progressOverview.value?.matters ?? [])
+            if (c.progressOverview.value case final overview?)
+              Text(
+                overview.chapterCount == 0
+                    ? context.tr.logbookEmptyCurriculum
+                    : '${overview.classSubjectCompletedPercentage}% · ${context.tr.logbookChapterCounts(overview.completedChapterCount, overview.chapterCount, overview.ongoingChapterCount)}',
+              ),
+            for (final m
+                in c.progressOverview.value?.matters ??
+                    const <TeachingMatterProgress>[])
               ListTile(
                 title: Text(m.name),
-                trailing: Text('${m.completedPercentage} %'),
+                trailing: Text(switch (m.status) {
+                  TeachingMatterStatus.completed =>
+                    context.tr.matterStatusCompleted,
+                  TeachingMatterStatus.inProgress =>
+                    context.tr.matterStatusInProgress,
+                  TeachingMatterStatus.notStarted =>
+                    context.tr.matterStatusNotStarted,
+                }),
               ),
           ],
           second: [

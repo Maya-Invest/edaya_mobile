@@ -274,7 +274,7 @@ class _BookView extends StatelessWidget {
   final String sessionId;
   final StructuredLogbookContent note;
   final Map<String, String> programme;
-  final Map<String, int> chapters;
+  final Map<String, bool> chapters;
   final LiveSessionController? controller;
   final MockStore? mock;
 
@@ -300,12 +300,13 @@ class _BookView extends StatelessWidget {
     LogbookEdit chapterValue(String id) =>
         c?.chapterEditorValue(id) ??
         drafts['chapter:$id'] ??
-        LogbookEdit.chapter(id, chapters[id] ?? 0);
+        LogbookEdit.chapter(id, chapters[id] ?? false);
     Future<void> open({
       required String title,
       required LogbookEdit? initial,
       Map<String, String> choices = const {},
     }) async {
+      var saved = false;
       await showWorkspaceEditor<void>(
         context: context,
         title: title,
@@ -332,12 +333,14 @@ class _BookView extends StatelessWidget {
               mock!.saveLogbook(sessionId, edit);
               await WidgetsBinding.instance.endOfFrame;
             }
+            saved = true;
             return null;
           },
           close: () => finish(null),
         ),
       );
-      if (context.mounted && c != null) await c.load();
+      // Acknowledged writes already updated the session and its saved drafts.
+      if (!saved && context.mounted && c != null) await c.load();
     }
 
     Widget heading(String label) => Semantics(
@@ -406,6 +409,17 @@ class _BookView extends StatelessWidget {
           ],
           second: [
             heading(t.bookChapters),
+            for (final entry
+                in (c?.historicalChapters ?? <String, String?>{}).entries)
+              ListTile(
+                title: Text(programme[entry.key] ?? t.chapterFallback),
+                subtitle: Text(
+                  [
+                    t.logbookReference,
+                    if (entry.value != null) entry.value!,
+                  ].join(' · '),
+                ),
+              ),
             for (final id in {
               ...programme.keys,
               ...chapters.keys,
@@ -418,10 +432,23 @@ class _BookView extends StatelessWidget {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (chapters.containsKey(id)) Text('${chapters[id]} %'),
+                      if (chapters.containsKey(id))
+                        Text(
+                          chapters[id]!
+                              ? t.logbookFinishedHere
+                              : t.logbookCovered,
+                        ),
+                      if (c?.officialChapterNotes(id) case final String notes)
+                        Text(notes),
+                      if (pending != null &&
+                          c?.proposedChapterNotes(id) !=
+                              c?.officialChapterNotes(id))
+                        Text(
+                          '${t.workflowCorrectionPending} · ${c?.proposedChapterNotes(id) ?? '—'}',
+                        ),
                       if (pending != null && effective[id] != chapters[id])
                         Text(
-                          '${t.workflowCorrectionPending} · ${effective[id] == null ? '—' : '${effective[id]} %'}',
+                          '${t.workflowCorrectionPending} · ${effective[id] == null ? '—' : (effective[id]! ? t.logbookFinishedHere : t.logbookCovered)}',
                         ),
                       if (drafts.containsKey('chapter:$id'))
                         Text(t.rollLocalDraft),

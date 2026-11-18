@@ -69,6 +69,12 @@ TeachingProgressOverview buildTeachingProgressOverview({
       });
 
   return TeachingProgressOverview(
+    chapterCount:
+        (classSubject['chapterCount'] as num?)?.toInt() ?? matters.length,
+    ongoingChapterCount:
+        (classSubject['ongoingChapterCount'] as num?)?.toInt() ?? 0,
+    completedChapterCount:
+        (classSubject['completedChapterCount'] as num?)?.toInt() ?? 0,
     classSubjectCompletedPercentage:
         (classSubject['completedPercentage'] as num?)?.toInt() ?? 0,
     matters: matters,
@@ -108,7 +114,7 @@ List<TeachingLogEntry> buildTeachingLogEntries({
       final linkId = row['classSubjectMatterId'] as String;
       return TeachingLogMatterSnapshot(
         matterName: matterNameByLinkId[linkId] ?? matterFallback,
-        completedPercentage: (row['completedPercentage'] as num?)?.toInt() ?? 0,
+        completed: row['completed'] as bool?,
         notes: row['notes'] as String?,
       );
     }).toList();

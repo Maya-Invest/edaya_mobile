@@ -31,9 +31,11 @@ class _LogbookFormState extends State<LogbookForm> {
       objectives,
       homework,
       family,
-      reason;
+      reason,
+      chapterNotes;
   String? chapterId;
-  int percentage = 0;
+  bool completed = false;
+  bool removed = false;
   bool saving = false;
   String? error;
   bool get general => widget.initial?.note != null;
@@ -48,13 +50,22 @@ class _LogbookFormState extends State<LogbookForm> {
     homework = TextEditingController(text: note?.homework);
     family = TextEditingController(text: note?.familySummary);
     reason = TextEditingController(text: edit?.reason);
+    chapterNotes = TextEditingController(text: edit?.chapterNotes);
     chapterId = edit?.chapterId;
-    percentage = edit?.percentage ?? 0;
+    completed = edit?.completed ?? false;
+    removed = edit?.removed ?? false;
   }
 
   @override
   void dispose() {
-    for (final field in [content, objectives, homework, family, reason]) {
+    for (final field in [
+      content,
+      objectives,
+      homework,
+      family,
+      reason,
+      chapterNotes,
+    ]) {
       field.dispose();
     }
     super.dispose();
@@ -73,7 +84,13 @@ class _LogbookFormState extends State<LogbookForm> {
           ),
           reason: reason.text,
         )
-      : LogbookEdit.chapter(chapterId!, percentage, reason: reason.text);
+      : LogbookEdit.chapter(
+          chapterId!,
+          completed,
+          removed: removed,
+          chapterNotes: chapterNotes.text,
+          reason: reason.text,
+        );
 
   void changed() {
     if (saving) return;
@@ -117,6 +134,7 @@ class _LogbookFormState extends State<LogbookForm> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        if (widget.initial?.needsReview == true) Text(t.logbookReviewDraft),
         if (general) ...[
           field(t.rollContent, content, 3),
           const SizedBox(height: 16),
@@ -145,7 +163,9 @@ class _LogbookFormState extends State<LogbookForm> {
                       final value = widget.chapterValue!(id);
                       setState(() {
                         chapterId = id;
-                        percentage = value.percentage!;
+                        completed = value.completed!;
+                        removed = value.removed;
+                        chapterNotes.text = value.chapterNotes ?? '';
                         reason.text = value.reason;
                         error = null;
                       });
@@ -158,20 +178,28 @@ class _LogbookFormState extends State<LogbookForm> {
             ),
           if (chapterId != null) ...[
             const SizedBox(height: 16),
-            Text('${t.bookProgress} · $percentage %'),
-            Slider(
-              value: percentage.toDouble(),
-              min: 0,
-              max: 100,
-              divisions: 100,
-              semanticFormatterCallback: (n) => '${n.round()} %',
-              onChanged: saving
+            CheckboxListTile(
+              title: Text(t.logbookFinishedHere),
+              value: completed,
+              onChanged: saving || removed
                   ? null
                   : (v) {
-                      percentage = v.round();
+                      completed = v ?? false;
                       changed();
                     },
             ),
+            field(t.matterNotesLabel, chapterNotes, 2),
+            if (widget.initial?.chapterId != null)
+              CheckboxListTile(
+                title: Text(t.logbookRemoveChapter),
+                value: removed,
+                onChanged: saving
+                    ? null
+                    : (v) {
+                        removed = v ?? false;
+                        changed();
+                      },
+              ),
           ],
         ],
         if (widget.validated) ...[

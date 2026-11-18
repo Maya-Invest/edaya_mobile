@@ -389,12 +389,16 @@ class _LessonSection extends StatelessWidget {
                     const SizedBox(height: PrototypeSpacing.xs),
                     Text(logbook!.content, style: textTheme.bodyMedium),
                     const SizedBox(height: PrototypeSpacing.xs),
-                    Text(
-                      'Progression : ${logbook!.progress} %',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    for (final chapter in logbook!.chapters) ...[
+                      Text(
+                        '${chapter.name} · ${chapter.completed == null
+                            ? context.tr.logbookReference
+                            : chapter.completed!
+                            ? context.tr.logbookFinishedHere
+                            : context.tr.logbookCovered}',
                       ),
-                    ),
+                      if (chapter.notes != null) Text(chapter.notes!),
+                    ],
                   ],
                 ),
         ),

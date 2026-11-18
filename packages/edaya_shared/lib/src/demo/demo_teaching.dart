@@ -88,7 +88,17 @@ extension DemoTeaching on DemoSchool {
               : source['status'] == 'published',
           'official': {
             ...source,
-            'progress': source['progress'] ?? [],
+            'progress': [
+              for (final row
+                  in (source['progress'] as List? ?? []).whereType<Map>())
+                if (row['completed'] is bool ||
+                    (row['completedPercentage'] as num? ?? 0) > 0)
+                  {
+                    ...row,
+                    'completed':
+                        row['completed'] ?? (row['completedPercentage'] == 100),
+                  },
+            ],
             'sections': source['sectionResults'] ?? [],
           },
           'corrections': matching('corrections', {'targetId': p['targetId']}),
@@ -231,18 +241,74 @@ extension DemoTeaching on DemoSchool {
         final p = b['proposal'] as Row,
             lesson = one('lesson-sessions', p['targetId']);
         checkVersion(b['expectedVersion'], lesson['version'] ?? 0);
-        for (final row in p['progress'] as List) {
+        final entries = (p['progress'] as List).cast<Map>();
+        final all = rows('class-subject-progress');
+        all.removeWhere(
+          (row) =>
+              row['lessonSessionId'] == lesson['id'] &&
+              !entries.any(
+                (item) => item['matterId'] == row['classSubjectMatterId'],
+              ),
+        );
+        for (final item in entries) {
           put('class-subject-progress', {
-            'id': "${lesson['id']}-${row['matterId']}",
+            'id': "${lesson['id']}-${item['matterId']}",
             'lessonSessionId': lesson['id'],
-            'classSubjectMatterId': row['matterId'],
-            'completedPercentage': row['completedPercentage'],
-          });
-          put('class-subject-matters', {
-            'id': row['matterId'],
-            'completedPercentage': row['completedPercentage'],
+            'classSubjectMatterId': item['matterId'],
+            'completed': item['completed'],
+            'notes': item['notes'],
           });
         }
+        final chapters = matching('class-subject-matters', {
+          'classSubjectId': lesson['classSubjectId'],
+        });
+        var ongoing = 0, finished = 0;
+        double total = 0, earned = 0;
+        for (final chapter in chapters) {
+          final evidence = matching('class-subject-progress', {
+            'classSubjectMatterId': chapter['id'],
+          });
+          final done = evidence.any((entry) => entry['completed'] == true);
+          final covered = evidence.any((entry) => entry['completed'] is bool);
+          final score = done
+              ? 1.0
+              : covered
+              ? 0.5
+              : 0.0;
+          final weight =
+              (one(
+                        'subject-matters',
+                        chapter['subjectMatterId'],
+                      )['progressWeight']
+                      as num?)
+                  ?.toDouble() ??
+              1.0;
+          total += weight;
+          earned += score * weight;
+          if (done) {
+            finished++;
+          } else if (covered) {
+            ongoing++;
+          }
+          put('class-subject-matters', {
+            'id': chapter['id'],
+            'status': done
+                ? 'completed'
+                : covered
+                ? 'in_progress'
+                : 'not_started',
+            'completedPercentage': (score * 100).round(),
+          });
+        }
+        put('class-subjects', {
+          'id': lesson['classSubjectId'],
+          'completedPercentage': total == 0
+              ? 0
+              : (100 * earned / total).round(),
+          'chapterCount': chapters.length,
+          'completedChapterCount': finished,
+          'ongoingChapterCount': ongoing,
+        });
         return put('lesson-sessions', {
           'id': lesson['id'],
           'version': (lesson['version'] ?? 0) + 1,

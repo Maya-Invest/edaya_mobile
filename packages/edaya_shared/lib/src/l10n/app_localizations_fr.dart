@@ -9,6 +9,30 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
+  String get logbookFinishedHere => 'Chapitre terminé pendant cette séance';
+
+  @override
+  String get logbookCovered => 'Abordé';
+
+  @override
+  String get logbookReference => 'Référence historique';
+
+  @override
+  String get logbookRemoveChapter => 'Retirer le chapitre de cette séance';
+
+  @override
+  String get logbookReviewDraft =>
+      'Vérifiez ce brouillon récupéré avant de l’enregistrer.';
+
+  @override
+  String get logbookEmptyCurriculum => 'Aucun chapitre configuré';
+
+  @override
+  String logbookChapterCounts(int completed, int total, int ongoing) {
+    return '$completed chapitres terminés sur $total · $ongoing en cours';
+  }
+
+  @override
   String get navInboxShort => 'Boîte';
 
   @override

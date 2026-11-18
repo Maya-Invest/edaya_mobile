@@ -250,7 +250,11 @@ class MockStore extends ChangeNotifier {
       book.homework = note.homework ?? '';
       book.familySummary = note.familySummary ?? '';
     } else {
-      book.chapters[edit.chapterId!] = edit.percentage!;
+      if (edit.removed) {
+        book.chapters.remove(edit.chapterId);
+      } else {
+        book.chapters[edit.chapterId!] = edit.completed!;
+      }
     }
     logbookDrafts[sessionId]?.remove(edit.key);
     sessionById(sessionId)?.logbookComplete = true;

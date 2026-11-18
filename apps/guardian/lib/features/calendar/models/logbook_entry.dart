@@ -5,7 +5,8 @@ class LogbookEntry {
     required this.id,
     required this.chapter,
     required this.content,
-    required this.progress,
+    this.progress = 0,
+    this.chapters = const [],
     required this.date,
     this.homework,
     this.objectives = const [],
@@ -34,6 +35,7 @@ class LogbookEntry {
   final String chapter;
   final String content;
   final int progress;
+  final List<({String name, bool? completed, String? notes})> chapters;
   final DateTime date;
   final String? homework;
   final List<String> objectives;

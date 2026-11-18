@@ -118,7 +118,7 @@ class MockLogbook {
     this.objectives = '',
     this.homework = '',
     this.familySummary = '',
-    Map<String, int>? chapters,
+    Map<String, bool>? chapters,
   }) : chapters = chapters ?? {};
 
   final String sessionId;
@@ -126,7 +126,7 @@ class MockLogbook {
   String objectives;
   String homework;
   String familySummary;
-  final Map<String, int> chapters;
+  final Map<String, bool> chapters;
 }
 
 class MockEvaluation {

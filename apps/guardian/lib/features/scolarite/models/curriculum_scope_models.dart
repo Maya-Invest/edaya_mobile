@@ -49,22 +49,26 @@ class CurriculumMatterProgress {
 class CurriculumProgressOverview {
   const CurriculumProgressOverview({
     required this.classSubjectCompletedPercentage,
+    this.chapterCount = 0,
+    this.completedChapterCount = 0,
+    this.ongoingChapterCount = 0,
     required this.matters,
   });
 
   final int classSubjectCompletedPercentage;
+  final int chapterCount, completedChapterCount, ongoingChapterCount;
   final List<CurriculumMatterProgress> matters;
 }
 
 class CurriculumLogMatterSnapshot {
   const CurriculumLogMatterSnapshot({
     required this.matterName,
-    required this.completedPercentage,
+    required this.completed,
     this.notes,
   });
 
   final String matterName;
-  final int completedPercentage;
+  final bool? completed;
   final String? notes;
 }
 

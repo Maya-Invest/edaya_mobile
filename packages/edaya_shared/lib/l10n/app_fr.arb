@@ -1,4 +1,11 @@
 {
+  "logbookFinishedHere": "Chapitre terminé pendant cette séance",
+  "logbookCovered": "Abordé",
+  "logbookReference": "Référence historique",
+  "logbookRemoveChapter": "Retirer le chapitre de cette séance",
+  "logbookReviewDraft": "Vérifiez ce brouillon récupéré avant de l’enregistrer.",
+  "logbookEmptyCurriculum": "Aucun chapitre configuré",
+  "logbookChapterCounts": "{completed} chapitres terminés sur {total} · {ongoing} en cours",
   "navInboxShort": "Boîte",
   "navEvaluationsShort": "Éval.",
   "navMessages": "Messages",

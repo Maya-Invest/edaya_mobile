@@ -116,8 +116,18 @@ class _LiveSubjectLogbookPage extends LScopedView<SubjectLogbookController> {
             for (final entry in entries) ...[
               ListRow(
                 title: entry.displayLabel,
-                subtitle:
-                    '${formatDate(entry.startsAt)} · ${decodeStructuredSessionNote(entry.sessionNote).guardianText.isNotEmpty ? decodeStructuredSessionNote(entry.sessionNote).guardianText : entry.matterSnapshots.map((m) => m.matterName).join(', ')}',
+                subtitle: [
+                  formatDate(entry.startsAt),
+                  decodeStructuredSessionNote(entry.sessionNote).guardianText,
+                  ...entry.matterSnapshots.map(
+                    (m) =>
+                        '${m.matterName} · ${m.completed == null
+                            ? context.tr.logbookReference
+                            : m.completed!
+                            ? context.tr.logbookFinishedHere
+                            : context.tr.logbookCovered}${m.notes == null ? '' : ' · ${m.notes}'}',
+                  ),
+                ].where((part) => part.isNotEmpty).join('\n'),
               ),
               const SizedBox(height: PrototypeSpacing.xs),
             ],

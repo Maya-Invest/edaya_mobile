@@ -77,6 +77,7 @@ Future<void> until(WidgetTester tester, Finder finder) async {
 Future<void> reveal(WidgetTester tester, Finder finder) async {
   FocusManager.instance.primaryFocus?.unfocus();
   await tester.pump(const Duration(milliseconds: 350));
+  await until(tester, finder);
   await Scrollable.ensureVisible(tester.element(finder), alignment: 0.5);
   await tester.pump(const Duration(milliseconds: 350));
   await until(tester, finder.hitTestable());
@@ -772,6 +773,20 @@ Future<void> main() async {
   testWidgets(
     '[teacher-v2.logbook.save] records lesson content and family summary',
     (tester) async {
+      final transport = SwitchableTransport();
+      addTearDown(transport.close);
+      final auth = AuthClient(
+        baseUrl: baseline.config.authUrl,
+        client: transport,
+      )..restoreRenewalCredential(baseline.authClient.renewalCredential!);
+      harness = await TeacherLiveWidgetTestHarness.create(
+        authenticatedSession: PortalSession(
+          config: baseline.config,
+          authClient: auth,
+          schoolClient: baseline.schoolClient,
+          actorKind: 'teacher',
+        ),
+      );
       final lesson = await lessonFixture();
       final id = lesson['id'] as String;
       final content = 'Contenu $id';
@@ -800,16 +815,15 @@ Future<void> main() async {
               as String,
         );
       }
-      Future<Map<String, int>> savedChapters() async => {
+      Future<Map<String, bool>> savedChapters() async => {
         for (final row in await owner.schoolClient.classSubjectProgress.list({
           'lessonSessionId': id,
         }))
-          row['classSubjectMatterId'] as String:
-              (row['completedPercentage'] as num).toInt(),
+          row['classSubjectMatterId'] as String: row['completed'] as bool,
       };
       Future<void> changeChapter(
         int index,
-        int percentage, {
+        bool completed, {
         bool add = false,
         bool locked = false,
       }) async {
@@ -827,9 +841,13 @@ Future<void> main() async {
           await until(tester, find.text(chapterNames[index]).hitTestable());
           await tester.tap(find.text(chapterNames[index]).hitTestable().last);
         }
-        final slider = find.byType(Slider);
-        await until(tester, slider);
-        tester.widget<Slider>(slider).onChanged!(percentage.toDouble());
+        final checkbox = find.widgetWithText(
+          CheckboxListTile,
+          'Chapitre terminé pendant cette séance',
+        );
+        await until(tester, checkbox);
+        if (tester.widget<CheckboxListTile>(checkbox).value != completed)
+          await tester.tap(checkbox);
         if (locked)
           await tester.enterText(
             field('Motif de la correction'),
@@ -863,10 +881,10 @@ Future<void> main() async {
         (await baseline.schoolClient.lessonSessions.get(id))['sessionNote'],
         isNull,
       );
-      await changeChapter(0, 25, add: true);
-      await changeChapter(1, 40, add: true);
-      await changeChapter(0, 60);
-      expect(await savedChapters(), {links[0]: 60, links[1]: 40});
+      await changeChapter(0, false, add: true);
+      await changeChapter(1, false, add: true);
+      await changeChapter(0, true);
+      expect(await savedChapters(), {links[0]: true, links[1]: false});
       expect(
         (await baseline.schoolClient.lessonSessions.get(id))['sessionNote'],
         isNull,
@@ -909,7 +927,7 @@ Future<void> main() async {
       await tester.tap(datedEntry);
       await until(tester, find.text(content));
       expect(find.text(family), findsOneWidget);
-      expect(await savedChapters(), {links[0]: 60, links[1]: 40});
+      expect(await savedChapters(), {links[0]: true, links[1]: false});
       final validated = await owner.schoolClient.requestRoute<List<dynamic>>(
         'POST',
         '/core/commands/validate-teacher-logbook',
@@ -946,11 +964,68 @@ Future<void> main() async {
         content,
       );
       expect(find.text(revised), findsOneWidget);
-      await changeChapter(1, 80, locked: true);
-      await until(tester, find.textContaining('80 %'));
-      expect(await savedChapters(), {links[0]: 60, links[1]: 40});
-      await reveal(tester, find.text(revised));
-      expect(find.text(content), findsOneWidget);
+      // Queue the revision while writes are offline. Retrying the same edit
+      // on reconnect must use its original request ID.
+      transport.offline = true;
+      final editChapter = find.byTooltip('Modifier ${chapterNames[0]}');
+      await reveal(tester, editChapter);
+      await tester.tap(editChapter);
+      await until(tester, find.byType(LogbookForm));
+      final checkbox = find.widgetWithText(
+        CheckboxListTile,
+        'Chapitre terminé pendant cette séance',
+      );
+      await reveal(tester, checkbox);
+      await tester.tap(checkbox);
+      await tester.enterText(
+        field('Motif de la correction'),
+        'Vérifié après la séance',
+      );
+      final submit = find.widgetWithText(
+        FilledButton,
+        'Demander une correction',
+      );
+      await reveal(tester, submit);
+      await tester.tap(submit);
+      await persisted(
+        tester,
+        () async => transport.blockedWrites,
+        (count) => count > 0,
+      );
+      expect(await savedChapters(), {links[0]: true, links[1]: false});
+      transport.offline = false;
+      await reveal(tester, submit);
+      await tester.tap(submit);
+      await gone(tester, LogbookForm);
+      final state = await baseline.schoolClient.runQuery(
+        'get-teacher-workflow-state',
+        {
+          'proposal': {
+            'workflow': 'logbook',
+            'formatVersion': 2,
+            'targetId': id,
+            'sessionNote': null,
+            'progress': [],
+          },
+        },
+      );
+      final correction = (state['corrections'] as List)
+          .whereType<Map>()
+          .singleWhere((row) => row['status'] == 'pending');
+      expect(await savedChapters(), {links[0]: true, links[1]: false});
+      await owner.schoolClient.runCommand('approve-teacher-correction', {
+        'requestId': fixtureId('approve-book'),
+        'correctionId': correction['id'],
+        'expectedVersion': correction['version'],
+      });
+      expect(await savedChapters(), {links[0]: false, links[1]: false});
+      expect(
+        decodeStructuredSessionNote(
+          (await baseline.schoolClient.lessonSessions.get(id))['sessionNote']
+              as String,
+        ).content,
+        revised,
+      );
     },
   );
 

@@ -98,6 +98,48 @@ abstract class AppLocalizations {
     Locale('fr'),
   ];
 
+  /// No description provided for @logbookFinishedHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed in this session'**
+  String get logbookFinishedHere;
+
+  /// No description provided for @logbookCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Covered'**
+  String get logbookCovered;
+
+  /// No description provided for @logbookReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Historical reference'**
+  String get logbookReference;
+
+  /// No description provided for @logbookRemoveChapter.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove chapter from this session'**
+  String get logbookRemoveChapter;
+
+  /// No description provided for @logbookReviewDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Review this recovered draft before saving.'**
+  String get logbookReviewDraft;
+
+  /// No description provided for @logbookEmptyCurriculum.
+  ///
+  /// In en, this message translates to:
+  /// **'No chapters configured'**
+  String get logbookEmptyCurriculum;
+
+  /// No description provided for @logbookChapterCounts.
+  ///
+  /// In en, this message translates to:
+  /// **'{completed} of {total} chapters completed · {ongoing} ongoing'**
+  String logbookChapterCounts(int completed, int total, int ongoing);
+
   /// No description provided for @navInboxShort.
   ///
   /// In en, this message translates to:

@@ -1,3 +1,4 @@
+import '../teaching/teaching_models.dart';
 import 'package:edaya_shared/edaya_shared.dart' hide PersonAvatar;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -417,12 +418,27 @@ class _LiveProgressTab extends LView<LiveClassWorkspaceController> {
               'Programme · ${overview.classSubjectCompletedPercentage} %',
               style: Theme.of(context).textTheme.titleMedium,
             ),
+            Text(
+              overview.chapterCount == 0
+                  ? context.tr.logbookEmptyCurriculum
+                  : context.tr.logbookChapterCounts(
+                      overview.completedChapterCount,
+                      overview.chapterCount,
+                      overview.ongoingChapterCount,
+                    ),
+            ),
             const SizedBox(height: PrototypeSpacing.md),
             for (final matter in overview.matters) ...[
               ListRow(
                 title: matter.name,
-                subtitle: '${matter.completedPercentage} %',
-                badge: matter.status.labelFr,
+                subtitle: switch (matter.status) {
+                  TeachingMatterStatus.completed =>
+                    context.tr.matterStatusCompleted,
+                  TeachingMatterStatus.inProgress =>
+                    context.tr.matterStatusInProgress,
+                  TeachingMatterStatus.notStarted =>
+                    context.tr.matterStatusNotStarted,
+                },
               ),
               const SizedBox(height: PrototypeSpacing.xs),
             ],
