@@ -1,3 +1,4 @@
+import 'session_history_page.dart';
 import '../context/teacher_context_controller.dart';
 import '../../app/workspace_navigation.dart';
 import 'package:edaya_shared/edaya_shared.dart';
@@ -18,10 +19,16 @@ class CalendarPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (prototypeIsLive(context)) {
-      return const _LiveCalendarPage();
-    }
-    return const _MockCalendarPage();
+    return WorkspaceTabs(
+      values: const ['schedule', 'history'],
+      labels: [context.tr.workspaceSchedule, context.tr.workspaceHistory],
+      children: [
+        prototypeIsLive(context)
+            ? const _LiveCalendarPage()
+            : const _MockCalendarPage(),
+        const SessionHistoryPage(),
+      ],
+    );
   }
 }
 
@@ -37,6 +44,16 @@ class _MockCalendarPage extends LScopedView<StoreBoundController> {
   Widget buildView(BuildContext context, StoreBoundController controller) {
     controller.storeTick.value;
     final store = controller.store;
+    final upcoming = store.selectedDaySessions
+        .where(
+          (s) => DateTime(
+            s.date.year,
+            s.date.month,
+            s.date.day,
+            s.endHour,
+          ).isAfter(SchoolClock.now()),
+        )
+        .toList();
     final selectedId = GoRouterState.of(context).pathParameters['id'];
 
     return AdaptiveContent(
@@ -72,15 +89,15 @@ class _MockCalendarPage extends LScopedView<StoreBoundController> {
             onSelectDay: (day) => store.selectCalendarDate(day),
           ),
           Expanded(
-            child: store.selectedDaySessions.isEmpty
+            child: upcoming.isEmpty
                 ? EmptyState(title: context.tr.noSessionsToday)
                 : ListView.separated(
                     padding: const EdgeInsets.all(PrototypeSpacing.md),
-                    itemCount: store.selectedDaySessions.length,
+                    itemCount: upcoming.length,
                     separatorBuilder: (_, _) =>
                         const SizedBox(height: PrototypeSpacing.xs),
                     itemBuilder: (context, i) {
-                      final s = store.selectedDaySessions[i];
+                      final s = upcoming[i];
                       final selected = selectedId == s.id;
                       return ListRow(
                         title: '${s.classLabel} · ${s.subject}',
@@ -123,7 +140,9 @@ class _LiveCalendarPage extends LView<LiveCalendarController> {
       controller.logbookCompleteBySessionId.value;
       controller.errorMessage.value;
       final selectedId = GoRouterState.of(context).pathParameters['id'];
-      final sessions = controller.sessionsForSelectedDay;
+      final sessions = controller.sessionsForSelectedDay
+          .where((s) => s.endsAt.isAfter(SchoolClock.now()))
+          .toList();
       final completion = controller.attendanceCompletionBySessionId.value;
       final logbookComplete = controller.logbookCompleteBySessionId.value;
       return AdaptiveContent(

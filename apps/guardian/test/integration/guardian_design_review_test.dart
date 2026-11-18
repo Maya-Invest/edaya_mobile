@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:edaya_guardian_v2/features/account/account_page.dart';
 import 'package:edaya_guardian_v2/features/account/account_profile_page.dart';
 import 'package:edaya_guardian_v2/features/account/settings_page.dart';
-import 'package:edaya_guardian_v2/features/calendar/attendance_page.dart';
+import 'package:edaya_guardian_v2/features/calendar/session_history_page.dart';
 import 'package:edaya_guardian_v2/features/calendar/calendar_page.dart';
 import 'package:edaya_guardian_v2/features/calendar/session_detail_page.dart';
 import 'package:edaya_guardian_v2/features/fees/fee_detail_page.dart';
@@ -141,7 +141,7 @@ Future<void> main() async {
                 slug: '03-attendance-list',
                 title: 'Attendance list',
                 description: 'Attendance records for the active student.',
-                pageType: AttendanceListPage,
+                pageType: SessionHistoryPage,
               ),
               (
                 path: '/session/s1',

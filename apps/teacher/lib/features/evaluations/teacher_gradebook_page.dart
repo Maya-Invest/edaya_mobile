@@ -60,7 +60,7 @@ class TeacherGradebookPage extends LScopedView<TeacherGradebookController> {
           ? ev.selectedPeriodId.value
           : null,
       isExpanded: true,
-      decoration: InputDecoration(labelText: context.tr.periodFallback),
+      decoration: InputDecoration(labelText: context.tr.workspacePeriod),
       items: [
         for (final p in ev.periods.value)
           DropdownMenuItem(
@@ -81,19 +81,12 @@ class TeacherGradebookPage extends LScopedView<TeacherGradebookController> {
     );
     final choice = _GradebookPicker(
       key: ValueKey(('evaluation', selected)),
-      initialValue: evaluations.any((e) => e.id == selected)
-          ? selected
-          : 'average',
+      initialValue: evaluations.any((e) => e.id == selected) ? selected : null,
       isExpanded: true,
-      decoration: InputDecoration(labelText: context.tr.results),
+      decoration: InputDecoration(
+        labelText: context.tr.workspaceChooseEvaluation,
+      ),
       items: [
-        DropdownMenuItem(
-          value: 'average',
-          child: Text(
-            context.tr.periodAverage,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
         for (final e in evaluations)
           DropdownMenuItem(
             value: e.id,
@@ -102,15 +95,22 @@ class TeacherGradebookPage extends LScopedView<TeacherGradebookController> {
       ],
       onChanged: (id) async {
         if (!await prepareWorkspaceChange(context) || !context.mounted) return;
-        ev.selectedEvaluationId(id == 'average' ? null : id);
+        if (id == null) return;
+        ev.selectedEvaluationId(id);
         context.replace(
-          id == 'average' ? '/evaluations' : '/evaluations?assessment=$id',
+          Uri(
+            path: '/evaluations',
+            queryParameters: {'view': 'evaluations', 'assessment': id},
+          ).toString(),
         );
-        if (id == 'average') c.load();
       },
     );
-    final add = IconButton.filled(
-      tooltip: context.tr.newAssessment,
+    final add = FilledButton.icon(
+      style: FilledButton.styleFrom(minimumSize: const Size(48, 48)),
+      label: Text(
+        context.tr.workspaceNewEvaluation,
+        textAlign: TextAlign.center,
+      ),
       icon: const Icon(Icons.add),
       onPressed: ev.selectedPeriodId.value == null
           ? null
@@ -122,49 +122,84 @@ class TeacherGradebookPage extends LScopedView<TeacherGradebookController> {
               await c.load();
             },
     );
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(PrototypeSpacing.md),
-          child: LayoutBuilder(
-            builder: (context, box) {
-              if (MediaQuery.textScalerOf(context).scale(14) > 22) {
-                return Column(
-                  children: [
-                    period,
-                    const SizedBox(height: 8),
-                    Row(
+    final showEvaluations =
+        selected != null ||
+        GoRouterState.of(context).uri.queryParameters['view'] == 'evaluations';
+    return DefaultTabController(
+      key: ValueKey(showEvaluations),
+      length: 2,
+      initialIndex: showEvaluations ? 1 : 0,
+      child: Builder(
+        builder: (context) => Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: LayoutBuilder(
+                builder: (context, box) {
+                  if (MediaQuery.textScalerOf(context).scale(14) > 22)
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [period, const SizedBox(height: 8), add],
+                    );
+                  return Row(
+                    children: [
+                      Expanded(child: period),
+                      const SizedBox(width: 8),
+                      Expanded(flex: 2, child: add),
+                    ],
+                  );
+                },
+              ),
+            ),
+            Builder(
+              builder: (tabContext) => TabBar(
+                isScrollable: MediaQuery.textScalerOf(context).scale(14) > 22,
+                tabs: [
+                  Tab(text: context.tr.workspacePeriodAverage),
+                  Tab(text: context.tr.workspaceEvaluations),
+                ],
+                onTap: (index) async {
+                  if (index == (showEvaluations ? 1 : 0)) return;
+                  if (!await prepareWorkspaceChange(context)) {
+                    if (context.mounted)
+                      DefaultTabController.of(tabContext).index =
+                          showEvaluations ? 1 : 0;
+                    return;
+                  }
+                  if (!context.mounted) return;
+                  ev.selectedEvaluationId(null);
+                  context.replace(
+                    '/evaluations?view=${index == 0 ? 'average' : 'evaluations'}',
+                  );
+                },
+              ),
+            ),
+            if (ev.errorMessage.value.isNotEmpty)
+              TextButton(
+                onPressed: ev.reload,
+                child: Text(ev.errorMessage.value),
+              ),
+            Expanded(
+              child: !showEvaluations
+                  ? _AverageRows(controller: c)
+                  : selected != null && evaluations.any((e) => e.id == selected)
+                  ? EvaluationMarksPane(
+                      key: ValueKey((active!.id, selected)),
+                      evaluationId: selected,
+                      header: choice,
+                    )
+                  : ListView(
+                      padding: const EdgeInsets.all(16),
                       children: [
-                        Expanded(child: choice),
-                        add,
+                        choice,
+                        const SizedBox(height: 16),
+                        Text(context.tr.workspaceChooseEvaluation),
                       ],
                     ),
-                  ],
-                );
-              }
-              return Row(
-                children: [
-                  Expanded(flex: 2, child: period),
-                  const SizedBox(width: 8),
-                  Expanded(flex: 3, child: choice),
-                  const SizedBox(width: 4),
-                  add,
-                ],
-              );
-            },
-          ),
+            ),
+          ],
         ),
-        if (ev.errorMessage.value.isNotEmpty)
-          TextButton(onPressed: ev.reload, child: Text(ev.errorMessage.value)),
-        Expanded(
-          child: selected != null && evaluations.any((e) => e.id == selected)
-              ? EvaluationMarksPane(
-                  key: ValueKey((active!.id, selected)),
-                  evaluationId: selected,
-                )
-              : _AverageRows(controller: c),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -188,6 +223,23 @@ class _AverageRows extends StatelessWidget {
       (row['average'] as num?)?.toDouble(),
       (row['grading'] as Map?)?.cast<String, dynamic>(),
     );
+    Widget averageValue(Map<String, dynamic> row) => Align(
+      alignment: Alignment.centerLeft,
+      widthFactor: 1,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primaryContainer,
+          borderRadius: BorderRadius.circular(PrototypeRadii.sm),
+        ),
+        child: Text(
+          result(row),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
+        ),
+      ),
+    );
     String appreciation(Map row) => row['comment'] == null
         ? context.tr.reportCardNotPrepared
         : (row['comment'] as Map)['proposal'] != null
@@ -207,7 +259,15 @@ class _AverageRows extends StatelessWidget {
           c.evaluations.selectedPeriodId.value,
         )),
         padding: const EdgeInsets.all(PrototypeSpacing.md),
+        physics: const AlwaysScrollableScrollPhysics(),
         children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              context.tr.workspacePeriodAverage,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
           if (c.students.value.isNotEmpty)
             ComparisonHeading([
               context.tr.student,
@@ -222,6 +282,7 @@ class _AverageRows extends StatelessWidget {
               child: SurfaceCard(
                 padding: EdgeInsets.zero,
                 child: ResponsiveRosterTile(
+                  cellWidgets: {1: averageValue(row)},
                   cells: [
                     '${row['lastName']} ${row['firstName']}',
                     result(row),
@@ -232,11 +293,11 @@ class _AverageRows extends StatelessWidget {
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (stackResult) Text(result(row)),
+                        if (stackResult) averageValue(row),
                         Text(appreciation(row)),
                       ],
                     ),
-                    trailing: stackResult ? null : Text(result(row)),
+                    trailing: stackResult ? null : averageValue(row),
                     onTap: () async {
                       await showWorkspaceEditor<Object?>(
                         context: context,
@@ -338,7 +399,12 @@ class _SubjectSummary extends StatelessWidget {
 }
 
 class EvaluationMarksPane extends LScopedView<LiveMarksController> {
-  const EvaluationMarksPane({super.key, required this.evaluationId});
+  const EvaluationMarksPane({
+    super.key,
+    required this.evaluationId,
+    this.header,
+  });
+  final Widget? header;
   final String evaluationId;
   @override
   LiveMarksController onConfigScope(LevitScope scope) => scope.put(
@@ -360,7 +426,7 @@ class EvaluationMarksPane extends LScopedView<LiveMarksController> {
   );
   @override
   Widget buildView(BuildContext context, LiveMarksController controller) {
-    return GradebookMarksView(controller: controller);
+    return GradebookMarksView(controller: controller, header: header);
   }
 }
 

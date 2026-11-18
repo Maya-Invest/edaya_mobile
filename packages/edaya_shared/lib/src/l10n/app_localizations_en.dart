@@ -3508,4 +3508,61 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get academicSubjects => 'Subjects';
+
+  @override
+  String get workspaceSchedule => 'Schedule';
+
+  @override
+  String get workspaceHistory => 'History';
+
+  @override
+  String get workspaceNotifications => 'Notifications';
+
+  @override
+  String get workspaceChapters => 'Chapters';
+
+  @override
+  String get workspacePeriodAverage => 'Period average';
+
+  @override
+  String get workspaceEvaluations => 'Evaluations';
+
+  @override
+  String get workspaceNewEvaluation => 'New evaluation';
+
+  @override
+  String get workspaceActions => 'Actions';
+
+  @override
+  String get workspaceNoHistory => 'No past sessions in this period';
+
+  @override
+  String get workspaceLoadOlder => 'Load older';
+
+  @override
+  String get workspaceNotRecorded => 'Not recorded';
+
+  @override
+  String get workspaceAttendanceComplete => 'Attendance completed';
+
+  @override
+  String get workspaceAttendanceIncomplete => 'Attendance incomplete';
+
+  @override
+  String get workspaceLogbookComplete => 'Logbook completed';
+
+  @override
+  String get workspaceLogbookIncomplete => 'Logbook incomplete';
+
+  @override
+  String get workspacePeriod => 'Period';
+
+  @override
+  String get workspaceChooseEvaluation => 'Choose an evaluation';
+
+  @override
+  String get workspaceJustificationRejected => 'Justification rejected';
+
+  @override
+  String get workspaceJustificationPending => 'Justification pending';
 }

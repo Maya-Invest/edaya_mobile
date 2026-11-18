@@ -1,4 +1,5 @@
 import 'package:edaya_api_client/edaya_api_client.dart';
+import 'school_clock.dart';
 part 'demo_teaching.dart';
 part 'demo_family.dart';
 
@@ -8,9 +9,11 @@ typedef Row = Map<String, dynamic>;
 /// A request runs inside one SQLite transaction, including its retry receipt.
 class DemoSchool {
   DemoSchool(this.data, this.role, String? selectedYear)
-    : year = selectedYear ?? 'demo-2026';
+    : year = selectedYear ?? 'demo-2026',
+      yearScoped = selectedYear != null;
   final Row data;
   final String role, year;
+  final bool yearScoped;
   bool changed = false;
   bool get teacher => role == 'teacher';
   String get actor => 'demo-$role';
@@ -68,7 +71,9 @@ class DemoSchool {
     'studentId': id,
   }).isNotEmpty;
   bool visible(String table, Row row) {
-    if (row['academicYearId'] != null && row['academicYearId'] != year) {
+    if ((yearScoped || !['enrollments', 'class-groups'].contains(table)) &&
+        row['academicYearId'] != null &&
+        row['academicYearId'] != year) {
       return false;
     }
     if (table == 'message-deliveries') return row['recipientId'] == actor;
@@ -178,6 +183,71 @@ class DemoSchool {
 
   Object? query(String name, Row b) {
     switch (name) {
+      case 'get-student-session-history':
+      case 'get-teacher-session-history':
+        final isTeacher = name == 'get-teacher-session-history';
+        final timetable =
+            query(
+                  isTeacher ? 'get-teacher-timetable' : 'get-student-timetable',
+                  b,
+                )
+                as Row;
+        final selectedYear = one('academic-years', b['academicYearId']);
+        final entries = <Row>[
+          for (final event in (timetable['events'] as List).cast<Row>())
+            if (DateTime.parse(event['endsAt']).isBefore(SchoolClock.now()) &&
+                (b['classSubjectId'] == null ||
+                    b['classSubjectId'] == event['classSubjectId']))
+              {
+                ...event,
+                'attendance': isTeacher
+                    ? null
+                    : matching('attendance', {
+                        'studentId': b['studentId'],
+                        'lessonSessionId': event['id'],
+                      }).firstOrNull,
+                'attendanceComplete': isTeacher
+                    ? matching('attendance', {
+                        'lessonSessionId': event['id'],
+                      }).isNotEmpty
+                    : null,
+                'logbookComplete': isTeacher
+                    ? (event['sessionNote'] as String? ?? '').isNotEmpty ||
+                          matching('class-subject-progress', {
+                            'lessonSessionId': event['id'],
+                          }).isNotEmpty
+                    : null,
+              },
+          if (!isTeacher)
+            for (final record in matching('attendance', {
+              'studentId': b['studentId'],
+            }))
+              if (record['attendanceId'] != null &&
+                  '${record['date']}'.compareTo(b['startDate']) >= 0 &&
+                  '${record['date']}'
+                          .substring(0, 10)
+                          .compareTo(b['endDate']) <=
+                      0)
+                {
+                  'id': record['id'],
+                  'kind': 'daily',
+                  'title': '',
+                  'startsAt': record['date'],
+                  'endsAt': record['date'],
+                  'attendance': record,
+                },
+        ]..sort((a, b) => '${b['startsAt']}'.compareTo('${a['startsAt']}'));
+        return {
+          'entries': entries,
+          'startDate': b['startDate'],
+          'endDate': b['endDate'],
+          'timeZone': one('schools', school)['timeZone'],
+          'hasMore':
+              '${b['startDate']}'.compareTo(
+                '${selectedYear['startDate'] ?? selectedYear['startsAt']}',
+              ) >
+              0,
+        };
       case 'get-teacher-timetable':
       case 'get-class-group-timetable':
       case 'get-student-timetable':

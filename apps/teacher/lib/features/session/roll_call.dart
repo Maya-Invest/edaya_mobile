@@ -167,6 +167,9 @@ class _RollCallState extends State<RollCall> {
     final index = rows.indexWhere((r) => r.studentId == pupil);
     final photo = !widget.submitted && index >= 0;
     final enabled = !widget.busy && !writing;
+    final compact =
+        MediaQuery.sizeOf(context).width < 600 &&
+        MediaQuery.textScalerOf(context).scale(14) <= 22;
     if (rows.isEmpty && widget.busy)
       return const Center(child: CircularProgressIndicator());
     final progress = Text(context.tr.rollRosterCount(rows.length, count));
@@ -211,7 +214,36 @@ class _RollCallState extends State<RollCall> {
           Wrap(
             alignment: WrapAlignment.spaceBetween,
             crossAxisAlignment: WrapCrossAlignment.center,
-            children: [progress, toggle],
+            children: [
+              progress,
+              if (compact)
+                PopupMenuButton<int>(
+                  tooltip: context.tr.workspaceActions,
+                  icon: const Icon(Icons.more_vert),
+                  onSelected: (i) {
+                    if (i == 0) {
+                      toggle.onPressed?.call();
+                    } else {
+                      perform(() => afterRowWrites(widget.onSync));
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    PopupMenuItem(
+                      value: 0,
+                      enabled: toggle.onPressed != null,
+                      child: Text(context.tr.rollList),
+                    ),
+                    if (showRetry)
+                      PopupMenuItem(
+                        value: 1,
+                        enabled: enabled,
+                        child: Text(context.tr.retry),
+                      ),
+                  ],
+                )
+              else
+                toggle,
+            ],
           ),
           const SizedBox(height: 16),
           Center(
@@ -255,7 +287,16 @@ class _RollCallState extends State<RollCall> {
               onSelect: enabled ? (s) => markInPhoto(row, s) : null,
             ),
           ),
-          if (notice != null) Center(child: notice),
+          if (notice != null)
+            Center(
+              child: compact && showRetry
+                  ? Text(
+                      widget.message.isEmpty
+                          ? context.tr.rollToSend
+                          : widget.message,
+                    )
+                  : notice,
+            ),
         ],
       );
     }
@@ -288,6 +329,46 @@ class _RollCallState extends State<RollCall> {
                   child: Text(context.tr.attendanceFinish),
                 ),
               ];
+              if (compact)
+                return Row(
+                  children: [
+                    Expanded(child: progress),
+                    if ((!widget.submitted && rows.isNotEmpty) || showRetry)
+                      PopupMenuButton<int>(
+                        key: const ValueKey('session-actions'),
+                        tooltip: context.tr.workspaceActions,
+                        icon: const Icon(Icons.more_vert),
+                        onSelected: (i) {
+                          if (i == 3) {
+                            perform(() => afterRowWrites(widget.onSync));
+                          } else {
+                            actions[i].onPressed?.call();
+                          }
+                        },
+                        itemBuilder: (_) => [
+                          if (!widget.submitted && rows.isNotEmpty)
+                            for (var i = 0; i < actions.length; i++)
+                              PopupMenuItem(
+                                value: i,
+                                enabled: actions[i].onPressed != null,
+                                child: Text(
+                                  [
+                                    context.tr.rollOneByOne,
+                                    context.tr.rollMarkRemaining,
+                                    context.tr.attendanceFinish,
+                                  ][i],
+                                ),
+                              ),
+                          if (showRetry)
+                            PopupMenuItem(
+                              value: 3,
+                              enabled: enabled,
+                              child: Text(context.tr.retry),
+                            ),
+                        ],
+                      ),
+                  ],
+                );
               if (widget.submitted || rows.isEmpty) return progress;
               final buttons = Wrap(
                 spacing: 8,
@@ -309,7 +390,13 @@ class _RollCallState extends State<RollCall> {
         if (notice != null)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: notice,
+            child: compact && showRetry
+                ? Text(
+                    widget.message.isEmpty
+                        ? context.tr.rollToSend
+                        : widget.message,
+                  )
+                : notice,
           ),
       ],
       roster: rows.isEmpty
@@ -350,26 +437,34 @@ class _RollCallState extends State<RollCall> {
     final card = Builder(
       key: ValueKey(id),
       builder: (context) {
+        final compact =
+            MediaQuery.sizeOf(context).width < 600 &&
+            MediaQuery.textScalerOf(context).scale(14) <= 22;
         final name = Row(
           children: [
-            PersonAvatar(
-              initials: row.initials,
-              photoUrl: row.photoUrl,
-              radius: 20,
-            ),
-            const SizedBox(width: 8),
+            if (!compact || MediaQuery.sizeOf(context).width >= 360)
+              PersonAvatar(
+                initials: row.initials,
+                photoUrl: row.photoUrl,
+                radius: 20,
+              ),
+            if (!compact || MediaQuery.sizeOf(context).width >= 360)
+              const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     row.fullName,
+                    maxLines: compact ? 1 : null,
+                    overflow: compact ? TextOverflow.ellipsis : null,
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
-                  if (row.reason?.isNotEmpty ?? false) Text(row.reason!),
-                  if (departure != null)
+                  if (!compact && (row.reason?.isNotEmpty ?? false))
+                    Text(row.reason!),
+                  if (!compact && departure != null)
                     Text(_departureLabel(context, departure)),
-                  if (row.pendingCorrection != null)
+                  if (!compact && row.pendingCorrection != null)
                     Text(context.tr.workflowCorrectionPending),
                 ],
               ),
@@ -387,17 +482,19 @@ class _RollCallState extends State<RollCall> {
             ? _StatusLabel(status: status, text: _statusText(context, status))
             : AttendanceStatusPicker(
                 current: status,
+                compact: compact,
                 onSelect: enabled ? (s) => markInRoster(currentRow(), s) : null,
               );
         return SurfaceCard(
           child: LayoutBuilder(
             builder: (_, constraints) {
-              if (constraints.maxWidth >= 470 &&
-                  MediaQuery.textScalerOf(context).scale(14) < 22) {
+              if (compact ||
+                  (constraints.maxWidth >= 470 &&
+                      MediaQuery.textScalerOf(context).scale(14) < 22)) {
                 return Row(
                   children: [
                     Expanded(child: name),
-                    const SizedBox(width: 12),
+                    SizedBox(width: compact ? 4 : 12),
                     control,
                   ],
                 );
@@ -495,10 +592,11 @@ class AttendanceStatusPicker extends StatelessWidget {
     required this.current,
     required this.onSelect,
     this.includeLate = false,
+    this.compact = false,
   });
   final AttendanceStatus? current;
   final ValueChanged<AttendanceStatus>? onSelect;
-  final bool includeLate;
+  final bool includeLate, compact;
 
   @override
   Widget build(BuildContext context) {
@@ -517,17 +615,36 @@ class AttendanceStatusPicker extends StatelessWidget {
               final (background, foreground) = _colors(context, status);
               final selected = status == current;
               return ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 48),
+                constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
                 child: ChoiceChip(
                   materialTapTargetSize: MaterialTapTargetSize.padded,
                   visualDensity: VisualDensity.standard,
-                  label: Text(switch (status) {
-                    AttendanceStatus.present => context.tr.attendancePresent,
-                    AttendanceStatus.absent => context.tr.attendanceAbsent,
-                    _ => context.tr.attendanceLate,
-                  }),
+                  tooltip: _statusText(context, status),
+                  labelPadding: compact
+                      ? const EdgeInsets.symmetric(horizontal: 4)
+                      : null,
+                  label: compact
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              status == AttendanceStatus.present
+                                  ? Icons.check
+                                  : status == AttendanceStatus.absent
+                                  ? Icons.close
+                                  : Icons.schedule,
+                              size: 20,
+                              semanticLabel: _statusText(context, status),
+                            ),
+                            if (selected) ...[
+                              const SizedBox(width: 4),
+                              Text(_statusText(context, status)),
+                            ],
+                          ],
+                        )
+                      : Text(_statusText(context, status)),
                   selected: selected,
-                  showCheckmark: true,
+                  showCheckmark: !compact,
                   checkmarkColor: foreground,
                   selectedColor: background,
                   labelStyle: TextStyle(

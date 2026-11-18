@@ -35,6 +35,22 @@ void main() {
       final scope = (await client.effectiveGrants()).guardianScope!;
       expect(scope.studentIds, unorderedEquals(['demo-amina', 'demo-youssef']));
       expect(await client.students.listAll(), hasLength(2));
+      final placements = await client.enrollments.listAll({
+        'studentId': 'demo-amina',
+      });
+      expect(
+        placements.map((e) => e['academicYearId']).toSet(),
+        containsAll(['demo-2025', 'demo-2026']),
+      );
+      final sessions = await client.runQuery('get-student-session-history', {
+        'studentId': 'demo-amina',
+        'academicYearId': 'demo-2026',
+        'startDate': '2026-11-01',
+        'endDate': '2026-11-10',
+      });
+      expect(sessions['entries'], isA<List>());
+      expect(sessions['timeZone'], 'Africa/Abidjan');
+      expect(sessions['hasMore'], true);
       await expectLater(
         client.students.get('demo-fatou'),
         throwsA(isA<ApiError>()),

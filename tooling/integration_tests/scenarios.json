@@ -57,7 +57,7 @@
     "guardian-v2.coverage.routes",
     "guardian-v2.academics.redirects",
     "guardian-v2.account.security",
-    "guardian-v2.attendancelistpage-loads-student-attendance-records",
+    "guardian-v2.calendar.history",
     "guardian-v2.auth.restore-stale",
     "guardian-v2.auth.totp-recovery",
     "guardian-v2.calendar.events",

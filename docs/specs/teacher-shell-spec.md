@@ -244,7 +244,7 @@ On mobile and tablet the grid starts directly with the first available activity 
 
 ### Évaluations and Bulletins
 
-Évaluations opens on the pupil roster with **Période | Moyenne de la période / Évaluation | +**. Default to the current period and its average. The result picker puts the average first and evaluations newest first. Changing period or assignment returns to the average. Create/duplicate in a sheet with the selected teaching context and select the saved assessment. Use a compact accessible plus button at narrow widths and wrap the toolbar at enlarged text.
+Évaluations opens with **Période | Nouvelle évaluation** and **Moyenne de la période / Évaluations** tabs. Default to the current period and its average. The evaluation chooser scrolls with the content and lists evaluations newest first. Average values use tinted containers. Changing period or assignment returns to the average. Create/duplicate in a sheet with the selected teaching context and select the saved assessment. Keep the creation button filled and fully labeled; stack controls at enlarged text when required.
 
 Average rows use the authorized server subject-period summary: submitted official results, canonical coefficients and grading rules, active eligible pupils plus retained assessment pupils, contributing assessments and only the teacher's own subject-comment state. Draft marks and pending proposals do not change averages. No eligible result displays an unavailable value, never zero. Pupils without academic records remain visible. A prepared subject section is required to edit its appreciation. This view has no submission panel.
 
@@ -258,7 +258,7 @@ Bulletins is restricted to the selected class's titulaire. Its period picker ope
 
 Preserve existing deep links. Assessment links select their authorized teaching assignment and evaluation. Former subject-teacher bulletin links resolve to the subject average/comment view. Home, Agenda and Progression open a full session page. The Appel and Cahier de texte tabs share one lesson controller. Logbook and attendance links select the corresponding tab. The logbook editor opens in one sheet above the session. Pending proposals stay on their source records without a teacher approval-history destination.
 
-Home tiles use theme surface fills, 16dp token radii, soft shadows, primary-container icon wells, 16dp phone gutters and 24dp section spacing. Compact detail pages put the context switch below the title; wider pages put it in the title row. Agenda keeps previous/next-week chevrons, 4dp day spacing and scrollable 48dp day targets at narrow widths. Use **Cahier de texte** in French and **Logbook** in English.
+Home tiles use theme surface fills, 16dp token radii, soft shadows, primary-container icon wells, 16dp phone gutters and 24dp section spacing. Feature pages use 20sp titles with the context switch constrained and ellipsized on the title row. Home typography, context, spacing and layout remain unchanged. Agenda keeps previous/next-week chevrons, 4dp day spacing and scrollable 48dp day targets at narrow widths. Use **Cahier de texte** in French and **Logbook** in English.
 
 Current implementations are `workspace_home.dart`, `workspace_navigation.dart`, `teacher_gradebook_page.dart` and `workspace_classes.dart`. Chrome evidence and verification outcomes live in `bin/audits/edaya-teacher-ux-2026-11-03`.
 
@@ -275,3 +275,8 @@ Session tabs pair an icon with each label. The logbook has separate General info
 ## Offline demo
 
 **Try demo** opens Aminata Traoré’s teaching workspace on 10 November 2026. She teaches mathematics to 6e A and 6e B and is the homeroom teacher for 6e B. The local school supports roll call, logbooks, marks, report comments, incidents, family messages and the signature editor. Requests that need a school reviewer stay pending. Sample published and reviewed records are available separately. The app restores the same workspace at launch until the teacher confirms **Exit demo** in Account.
+
+
+Teacher Progress uses Chapters / Logbook tabs, initially Chapters. Messages uses Conversations / Notifications, initially Conversations, with composition only in Conversations and pull-to-refresh on both tabs including empty lists. Refresh buttons are omitted; surveys retain their destination.
+
+Agenda uses Schedule / History tabs, initially Schedule, with route-backed selection and retained scroll on detail return. History includes ended sessions newest first within the selected school/year/class context. Completion comes from saved occurrence attendance/logbook state. Load older reads bounded date windows back to the year start. Daily register and session attendance-taking workflows remain available. Below 600dp session page actions move into a three-dot menu, while enlarged text may simplify or stack pupil controls. Save and Cancel remain visible within editors.

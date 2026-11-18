@@ -46,21 +46,13 @@ class ClassSections extends StatelessWidget {
 class ProgressPage extends StatelessWidget {
   const ProgressPage({super.key});
   @override
-  Widget build(BuildContext context) => ListView(
-    padding: const EdgeInsets.all(16),
-    children: [
-      ClassSections(
-        builder: (c) => _Progress(
-          key: ValueKey(
-            context.levit
-                .find<TeacherContextController>()
-                .activeAssignmentId
-                .value,
-          ),
-          id: c.id,
-        ),
+  Widget build(BuildContext context) => ClassSections(
+    builder: (c) => _Progress(
+      key: ValueKey(
+        context.levit.find<TeacherContextController>().activeAssignmentId.value,
       ),
-    ],
+      id: c.id,
+    ),
   );
 }
 
@@ -92,50 +84,61 @@ class _Progress extends LScopedView<LiveClassWorkspaceController> {
             ),
           ),
 
-        WorkspaceColumns(
-          first: [
-            Text(
-              context.tr.chapters,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            if (c.progressOverview.value case final overview?)
-              Text(
-                overview.chapterCount == 0
-                    ? context.tr.logbookEmptyCurriculum
-                    : '${overview.classSubjectCompletedPercentage}% · ${context.tr.logbookChapterCounts(overview.completedChapterCount, overview.chapterCount, overview.ongoingChapterCount)}',
+        Expanded(
+          child: WorkspaceTabs(
+            values: const ['chapters', 'logbook'],
+            labels: [context.tr.workspaceChapters, context.tr.logbook],
+            children: [
+              ListView(
+                key: PageStorageKey(('chapters', id)),
+                padding: const EdgeInsets.all(16),
+                children: [
+                  if (c.progressOverview.value case final overview?)
+                    Text(
+                      overview.chapterCount == 0
+                          ? context.tr.logbookEmptyCurriculum
+                          : '${overview.classSubjectCompletedPercentage}% · ${context.tr.logbookChapterCounts(overview.completedChapterCount, overview.chapterCount, overview.ongoingChapterCount)}',
+                    ),
+                  for (final m
+                      in c.progressOverview.value?.matters ??
+                          const <TeachingMatterProgress>[])
+                    ListTile(
+                      title: Text(m.name),
+                      trailing: Text(switch (m.status) {
+                        TeachingMatterStatus.completed =>
+                          context.tr.matterStatusCompleted,
+                        TeachingMatterStatus.inProgress =>
+                          context.tr.matterStatusInProgress,
+                        TeachingMatterStatus.notStarted =>
+                          context.tr.matterStatusNotStarted,
+                      }),
+                    ),
+                ],
               ),
-            for (final m
-                in c.progressOverview.value?.matters ??
-                    const <TeachingMatterProgress>[])
-              ListTile(
-                title: Text(m.name),
-                trailing: Text(switch (m.status) {
-                  TeachingMatterStatus.completed =>
-                    context.tr.matterStatusCompleted,
-                  TeachingMatterStatus.inProgress =>
-                    context.tr.matterStatusInProgress,
-                  TeachingMatterStatus.notStarted =>
-                    context.tr.matterStatusNotStarted,
-                }),
+              ListView(
+                key: PageStorageKey(('logbook', id)),
+                padding: const EdgeInsets.all(16),
+                children: [
+                  Text(
+                    context.tr.logbook,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  if (entries.isEmpty && !c.isBusy.value)
+                    ListTile(title: Text(context.tr.noCompletedLogbook)),
+                  for (final l in entries)
+                    ListTile(
+                      title: Text(l.displayLabel),
+                      subtitle: Text(
+                        '${formatDate(l.startsAt)} · ${context.tr.logbookCompleted}',
+                      ),
+                      onTap: () => context.push(
+                        '/session/${l.lessonSessionId}?tab=logbook',
+                      ),
+                    ),
+                ],
               ),
-          ],
-          second: [
-            Text(
-              context.tr.logbook,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            if (entries.isEmpty && !c.isBusy.value)
-              ListTile(title: Text(context.tr.noCompletedLogbook)),
-            for (final l in entries)
-              ListTile(
-                title: Text(l.displayLabel),
-                subtitle: Text(
-                  '${formatDate(l.startsAt)} · ${context.tr.logbookCompleted}',
-                ),
-                onTap: () =>
-                    context.push('/session/${l.lessonSessionId}?tab=logbook'),
-              ),
-          ],
+            ],
+          ),
         ),
       ],
     );

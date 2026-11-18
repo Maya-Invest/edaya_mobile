@@ -11,7 +11,8 @@ import 'package:edaya_api_client/edaya_api_client.dart'
     show GeneratedSchoolClientEntities;
 
 class GradebookMarksView extends StatefulWidget {
-  const GradebookMarksView({super.key, required this.controller});
+  const GradebookMarksView({super.key, required this.controller, this.header});
+  final Widget? header;
   final LiveMarksController controller;
   @override
   State<GradebookMarksView> createState() => _GradebookMarksState();
@@ -112,47 +113,57 @@ class _GradebookMarksState extends State<GradebookMarksView> {
               child: Column(
                 children: List.generate(rows.length + 1, (index) {
                   if (index == 0) {
-                    return Row(
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Expanded(
-                          child: Text(
-                            submitted
-                                ? tr.gradebookOfficial
-                                : tr.gradebookDraft,
-                            style: Theme.of(context).textTheme.titleMedium,
+                        if (widget.header != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: widget.header!,
                           ),
-                        ),
-                        IconButton(
-                          tooltip: tr.duplicateEvaluation,
-                          icon: const Icon(Icons.copy_outlined),
-                          onPressed: () async {
-                            if (!await leave() || !context.mounted) return;
-                            try {
-                              final source = await context.levit
-                                  .find<SchoolClientFactory>()()
-                                  .assessments
-                                  .get(c.evaluationId);
-                              if (!context.mounted) return;
-                              await showWorkspaceEditor<void>(
-                                context: context,
-                                ownerUri: Uri(
-                                  path: '/evaluations',
-                                  queryParameters: {
-                                    'assessment': c.evaluationId,
-                                  },
-                                ),
-                                title: tr.duplicateEvaluation,
-                                builder: (_, close) =>
-                                    EvaluationCreatePage(source: source),
-                              );
-                            } on Object catch (e) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(
-                                  context,
-                                ).showSnackBar(SnackBar(content: Text('$e')));
-                              }
-                            }
-                          },
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                submitted
+                                    ? tr.gradebookOfficial
+                                    : tr.gradebookDraft,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: tr.duplicateEvaluation,
+                              icon: const Icon(Icons.copy_outlined),
+                              onPressed: () async {
+                                if (!await leave() || !context.mounted) return;
+                                try {
+                                  final source = await context.levit
+                                      .find<SchoolClientFactory>()()
+                                      .assessments
+                                      .get(c.evaluationId);
+                                  if (!context.mounted) return;
+                                  await showWorkspaceEditor<void>(
+                                    context: context,
+                                    ownerUri: Uri(
+                                      path: '/evaluations',
+                                      queryParameters: {
+                                        'assessment': c.evaluationId,
+                                      },
+                                    ),
+                                    title: tr.duplicateEvaluation,
+                                    builder: (_, close) =>
+                                        EvaluationCreatePage(source: source),
+                                  );
+                                } on Object catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('$e')),
+                                    );
+                                  }
+                                }
+                              },
+                            ),
+                          ],
                         ),
                       ],
                     );

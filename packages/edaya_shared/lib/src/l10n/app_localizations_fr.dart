@@ -3541,4 +3541,61 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get academicSubjects => 'Enseignements';
+
+  @override
+  String get workspaceSchedule => 'Planning';
+
+  @override
+  String get workspaceHistory => 'Historique';
+
+  @override
+  String get workspaceNotifications => 'Notifications';
+
+  @override
+  String get workspaceChapters => 'Chapitres';
+
+  @override
+  String get workspacePeriodAverage => 'Moyenne de la période';
+
+  @override
+  String get workspaceEvaluations => 'Évaluations';
+
+  @override
+  String get workspaceNewEvaluation => 'Nouvelle évaluation';
+
+  @override
+  String get workspaceActions => 'Actions';
+
+  @override
+  String get workspaceNoHistory => 'Aucune séance passée sur cette période';
+
+  @override
+  String get workspaceLoadOlder => 'Afficher les précédentes';
+
+  @override
+  String get workspaceNotRecorded => 'Non renseigné';
+
+  @override
+  String get workspaceAttendanceComplete => 'Appel terminé';
+
+  @override
+  String get workspaceAttendanceIncomplete => 'Appel incomplet';
+
+  @override
+  String get workspaceLogbookComplete => 'Cahier renseigné';
+
+  @override
+  String get workspaceLogbookIncomplete => 'Cahier à renseigner';
+
+  @override
+  String get workspacePeriod => 'Période';
+
+  @override
+  String get workspaceChooseEvaluation => 'Choisir une évaluation';
+
+  @override
+  String get workspaceJustificationRejected => 'Justificatif refusé';
+
+  @override
+  String get workspaceJustificationPending => 'Justificatif en attente';
 }

@@ -5994,6 +5994,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Subjects'**
   String get academicSubjects;
+
+  /// No description provided for @workspaceSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get workspaceSchedule;
+
+  /// No description provided for @workspaceHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get workspaceHistory;
+
+  /// No description provided for @workspaceNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get workspaceNotifications;
+
+  /// No description provided for @workspaceChapters.
+  ///
+  /// In en, this message translates to:
+  /// **'Chapters'**
+  String get workspaceChapters;
+
+  /// No description provided for @workspacePeriodAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Period average'**
+  String get workspacePeriodAverage;
+
+  /// No description provided for @workspaceEvaluations.
+  ///
+  /// In en, this message translates to:
+  /// **'Evaluations'**
+  String get workspaceEvaluations;
+
+  /// No description provided for @workspaceNewEvaluation.
+  ///
+  /// In en, this message translates to:
+  /// **'New evaluation'**
+  String get workspaceNewEvaluation;
+
+  /// No description provided for @workspaceActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Actions'**
+  String get workspaceActions;
+
+  /// No description provided for @workspaceNoHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No past sessions in this period'**
+  String get workspaceNoHistory;
+
+  /// No description provided for @workspaceLoadOlder.
+  ///
+  /// In en, this message translates to:
+  /// **'Load older'**
+  String get workspaceLoadOlder;
+
+  /// No description provided for @workspaceNotRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded'**
+  String get workspaceNotRecorded;
+
+  /// No description provided for @workspaceAttendanceComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance completed'**
+  String get workspaceAttendanceComplete;
+
+  /// No description provided for @workspaceAttendanceIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance incomplete'**
+  String get workspaceAttendanceIncomplete;
+
+  /// No description provided for @workspaceLogbookComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Logbook completed'**
+  String get workspaceLogbookComplete;
+
+  /// No description provided for @workspaceLogbookIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Logbook incomplete'**
+  String get workspaceLogbookIncomplete;
+
+  /// No description provided for @workspacePeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get workspacePeriod;
+
+  /// No description provided for @workspaceChooseEvaluation.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an evaluation'**
+  String get workspaceChooseEvaluation;
+
+  /// No description provided for @workspaceJustificationRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Justification rejected'**
+  String get workspaceJustificationRejected;
+
+  /// No description provided for @workspaceJustificationPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Justification pending'**
+  String get workspaceJustificationPending;
 }
 
 class _AppLocalizationsDelegate

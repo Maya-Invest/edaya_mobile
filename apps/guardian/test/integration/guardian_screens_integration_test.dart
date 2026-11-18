@@ -3,7 +3,7 @@ library;
 
 import 'package:edaya_api_client/edaya_api_client.dart';
 import 'package:edaya_guardian_v2/app/workspace_shell.dart';
-import 'package:edaya_guardian_v2/design/components/list_row.dart';
+import 'package:edaya_guardian_v2/design/components/components.dart';
 import 'package:edaya_guardian_v2/design/components/summary_metric.dart';
 import 'package:edaya_guardian_v2/features/calendar/session_detail_page.dart';
 import 'package:edaya_guardian_v2/features/context/student_context_controller.dart';
@@ -16,7 +16,8 @@ import 'package:edaya_guardian_v2/features/inbox/inbox_routes.dart';
 import 'package:edaya_guardian_v2/features/inbox/message_detail_page.dart';
 import 'package:edaya_guardian_v2/features/scolarite/subject_grades_page.dart';
 import 'package:edaya_integration_tests/edaya_integration_tests.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -114,19 +115,52 @@ void _mariamKoneSuite() {
     );
 
     testWidgets(
-      '[guardian-v2.attendancelistpage-loads-student-attendance-records] AttendanceListPage loads student attendance records',
+      '[guardian-v2.calendar.history] legacy Presence opens Agenda history with saved attendance',
       (tester) async {
         await openAttendancePage(tester, harness);
 
-        expect(find.text('Présences'), findsWidgets);
+        expect(find.text('Historique'), findsOneWidget);
+        expect(
+          harness
+              .router
+              .routeInformationProvider
+              .value
+              .uri
+              .queryParameters['tab'],
+          'history',
+        );
 
         expect(
           probes.attendance,
           isNotEmpty,
           reason: 'Required attendance fixture',
         );
-        await pumpUntilFound(tester, find.byType(ListRow));
-        expect(find.byType(ListRow), findsWidgets);
+        await pumpUntilFound(tester, find.byType(ListTile));
+        expect(find.byType(ListTile), findsWidgets);
+        final history = tester
+            .element(
+              find.descendant(
+                of: find.byType(SessionHistoryPanel),
+                matching: find.byType(ListView),
+              ),
+            )
+            .levit
+            .find<SessionHistoryController>();
+        if (history.hasMore.value) {
+          final existing = history.entries.value
+              .map((e) => '${e['kind']}/${e['id']}')
+              .toSet();
+          await history.load();
+          await tester.pump();
+          expect(history.error.value, isFalse);
+          expect(
+            history.entries.value
+                .map((e) => '${e['kind']}/${e['id']}')
+                .toSet()
+                .containsAll(existing),
+            isTrue,
+          );
+        }
       },
     );
   });
@@ -162,10 +196,10 @@ void _mariamKoneSuite() {
 
         await pumpUntilFound(
           tester,
-          find.textContaining('% du programme couvert'),
+          find.byType(PrototypeProgressBar),
           timeout: const Duration(seconds: 45),
         );
-        expect(find.textContaining('% du programme couvert'), findsWidgets);
+        expect(find.byType(PrototypeProgressBar), findsWidgets);
       },
     );
 
@@ -247,10 +281,21 @@ void _mariamKoneSuite() {
         await pumpGuardianRoute(
           tester,
           harness,
-          location: '/fees/payment/${payment!.id}',
+          location:
+              '/payment/${payment!.id}?year=${harness.profile!.academicYearId}',
         );
         final labels = lookupAppLocalizations(harness.appLocale);
         final detail = find.byType(PaymentDetailPage);
+        await pumpUntilFound(tester, detail);
+        expect(
+          harness
+              .router
+              .routeInformationProvider
+              .value
+              .uri
+              .queryParameters['year'],
+          harness.profile!.academicYearId,
+        );
         await pumpUntilFound(
           tester,
           find.descendant(

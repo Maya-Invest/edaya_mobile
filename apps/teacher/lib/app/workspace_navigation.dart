@@ -479,20 +479,7 @@ class WorkspaceShell extends StatelessWidget {
     final title = account
         ? context.tr.myProfile
         : owners.firstOrNull?.label(context.tr);
-    final compact = MediaQuery.sizeOf(context).width < 600;
-    final classButton = TextButton.icon(
-      onPressed: () => chooseContext(context),
-      icon: const Icon(Icons.groups_outlined),
-      label: LWatch(
-        () => Text(
-          context.levit
-                  .find<TeacherContextController>()
-                  .activeAssignment
-                  ?.label ??
-              context.tr.noAssignment,
-        ),
-      ),
-    );
+    const classButton = ClassContextButton();
     return Scaffold(
       appBar: home
           ? AppBar(
@@ -587,23 +574,16 @@ class WorkspaceShell extends StatelessWidget {
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => backFromWorkspace(context),
               ),
-              title: Text(title),
+              toolbarHeight: MediaQuery.textScalerOf(context).scale(20) + 36,
+              title: WorkspacePageHeading(
+                title: title,
+                picker: live && !account ? classButton : null,
+              ),
               centerTitle: false,
-              actions: [if (live && !account && !compact) classButton],
             ),
       body: SafeArea(
         child: Column(
           children: [
-            if (!home && !account && title != null && live && compact)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: PrototypeSpacing.xs,
-                ),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: classButton,
-                ),
-              ),
             if (GoRouter.maybeOf(context) case final router?)
               ValueListenableBuilder<RouteInformation>(
                 valueListenable: router.routeInformationProvider,
@@ -1024,5 +1004,33 @@ class RecordSheetPage extends Page<Object?> {
         ),
       );
     },
+  );
+}
+
+class ClassContextButton extends StatelessWidget {
+  const ClassContextButton({super.key});
+  @override
+  Widget build(BuildContext context) => TextButton(
+    style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+    onPressed: () => chooseContext(context),
+    child: Row(
+      children: [
+        const Icon(Icons.groups_outlined),
+        const SizedBox(width: 8),
+        Expanded(
+          child: LWatch(
+            () => Text(
+              context.levit
+                      .find<TeacherContextController>()
+                      .activeAssignment
+                      ?.label ??
+                  context.tr.noAssignment,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+      ],
+    ),
   );
 }

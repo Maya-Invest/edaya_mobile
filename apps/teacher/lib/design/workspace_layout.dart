@@ -74,10 +74,12 @@ class ComparisonRow extends StatelessWidget {
     required this.cells,
     this.onTap,
     this.heading = false,
+    this.cellWidgets = const {},
   });
   final List<String> cells;
   final VoidCallback? onTap;
   final bool heading;
+  final Map<int, Widget> cellWidgets;
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -90,14 +92,16 @@ class ComparisonRow extends StatelessWidget {
               flex: i == 0 ? 3 : 2,
               child: Padding(
                 padding: const EdgeInsets.only(right: 8),
-                child: Text(
-                  cells[i],
-                  style: heading
-                      ? theme.textTheme.labelLarge
-                      : i == 0
-                      ? theme.textTheme.titleSmall
-                      : theme.textTheme.bodyMedium,
-                ),
+                child:
+                    cellWidgets[i] ??
+                    Text(
+                      cells[i],
+                      style: heading
+                          ? theme.textTheme.labelLarge
+                          : i == 0
+                          ? theme.textTheme.titleSmall
+                          : theme.textTheme.bodyMedium,
+                    ),
               ),
             ),
           SizedBox(
@@ -125,13 +129,19 @@ class ResponsiveRosterTile extends StatelessWidget {
     super.key,
     required this.cells,
     required this.compact,
+    this.cellWidgets = const {},
   });
   final List<String> cells;
   final ListTile compact;
+  final Map<int, Widget> cellWidgets;
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, box) => useComparisonRows(context, box.maxWidth)
-        ? ComparisonRow(cells: cells, onTap: compact.onTap)
+        ? ComparisonRow(
+            cells: cells,
+            onTap: compact.onTap,
+            cellWidgets: cellWidgets,
+          )
         : compact,
   );
 }

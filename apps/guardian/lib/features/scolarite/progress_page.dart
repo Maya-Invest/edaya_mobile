@@ -2,259 +2,173 @@ import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
-
 import '../../design/components/components.dart';
-import '../../design/spacing.dart' show PrototypeRadii, PrototypeSpacing;
 import '../../live/runtime.dart';
 import '../../mock/mock_store.dart' hide SubjectProgressSummary;
 import '../context/academic_year_controller.dart';
-import '../context/store_bound_controller.dart';
 import '../context/student_context_controller.dart';
 import 'progress_controller.dart';
-import 'results_controller.dart';
 
 class ProgressOverviewPage extends StatelessWidget {
-  const ProgressOverviewPage({super.key});
-
+  const ProgressOverviewPage({super.key, this.subjectId});
+  final String? subjectId;
   @override
   Widget build(BuildContext context) {
-    if (prototypeIsLive(context)) {
-      return const _LiveProgressOverviewPage();
-    }
-    return const _MockProgressOverviewPage();
-  }
-}
-
-class _MockProgressOverviewPage extends LScopedView<StoreBoundController> {
-  const _MockProgressOverviewPage();
-
-  @override
-  StoreBoundController onConfigScope(LevitScope scope) {
-    return scope.put(() => StoreBoundController(scope.find<MockStore>()));
-  }
-
-  @override
-  Widget buildView(BuildContext context, StoreBoundController controller) {
-    controller.storeTick.value;
-    final store = controller.store;
-    final summaries = store.subjectProgressSummaries
-        .where((s) => s.hasProgramme)
-        .toList();
-    return PrototypeDetailScaffold(
-      fallbackRoute: '/scolarite/notes',
-      title: context.tr.curriculumProgressTitle,
-      body: ListView(
-        padding: const EdgeInsets.all(PrototypeSpacing.md),
-        children: [
-          SurfaceCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  context.tr.ofTheCurriculumCovered(
-                    (store.overallProgramProgress * 100).round(),
-                  ),
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: PrototypeSpacing.xs),
-                PrototypeProgressBar(value: store.overallProgramProgress),
-                const SizedBox(height: PrototypeSpacing.xs),
-                Text(
-                  context.tr.indicativeAverageAcrossTheSubjectsTracked,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
+    if (prototypeIsLive(context)) return _LiveProgress(subjectId: subjectId);
+    final store = context.levit.find<MockStore>();
+    return ListenableBuilder(
+      listenable: store,
+      builder: (_, _) => _ProgressContent(
+        subjectId: subjectId,
+        summaries: [
+          for (final s in store.subjectProgressSummaries)
+            SubjectProgressSummary(
+              subject: s.subject,
+              classSubjectId: s.subject,
+              progress: s.progress,
+              status: s.status,
+              topicCount: s.topicCount,
             ),
-          ),
-          const SizedBox(height: PrototypeSpacing.xl),
-          for (var i = 0; i < summaries.length; i++) ...[
-            if (i > 0) const SizedBox(height: PrototypeSpacing.xl),
-            _SubjectProgressSectionHeader(
-              summary: SubjectProgressSummary(
-                subject: summaries[i].subject,
-                classSubjectId: summaries[i].subject,
-                progress: summaries[i].progress,
-                status: summaries[i].status,
-                topicCount: summaries[i].topicCount,
-              ),
-              expanded: true,
-              onOpenLogbook: () => context.push(
-                '/scolarite/subject/${MockStore.subjectRouteParam(summaries[i].subject)}/cahier',
-              ),
-              onToggle: () {},
-            ),
-            for (final topic in store.topicsForSubject(
-              summaries[i].subject,
-            )) ...[
-              const SizedBox(height: PrototypeSpacing.xs),
-              ListRow(
-                title: topic.title,
-                subtitle: topic.status,
-                trailing: Text(
-                  '${(topic.progress * 100).round()} %',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-              ),
-            ],
-            const SizedBox(height: PrototypeSpacing.sm),
-          ],
         ],
+        topics: {
+          for (final s in store.subjectProgressSummaries)
+            s.subject: [
+              for (final t in store.topicsForSubject(s.subject))
+                ProgressTopic(
+                  id: t.title,
+                  title: t.title,
+                  progress: t.progress,
+                  status: t.status,
+                ),
+            ],
+        },
       ),
     );
   }
 }
 
-class _LiveProgressOverviewPage extends LScopedView<ProgressController> {
-  const _LiveProgressOverviewPage();
-
+class _LiveProgress extends LScopedView<ProgressController> {
+  const _LiveProgress({this.subjectId});
+  final String? subjectId;
   @override
-  ProgressController onConfigScope(LevitScope scope) {
-    return scope.put(
-      () => ProgressController(
-        studentContext: scope.find<StudentContextController>(),
-        academicYear: scope.find<AcademicYearController>(),
-        schoolClient: scope.find<SchoolClientFactory>(),
-      ),
-    );
-  }
-
+  ProgressController onConfigScope(LevitScope scope) => scope.put(
+    () => ProgressController(
+      studentContext: scope.find<StudentContextController>(),
+      academicYear: scope.find<AcademicYearController>(),
+      schoolClient: scope.find<SchoolClientFactory>(),
+    ),
+  );
   @override
-  Widget buildView(BuildContext context, ProgressController controller) {
-    final summaries = controller.summaries.value
-        .where((s) => s.hasProgramme)
-        .toList();
-    final overall = controller.overallProgress.value;
-    final expandedSubjectIds = controller.expandedSubjectIds.value;
-
-    if (controller.isBusy.value && summaries.isEmpty) {
-      return PrototypeDetailScaffold(
-        fallbackRoute: '/scolarite/notes',
-        title: context.tr.curriculumProgressTitle,
-        body: const Center(child: CircularProgressIndicator()),
+  Widget buildView(BuildContext context, ProgressController controller) =>
+      _ProgressContent(
+        subjectId: subjectId,
+        summaries: controller.summaries.value,
+        topics: controller.topicsBySubject.value,
+        busy: controller.isBusy.value,
+        error: controller.errorMessage.value,
+        refresh: controller.load,
       );
-    }
-
-    return PrototypeDetailScaffold(
-      fallbackRoute: '/scolarite/notes',
-      title: context.tr.curriculumProgressTitle,
-      body: ListView(
-        padding: const EdgeInsets.all(PrototypeSpacing.md),
-        children: [
-          SurfaceCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  context.tr.ofTheCurriculumCovered((overall * 100).round()),
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: PrototypeSpacing.xs),
-                PrototypeProgressBar(value: overall),
-                const SizedBox(height: PrototypeSpacing.xs),
-                Text(
-                  context.tr.indicativeAverageAcrossTheSubjectsTracked,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: PrototypeSpacing.xl),
-          for (var i = 0; i < summaries.length; i++) ...[
-            if (i > 0) const SizedBox(height: PrototypeSpacing.xl),
-            _SubjectProgressSectionHeader(
-              summary: summaries[i],
-              expanded: expandedSubjectIds.contains(summaries[i].subject),
-              onOpenLogbook: () => context.push(
-                '/scolarite/subject/${ResultsController.subjectRouteParam(summaries[i].subject)}/cahier',
-              ),
-              onToggle: () => controller.toggleSubject(summaries[i].subject),
-            ),
-            if (expandedSubjectIds.contains(summaries[i].subject)) ...[
-              for (final topic in controller.topicsForSubject(
-                summaries[i].subject,
-              )) ...[
-                const SizedBox(height: PrototypeSpacing.xs),
-                ListRow(
-                  title: topic.title,
-                  subtitle: topic.status,
-                  trailing: Text(
-                    '${(topic.progress * 100).round()} %',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                ),
-              ],
-              const SizedBox(height: PrototypeSpacing.sm),
-            ],
-          ],
-        ],
-      ),
-    );
-  }
 }
 
-class _SubjectProgressSectionHeader extends StatelessWidget {
-  const _SubjectProgressSectionHeader({
-    required this.summary,
-    required this.expanded,
-    required this.onOpenLogbook,
-    required this.onToggle,
+class _ProgressContent extends StatelessWidget {
+  const _ProgressContent({
+    required this.summaries,
+    required this.topics,
+    this.subjectId,
+    this.busy = false,
+    this.error = '',
+    this.refresh,
   });
-
-  final SubjectProgressSummary summary;
-  final bool expanded;
-  final VoidCallback onOpenLogbook;
-  final VoidCallback onToggle;
-
+  final List<SubjectProgressSummary> summaries;
+  final Map<String, List<ProgressTopic>> topics;
+  final String? subjectId;
+  final bool busy;
+  final String error;
+  final Future<void> Function()? refresh;
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final subject = summaries
+        .where((s) => s.classSubjectId == subjectId)
+        .firstOrNull;
+    final content = ListView(
+      key: PageStorageKey(('progress', subjectId)),
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(16),
       children: [
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onToggle,
-            borderRadius: BorderRadius.circular(PrototypeRadii.sm),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: PrototypeSpacing.xs,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+        if (busy) const LinearProgressIndicator(),
+        if (error.isNotEmpty)
+          TextButton(onPressed: refresh, child: Text(error)),
+        if (subjectId == null)
+          for (final s in summaries)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: SurfaceCard(
+                onTap: () => context.push(
+                  '/scolarite/progress/${Uri.encodeComponent(s.classSubjectId)}',
+                ),
+                child: Column(
+                  children: [
+                    Row(
                       children: [
-                        Text(
-                          summary.subject,
-                          style: Theme.of(context).textTheme.titleSmall,
+                        Expanded(
+                          child: Text(
+                            s.subject,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
                         ),
+                        const SizedBox(width: 12),
                         Text(
-                          summary.status,
-                          style: Theme.of(context).textTheme.bodySmall,
+                          '${(s.progress * 100).round()} %',
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
+                        const Icon(Icons.chevron_right),
                       ],
                     ),
-                  ),
-                  TextButton(
-                    onPressed: onOpenLogbook,
-                    child: Text(context.tr.teachingLogbookTab),
-                  ),
-                  Icon(expanded ? Icons.expand_less : Icons.expand_more),
-                ],
+                    const SizedBox(height: 8),
+                    PrototypeProgressBar(value: s.progress),
+                  ],
+                ),
               ),
             ),
+        if (!busy && summaries.isEmpty) Text(context.tr.logbookEmptyCurriculum),
+        if (subjectId != null && subject != null) ...[
+          Text(subject.subject, style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          Text(subject.status),
+          TextButton.icon(
+            onPressed: () => context.push(
+              '/scolarite/progress/${Uri.encodeComponent(subject.classSubjectId)}/cahier',
+            ),
+            icon: const Icon(Icons.menu_book_outlined),
+            label: Text(context.tr.logbook),
           ),
-        ),
-        PrototypeProgressBar(value: summary.progress),
+          for (final topic
+              in topics[subject.classSubjectId] ?? <ProgressTopic>[])
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: SurfaceCard(
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(topic.title),
+                  subtitle: Text(topic.status),
+                  leading: Icon(
+                    topic.progress >= 1
+                        ? Icons.check_circle_outline
+                        : topic.inProgress || topic.progress > 0
+                        ? Icons.timelapse
+                        : Icons.radio_button_unchecked,
+                  ),
+                ),
+              ),
+            ),
+          if (subject.topicCount == 0) Text(context.tr.logbookEmptyCurriculum),
+        ],
+        if (subjectId != null && subject == null && !busy && error.isEmpty)
+          Text(context.tr.logbookEmptyCurriculum),
       ],
     );
+    return refresh == null
+        ? content
+        : RefreshIndicator(onRefresh: refresh!, child: content);
   }
 }

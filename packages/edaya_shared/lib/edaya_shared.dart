@@ -1,7 +1,12 @@
 library;
 
+export 'src/features/calendar/session_history.dart';
+
+export 'src/ui/workspace_tabs.dart';
+
 export 'src/demo/demo_store.dart';
-export 'src/demo/demo_transport.dart' show schoolStoragePrefix, schoolMediaClient, DemoSchoolClient;
+export 'src/demo/demo_transport.dart'
+    show schoolStoragePrefix, schoolMediaClient, DemoSchoolClient;
 export 'src/demo/demo_host.dart';
 export 'src/demo/school_clock.dart';
 

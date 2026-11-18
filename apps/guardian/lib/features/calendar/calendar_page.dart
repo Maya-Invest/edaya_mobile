@@ -1,3 +1,4 @@
+import 'session_history_page.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -39,10 +40,16 @@ class CalendarPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (prototypeIsLive(context)) {
-      return const _LiveCalendarPage();
-    }
-    return const _MockCalendarPage();
+    return WorkspaceTabs(
+      values: const ['schedule', 'history'],
+      labels: [context.tr.workspaceSchedule, context.tr.workspaceHistory],
+      children: [
+        prototypeIsLive(context)
+            ? const _LiveCalendarPage()
+            : const _MockCalendarPage(),
+        const SessionHistoryPage(),
+      ],
+    );
   }
 }
 
@@ -89,11 +96,6 @@ class _MockCalendarPage extends LScopedView<StoreBoundController> {
                     ).format(store.selectedCalendarDate),
                   ),
                 ),
-                TextButton.icon(
-                  onPressed: () => context.push('/attendance'),
-                  icon: const Icon(Icons.list_alt_outlined, size: 18),
-                  label: Text(context.tr.viewAllAttendance),
-                ),
               ],
             ),
           ),
@@ -102,6 +104,7 @@ class _MockCalendarPage extends LScopedView<StoreBoundController> {
             child: _MockMergedDayList(
               sessions: store.sessionsForSelectedDay
                   .map(calendarSessionFromMock)
+                  .where((s) => s.endsAt.isAfter(SchoolClock.now()))
                   .toList(),
               events: store.eventsForSelectedDay
                   .map(schoolEventFromMock)
@@ -195,14 +198,7 @@ class _LiveCalendarPage extends LScopedView<CalendarController> {
             child: Wrap(
               alignment: WrapAlignment.spaceBetween,
               crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                _CalendarDatePicker(controller: controller),
-                TextButton.icon(
-                  onPressed: () => context.push('/attendance'),
-                  icon: const Icon(Icons.list_alt_outlined, size: 18),
-                  label: Text(context.tr.viewAllAttendance),
-                ),
-              ],
+              children: [_CalendarDatePicker(controller: controller)],
             ),
           ),
           _WeekSelector(controller: controller),
@@ -284,7 +280,9 @@ class _MergedDayList extends StatelessWidget {
       return EmptyState(title: controller.emptyMessage);
     }
 
-    final sessions = controller.sessionsForSelectedDay;
+    final sessions = controller.sessionsForSelectedDay
+        .where((s) => s.endsAt.isAfter(SchoolClock.now()))
+        .toList();
     final events = controller.eventsForSelectedDay;
     final noSchoolDay = events.where((e) => e.isNonSchoolDay).firstOrNull;
     final schoolEvents = events.where((e) => !e.isNonSchoolDay).toList();

@@ -101,13 +101,29 @@ class SessionDetailController extends LevitController
         if (resolved.classSubjectId != null) {
           // The student query preserves saved occurrences and isolates siblings.
           final at = resolved.startsAt.toUtc();
-          final timetable = await client.getStudentTimetable({
-            'studentId': studentId,
-            'startDate': at.subtract(const Duration(days: 1)).toIso8601String(),
-            'endDate': at.add(const Duration(days: 1)).toIso8601String(),
-          });
+          final past = !resolved.endsAt.isAfter(SchoolClock.now());
+          final timetable = past && _studentContext.activeYearId != null
+              ? await client.runQuery('get-student-session-history', {
+                  'studentId': studentId,
+                  'academicYearId': _studentContext.activeYearId,
+                  'startDate': at
+                      .subtract(const Duration(days: 1))
+                      .toIso8601String()
+                      .substring(0, 10),
+                  'endDate': at
+                      .add(const Duration(days: 1))
+                      .toIso8601String()
+                      .substring(0, 10),
+                })
+              : await client.getStudentTimetable({
+                  'studentId': studentId,
+                  'startDate': at
+                      .subtract(const Duration(days: 1))
+                      .toIso8601String(),
+                  'endDate': at.add(const Duration(days: 1)).toIso8601String(),
+                });
           if (!isCurrent()) return;
-          if (!(timetable['events'] as List).any(
+          if (!((timetable['entries'] ?? timetable['events']) as List).any(
             (event) => event['id'] == resolved.id,
           )) {
             session(null);

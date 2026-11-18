@@ -24,19 +24,7 @@ class InboxPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (prototypeIsLive(context)) {
-      return Column(
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              onPressed: () => context.push('/inbox/new'),
-              icon: const Icon(Icons.edit_outlined),
-              label: Text(context.tr.newConversation),
-            ),
-          ),
-          const Expanded(child: _LiveInboxPage()),
-        ],
-      );
+      return const _LiveInboxPage();
     }
     return const _MockInboxPage();
   }
@@ -51,18 +39,6 @@ class _LiveInboxPage extends LView<LiveInboxController> {
       controller.deliveries.value;
       controller.errorMessage.value;
       controller.isBusy.value;
-      if (controller.dataStatus == DataStatus.loading) {
-        return const AdaptiveContent(
-          maxWidth: workspaceMaxWidth,
-          child: Center(child: CircularProgressIndicator()),
-        );
-      }
-      if (controller.dataStatus == DataStatus.error) {
-        return AdaptiveContent(
-          maxWidth: workspaceMaxWidth,
-          child: EmptyState(title: controller.errorMessage.value),
-        );
-      }
       return _ThreadGroups(inbox: controller);
     });
   }
@@ -131,75 +107,105 @@ class _ThreadGroups extends LScopedView<ConversationController> {
     }
 
     return LWatch(
-      () => ListView(
-        padding: const EdgeInsets.all(16),
+      () => WorkspaceTabs(
+        values: const ['conversations', 'notifications'],
+        labels: [
+          context.tr.messagingConversations,
+          context.tr.workspaceNotifications,
+        ],
         children: [
-          if (threads.error.value.isNotEmpty)
-            TextButton(
-              onPressed: threads.refresh,
-              child: Text(threads.error.value),
-            ),
-          WorkspaceColumns(
-            first: [
-              Text(
-                context.tr.messagingConversations,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              ClassSections(
-                builder: (c) => LWatch(() {
-                  final rows = threads.rows.value.where(
-                    (r) => group(r) == c.id,
-                  );
-                  return Column(
-                    children: [
-                      if (rows.isEmpty)
-                        ListTile(title: Text(context.tr.messagingEmpty)),
-                      for (final row in rows) thread(row),
-                    ],
-                  );
-                }),
-              ),
-              if (tc.activeAssignment == null) ...[
-                if (threads.rows.value.any((r) => group(r) == null))
-                  ExpansionTile(
-                    title: Text(context.tr.noClassSpecified),
-                    children: [
-                      for (final row in threads.rows.value.where(
-                        (r) => group(r) == null,
-                      ))
-                        thread(row),
-                    ],
+          RefreshIndicator(
+            onRefresh: threads.refresh,
+            child: ListView(
+              key: const PageStorageKey('teacher-conversations'),
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              children: [
+                if (threads.busy.value) const LinearProgressIndicator(),
+                if (threads.error.value.isNotEmpty) Text(threads.error.value),
+
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: () => context.push('/inbox/new'),
+                    icon: const Icon(Icons.edit_outlined),
+                    label: Text(context.tr.messagingNew),
+                  ),
+                ),
+                ClassSections(
+                  builder: (c) => LWatch(() {
+                    final rows = threads.rows.value.where(
+                      (r) => group(r) == c.id,
+                    );
+                    return Column(
+                      children: [
+                        if (rows.isEmpty)
+                          ListTile(title: Text(context.tr.messagingEmpty)),
+                        for (final row in rows) thread(row),
+                      ],
+                    );
+                  }),
+                ),
+                if (tc.activeAssignment == null) ...[
+                  if (threads.rows.value.any((r) => group(r) == null))
+                    ExpansionTile(
+                      title: Text(context.tr.noClassSpecified),
+                      children: [
+                        for (final row in threads.rows.value.where(
+                          (r) => group(r) == null,
+                        ))
+                          thread(row),
+                      ],
+                    ),
+                ],
+                if (threads.rows.value.length < threads.total.value)
+                  TextButton(
+                    onPressed: () => threads.refresh(more: true),
+                    child: Text(context.tr.showMore),
                   ),
               ],
-              if (threads.rows.value.length < threads.total.value)
-                TextButton(
-                  onPressed: () => threads.refresh(more: true),
-                  child: Text(context.tr.showMore),
-                ),
-            ],
-            second: [
-              Text(
-                context.tr.teacherSchoolNotices,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              for (final m in inbox.deliveries.value.where(
-                (m) => m.eventKey != 'conversation.message',
-              ))
-                ListTile(
-                  title: Text(m.title),
-                  subtitle: Text(
-                    m.body,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          RefreshIndicator(
+            onRefresh: inbox.loadInbox,
+            child: ListView(
+              key: const PageStorageKey('teacher-notifications'),
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              children: [
+                if (inbox.isBusy.value) const LinearProgressIndicator(),
+                if (inbox.errorMessage.value.isNotEmpty)
+                  Text(inbox.errorMessage.value),
+
+                for (final m in inbox.deliveries.value.where(
+                  (m) => m.eventKey != 'conversation.message',
+                ))
+                  ListTile(
+                    leading: Icon(
+                      m.isUnread
+                          ? Icons.mark_email_unread_outlined
+                          : Icons.notifications_outlined,
+                    ),
+                    title: Text(
+                      m.title,
+                      style: TextStyle(
+                        fontWeight: m.isUnread ? FontWeight.bold : null,
+                      ),
+                    ),
+                    subtitle: Text(
+                      m.body,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: date(m.sortDate),
+                    onTap: () => context.push(inboxMessagePath(m.id)),
                   ),
-                  trailing: date(m.sortDate),
-                  onTap: () => context.push(inboxMessagePath(m.id)),
-                ),
-              if (!inbox.deliveries.value.any(
-                (m) => m.eventKey != 'conversation.message',
-              ))
-                ListTile(title: Text(context.tr.noSchoolNotices)),
-            ],
+                if (!inbox.deliveries.value.any(
+                  (m) => m.eventKey != 'conversation.message',
+                ))
+                  ListTile(title: Text(context.tr.noSchoolNotices)),
+              ],
+            ),
           ),
         ],
       ),
@@ -221,7 +227,7 @@ class _MockInboxPage extends LScopedView<StoreBoundController> {
     final store = controller.store;
     final selectedId = GoRouterState.of(context).pathParameters['id'];
 
-    return AdaptiveContent(
+    final notifications = AdaptiveContent(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -280,6 +286,24 @@ class _MockInboxPage extends LScopedView<StoreBoundController> {
           ),
         ],
       ),
+    );
+    return WorkspaceTabs(
+      values: const ['conversations', 'notifications'],
+      labels: [
+        context.tr.messagingConversations,
+        context.tr.workspaceNotifications,
+      ],
+      children: [
+        RefreshIndicator(
+          onRefresh: () async {},
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            children: [Text(context.tr.messagingEmpty)],
+          ),
+        ),
+        notifications,
+      ],
     );
   }
 }

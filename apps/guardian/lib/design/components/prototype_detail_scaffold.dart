@@ -82,7 +82,7 @@ class PrototypeDetailScaffold extends StatelessWidget {
           tooltip: context.tr.backAction,
           onPressed: () => popOrGo(context, fallbackRoute: fallbackRoute),
         ),
-        title: titleWidget ?? (title != null ? Text(title!) : null),
+        title: titleWidget ?? WorkspacePageHeading(title: title ?? ''),
       ),
       body: body,
     );

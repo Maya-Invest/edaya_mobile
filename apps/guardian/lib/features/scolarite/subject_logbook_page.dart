@@ -12,14 +12,23 @@ import '../context/student_context_controller.dart';
 import 'subject_logbook_controller.dart';
 
 class SubjectLogbookPage extends StatelessWidget {
-  const SubjectLogbookPage({super.key, required this.subject});
+  const SubjectLogbookPage({
+    super.key,
+    required this.subject,
+    this.byId = false,
+  });
 
   final String subject;
+  final bool byId;
 
   @override
   Widget build(BuildContext context) {
     if (prototypeIsLive(context)) {
-      return _LiveSubjectLogbookPage(subject: subject);
+      return _LiveSubjectLogbookPage(
+        key: ValueKey((subject, byId)),
+        subject: subject,
+        byId: byId,
+      );
     }
     return _MockSubjectLogbookPage(subject: subject);
   }
@@ -69,15 +78,21 @@ class _MockSubjectLogbookPage extends LScopedView<StoreBoundController> {
 }
 
 class _LiveSubjectLogbookPage extends LScopedView<SubjectLogbookController> {
-  const _LiveSubjectLogbookPage({required this.subject});
+  const _LiveSubjectLogbookPage({
+    super.key,
+    required this.subject,
+    required this.byId,
+  });
 
   final String subject;
+  final bool byId;
 
   @override
   SubjectLogbookController onConfigScope(LevitScope scope) {
     return scope.put(
       () => SubjectLogbookController(
         subject: subject,
+        byId: byId,
         studentContext: scope.find<StudentContextController>(),
         schoolClient: scope.find<SchoolClientFactory>(),
       ),
@@ -87,22 +102,24 @@ class _LiveSubjectLogbookPage extends LScopedView<SubjectLogbookController> {
   @override
   Widget buildView(BuildContext context, SubjectLogbookController controller) {
     final entries = controller.entries.value;
+    final title =
+        controller.subjectLabel.value ?? (byId ? context.tr.logbook : subject);
 
     if (controller.isBusy.value && entries.isEmpty) {
       return PrototypeDetailScaffold(
         fallbackRoute: '/scolarite/notes',
-        title: subject,
+        title: title,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return PrototypeDetailScaffold(
       fallbackRoute: '/scolarite/notes',
-      title: subject,
+      title: title,
       body: ListView(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
-          Text(subject, style: Theme.of(context).textTheme.titleLarge),
+          Text(title, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: PrototypeSpacing.md),
           SectionHeader(title: context.tr.entries),
           if (entries.isEmpty)

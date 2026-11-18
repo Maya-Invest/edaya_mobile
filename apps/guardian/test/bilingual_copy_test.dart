@@ -39,12 +39,12 @@ void main() {
         '/inbox/avis': tr.familyFeedbackEmpty,
         '/account/profile': tr.name,
 
-        '/calendar': tr.viewAllAttendance,
+        '/calendar': tr.workspaceHistory,
         '/session/missing': tr.sessionNotFound,
         '/fees': tr.summary,
         '/fees/payment/missing': tr.paymentNotFound,
         '/inbox/message/missing': tr.messageNotFound,
-        '/scolarite/progress': tr.indicativeAverageAcrossTheSubjectsTracked,
+        '/scolarite/progress': tr.teachingProgressTab,
         '/account': tr.settingsTitle,
         '/settings': tr.openAllSettings,
       };

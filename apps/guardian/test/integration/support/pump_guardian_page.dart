@@ -1,7 +1,7 @@
 import 'package:edaya_guardian_v2/app/workspace_shell.dart';
 import 'package:edaya_guardian_v2/design/components/list_row.dart';
 import 'package:edaya_guardian_v2/features/context/child_picker.dart';
-import 'package:edaya_guardian_v2/features/calendar/attendance_page.dart';
+import 'package:edaya_guardian_v2/features/calendar/session_history_page.dart';
 import 'package:edaya_guardian_v2/features/calendar/calendar_controller.dart';
 import 'package:edaya_guardian_v2/features/calendar/calendar_page.dart';
 import 'package:edaya_guardian_v2/features/fees/fees_page.dart';
@@ -133,7 +133,7 @@ Future<void> openCalendarTab(
     initialRoute: '/calendar',
     formFactor: formFactor,
   );
-  await pumpUntilFound(tester, find.text('Toutes les présences'));
+  await pumpUntilFound(tester, find.text('Historique'));
 }
 
 Future<void> openScolariteTab(
@@ -171,7 +171,7 @@ Future<void> openInboxTab(
   await pumpGuardianShellUntil<InboxPage>(
     tester,
     harness,
-    initialRoute: '/inbox',
+    initialRoute: '/inbox?tab=notifications',
     formFactor: formFactor,
   );
 }
@@ -181,7 +181,7 @@ Future<void> openAttendancePage(
   GuardianWidgetTestHarness harness, {
   DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
 }) async {
-  await pumpGuardianShellUntil<AttendanceListPage>(
+  await pumpGuardianShellUntil<SessionHistoryPage>(
     tester,
     harness,
     initialRoute: '/attendance',
@@ -206,7 +206,7 @@ Future<void> openChildPicker(
 CalendarController _calendarController(WidgetTester tester) {
   // Resolve from a descendant inside LScopedView's buildView (page element
   // itself sits above the controller scope).
-  final element = tester.element(find.text('Toutes les présences'));
+  final element = tester.element(find.byType(CalendarWeekStrip));
   return element.levit.find<CalendarController>();
 }
 

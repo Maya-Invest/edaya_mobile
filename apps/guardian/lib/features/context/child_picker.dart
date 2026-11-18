@@ -11,6 +11,7 @@ import '../../mock/mock_store.dart';
 import '../my_students/linked_student.dart';
 import 'academic_year_controller.dart';
 import 'student_context_controller.dart';
+import 'pupil_enrollment_years.dart';
 
 Future<void> prepareGuardianContext({
   required AuthClient auth,
@@ -35,12 +36,15 @@ class ChildSchoolChoices {
     this.children = const [],
     this.classes = const {},
     this.year,
+    this.years = const [],
+    this.enrollments = const [],
     this.error,
   });
   final SchoolAuthorizationProfile profile;
   final List<LinkedStudent> children;
   final Map<String, String> classes;
   final String? year, error;
+  final List<Map<String, dynamic>> years, enrollments;
 }
 
 Future<List<ChildSchoolChoices>> loadChildChoices(
@@ -54,18 +58,17 @@ Future<List<ChildSchoolChoices>> loadChildChoices(
         ..sort((a, b) => a.schoolName.compareTo(b.schoolName));
   return Future.wait(
     profiles.map((profile) async {
-      String? yearId;
       final client = createEdayaSchoolClient(
         auth,
         getActorKind: () => 'guardian',
         getActorId: () => profile.actorId,
         getSchoolId: () => profile.schoolId,
-        getAcademicYearId: () => yearId,
+        getAcademicYearId: () => null,
       );
       try {
         final years = await client.academicYears.listAll();
         final year = years.where((y) => y['status'] == 'published').firstOrNull;
-        yearId = year?['id'] as String?;
+        final yearId = year?['id'] as String?;
         final ids = await loadGuardianLinkedStudentIds(client, profile.actorId);
         final students = ids.isEmpty
             ? <Map<String, dynamic>>[]
@@ -73,12 +76,15 @@ Future<List<ChildSchoolChoices>> loadChildChoices(
         final children = students.map(LinkedStudent.fromJson).toList()
           ..sort((a, b) => a.fullName.compareTo(b.fullName));
         final classes = <String, String>{};
-        if (yearId != null && ids.isNotEmpty) {
-          final enrollments = await client.enrollments.listAll({
-            'studentId': {'\$in': ids},
-            'academicYearId': yearId,
-            'status': 'active',
-          });
+        final enrollments = ids.isEmpty
+            ? <Map<String, dynamic>>[]
+            : await client.enrollments.listAll({
+                'studentId': {'\$in': ids},
+              });
+        if (enrollments.isNotEmpty) {
+          final current = enrollments.where(
+            (e) => e['academicYearId'] == yearId && e['status'] == 'active',
+          );
           final groupIds = enrollments
               .map((r) => r['classGroupId'])
               .whereType<String>()
@@ -87,7 +93,7 @@ Future<List<ChildSchoolChoices>> loadChildChoices(
           final groups = groupIds.isEmpty
               ? <Map<String, dynamic>>[]
               : await client.classGroups.listAll(entitiesByIds(groupIds));
-          for (final e in enrollments) {
+          for (final e in current) {
             classes[e['studentId'] as String] =
                 groups
                         .where((g) => g['id'] == e['classGroupId'])
@@ -99,6 +105,8 @@ Future<List<ChildSchoolChoices>> loadChildChoices(
         return ChildSchoolChoices(
           profile,
           children: children,
+          years: years,
+          enrollments: enrollments,
           classes: classes,
           year: year?['name'] as String?,
         );
@@ -119,6 +127,8 @@ class _ChildPickerState extends State<ChildPicker> {
   Future<List<ChildSchoolChoices>>? choices;
   bool busy = false;
   String? error;
+  final expanded = <String>{};
+  final selectedYears = <String, String>{};
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -130,7 +140,11 @@ class _ChildPickerState extends State<ChildPicker> {
     }
   }
 
-  Future<void> select(ChildSchoolChoices group, LinkedStudent child) async {
+  Future<void> select(
+    ChildSchoolChoices group,
+    LinkedStudent child, {
+    String? yearId,
+  }) async {
     if (busy) return;
     final session = context.levit.find<AppSessionController>();
     final students = context.levit.find<StudentContextController>();
@@ -148,7 +162,10 @@ class _ChildPickerState extends State<ChildPicker> {
         if (failure != null) throw StateError(failure);
       }
       await year.loadYears();
-      await students.initializeFromSession(preferredStudentId: child.id);
+      await students.initializeFromSession(
+        preferredStudentId: child.id,
+        preferredYearId: yearId,
+      );
       if (account != session.user.value?.id ||
           !students.linkedStudentIds.value.contains(child.id)) {
         throw StateError('Access changed');
@@ -156,7 +173,7 @@ class _ChildPickerState extends State<ChildPicker> {
       if (students.activeStudentId != child.id) {
         throw StateError('Selection unavailable');
       }
-      if (mounted) context.go('/home');
+      if (mounted) context.go(_returnPath(context));
     } catch (_) {
       if (mounted) {
         setState(() {
@@ -177,14 +194,34 @@ class _ChildPickerState extends State<ChildPicker> {
       final store = context.levit.find<MockStore>();
       return ListView(
         children: [
-          for (final child in store.students)
-            ListTile(
-              title: Text(child.fullName),
-              onTap: () {
-                store.selectStudent(child.id);
-                context.go('/home');
-              },
+          for (final group in store.studentsBySchool) ...[
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                group.school.name,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ),
+            for (final child in group.students)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
+                child: SurfaceCard(
+                  child: ListTile(
+                    title: Text(child.fullName),
+                    subtitle: Text(
+                      store.selectedYearForSchool(group.school.id),
+                    ),
+                    onTap: () {
+                      store.selectStudent(child.id);
+                      context.go(_returnPath(context));
+                    },
+                  ),
+                ),
+              ),
+          ],
         ],
       );
     }
@@ -207,8 +244,6 @@ class _ChildPickerState extends State<ChildPicker> {
               group.profile.schoolName,
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            if (group.year != null)
-              Text(group.year!, style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 12),
             if (group.error != null)
               TextButton.icon(
@@ -225,42 +260,169 @@ class _ChildPickerState extends State<ChildPicker> {
               ),
             if (group.error == null && group.children.isEmpty)
               Text(words(context, 'Aucun enfant lié', 'No linked children')),
-            SurfaceCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  for (final child in group.children)
-                    ListTile(
-                      leading: PersonAvatar(
-                        name: child.fullName,
-                        initials: child.initials,
-                        photoUrl: child.photoUrl,
-                      ),
-                      title: Text(child.fullName),
-                      subtitle: Text(
-                        group.classes[child.id] ??
-                            words(
-                              context,
-                              'Sans inscription actuelle',
-                              'No current enrollment',
+            for (final child in group.children)
+              Builder(
+                builder: (context) {
+                  final key = '${group.profile.schoolId}/${child.id}';
+                  final years = pupilEnrollmentYears(
+                    group.years,
+                    group.enrollments,
+                    child.id,
+                  );
+                  final current = context.levit
+                      .find<StudentContextController>();
+                  final active =
+                      current.activeStudentId == child.id &&
+                      context.levit
+                              .find<AppSessionController>()
+                              .schoolIdHeader ==
+                          group.profile.schoolId;
+                  final selected =
+                      selectedYears[key] ??
+                      (active &&
+                              years.any((y) => y['id'] == current.activeYearId)
+                          ? current.activeYearId
+                          : defaultPupilYear(years));
+                  final open = expanded.contains(key) && years.length > 1;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: SurfaceCard(
+                      padding: EdgeInsets.zero,
+                      child: Column(
+                        children: [
+                          ListTile(
+                            leading: PersonAvatar(
+                              name: child.fullName,
+                              initials: child.initials,
+                              photoUrl: child.photoUrl,
                             ),
+                            title: Text(child.fullName),
+                            subtitle: Text(
+                              years.isEmpty
+                                  ? words(
+                                      context,
+                                      'Sans inscription',
+                                      'No enrollment',
+                                    )
+                                  : [
+                                      group.classes[child.id],
+                                      years
+                                              .where((y) => y['id'] == selected)
+                                              .firstOrNull?['name']
+                                          as String?,
+                                    ].whereType<String>().join(' · '),
+                            ),
+                            selected:
+                                context.levit
+                                        .find<StudentContextController>()
+                                        .activeStudentId ==
+                                    child.id &&
+                                context.levit
+                                        .find<AppSessionController>()
+                                        .schoolIdHeader ==
+                                    group.profile.schoolId,
+                            onTap: busy ? null : () => select(group, child),
+                            trailing: years.length <= 1
+                                ? null
+                                : IconButton(
+                                    key: ValueKey('pupil-years-$key'),
+                                    tooltip: words(
+                                      context,
+                                      'Choisir une année scolaire',
+                                      'Choose a school year',
+                                    ),
+                                    onPressed: busy
+                                        ? null
+                                        : () => setState(() {
+                                            if (!expanded.add(key))
+                                              expanded.remove(key);
+                                          }),
+                                    icon: Icon(
+                                      open
+                                          ? Icons.expand_less
+                                          : Icons.expand_more,
+                                    ),
+                                  ),
+                          ),
+                          if (open)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  DropdownButtonFormField<String>(
+                                    key: ValueKey((key, selected)),
+                                    initialValue: selected,
+                                    isExpanded: true,
+                                    decoration: InputDecoration(
+                                      labelText: words(
+                                        context,
+                                        'Année scolaire',
+                                        'School year',
+                                      ),
+                                    ),
+                                    items: [
+                                      for (final year in years)
+                                        DropdownMenuItem(
+                                          value: year['id'] as String,
+                                          child: Text(
+                                            year['name'] as String? ??
+                                                year['id'] as String,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                    ],
+                                    onChanged: busy
+                                        ? null
+                                        : (id) {
+                                            if (id != null)
+                                              setState(
+                                                () => selectedYears[key] = id,
+                                              );
+                                          },
+                                  ),
+                                  const SizedBox(height: 8),
+                                  FilledButton(
+                                    onPressed: busy
+                                        ? null
+                                        : () => select(
+                                            group,
+                                            child,
+                                            yearId: selected,
+                                          ),
+                                    child: Text(
+                                      words(context, 'Appliquer', 'Apply'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
                       ),
-                      trailing:
-                          context.levit
-                                  .find<StudentContextController>()
-                                  .activeStudentId ==
-                              child.id
-                          ? const Icon(Icons.check_circle_outline)
-                          : null,
-                      onTap: busy ? null : () => select(group, child),
                     ),
-                ],
+                  );
+                },
               ),
-            ),
             const SizedBox(height: 24),
           ],
         ],
       ),
     );
   }
+}
+
+String _returnPath(BuildContext context) {
+  final path = GoRouterState.of(context).uri.queryParameters['return'];
+  return const [
+        '/home',
+        '/calendar',
+        '/scolarite/progress',
+        '/scolarite/notes',
+        '/fees',
+        '/inbox',
+        '/inbox/avis',
+        '/child',
+      ].contains(path)
+      ? path!
+      : '/home';
 }

@@ -33,7 +33,8 @@ void main() {
         '/evaluations': tr.navEvaluations,
         '/progress': tr.chooseAClass,
         '/incidents': tr.reportAnIncident,
-        '/inbox': tr.inboxStatusRead,
+        '/inbox': tr.workspaceNotifications,
+        '/inbox?tab=notifications': tr.inboxStatusRead,
         '/inbox/message/missing': tr.messageNotFound,
         '/account/profile': tr.lastNameLabel,
 

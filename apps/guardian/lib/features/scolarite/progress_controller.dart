@@ -32,8 +32,10 @@ class ProgressTopic {
     required this.title,
     required this.progress,
     required this.status,
+    this.inProgress = false,
   });
 
+  final bool inProgress;
   final String id;
   final String title;
   final double progress;
@@ -152,6 +154,7 @@ class ProgressController extends LevitController with LevitReactiveTasksMixin {
                   id: m.id,
                   title: m.name,
                   progress: m.completedPercentage / 100.0,
+                  inProgress: m.status == CurriculumMatterStatus.inProgress,
                   status: switch (m.status) {
                     CurriculumMatterStatus.completed =>
                       systemL10n().matterStatusCompleted,
@@ -163,7 +166,7 @@ class ProgressController extends LevitController with LevitReactiveTasksMixin {
                 ),
               )
               .toList();
-          nextTopics[option.subjectName] = topics;
+          nextTopics[option.id] = topics;
           nextSummaries.add(
             SubjectProgressSummary(
               subject: option.subjectName,

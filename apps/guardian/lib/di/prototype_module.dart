@@ -115,7 +115,16 @@ void registerPrototypeDependencies(
       () => AcademicYearController(
         sessionStorage: scope.find<SessionStorage>(),
         session: scope.find<AppSessionController>(),
-        schoolClient: scope.find<SchoolClientFactory>(),
+        schoolClient: () {
+          final session = scope.find<AppSessionController>();
+          return createEdayaSchoolClient(
+            scope.find<AuthClient>(),
+            getSchoolId: () => session.schoolIdHeader,
+            getActorKind: () => 'guardian',
+            getActorId: () => session.actorIdHeader,
+            getAcademicYearId: () => null,
+          );
+        },
       ),
       permanent: true,
     );
@@ -125,6 +134,16 @@ void registerPrototypeDependencies(
         session: scope.find<AppSessionController>(),
         academicYear: scope.find<AcademicYearController>(),
         schoolClient: scope.find<SchoolClientFactory>(),
+        catalogClient: () {
+          final session = scope.find<AppSessionController>();
+          return createEdayaSchoolClient(
+            scope.find<AuthClient>(),
+            getSchoolId: () => session.schoolIdHeader,
+            getActorKind: () => 'guardian',
+            getActorId: () => session.actorIdHeader,
+            getAcademicYearId: () => null,
+          );
+        },
       ),
       permanent: true,
     );

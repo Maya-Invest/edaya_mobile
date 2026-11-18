@@ -366,30 +366,58 @@ class _BookView extends StatelessWidget {
         : note.isEmpty
         ? t.rollCreateBook
         : t.rollEditBook;
+    final compact = MediaQuery.sizeOf(context).width < 600;
+    void editGeneral() => open(
+      title: generalAction,
+      initial:
+          c?.generalEditorValue() ??
+          drafts['general'] ??
+          LogbookEdit.general(note),
+    );
+    void addChapter() =>
+        open(title: t.bookAddChapter, initial: null, choices: available);
     return ListView(
       key: PageStorageKey('logbook-$sessionId'),
       padding: const EdgeInsets.all(16),
       children: [
+        if (compact)
+          Align(
+            alignment: Alignment.centerRight,
+            child: PopupMenuButton<String>(
+              tooltip: t.workspaceActions,
+              onSelected: (action) =>
+                  action == 'general' ? editGeneral() : addChapter(),
+              itemBuilder: (_) => [
+                PopupMenuItem(value: 'general', child: Text(generalAction)),
+                PopupMenuItem(
+                  value: 'chapter',
+                  enabled: available.isNotEmpty,
+                  child: Text(t.bookAddChapter),
+                ),
+              ],
+            ),
+          ),
         WorkspaceColumns(
           minimumSplitWidth: 672,
           sectionSpacing: 12,
           first: [
             heading(t.bookGeneral),
             if (drafts.containsKey('general')) Text(t.rollLocalDraft),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: FilledButton.icon(
-                icon: const Icon(Icons.edit_outlined),
-                label: Text(generalAction),
-                onPressed: () => open(
-                  title: generalAction,
-                  initial:
-                      c?.generalEditorValue() ??
-                      drafts['general'] ??
-                      LogbookEdit.general(note),
+            if (!compact)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: FilledButton.icon(
+                  icon: const Icon(Icons.edit_outlined),
+                  label: Text(generalAction),
+                  onPressed: () => open(
+                    title: generalAction,
+                    initial:
+                        c?.generalEditorValue() ??
+                        drafts['general'] ??
+                        LogbookEdit.general(note),
+                  ),
                 ),
               ),
-            ),
             value(t.rollContent, note.content, proposed?.content),
             value(
               t.rollObjectives,
@@ -473,18 +501,19 @@ class _BookView extends StatelessWidget {
             else ...[
               if (available.keys.any((id) => drafts.containsKey('chapter:$id')))
                 Text(t.rollLocalDraft),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: OutlinedButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: Text(t.bookAddChapter),
-                  onPressed: () => open(
-                    title: t.bookAddChapter,
-                    initial: null,
-                    choices: available,
+              if (!compact)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.add),
+                    label: Text(t.bookAddChapter),
+                    onPressed: () => open(
+                      title: t.bookAddChapter,
+                      initial: null,
+                      choices: available,
+                    ),
                   ),
                 ),
-              ),
             ],
           ],
         ),

@@ -2,6 +2,7 @@
 library;
 
 import 'dart:async';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart'
     show ClientException, BaseRequest, StreamedResponse;
 
@@ -81,6 +82,45 @@ Future<void> reveal(WidgetTester tester, Finder finder) async {
   await Scrollable.ensureVisible(tester.element(finder), alignment: 0.5);
   await tester.pump(const Duration(milliseconds: 350));
   await until(tester, finder.hitTestable());
+}
+
+/// Exercise the same enabled action through its narrow-screen overflow menu.
+Future<void> tapPageAction(WidgetTester tester, String label) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 30));
+  while (DateTime.now().isBefore(deadline)) {
+    await tester.pump(const Duration(milliseconds: 200));
+    var target = find.text(label).hitTestable();
+    final menu = find.byKey(const ValueKey('session-actions'));
+    if (!tester.any(target)) {
+      final overflow = tester.any(menu)
+          ? menu
+          : find.byType(PopupMenuButton<String>);
+      if (!tester.any(overflow)) continue;
+      await tester.ensureVisible(overflow.first);
+      await tester.tap(overflow.first);
+      await tester.pump(const Duration(milliseconds: 300));
+      target = find.text(label).hitTestable();
+    }
+    final enabled = find.ancestor(
+      of: target,
+      matching: find.byWidgetPredicate(
+        (w) =>
+            (w is PopupMenuItem && w.enabled) ||
+            (w is ButtonStyleButton && w.onPressed != null),
+      ),
+    );
+    if (tester.any(target) && tester.any(enabled)) {
+      await tester.tap(target.first);
+      await tester.pump(const Duration(milliseconds: 300));
+      return;
+    }
+    if (tester.any(find.byType(PopupMenuItem<int>)) ||
+        tester.any(find.byType(PopupMenuItem<String>))) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump(const Duration(milliseconds: 300));
+    }
+  }
+  fail('Enabled session action unavailable: $label');
 }
 
 Future<void> gone(WidgetTester tester, Type type) async {
@@ -256,6 +296,43 @@ Future<void> main() async {
       expect(find.byType(BottomSheet), findsOneWidget);
       harness.scope.find<GoRouter>().pop();
       await gone(tester, CalendarDatePicker);
+      await tester.tap(find.widgetWithText(Tab, 'Historique'));
+      await until(tester, find.byType(SessionHistoryPanel));
+      final history = findController<SessionHistoryController>(
+        tester,
+        find.byType(SessionHistoryPanel),
+      );
+      await persisted(
+        tester,
+        () async => !history.busy.value,
+        (ready) => ready,
+      );
+      expect(history.error.value, isFalse);
+      expect(
+        harness.scope
+            .find<GoRouter>()
+            .routeInformationProvider
+            .value
+            .uri
+            .queryParameters['tab'],
+        'history',
+      );
+      if (history.hasMore.value) {
+        final entries = history.entries.value.length;
+        await history.load();
+        await tester.pump();
+        expect(history.error.value, isFalse);
+        expect(history.entries.value.length, greaterThanOrEqualTo(entries));
+      }
+      await harness.scope.find<TeacherContextController>().reloadContext();
+      await tester.pump();
+      expect(
+        findController<SessionHistoryController>(
+          tester,
+          find.byType(SessionHistoryPanel),
+        ),
+        same(history),
+      );
       expect(find.byType(CalendarPage), findsOneWidget);
       expect(
         harness.scope.find<GoRouter>().routeInformationProvider.value.uri.path,
@@ -397,12 +474,7 @@ Future<void> main() async {
       await until(
         tester,
         find
-            .byWidgetPredicate(
-              (w) =>
-                  w is TextButton &&
-                  w.key == markRemainingKey &&
-                  w.onPressed != null,
-            )
+            .byWidgetPredicate((w) => w is ChoiceChip && w.onSelected != null)
             .hitTestable(),
       );
       final ordered = (initialCall['students'] as List).cast<Map>().toList()
@@ -421,7 +493,9 @@ Future<void> main() async {
       for (final label in ['Présent', 'Absent']) {
         final chip = find.descendant(
           of: pupilCard,
-          matching: find.widgetWithText(ChoiceChip, label),
+          matching: find.byWidgetPredicate(
+            (w) => w is ChoiceChip && w.tooltip == label,
+          ),
         );
         await reveal(tester, chip);
         await tester.tap(chip);
@@ -448,31 +522,13 @@ Future<void> main() async {
       expect(tester.widget<ChoiceChip>(selectedChip).selected, isTrue);
       await tester.tap(find.text('Fermer'));
       await gone(tester, BottomSheet);
-      await reveal(tester, markRemaining);
-      expect(
-        find.descendant(
-          of: markRemaining,
-          matching: find.text('Marquer les élèves restants présents'),
-        ),
-        findsOneWidget,
-      );
-      await tester.tap(markRemaining);
+      await tapPageAction(tester, 'Marquer les élèves restants présents');
       await until(tester, find.text('Présent'));
       expect(
         await baseline.schoolClient.attendance.list({'lessonSessionId': id}),
         isEmpty,
       );
-      await until(
-        tester,
-        find.byWidgetPredicate(
-          (widget) =>
-              widget is FilledButton &&
-              widget.onPressed != null &&
-              widget.child is Text &&
-              (widget.child as Text).data == 'Terminer',
-        ),
-      );
-      await tester.tap(find.text('Terminer'));
+      await tapPageAction(tester, 'Terminer');
       final call = await baseline.schoolClient.runQuery(
         'get-teacher-attendance-call',
         {
@@ -543,7 +599,7 @@ Future<void> main() async {
         'createdAt': '2026-09-01T00:00:00.000Z',
       });
       await mount(tester, '/classes/$classId/attendance');
-      await until(tester, markRemaining);
+      await until(tester, find.byType(AttendanceStatusPicker));
       final controller = findController<DailyAttendanceController>(
         tester,
         find.byType(DailyAttendancePage),
@@ -554,7 +610,7 @@ Future<void> main() async {
         (ready) => ready,
       );
       await tester.pump();
-      await tester.tap(markRemaining);
+      await tapPageAction(tester, 'Marquer les élèves restants présents');
       await until(tester, find.text('Présent'));
       await persisted(
         tester,
@@ -567,17 +623,7 @@ Future<void> main() async {
       );
       expect(call['submitted'], false);
       expect(call['records'], isEmpty);
-      await until(
-        tester,
-        find.byWidgetPredicate(
-          (widget) =>
-              widget is FilledButton &&
-              widget.onPressed != null &&
-              widget.child is Text &&
-              (widget.child as Text).data == 'Terminer',
-        ),
-      );
-      await tester.tap(find.text('Terminer'));
+      await tapPageAction(tester, 'Terminer');
       await persisted(
         tester,
         () => harness.portalSession.schoolClient.runQuery(
@@ -839,9 +885,13 @@ Future<void> main() async {
         final action = add
             ? find.text('Ajouter un chapitre')
             : find.byTooltip('Modifier ${chapterNames[index]}');
-        await until(tester, action);
-        await reveal(tester, action);
-        await tester.tap(action);
+        if (add) {
+          await tapPageAction(tester, 'Ajouter un chapitre');
+        } else {
+          await until(tester, action);
+          await reveal(tester, action);
+          await tester.tap(action);
+        }
         await until(tester, find.byType(LogbookForm));
         if (add) {
           final dropdown = find.byType(DropdownButtonFormField<String>);
@@ -872,8 +922,7 @@ Future<void> main() async {
       }
 
       await mount(tester, '/session/$id/logbook');
-      await until(tester, find.text('Renseigner le cahier de texte'));
-      await tester.tap(find.text('Renseigner le cahier de texte'));
+      await tapPageAction(tester, 'Renseigner le cahier de texte');
       await until(tester, find.byType(LogbookForm));
       await until(tester, field('Contenu abordé'));
       await tester.enterText(field('Contenu abordé'), content);
@@ -898,8 +947,7 @@ Future<void> main() async {
         (await baseline.schoolClient.lessonSessions.get(id))['sessionNote'],
         isNull,
       );
-      await reveal(tester, find.text('Renseigner le cahier de texte'));
-      await tester.tap(find.text('Renseigner le cahier de texte'));
+      await tapPageAction(tester, 'Renseigner le cahier de texte');
       await until(tester, field('Contenu abordé'));
       expect(
         tester.widget<TextField>(field('Contenu abordé')).controller!.text,
@@ -930,6 +978,8 @@ Future<void> main() async {
       );
       harness.scope.find<GoRouter>().go('/progress');
       await gone(tester, SessionDetailPage);
+      await until(tester, find.widgetWithText(Tab, 'Cahier de texte'));
+      await tester.tap(find.widgetWithText(Tab, 'Cahier de texte'));
       final datedEntry = find.widgetWithText(ListTile, id);
       await until(tester, datedEntry);
       await reveal(tester, datedEntry);
@@ -949,10 +999,7 @@ Future<void> main() async {
       harness.scope.find<GoRouter>().go('/home');
       await gone(tester, SessionDetailPage);
       harness.scope.find<GoRouter>().go('/session/$id/logbook');
-      final request = find.text('Demander une modification');
-      await until(tester, request);
-      await reveal(tester, request);
-      await tester.tap(request);
+      await tapPageAction(tester, 'Demander une modification');
       await until(tester, field('Contenu abordé'));
       final revised = 'Révision $id';
       await tester.enterText(field('Contenu abordé'), revised);
@@ -1304,7 +1351,8 @@ Future<void> main() async {
       );
       final id = message['id'] as String;
       await mount(tester, '/inbox');
-      await until(tester, find.text('Établissement'));
+      await until(tester, find.widgetWithText(Tab, 'Notifications'));
+      await tester.tap(find.widgetWithText(Tab, 'Notifications'));
       await until(tester, find.text(message['title'] as String));
       await tester.pump(const Duration(milliseconds: 500));
       await reveal(tester, find.text(message['title'] as String));
@@ -1588,24 +1636,32 @@ Future<void> main() async {
       await until(
         tester,
         find
-            .byWidgetPredicate(
-              (w) =>
-                  w is TextButton &&
-                  w.key == markRemainingKey &&
-                  w.onPressed != null,
-            )
+            .byWidgetPredicate((w) => w is ChoiceChip && w.onSelected != null)
             .hitTestable(),
       );
       transport.offline = true;
-      await tester.tap(markRemaining);
+      await tapPageAction(tester, 'Marquer les élèves restants présents');
       await until(tester, find.text('Présent'));
-      await until(tester, find.text('À envoyer · Réessayer'));
+      await until(
+        tester,
+        find.byWidgetPredicate((w) => w is RollCall && w.pending),
+      );
+      await tester.tap(find.byKey(const ValueKey('session-actions')));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(
+        find.widgetWithText(PopupMenuItem<int>, 'Réessayer'),
+        findsOneWidget,
+      );
       expect(
         tester
-            .widget<FilledButton>(find.widgetWithText(FilledButton, 'Terminer'))
-            .onPressed,
-        isNull,
+            .widget<PopupMenuItem<int>>(
+              find.widgetWithText(PopupMenuItem<int>, 'Terminer'),
+            )
+            .enabled,
+        isFalse,
       );
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump(const Duration(milliseconds: 300));
       final outbox = harness.scope.find<TeacherOutboxController>();
       await persisted(tester, () async {
         await outbox.refreshSummary();
@@ -1641,17 +1697,7 @@ Future<void> main() async {
       );
       harness.scope.find<GoRouter>().go('/session/$id/attendance');
       await until(tester, find.text('Présent'));
-      await until(
-        tester,
-        find.byWidgetPredicate(
-          (widget) =>
-              widget is FilledButton &&
-              widget.onPressed != null &&
-              widget.child is Text &&
-              (widget.child as Text).data == 'Terminer',
-        ),
-      );
-      await tester.tap(find.text('Terminer'));
+      await tapPageAction(tester, 'Terminer');
       final saved = await persisted(
         tester,
         () => baseline.schoolClient.attendance.list({'lessonSessionId': id}),

@@ -78,7 +78,7 @@ class AcademicYearController extends LevitController
   }
 
   int _loadGeneration = 0;
-  Future<void> loadYears() async {
+  Future<bool> loadYears() async {
     final generation = ++_loadGeneration;
     final school = _session.schoolIdHeader;
     bool current() =>
@@ -89,8 +89,9 @@ class AcademicYearController extends LevitController
       years(const []);
       yearsBySchool(const {});
       selectedYearId(null);
-      return;
+      return false;
     }
+    var loaded = false;
     errorMessage('');
     await runTask(() async {
       try {
@@ -101,9 +102,11 @@ class AcademicYearController extends LevitController
           yearsBySchool(const {});
           selectedYearId(null);
           errorMessage(systemL10n().noAcademicYearsAvailable);
+          loaded = true;
           return;
         }
         await _applyYearSelection(_sortYears(rows));
+        loaded = true;
       } catch (error) {
         if (!current()) return;
         years(const []);
@@ -112,6 +115,7 @@ class AcademicYearController extends LevitController
         errorMessage(systemL10n().couldNotLoadAcademicYears(error.toString()));
       }
     });
+    return loaded && current();
   }
 
   Future<void> selectYear(String yearId) async {

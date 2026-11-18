@@ -7,6 +7,7 @@ import 'package:edaya_guardian_v2/features/calendar/session_detail_controller.da
 import 'package:edaya_guardian_v2/features/context/academic_year_controller.dart';
 import 'package:edaya_guardian_v2/features/context/student_context_controller.dart';
 import 'package:edaya_guardian_v2/features/home/home_controller.dart';
+import 'package:edaya_guardian_v2/features/scolarite/subject_logbook_controller.dart';
 import 'package:edaya_guardian_v2/features/my_students/linked_student.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,7 +19,11 @@ class _Students implements StudentContextController {
   @override
   String? get activeStudentId => activeStudent.value?.id;
   @override
+  String? get activeYearId => 'year';
+  @override
   final classGroupId = LxVar<String?>('class');
+  @override
+  final classLabel = LxVar<String?>('Class');
   @override
   final isEnrolled = LxVar(true);
   @override
@@ -61,6 +66,39 @@ class _Transport implements api.Transport {
   }
 }
 
+class _LogbookTransport implements api.Transport {
+  final sessionReads = <String>[];
+
+  @override
+  Future<T> request<T>(
+    String method,
+    String path, {
+    api.TransportRequestOptions? options,
+  }) async {
+    if (path.endsWith('/get-student-subject-enrollments')) {
+      return {
+            'enrollments': [
+              for (final id in ['one', 'two'])
+                {'classSubjectId': id, 'enrolledAt': '2020-01-01'},
+            ],
+            'offerings': [
+              for (final id in ['one', 'two'])
+                {'id': id, 'classGroupId': 'class', 'subjectId': 'music'},
+            ],
+          }
+          as T;
+    }
+    if (path.endsWith('/subjects/list'))
+      return <Map<String, dynamic>>[
+            {'id': 'music', 'name': 'Music'},
+          ]
+          as T;
+    if (path.endsWith('/lesson-sessions/list'))
+      sessionReads.add((options!.body as Map)['classSubjectId'] as String);
+    return <Map<String, dynamic>>[] as T;
+  }
+}
+
 class _DetailTransport implements api.Transport {
   final pending = <Completer<Map<String, dynamic>>>[];
   Map<String, dynamic> lesson(String title) => {
@@ -82,8 +120,12 @@ class _DetailTransport implements api.Transport {
       pending.add(response);
       return await response.future as T;
     }
-    if (path.endsWith('/get-student-timetable')) {
+    if (path.endsWith('/get-student-session-history') ||
+        path.endsWith('/get-student-timetable')) {
       return {
+            'entries': [
+              {'id': 'session'},
+            ],
             'events': [
               {'id': 'session'},
             ],
@@ -130,6 +172,31 @@ Future<void> until(bool Function() ready) async {
 }
 
 void main() {
+  test(
+    'an offering ID chooses its own logbook when two offerings share a name',
+    () async {
+      final transport = _LogbookTransport();
+      final students = _Students();
+      final controller = SubjectLogbookController(
+        subject: 'two',
+        byId: true,
+        studentContext: students,
+        schoolClient: () => api.createSchoolClient(transport),
+      );
+      controller.onInit();
+      addTearDown(controller.onClose);
+      await until(
+        () =>
+            transport.sessionReads.isNotEmpty ||
+            controller.errorMessage.value.isNotEmpty,
+      );
+      await until(() => !controller.isBusy.value);
+      expect(transport.sessionReads, ['two']);
+      expect(controller.subjectLabel.value, 'Music');
+      expect(controller.errorMessage.value, isEmpty);
+    },
+  );
+
   test(
     'lesson detail reloads on a child switch without reusing an active task id',
     () async {

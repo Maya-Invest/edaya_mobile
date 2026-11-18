@@ -147,13 +147,19 @@
           {
             "id": "guardian-v2.calendar.attendance",
             "scenarios": [
-              "guardian-v2.attendancelistpage-loads-student-attendance-records"
+              "guardian-v2.calendar.history"
             ]
           },
           {
             "id": "guardian-v2.calendar.events",
             "scenarios": [
               "guardian-v2.calendar.events"
+            ]
+          },
+          {
+            "id": "guardian-v2.calendar.history-pagination",
+            "scenarios": [
+              "guardian-v2.calendar.history"
             ]
           }
         ]
@@ -171,7 +177,9 @@
           "/scolarite/subject/:subject/cahier",
           "/scolarite/period/:periodId/subject/:subject",
           "/grade/:id",
-          "/report-card/:id"
+          "/report-card/:id",
+          "/scolarite/progress/:subjectId",
+          "/scolarite/progress/:subjectId/cahier"
         ],
         "actions": [
           {
@@ -485,6 +493,12 @@
             "id": "teacher-v2.calendar.offline-retry",
             "scenarios": [
               "teacher-v2.offline.retry"
+            ]
+          },
+          {
+            "id": "teacher-v2.calendar.history",
+            "scenarios": [
+              "teacher-v2.calendar.read"
             ]
           }
         ]

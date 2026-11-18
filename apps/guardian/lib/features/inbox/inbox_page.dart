@@ -47,7 +47,7 @@ class _MockInboxPage extends LScopedView<StoreBoundController> {
         GoRouterState.of(context).pathParameters['campaignId'];
     final messages = store.messages;
 
-    return AdaptiveContent(
+    final notifications = AdaptiveContent(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -115,6 +115,25 @@ class _MockInboxPage extends LScopedView<StoreBoundController> {
         ],
       ),
     );
+    if (showingAvis) return notifications;
+    return WorkspaceTabs(
+      values: const ['conversations', 'notifications'],
+      labels: [
+        context.tr.messagingConversations,
+        context.tr.workspaceNotifications,
+      ],
+      children: [
+        RefreshIndicator(
+          onRefresh: () async {},
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            children: [Text(context.tr.messagingEmpty)],
+          ),
+        ),
+        notifications,
+      ],
+    );
   }
 }
 
@@ -142,12 +161,12 @@ class _LiveInboxPage extends LScopedView<InboxController> {
         GoRouterState.of(context).pathParameters['id'] ??
         GoRouterState.of(context).pathParameters['campaignId'];
 
-    if (controller.dataStatus == DataStatus.loading) {
+    if (showingAvis && controller.dataStatus == DataStatus.loading) {
       return const AdaptiveContent(
         child: Center(child: CircularProgressIndicator()),
       );
     }
-    if (controller.dataStatus == DataStatus.error) {
+    if (showingAvis && controller.dataStatus == DataStatus.error) {
       return AdaptiveContent(
         child: EmptyState(title: controller.errorMessage.value),
       );
@@ -193,6 +212,9 @@ class _MessageList extends StatelessWidget {
           .value;
       return MessagingInbox(
         guardian: true,
+        onRefreshNotices: controller.loadInbox,
+        noticesBusy: controller.isBusy.value,
+        noticesError: controller.errorMessage.value,
         studentId: student?.id,
         studentName: student?.fullName,
         notices: [

@@ -23,6 +23,7 @@ import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_shared/src/features/settings/app_settings_models.dart';
 import 'package:edaya_shared/src/features/settings/app_settings_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -137,12 +138,15 @@ Future<void> main() async {
         'requestId': 'answer-$subject',
         'body': 'The office opens at eight.',
       });
-      await tester.tap(
+      expect(find.byTooltip('Actualiser'), findsNothing);
+      await tester.drag(
         find.descendant(
           of: find.byType(ConversationPage),
-          matching: find.byTooltip('Actualiser'),
+          matching: find.byType(ListView),
         ),
+        const Offset(0, 400),
       );
+      await tester.pump(const Duration(seconds: 1));
       await pumpUntilFound(tester, find.text('The office opens at eight.'));
     },
   );
@@ -179,10 +183,23 @@ Future<void> main() async {
     '[guardian-v2.fees.detail] reads the selected charge and supports its legacy redirect',
     (tester) async {
       final fee = probes.fees.studentCharges.first;
-      await pumpGuardianRoute(tester, harness, location: '/fee/${fee['id']}');
+      await pumpGuardianRoute(
+        tester,
+        harness,
+        location: '/fee/${fee['id']}?year=${harness.profile!.academicYearId}',
+      );
       await pumpUntilFound(tester, find.byType(FeeDetailPage));
       await pumpUntilFound(tester, find.text(fee['label'] as String));
       expect(find.text('Frais introuvables'), findsNothing);
+      expect(
+        harness
+            .router
+            .routeInformationProvider
+            .value
+            .uri
+            .queryParameters['year'],
+        harness.profile!.academicYearId,
+      );
       expect(
         harness.router.routeInformationProvider.value.uri.path,
         '/fees/fee/${fee['id']}',
@@ -306,6 +323,17 @@ Future<void> main() async {
     await tester.ensureVisible(find.text(subject['name'] as String));
     await tester.tap(find.text(subject['name'] as String));
     await pumpUntilFound(tester, find.text(matter['name'] as String));
+    final logbook = find.widgetWithIcon(TextButton, Icons.menu_book_outlined);
+    await tester.ensureVisible(logbook);
+    await tester.tap(logbook);
+    await pumpUntilFound(tester, find.byType(SubjectLogbookPage));
+    expect(
+      GoRouterState.of(
+        tester.element(find.byType(SubjectLogbookPage)),
+      ).uri.path,
+      '/scolarite/progress/${classSubject['id']}/cahier',
+    );
+    await pumpUntilFound(tester, find.text(subject['name'] as String));
   });
 
   testWidgets(
@@ -336,7 +364,11 @@ Future<void> main() async {
         actorId: harness.context!.grants.actorId,
         actorKind: 'guardian',
       );
-      await pumpGuardianRoute(tester, harness, location: '/inbox');
+      await pumpGuardianRoute(
+        tester,
+        harness,
+        location: '/inbox?tab=notifications',
+      );
       await pumpUntilFound(tester, find.text(message['title'] as String));
       await tester.tap(find.text(message['title'] as String));
       await pumpUntilFound(tester, find.text('Integration message body'));

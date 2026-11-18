@@ -7,6 +7,7 @@ import 'package:edaya_shared/edaya_shared.dart';
 import '../auth/session_storage.dart';
 import '../my_students/linked_student.dart';
 import 'academic_year_controller.dart';
+import 'pupil_enrollment_years.dart';
 
 class StudentContextController extends LevitController
     with LevitReactiveTasksMixin {
@@ -15,15 +16,18 @@ class StudentContextController extends LevitController
     required AppSessionController session,
     required AcademicYearController academicYear,
     required SchoolClientFactory schoolClient,
+    SchoolClientFactory? catalogClient,
   }) : _sessionStorage = sessionStorage,
        _session = session,
        _academicYear = academicYear,
-       _schoolClient = schoolClient;
+       _schoolClient = schoolClient,
+       _catalogClient = catalogClient ?? schoolClient;
 
   final SessionStorage _sessionStorage;
   final AppSessionController _session;
   final AcademicYearController _academicYear;
-  final SchoolClientFactory _schoolClient;
+  final SchoolClientFactory _schoolClient, _catalogClient;
+  final enrollmentYears = LxVar<List<Map<String, dynamic>>>(const []);
 
   final linkedStudentIds = LxVar<List<String>>(const []);
   final linkedStudentsResolved = LxVar(false);
@@ -38,13 +42,17 @@ class StudentContextController extends LevitController
   int _reloadGeneration = 0;
   int _initializeGeneration = 0;
   bool _switching = false;
+  int _selectionGeneration = 0;
 
   void beginSwitch() {
+    _selectionGeneration++;
     _switching = true;
     _initializeGeneration++;
     _clearContext();
     linkedStudentsResolved(false);
   }
+
+  String? get activeYearId => _academicYear.selectedYearId.value;
 
   String? get activeStudentId => activeStudent.value?.id;
 
@@ -53,6 +61,7 @@ class StudentContextController extends LevitController
   @override
   void onInit() {
     super.onInit();
+    autoDispose(enrollmentYears);
     autoDispose(linkedStudentIds);
     autoDispose(linkedStudentsResolved);
     autoDispose(activeStudent);
@@ -81,7 +90,10 @@ class StudentContextController extends LevitController
     );
   }
 
-  Future<void> initializeFromSession({String? preferredStudentId}) async {
+  Future<void> initializeFromSession({
+    String? preferredStudentId,
+    String? preferredYearId,
+  }) async {
     final initialization = ++_initializeGeneration;
     final account = _session.user.value?.id;
     final school = _session.schoolIdHeader;
@@ -126,20 +138,72 @@ class StudentContextController extends LevitController
       persistedId != null && scopedStudentIds.contains(persistedId)
           ? persistedId
           : scopedStudentIds.first,
+      yearId: preferredYearId,
     );
     if (!valid()) return;
     _switching = false;
     linkedStudentsResolved(true);
   }
 
-  Future<void> selectStudent(String studentId) async {
+  Future<void> selectStudent(String studentId, {String? yearId}) async {
     if (!linkedStudentIds.value.contains(studentId)) return;
+    final selection = ++_selectionGeneration;
+    _switching = true;
     _clearContext();
-    await _sessionStorage.writeActiveStudentId(studentId);
-    if (_academicYear.selectedYearId.value == null) {
-      await _academicYear.loadYears();
+    isLoading(true);
+    final generation = _reloadGeneration;
+    final school = _session.schoolIdHeader;
+    final actor = _session.actorIdHeader;
+    try {
+      if (_academicYear.years.value.isEmpty &&
+          !await _academicYear.loadYears()) {
+        if (!isClosed && generation == _reloadGeneration) {
+          errorMessage(_academicYear.errorMessage.value);
+          isLoading(false);
+        }
+        return;
+      }
+      final catalog = _catalogClient();
+      final placements = await catalog.enrollments.listAll({
+        'studentId': studentId,
+      });
+      if (isClosed ||
+          generation != _reloadGeneration ||
+          school != _session.schoolIdHeader ||
+          actor != _session.actorIdHeader)
+        return;
+      final available = pupilEnrollmentYears(
+        _academicYear.years.value,
+        placements,
+        studentId,
+      );
+      if (placements.isNotEmpty && available.isEmpty) {
+        throw StateError(systemL10n().noAcademicYearsAvailable);
+      }
+      if (yearId != null && !available.any((y) => y['id'] == yearId)) {
+        throw StateError('School year unavailable');
+      }
+      enrollmentYears(available);
+      _academicYear.selectedYearId(yearId ?? defaultPupilYear(available));
+      _academicYear.errorMessage('');
+      await _sessionStorage.writeActiveStudentId(studentId);
+      if (isClosed || generation != _reloadGeneration) return;
+      await reloadContext();
+    } catch (error) {
+      if (!isClosed && generation == _reloadGeneration) {
+        errorMessage(systemL10n().couldNotLoadStudentContext(error.toString()));
+        isLoading(false);
+      }
+      rethrow;
+    } finally {
+      if (!isClosed && selection == _selectionGeneration) _switching = false;
     }
-    await reloadContext();
+  }
+
+  Future<void> selectEnrollmentYear(String yearId) async {
+    final id = activeStudentId;
+    if (id == null) return;
+    await selectStudent(id, yearId: yearId);
   }
 
   Future<void> clearStudent() async {
@@ -150,6 +214,7 @@ class StudentContextController extends LevitController
   void _clearContext() {
     _reloadGeneration++;
     activeStudent(null);
+    enrollmentYears(const []);
     classGroupId(null);
     classLabel(null);
     schoolName(null);
@@ -218,7 +283,10 @@ class StudentContextController extends LevitController
           yearId: resolvedYearId,
           generation: generation,
         );
-        if (isClosed || generation != _reloadGeneration) return;
+        if (isClosed ||
+            generation != _reloadGeneration ||
+            errorMessage.value.isNotEmpty)
+          return;
         schoolName(resolvedSchoolName);
         activeStudent(student);
       } on api.ApiError catch (error) {
@@ -256,10 +324,9 @@ class StudentContextController extends LevitController
     required int generation,
   }) async {
     try {
-      final enrollments = await schoolClient.enrollments.list({
+      final enrollments = await schoolClient.enrollments.listAll({
         'studentId': studentId,
         'academicYearId': yearId,
-        'status': 'active',
       });
 
       if (generation != _reloadGeneration || isClosed) return;
@@ -270,6 +337,11 @@ class StudentContextController extends LevitController
         return;
       }
 
+      enrollments.sort(
+        (a, b) => ((b['enrollmentIndex'] as num?) ?? 0).compareTo(
+          (a['enrollmentIndex'] as num?) ?? 0,
+        ),
+      );
       final enrollment = enrollments.first;
       final enrollmentClassGroupId = enrollment['classGroupId'] as String?;
       if (enrollmentClassGroupId == null) {

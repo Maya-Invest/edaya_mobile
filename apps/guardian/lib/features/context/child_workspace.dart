@@ -1,6 +1,7 @@
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 import '../../app/guardian_words.dart';
 import '../../app/workspace_shell.dart';
@@ -26,11 +27,12 @@ class ChildWorkspace extends StatelessWidget {
       student.activeStudentId,
       year.selectedYearId.value,
     );
+    final path = GoRouterState.of(context).uri.path;
     if (student.activeStudentId == null) {
       return ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const ChildContextCard(),
+          if (path == '/home') const ChildContextCard(),
           const SizedBox(height: 24),
           if (student.isLoading.value)
             const LinearProgressIndicator()
@@ -45,6 +47,15 @@ class ChildWorkspace extends StatelessWidget {
                     ),
             ),
         ],
+      );
+    }
+    if (year.selectedYearId.value == null &&
+        (path.startsWith('/scolarite') ||
+            path.startsWith('/calendar') ||
+            path.startsWith('/session') ||
+            path.startsWith('/fees'))) {
+      return Center(
+        child: Text(words(context, 'Aucune inscription', 'No enrollment')),
       );
     }
     return _CapturedTransport(key: ValueKey(identity), child: child);

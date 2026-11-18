@@ -12,6 +12,18 @@ import 'package:edaya_teacher_v2/features/session/live_session_controller.dart';
 import 'integration/support/prototype_widget_test_harness.dart';
 import 'integration/support/integration_test_lifecycle.dart';
 
+Finder statusChip(String label) =>
+    find.byWidgetPredicate((w) => w is ChoiceChip && w.tooltip == label);
+Future<void> openActions(WidgetTester tester) async {
+  final attendance = find.byKey(const ValueKey('session-actions'));
+  await tester.tap(
+    attendance.evaluate().isNotEmpty
+        ? attendance
+        : find.byType(PopupMenuButton<String>).first,
+  );
+  await tester.pumpAndSettle();
+}
+
 void main() {
   testWidgets(
     'photo pass stays on a rejected write and advances only once across a resize',
@@ -26,6 +38,12 @@ void main() {
       ];
       var write = Completer<bool>();
       final requests = <String>[];
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(390, 844);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
       await tester.binding.setSurfaceSize(const Size(390, 844));
       addTearDown(() => tester.binding.setSurfaceSize(null));
       await tester.pumpWidget(
@@ -55,6 +73,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      await openActions(tester);
       await tester.tap(find.text('Mode photo'));
       await tester.pumpAndSettle();
       final mark = find.text('Présent');
@@ -70,6 +89,7 @@ void main() {
       await tester.pump();
       await tester.tap(mark);
       expect(requests, ['Ada', 'Ada']);
+      tester.view.physicalSize = const Size(1024, 768);
       await tester.binding.setSurfaceSize(const Size(1024, 768));
       await tester.pumpAndSettle();
       expect(find.text('2 sur 2'), findsOneWidget);
@@ -94,6 +114,12 @@ void main() {
       final queue = AttendanceDraftQueue();
       final first = Completer<bool>(), second = Completer<bool>();
       final sent = <String>[];
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(390, 844);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
       await tester.binding.setSurfaceSize(const Size(390, 844));
       addTearDown(() => tester.binding.setSurfaceSize(null));
       await tester.pumpWidget(
@@ -146,7 +172,7 @@ void main() {
       await tester.pumpAndSettle();
       Finder chip(String name, String status) => find.descendant(
         of: find.byKey(ValueKey(name)),
-        matching: find.widgetWithText(ChoiceChip, status),
+        matching: statusChip(status),
       );
       final other = chip('Eli', 'Présent');
       final originalChip = tester.widget<ChoiceChip>(other);
@@ -228,11 +254,11 @@ void main() {
           final picker = find.byType(AttendanceStatusPicker).first;
           final present = find.descendant(
             of: picker,
-            matching: find.widgetWithText(ChoiceChip, labels.attendancePresent),
+            matching: statusChip(labels.attendancePresent),
           );
           final absent = find.descendant(
             of: picker,
-            matching: find.widgetWithText(ChoiceChip, labels.attendanceAbsent),
+            matching: statusChip(labels.attendanceAbsent),
           );
           expect(tester.getSize(present).height, greaterThanOrEqualTo(48));
           expect(tester.widget<ChoiceChip>(present).selected, isFalse);
@@ -241,7 +267,7 @@ void main() {
           await tester.tap(present);
           await tester.pumpAndSettle();
           expect(firstRow.status, AttendanceStatus.present);
-          expect(tester.widget<ChoiceChip>(present).showCheckmark, true);
+          expect(tester.widget<ChoiceChip>(present).selected, true);
           final green = tester.widget<ChoiceChip>(present).selectedColor;
           await tester.ensureVisible(absent);
           await tester.pumpAndSettle();
@@ -256,6 +282,7 @@ void main() {
           await tester.pumpAndSettle();
           expect(find.text(labels.bookGeneral), findsOneWidget);
           expect(find.text(labels.bookChapters), findsOneWidget);
+          if (viewport.width < 600) await openActions(tester);
           final add = find.text(labels.bookAddChapter);
           await tester.ensureVisible(add);
           await tester.pumpAndSettle();
@@ -302,6 +329,7 @@ void main() {
         await tester.pumpAndSettle();
       }
 
+      if (viewport.width < 600) await openActions(tester);
       await tap(find.text('Mode photo'));
       expect(find.text('1 sur ${rows.length}'), findsOneWidget);
       await tap(find.byIcon(Icons.chevron_right).last);
@@ -317,22 +345,41 @@ void main() {
         );
         await tap(find.text('Présent'));
       }
+      if (viewport.width < 600) await openActions(tester);
       expect(find.text('Mode photo'), findsOneWidget);
       expect(rows.first.status, isNull);
-      expect(
-        tester
-            .widget<FilledButton>(find.widgetWithText(FilledButton, 'Terminer'))
-            .onPressed,
-        isNull,
-      );
+      if (viewport.width < 600) {
+        expect(
+          tester
+              .widget<PopupMenuItem<int>>(
+                find.widgetWithText(PopupMenuItem<int>, 'Terminer'),
+              )
+              .enabled,
+          isFalse,
+        );
+      } else {
+        expect(
+          tester
+              .widget<FilledButton>(
+                find.widgetWithText(FilledButton, 'Terminer'),
+              )
+              .onPressed,
+          isNull,
+        );
+      }
       await tap(find.text('Marquer les élèves restants présents'));
       expect(rows[1].status, AttendanceStatus.absent);
       expect(s.attendanceComplete, isFalse);
+      if (viewport.width < 600) await openActions(tester);
       await tap(find.text('Terminer'));
       expect(s.attendanceComplete, isTrue);
       await tap(find.widgetWithText(Tab, 'Cahier de texte'));
-      final edit = find.byIcon(Icons.edit_outlined);
-      await tap(edit);
+      if (viewport.width < 600) {
+        await openActions(tester);
+        await tap(find.byType(PopupMenuItem<String>).first);
+      } else {
+        await tap(find.byIcon(Icons.edit_outlined));
+      }
       expect(find.byType(BottomSheet), findsOneWidget);
       final input = find.byType(TextField).first;
       await tester.enterText(input, 'Test du cahier');

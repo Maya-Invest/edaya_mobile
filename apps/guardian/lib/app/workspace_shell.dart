@@ -41,13 +41,6 @@ const destinations =
         academic: true,
       ),
       (
-        path: '/attendance',
-        fr: 'Présences',
-        en: 'Attendance',
-        icon: Icons.fact_check_outlined,
-        academic: false,
-      ),
-      (
         path: '/fees',
         fr: 'Frais',
         en: 'Fees',
@@ -98,30 +91,58 @@ class ChildContextCard extends StatelessWidget {
         : mock?.selectedYear;
     return SurfaceCard(
       padding: EdgeInsets.zero,
-      onTap: () => context.push('/children'),
+      onTap: () {
+        final path = GoRouterState.of(context).uri.path;
+        final root = path.startsWith('/session')
+            ? '/calendar'
+            : path.startsWith('/scolarite/progress') || path.endsWith('/cahier')
+            ? '/scolarite/progress'
+            : path.startsWith('/scolarite')
+            ? '/scolarite/notes'
+            : path.startsWith('/fees')
+            ? '/fees'
+            : path.startsWith('/inbox/avis')
+            ? '/inbox/avis'
+            : path.startsWith('/inbox')
+            ? '/inbox'
+            : path;
+        context.push(
+          Uri(path: '/children', queryParameters: {'return': root}).toString(),
+        );
+      },
       child: Padding(
         padding: EdgeInsets.all(compact ? 12 : 16),
         child: Row(
           children: [
-            PersonAvatar(
-              name: name,
-              initials: active?.initials ?? 'E',
-              photoUrl: active?.photoUrl,
-              radius: compact ? 20 : 26,
-            ),
-            const SizedBox(width: 12),
+            if (!compact)
+              PersonAvatar(
+                name: name,
+                initials: active?.initials ?? 'E',
+                photoUrl: active?.photoUrl,
+                radius: compact ? 20 : 26,
+              ),
+            if (!compact) const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name, style: Theme.of(context).textTheme.titleMedium),
-                  if (!compact) ...[
+                  Text(
+                    name,
+                    maxLines: compact ? 1 : null,
+                    overflow: compact ? TextOverflow.ellipsis : null,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  ...[
                     const SizedBox(height: 4),
                     Text(
-                      [school, student?.classLabel.value, year]
+                      (compact
+                              ? [year, school, student?.classLabel.value]
+                              : [school, student?.classLabel.value, year])
                           .whereType<String>()
                           .where((s) => s.isNotEmpty)
                           .join(' · '),
+                      maxLines: compact ? 1 : null,
+                      overflow: compact ? TextOverflow.ellipsis : null,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -167,12 +188,14 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
         ? words(context, 'Accueil', 'Home')
         : destination != null
         ? words(context, destination.fr, destination.en)
+        : path.endsWith('/cahier')
+        ? words(context, 'Cahier de texte', 'Logbook')
+        : path.startsWith('/scolarite/progress')
+        ? words(context, 'Progression', 'Progress')
         : path.startsWith('/scolarite/period')
         ? words(context, 'Résultats de la matière', 'Subject results')
         : path.startsWith('/session')
         ? words(context, 'Séance', 'Session')
-        : path.endsWith('/cahier')
-        ? words(context, 'Cahier de texte', 'Logbook')
         : account
         ? words(context, 'Mon profil', 'My profile')
         : words(context, 'Détails', 'Details');
@@ -180,7 +203,17 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
       child: Scaffold(
         appBar: AppBar(
           centerTitle: false,
-          title: Text(title),
+          toolbarHeight: home
+              ? null
+              : MediaQuery.textScalerOf(context).scale(20) + 44,
+          title: home
+              ? Text(title)
+              : WorkspacePageHeading(
+                  title: title,
+                  picker: !account && path != '/children'
+                      ? const ChildContextCard(compact: true)
+                      : null,
+                ),
           automaticallyImplyLeading: false,
           leading: home
               ? null
@@ -210,16 +243,7 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1168),
-              child: Column(
-                children: [
-                  if (!home && !account && path != '/children')
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
-                      child: ChildContextCard(compact: true),
-                    ),
-                  Expanded(child: widget.child),
-                ],
-              ),
+              child: Column(children: [Expanded(child: widget.child)]),
             ),
           ),
         ),

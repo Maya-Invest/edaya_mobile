@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 import '../../access/school_client.dart';
 import '../../l10n/l10n_extension.dart';
+import '../../ui/workspace_tabs.dart';
 import '../auth/app_session_controller.dart';
 import 'conversation_controller.dart';
 import 'conversation_message_bubble.dart';
@@ -33,12 +34,18 @@ class MessagingInbox extends LScopedView<ConversationController> {
     super.key,
     required this.notices,
     required this.onNotice,
+    this.onRefreshNotices,
+    this.noticesBusy = false,
+    this.noticesError = '',
     this.guardian = false,
     this.studentId,
     this.studentName,
   });
   final List<MessagingNotice> notices;
+  final bool noticesBusy;
+  final String noticesError;
   final void Function(String id) onNotice;
+  final Future<void> Function()? onRefreshNotices;
   final bool guardian;
   final String? studentId, studentName;
   @override
@@ -52,7 +59,8 @@ class MessagingInbox extends LScopedView<ConversationController> {
   Widget buildView(BuildContext context, ConversationController controller) {
     controller.visible =
         TickerMode.valuesOf(context).enabled &&
-        GoRouterState.of(context).uri.path == '/inbox';
+        GoRouterState.of(context).uri.path == '/inbox' &&
+        GoRouterState.of(context).uri.queryParameters['tab'] != 'notifications';
     final combined =
         <({DateTime at, Map<String, dynamic>? row, MessagingNotice? notice})>[
           for (final row in controller.rows.value)
@@ -61,128 +69,165 @@ class MessagingInbox extends LScopedView<ConversationController> {
               row: row,
               notice: null,
             ),
-          for (final notice in notices)
-            (
-              at: notice.at ?? DateTime.fromMillisecondsSinceEpoch(0),
-              row: null,
-              notice: notice,
-            ),
         ]..sort((a, b) => b.at.compareTo(a.at));
-    final unread =
-        controller.unreadCount.value + notices.where((n) => n.unread).length;
+    final unread = controller.unreadCount.value;
     return _MessagingLifecycle(
       controller: controller,
-      child: Column(
+      child: WorkspaceTabs(
+        values: const ['conversations', 'notifications'],
+        labels: [
+          context.tr.messagingConversations,
+          context.tr.workspaceNotifications,
+        ],
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Wrap(
-              spacing: 12,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(context.tr.unreadCount(unread)),
-                if (guardian)
-                  FilledButton.icon(
-                    onPressed: () async {
-                      final id = await showLevitModalBottomSheet<String>(
-                        context: context,
-                        isScrollControlled: true,
-                        builder: (_) => _ComposeMessage(
-                          key: ValueKey(
-                            '${controller.identity.value}|$studentId',
-                          ),
-                          controller: controller,
-                          studentId: studentId,
-                          studentName: studentName,
-                        ),
-                      );
-                      if (id != null && context.mounted) {
-                        context.push('/inbox/conversation/$id');
-                      }
-                    },
-                    icon: const Icon(Icons.edit_outlined),
-                    label: Text(context.tr.messagingNew),
-                  ),
-                IconButton(
-                  tooltip: context.tr.messagingRefresh,
-                  onPressed: controller.busy.value
-                      ? null
-                      : () => controller.refresh(),
-                  icon: const Icon(Icons.refresh),
-                ),
-              ],
-            ),
-          ),
-          if (controller.busy.value) const LinearProgressIndicator(),
-          if (controller.error.value.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(context.tr.messagingUnavailable),
-            ),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: controller.refresh,
-              child: ListView(
+          Column(
+            children: [
+              Padding(
                 padding: const EdgeInsets.all(16),
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  if (combined.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Text(context.tr.messagingEmpty),
-                    ),
-                  for (final item in combined)
-                    Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        leading: Icon(
-                          item.row != null
-                              ? Icons.forum_outlined
-                              : Icons.notifications_outlined,
-                        ),
-                        title: Text(
-                          item.row?['subject'] as String? ?? item.notice!.title,
-                          style: TextStyle(
-                            fontWeight:
-                                (item.row?['unread'] == true ||
-                                    item.notice?.unread == true)
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        ),
-                        subtitle: Text(
-                          item.row == null
-                              ? item.notice!.body
-                              : '${item.row!['destination'] == 'school' ? item.row!['schoolName'] : item.row!['teacherName']} · ${item.row!['studentName'] ?? item.row!['guardianName']}\n${item.row!['lastMessage']}${item.row!['destination'] == 'school' ? '\n${_enquiryStatus(context, item.row!['status'])}' : ''}',
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        trailing:
-                            (item.row?['unread'] == true ||
-                                item.notice?.unread == true)
-                            ? Icon(
-                                Icons.mark_email_unread_outlined,
-                                semanticLabel: context.tr.messagingUnread,
-                              )
-                            : null,
-                        onTap: () {
-                          if (item.row != null) {
-                            context.push(
-                              '/inbox/conversation/${item.row!['id']}',
-                            );
-                          } else {
-                            onNotice(item.notice!.id);
+                child: Wrap(
+                  spacing: 12,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(context.tr.unreadCount(unread)),
+                    if (guardian)
+                      FilledButton.icon(
+                        onPressed: () async {
+                          final id = await showLevitModalBottomSheet<String>(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (_) => _ComposeMessage(
+                              key: ValueKey(
+                                '${controller.identity.value}|$studentId',
+                              ),
+                              controller: controller,
+                              studentId: studentId,
+                              studentName: studentName,
+                            ),
+                          );
+                          if (id != null && context.mounted) {
+                            context.push('/inbox/conversation/$id');
                           }
                         },
+                        icon: const Icon(Icons.edit_outlined),
+                        label: Text(context.tr.messagingNew),
                       ),
-                    ),
-                  if (controller.rows.value.length < controller.total.value)
-                    TextButton(
-                      onPressed: () => controller.refresh(more: true),
-                      child: Text(context.tr.messagingLoadMore),
-                    ),
-                ],
+                  ],
+                ),
               ),
+              if (controller.busy.value) const LinearProgressIndicator(),
+              if (controller.error.value.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(context.tr.messagingUnavailable),
+                ),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: controller.refresh,
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      if (combined.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Text(context.tr.messagingEmpty),
+                        ),
+                      for (final item in combined)
+                        Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            leading: Icon(
+                              item.row != null
+                                  ? Icons.forum_outlined
+                                  : Icons.notifications_outlined,
+                            ),
+                            title: Text(
+                              item.row?['subject'] as String? ??
+                                  item.notice!.title,
+                              style: TextStyle(
+                                fontWeight:
+                                    (item.row?['unread'] == true ||
+                                        item.notice?.unread == true)
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                            subtitle: Text(
+                              item.row == null
+                                  ? item.notice!.body
+                                  : '${item.row!['destination'] == 'school' ? item.row!['schoolName'] : item.row!['teacherName']} · ${item.row!['studentName'] ?? item.row!['guardianName']}\n${item.row!['lastMessage']}${item.row!['destination'] == 'school' ? '\n${_enquiryStatus(context, item.row!['status'])}' : ''}',
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            trailing:
+                                (item.row?['unread'] == true ||
+                                    item.notice?.unread == true)
+                                ? Icon(
+                                    Icons.mark_email_unread_outlined,
+                                    semanticLabel: context.tr.messagingUnread,
+                                  )
+                                : null,
+                            onTap: () {
+                              if (item.row != null) {
+                                context.push(
+                                  '/inbox/conversation/${item.row!['id']}',
+                                );
+                              } else {
+                                onNotice(item.notice!.id);
+                              }
+                            },
+                          ),
+                        ),
+                      if (controller.rows.value.length < controller.total.value)
+                        TextButton(
+                          onPressed: () => controller.refresh(more: true),
+                          child: Text(context.tr.messagingLoadMore),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          RefreshIndicator(
+            onRefresh: onRefreshNotices ?? controller.refresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              children: [
+                if (noticesBusy) const LinearProgressIndicator(),
+                if (noticesError.isNotEmpty)
+                  Text(context.tr.messagingUnavailable),
+                if (!noticesBusy && noticesError.isEmpty && notices.isEmpty)
+                  Text(context.tr.messagingEmpty),
+                for (final notice
+                    in [...notices]..sort(
+                      (a, b) => (b.at ?? DateTime(1970)).compareTo(
+                        a.at ?? DateTime(1970),
+                      ),
+                    ))
+                  Card(
+                    child: ListTile(
+                      leading: Icon(
+                        notice.unread
+                            ? Icons.mark_email_unread_outlined
+                            : Icons.notifications_outlined,
+                      ),
+                      title: Text(
+                        notice.title,
+                        style: TextStyle(
+                          fontWeight: notice.unread ? FontWeight.bold : null,
+                        ),
+                      ),
+                      subtitle: Text(
+                        notice.body,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      onTap: () => onNotice(notice.id),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],
@@ -217,16 +262,10 @@ class ConversationPage extends LScopedView<ConversationController> {
         appBar: AppBar(
           automaticallyImplyLeading:
               ModalRoute.of(context) is! ModalBottomSheetRoute,
-          title: Text(
-            row?['subject'] as String? ?? context.tr.messagingConversations,
+          title: WorkspacePageHeading(
+            title:
+                row?['subject'] as String? ?? context.tr.messagingConversations,
           ),
-          actions: [
-            IconButton(
-              tooltip: context.tr.messagingRefresh,
-              onPressed: () => controller.refresh(),
-              icon: const Icon(Icons.refresh),
-            ),
-          ],
         ),
         body: LayoutBuilder(
           builder: (context, bounds) => Column(
@@ -234,59 +273,63 @@ class ConversationPage extends LScopedView<ConversationController> {
             children: [
               if (controller.busy.value) const LinearProgressIndicator(),
               Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    if (row != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Text(
-                          '${row['schoolName']} · ${row['guardianName']}\n${row['teacherName'] ?? context.tr.messagingSchool}${row['studentName'] == null ? '' : ' · ${row['studentName']}'}',
+                child: RefreshIndicator(
+                  onRefresh: controller.refresh,
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      if (row != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            '${row['schoolName']} · ${row['guardianName']}\n${row['teacherName'] ?? context.tr.messagingSchool}${row['studentName'] == null ? '' : ' · ${row['studentName']}'}',
+                          ),
                         ),
-                      ),
-                    if (row?['destination'] == 'school')
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(_enquiryStatus(context, row?['status'])),
-                      ),
-                    if (row?['destination'] == 'teacher')
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          context.tr.messagingOversight,
-                          style: Theme.of(context).textTheme.bodySmall,
+                      if (row?['destination'] == 'school')
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(_enquiryStatus(context, row?['status'])),
                         ),
-                      ),
-                    if (controller.error.value.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(
-                          controller.error.value == 'CONVERSATION_CHANGED'
-                              ? context.tr.messagingChanged
-                              : context.tr.messagingFailed,
+                      if (row?['destination'] == 'teacher')
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            context.tr.messagingOversight,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
                         ),
-                      ),
-                    if (data?['hasMore'] == true)
-                      TextButton(
-                        onPressed: () => controller.refresh(more: true),
-                        child: Text(context.tr.messagingLoadMore),
-                      ),
-                    for (final message in messages)
-                      ConversationMessageBubble(
-                        key: ValueKey(message['id']),
-                        outgoing: isOutgoingConversationMessage(
-                          authorKind: message['authorKind'] as String,
-                          authorId: message['authorId'] as String? ?? '',
-                          viewerKind: controller.session.grants.value?.kind,
-                          viewerId: controller.session.grants.value?.actorId,
+                      if (controller.error.value.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(
+                            controller.error.value == 'CONVERSATION_CHANGED'
+                                ? context.tr.messagingChanged
+                                : context.tr.messagingFailed,
+                          ),
                         ),
-                        author:
-                            '${message['authorKind'] == 'staff' ? '${context.tr.messagingSchoolAuthor} · ' : ''}${message['authorName']}',
-                        body: message['body'] as String,
-                        timestamp:
-                            '${context.formatShortDate(DateTime.parse(message['createdAt'] as String))} · ${context.formatTimeOfDay(DateTime.parse(message['createdAt'] as String))}',
-                      ),
-                  ],
+                      if (data?['hasMore'] == true)
+                        TextButton(
+                          onPressed: () => controller.refresh(more: true),
+                          child: Text(context.tr.messagingLoadMore),
+                        ),
+                      for (final message in messages)
+                        ConversationMessageBubble(
+                          key: ValueKey(message['id']),
+                          outgoing: isOutgoingConversationMessage(
+                            authorKind: message['authorKind'] as String,
+                            authorId: message['authorId'] as String? ?? '',
+                            viewerKind: controller.session.grants.value?.kind,
+                            viewerId: controller.session.grants.value?.actorId,
+                          ),
+                          author:
+                              '${message['authorKind'] == 'staff' ? '${context.tr.messagingSchoolAuthor} · ' : ''}${message['authorName']}',
+                          body: message['body'] as String,
+                          timestamp:
+                              '${context.formatShortDate(DateTime.parse(message['createdAt'] as String))} · ${context.formatTimeOfDay(DateTime.parse(message['createdAt'] as String))}',
+                        ),
+                    ],
+                  ),
                 ),
               ),
               if (row != null &&

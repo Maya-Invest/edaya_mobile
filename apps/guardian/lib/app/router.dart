@@ -9,7 +9,6 @@ import '../config/api_config.dart';
 import '../features/account/account_page.dart';
 import '../features/account/account_profile_page.dart' as proto;
 import '../features/account/settings_page.dart' as proto;
-import '../features/calendar/attendance_page.dart';
 import '../features/calendar/session_detail_page.dart';
 import '../features/child_profile/child_profile_page.dart';
 import '../features/context/academic_year_controller.dart';
@@ -194,13 +193,19 @@ GoRouter createRouter({
               guardianRoute(path: 'events', redirect: (_, _) => '/calendar'),
               guardianRoute(
                 path: 'attendance',
-                redirect: (_, _) => '/attendance',
+                redirect: (_, s) => Uri(
+                  path: '/calendar',
+                  queryParameters: {...s.uri.queryParameters, 'tab': 'history'},
+                ).toString(),
               ),
             ],
           ),
           guardianRoute(
             path: '/attendance',
-            builder: (_, _) => const AttendanceListPage(),
+            redirect: (_, s) => Uri(
+              path: '/calendar',
+              queryParameters: {...s.uri.queryParameters, 'tab': 'history'},
+            ).toString(),
           ),
           guardianRoute(
             path: '/session/:id',
@@ -227,6 +232,19 @@ GoRouter createRouter({
           guardianRoute(
             path: '/scolarite/cahier',
             redirect: (_, _) => '/scolarite/notes',
+          ),
+          guardianRoute(
+            path: '/scolarite/progress/:subjectId/cahier',
+            builder: (_, state) => SubjectLogbookPage(
+              subject: state.pathParameters['subjectId']!,
+              byId: true,
+            ),
+          ),
+          guardianRoute(
+            path: '/scolarite/progress/:subjectId',
+            builder: (_, state) => ProgressOverviewPage(
+              subjectId: state.pathParameters['subjectId'],
+            ),
           ),
           guardianRoute(
             path: '/scolarite/progress',
@@ -363,12 +381,13 @@ GoRouter createRouter({
       ),
       guardianRoute(
         path: '/fee/:id',
-        redirect: (context, state) => '/fees/fee/${state.pathParameters['id']}',
+        redirect: (_, state) =>
+            state.uri.replace(path: '/fees${state.uri.path}').toString(),
       ),
       guardianRoute(
         path: '/payment/:id',
-        redirect: (context, state) =>
-            '/fees/payment/${state.pathParameters['id']}',
+        redirect: (_, state) =>
+            state.uri.replace(path: '/fees${state.uri.path}').toString(),
       ),
       guardianRoute(
         path: '/message/:id',
@@ -396,10 +415,7 @@ GoRoute guardianRoute({
   Widget content(BuildContext context, GoRouterState state) {
     Widget child = builder!(context, state);
     final location = state.uri.path;
-    if (location.startsWith('/fees') ||
-        location == '/attendance' ||
-        location.startsWith('/scolarite/notes') ||
-        location.startsWith('/scolarite/period/')) {
+    if (state.uri.queryParameters['year'] != null) {
       child = archived(context, child, state.uri);
     }
     if (location == '/home' ||

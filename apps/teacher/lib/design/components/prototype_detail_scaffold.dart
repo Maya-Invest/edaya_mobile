@@ -1,5 +1,6 @@
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
+import '../../live/runtime.dart';
 import '../../app/workspace_navigation.dart';
 
 class PrototypeDetailScaffold extends StatelessWidget {
@@ -86,7 +87,15 @@ class PrototypeDetailScaffold extends StatelessWidget {
           tooltip: context.tr.backAction,
           onPressed: () => popOrGo(context, fallbackRoute: fallbackRoute),
         ),
-        title: titleWidget ?? (title != null ? Text(title!) : null),
+        toolbarHeight: MediaQuery.textScalerOf(context).scale(20) + 36,
+        title:
+            titleWidget ??
+            WorkspacePageHeading(
+              title: title ?? '',
+              picker: prototypeIsLive(context)
+                  ? const ClassContextButton()
+                  : null,
+            ),
       ),
       body: body,
     );

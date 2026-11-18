@@ -2,7 +2,7 @@
 library;
 
 import 'package:edaya_guardian_v2/app/workspace_shell.dart';
-import 'package:edaya_guardian_v2/design/components/list_row.dart';
+import 'package:edaya_guardian_v2/design/components/components.dart';
 import 'package:edaya_guardian_v2/design/components/summary_metric.dart';
 import 'package:edaya_api_client/edaya_api_client.dart';
 import 'package:edaya_guardian_v2/features/calendar/session_detail_page.dart';
@@ -113,8 +113,8 @@ Future<void> main() async {
         await tester.pump(const Duration(seconds: 1));
         await pumpUntilFound(tester, find.byType(BackButton));
         final loadedContent = switch (d.path) {
-          '/calendar' => find.text('Toutes les présences'),
-          '/scolarite/progress' => find.text('Cahier de texte'),
+          '/calendar' => find.text('Historique'),
+          '/scolarite/progress' => find.byType(PrototypeProgressBar),
           '/scolarite/notes' => find.text('Bulletin publié'),
           '/attendance' => find.text('Appel du jour'),
           '/fees' => find.text('Attendu'),
@@ -298,20 +298,29 @@ Future<void> main() async {
     },
   );
   testWidgets(
-    '[guardian-v2.results.archive] results archive leaves home year unchanged',
+    '[guardian-v2.results.archive] legacy year links select the enrollment context used by Home',
     (tester) async {
       final h = await GuardianWidgetTestHarness.create();
       await pumpGuardianShellUntil<HomePage>(tester, h, initialRoute: '/home');
       final year = h.scope.find<AcademicYearController>().selectedYearId.value;
-      final alternate = h.context!.academicYears
+      final alternate = h.scope
+          .find<StudentContextController>()
+          .enrollmentYears
+          .value
           .where((r) => r['id'] != year)
           .firstOrNull;
       h.router.push('/scolarite/notes?year=${alternate?['id'] ?? year}');
       await tester.pump(const Duration(seconds: 1));
-      expect(h.scope.find<AcademicYearController>().selectedYearId.value, year);
+      expect(
+        h.scope.find<AcademicYearController>().selectedYearId.value,
+        alternate?['id'] ?? year,
+      );
       h.router.go('/home');
       await tester.pump(const Duration(milliseconds: 400));
-      expect(h.scope.find<AcademicYearController>().selectedYearId.value, year);
+      expect(
+        h.scope.find<AcademicYearController>().selectedYearId.value,
+        alternate?['id'] ?? year,
+      );
       expect(tester.takeException(), isNull);
     },
   );

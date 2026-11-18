@@ -11,12 +11,15 @@ class SubjectLogbookController extends LevitController
     with LevitReactiveTasksMixin {
   SubjectLogbookController({
     required this.subject,
+    this.byId = false,
     required StudentContextController studentContext,
     required SchoolClientFactory schoolClient,
   }) : _studentContext = studentContext,
        _schoolClient = schoolClient;
 
   final String subject;
+  final bool byId;
+  final subjectLabel = LxVar<String?>(null);
   final StudentContextController _studentContext;
   final SchoolClientFactory _schoolClient;
   int _loadGeneration = 0;
@@ -34,6 +37,7 @@ class SubjectLogbookController extends LevitController
   void onInit() {
     super.onInit();
     autoDispose(entries);
+    autoDispose(subjectLabel);
     autoDispose(errorMessage);
     for (final stream in [
       _studentContext.activeStudent.stream,
@@ -55,6 +59,7 @@ class SubjectLogbookController extends LevitController
         classGroupId == _studentContext.classGroupId.value &&
         classLabel == _studentContext.classLabel.value;
     errorMessage('');
+    subjectLabel(null);
     entries(const []);
     if (studentId == null || classGroupId == null || classLabel == null) {
       entries(const []);
@@ -73,13 +78,14 @@ class SubjectLogbookController extends LevitController
         );
         if (!isCurrent()) return;
         final option = options
-            .where((o) => o.subjectName == subject)
-            .firstOrNull;
+            .where((o) => byId ? o.id == subject : o.subjectName == subject)
+            .singleOrNull;
         if (option == null) {
           entries(const []);
           return;
         }
 
+        subjectLabel(option.subjectName);
         final logEntries = await fetchCurriculumLogEntries(
           studentId: studentId,
           client: client,

@@ -271,3 +271,7 @@ Both apps use shared message bubbles: sent right on the blue container, received
 Use Module / Module for result groups, and Coefficient / Coefficient for subject weights. Show an explicit module weight or sum-of-contributing-coefficients label beside the captured module result. Keep an unavailable grade distinct from a numeric zero. Report cards retain their existing shared card and typography treatment.
 
 In teacher v2, attendance choice chips are interactive status selectors. Their selected fill is pastel green for Present, pastel red for Absent and pastel orange for Late, paired with a checkmark, readable text and a neutral outline for unselected choices. Use the corresponding dark-mode tones. Keep 8 dp between choices and a minimum 48 dp touch target.
+
+## Feature header refinement
+
+Feature pages use the existing 20sp section token for page headings and keep the class/pupil picker on the same row. Constrain and ellipsize picker text while preserving full accessible labels and 48dp touch targets. Large accessibility text may use simplified controls or stack when necessary. This is a feature-header variant: both Home pages retain their existing type scale, header, context cards, spacing and layout. The Guardian Presence tile alone is removed when history moves into Agenda.
