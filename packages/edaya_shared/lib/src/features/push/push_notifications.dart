@@ -393,6 +393,13 @@ class FcmPushNotificationService
   StreamSubscription<String>? _tokenRefreshSubscription;
   StreamSubscription<RemoteMessage>? _foregroundMessageSubscription;
   StreamSubscription<RemoteMessage>? _openedAppSubscription;
+  Future<void> _registration = Future<void>.value();
+  Timer? _registrationRetry;
+  var _registrationGeneration = 0;
+  var _retryCount = 0;
+  var _authenticatedForPush = false;
+  var _registrationPending = false;
+  var _permissionDenied = false;
   String? _registeredToken;
   RemoteMessage? _pendingOpenedMessage;
   var _localNotificationsInitialized = false;
@@ -402,7 +409,23 @@ class FcmPushNotificationService
   FirebaseMessaging get _messaging =>
       _messagingOverride ?? FirebaseMessaging.instance;
 
-  bool get _isDisabled => kIsWeb || isFlutterTest;
+  bool get _isDisabled =>
+      kIsWeb || (isFlutterTest && _messagingOverride == null);
+
+  bool get _usesApns => defaultTargetPlatform == TargetPlatform.iOS;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed ||
+        !_usesApns ||
+        !_authenticatedForPush ||
+        !_registrationPending) {
+      return;
+    }
+    _registrationRetry?.cancel();
+    _retryCount = 0;
+    unawaited(_queueRegistration(_registrationGeneration));
+  }
 
   @override
   Future<void> initialize() async {
@@ -410,19 +433,18 @@ class FcmPushNotificationService
       return;
     }
 
-    _initialized = true;
-
     try {
       await _initializeLocalNotifications();
       if (defaultTargetPlatform == TargetPlatform.android) {
-        WidgetsBinding.instance.addObserver(this);
-        _languageSubscription = AppSettingsStorage.languageChanges.listen(
+        _languageSubscription ??= AppSettingsStorage.languageChanges.listen(
           (_) => unawaited(_refreshChannel()),
         );
       }
 
       final settings = await _messaging.requestPermission();
-      if (settings.authorizationStatus == AuthorizationStatus.denied) {
+      _permissionDenied =
+          settings.authorizationStatus == AuthorizationStatus.denied;
+      if (_permissionDenied) {
         return;
       }
 
@@ -433,8 +455,10 @@ class FcmPushNotificationService
       );
 
       _tokenRefreshSubscription ??= _messaging.onTokenRefresh.listen((token) {
-        unawaited(_registerToken(token));
-      });
+        if (_authenticatedForPush) {
+          unawaited(_queueRegistration(_registrationGeneration, token: token));
+        }
+      }, onError: (Object error) => _logRegistrationError(error));
 
       _foregroundMessageSubscription ??= FirebaseMessaging.onMessage.listen((
         message,
@@ -451,8 +475,9 @@ class FcmPushNotificationService
       if (initialMessage != null) {
         _pendingOpenedMessage = initialMessage;
       }
-    } on Object {
-      // Firebase may be unavailable in widget tests or before APNS is ready.
+      _initialized = true;
+    } on Object catch (error) {
+      _logRegistrationError(error);
     }
   }
 
@@ -462,19 +487,85 @@ class FcmPushNotificationService
       return;
     }
 
-    try {
-      await _messaging.setAutoInitEnabled(true);
-      await initialize();
-      final token = await _messaging.getToken();
-      if (token == null || token.isEmpty) {
+    if (!_authenticatedForPush) {
+      WidgetsBinding.instance.addObserver(this);
+    }
+    _authenticatedForPush = true;
+    _registrationPending = true;
+    _registrationRetry?.cancel();
+    _retryCount = 0;
+    await _queueRegistration(++_registrationGeneration);
+  }
+
+  Future<void> _queueRegistration(int generation, {String? token}) {
+    // Serialize writes so refreshes, profile changes and sign-out cannot
+    // leave a late registration behind.
+    _registration = _registration.then((_) async {
+      if (!_isCurrentRegistration(generation) ||
+          (!_registrationPending &&
+              (token == null || token == _registeredToken))) {
         return;
       }
-      await _registerToken(token);
-      if (kDebugMode) {
-        debugPrint('Push registration initialized');
+      _registrationPending = true;
+      try {
+        await initialize();
+        if (!_isCurrentRegistration(generation) || _permissionDenied) return;
+        if (!_initialized ||
+            (_usesApns && await _messaging.getAPNSToken() == null)) {
+          _retryRegistration(generation);
+          return;
+        }
+        if (!_isCurrentRegistration(generation)) return;
+        if (!_messaging.isAutoInitEnabled) {
+          await _messaging.setAutoInitEnabled(true);
+        }
+        final currentToken = token ?? await _messaging.getToken();
+        if (currentToken == null || currentToken.isEmpty) {
+          _retryRegistration(generation);
+          return;
+        }
+        final installationId = await _installationId();
+        if (!_isCurrentRegistration(generation)) return;
+        await _schoolClientFactory().registerPushDevice({
+          'token': currentToken,
+          'provider': 'fcm',
+          'appId': _config.appId,
+          'installationId': installationId,
+        });
+        if (!_isCurrentRegistration(generation)) return;
+        _registeredToken = currentToken;
+        _registrationPending = false;
+        _registrationRetry?.cancel();
+        _retryCount = 0;
+      } on Object catch (error) {
+        _logRegistrationError(error);
+        _retryRegistration(generation);
       }
-    } on Object {
-      // APNS token not available yet (common on iOS Simulator).
+    });
+    return _registration;
+  }
+
+  bool _isCurrentRegistration(int generation) =>
+      _authenticatedForPush && generation == _registrationGeneration;
+
+  void _retryRegistration(int generation) {
+    // A physical device can receive its APNs token after the permission
+    // request completes. Retry without making sign-in wait for APNs.
+    if (!_usesApns ||
+        !_isCurrentRegistration(generation) ||
+        _registrationRetry?.isActive == true ||
+        _retryCount >= 6) {
+      return;
+    }
+    final delay = Duration(milliseconds: 250 << _retryCount++);
+    _registrationRetry = Timer(delay, () {
+      unawaited(_queueRegistration(generation));
+    });
+  }
+
+  void _logRegistrationError(Object error) {
+    if (kDebugMode) {
+      debugPrint('Push registration failed: ${error.runtimeType}');
     }
   }
 
@@ -493,34 +584,43 @@ class FcmPushNotificationService
       return;
     }
 
+    await dispose();
+    _registeredToken = null;
+    _pendingOpenedMessage = null;
     try {
       await _messaging.setAutoInitEnabled(false);
-      final token = _registeredToken ?? await _messaging.getToken();
-      if (token != null) {
-        try {
-          await _schoolClientFactory().unregisterPushDevice({
-            'provider': 'fcm',
-            'appId': _config.appId,
-            'installationId': await _installationId(),
-          });
-        } on Object {
-          // Best-effort — local session is cleared regardless.
-        }
+    } on Object catch (error) {
+      _logRegistrationError(error);
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final installationId = prefs.getString(_installationKey);
+      if (installationId != null) {
+        await _schoolClientFactory().unregisterPushDevice({
+          'provider': 'fcm',
+          'appId': _config.appId,
+          'installationId': installationId,
+        });
       }
-
-      _registeredToken = null;
-      await _messaging.deleteToken();
-    } on Object {
-      // The device may be offline during sign-out.
-    } finally {
-      _registeredToken = null;
-      _pendingOpenedMessage = null;
-      await dispose();
+    } on Object catch (error) {
+      _logRegistrationError(error);
+    }
+    try {
+      if (!_usesApns || await _messaging.getAPNSToken() != null) {
+        await _messaging.deleteToken();
+      }
+    } on Object catch (error) {
+      _logRegistrationError(error);
     }
   }
 
   Future<void> dispose() async {
+    _authenticatedForPush = false;
+    _registrationPending = false;
+    _registrationGeneration++;
+    _registrationRetry?.cancel();
     WidgetsBinding.instance.removeObserver(this);
+    await _registration;
     await _languageSubscription?.cancel();
     await _tokenRefreshSubscription?.cancel();
     await _foregroundMessageSubscription?.cancel();
@@ -528,7 +628,9 @@ class FcmPushNotificationService
     _tokenRefreshSubscription = null;
     _foregroundMessageSubscription = null;
     _openedAppSubscription = null;
+    _languageSubscription = null;
     _initialized = false;
+    _permissionDenied = false;
   }
 
   Future<void> _initializeLocalNotifications() async {
@@ -621,29 +723,14 @@ class FcmPushNotificationService
     onNotificationOpened?.call(message);
   }
 
+  String get _installationKey => 'push.installation.${_config.appId}';
+
   Future<String> _installationId() async {
     final prefs = await SharedPreferences.getInstance();
-    final key = 'push.installation.${_config.appId}';
-    final existing = prefs.getString(key);
+    final existing = prefs.getString(_installationKey);
     if (existing != null) return existing;
     final id = newSchoolRequestId();
-    await prefs.setString(key, id);
+    await prefs.setString(_installationKey, id);
     return id;
-  }
-
-  Future<void> _registerToken(String token) async {
-    // Re-register for the current authenticated school even when Firebase
-    // returns the same token after a session or school-context change.
-    try {
-      await _schoolClientFactory().registerPushDevice({
-        'token': token,
-        'provider': 'fcm',
-        'appId': _config.appId,
-        'installationId': await _installationId(),
-      });
-      _registeredToken = token;
-    } on Object {
-      // Token registration is optional until push is fully configured.
-    }
   }
 }
