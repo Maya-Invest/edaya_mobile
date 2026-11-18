@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 
 import '../../mock/mock_store.dart';
@@ -36,13 +37,13 @@ class TimetableSummaryCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Emploi du temps',
+                  context.tr.calendarViewTimetable,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 const SizedBox(height: PrototypeSpacing.xs),
                 if (summary.isEmpty)
                   Text(
-                    'Aucun cours prévu',
+                    context.tr.noClassesScheduled,
                     style: Theme.of(context).textTheme.bodySmall,
                   )
                 else

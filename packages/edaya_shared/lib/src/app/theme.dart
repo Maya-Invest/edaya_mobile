@@ -94,6 +94,7 @@ abstract final class AppTheme {
     final base = ThemeData(
       colorScheme: colorScheme,
       scaffoldBackgroundColor: scaffoldBackground,
+      pageTransitionsTheme: const _EdayaPageTransitionsTheme(),
       useMaterial3: true,
       brightness: brightness,
     );
@@ -249,4 +250,29 @@ abstract final class AppTheme {
       ),
     );
   }
+}
+
+class _EdayaPageTransitionsTheme extends PageTransitionsTheme {
+  const _EdayaPageTransitionsTheme();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) => super.buildTransitions<T>(
+    route,
+    context,
+    animation,
+    secondaryAnimation,
+    // Workspace pages share a scaffold, so their canvas must move with them.
+    route.opaque
+        ? Material(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            child: child,
+          )
+        : child,
+  );
 }

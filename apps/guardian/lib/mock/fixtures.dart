@@ -580,7 +580,7 @@ final _defaultFees = [
     expected: 450000,
     paid: 300000,
     currency: 'EUR',
-    status: 'En retard',
+    status: 'overdue',
     dueDate: DateTime(2026, 5, 30),
     paymentCount: 2,
     description:
@@ -598,7 +598,7 @@ final _defaultFeeInstallments = [
     paid: 150000,
     currency: 'EUR',
     dueDate: DateTime(2026, 1, 15),
-    status: 'Payé',
+    status: 'paid',
   ),
   MockFeeInstallment(
     id: 'i2',
@@ -608,7 +608,7 @@ final _defaultFeeInstallments = [
     paid: 150000,
     currency: 'EUR',
     dueDate: DateTime(2026, 3, 30),
-    status: 'Payé',
+    status: 'paid',
   ),
   MockFeeInstallment(
     id: 'i3',
@@ -618,7 +618,7 @@ final _defaultFeeInstallments = [
     paid: 0,
     currency: 'EUR',
     dueDate: DateTime(2026, 5, 30),
-    status: 'En retard',
+    status: 'overdue',
   ),
 ];
 
@@ -629,7 +629,7 @@ final _defaultPayments = [
     feeLabel: 'Scolarité — Collège',
     amount: 150000,
     currency: 'EUR',
-    method: 'Virement bancaire',
+    method: 'bank_transfer',
     date: DateTime(2026, 3, 15),
   ),
   MockPayment(
@@ -638,7 +638,7 @@ final _defaultPayments = [
     feeLabel: 'Scolarité — Collège',
     amount: 150000,
     currency: 'EUR',
-    method: 'Virement bancaire',
+    method: 'bank_transfer',
     date: DateTime(2026, 1, 10),
   ),
 ];

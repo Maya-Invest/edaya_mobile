@@ -77,7 +77,7 @@ Future<List<TeacherSchoolChoices>> loadTeacherSchoolChoices(
         if (yearId == null) {
           return TeacherSchoolChoices(
             profile,
-            error: 'Aucune année scolaire publiée.',
+            error: systemL10n().noPublishedSchoolYear,
           );
         }
         final data = await readTeacherAssignmentCatalog(client, (
@@ -92,7 +92,7 @@ Future<List<TeacherSchoolChoices>> loadTeacherSchoolChoices(
       } on Object {
         return TeacherSchoolChoices(
           profile,
-          error: 'Impossible de charger les affectations. Réessayez.',
+          error: systemL10n().couldNotLoadAssignmentsTryAgain,
         );
       }
     }),

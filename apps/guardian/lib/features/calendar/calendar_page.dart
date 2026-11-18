@@ -27,7 +27,10 @@ HomeDayCategory _categoryForKind(String kind) {
 }
 
 String _formatSessionTime(CalendarSession session) {
-  final fmt = DateFormat('HH:mm', 'fr_FR');
+  final fmt = AppDateFormatting.clockFormat(
+    AppSettingsStorage.cached.timeFormat,
+    systemL10n().localeName,
+  );
   return '${fmt.format(session.startsAt)} – ${fmt.format(session.endsAt)}';
 }
 
@@ -81,16 +84,15 @@ class _MockCalendarPage extends LScopedView<StoreBoundController> {
                   },
                   icon: const Icon(Icons.calendar_today_outlined, size: 18),
                   label: Text(
-                    DateFormat(
-                      'd MMM yyyy',
-                      'fr_FR',
+                    DateFormat.yMMMd(
+                      context.tr.localeName,
                     ).format(store.selectedCalendarDate),
                   ),
                 ),
                 TextButton.icon(
                   onPressed: () => context.push('/attendance'),
                   icon: const Icon(Icons.list_alt_outlined, size: 18),
-                  label: const Text('Toutes les présences'),
+                  label: Text(context.tr.viewAllAttendance),
                 ),
               ],
             ),
@@ -145,7 +147,7 @@ class _MockMergedDayList extends StatelessWidget {
     final hasContent =
         noSchoolDay != null || schoolEvents.isNotEmpty || sessions.isNotEmpty;
     if (!hasContent) {
-      return const EmptyState(title: 'Rien de prévu ce jour');
+      return EmptyState(title: context.tr.nothingScheduledForThisDay);
     }
     return _DayAgenda(
       noSchoolDay: noSchoolDay,
@@ -198,7 +200,7 @@ class _LiveCalendarPage extends LScopedView<CalendarController> {
                 TextButton.icon(
                   onPressed: () => context.push('/attendance'),
                   icon: const Icon(Icons.list_alt_outlined, size: 18),
-                  label: const Text('Toutes les présences'),
+                  label: Text(context.tr.viewAllAttendance),
                 ),
               ],
             ),
@@ -236,7 +238,7 @@ class _CalendarDatePicker extends StatelessWidget {
     return TextButton.icon(
       onPressed: () => _pickDate(context),
       icon: const Icon(Icons.calendar_today_outlined, size: 18),
-      label: Text(DateFormat('d MMM yyyy', 'fr_FR').format(selected)),
+      label: Text(DateFormat.yMMMd(context.tr.localeName).format(selected)),
     );
   }
 }
@@ -274,7 +276,7 @@ class _MergedDayList extends StatelessWidget {
     if (controller.dataStatus == DataStatus.error) {
       return EmptyState(
         title: controller.errorMessage.value.isEmpty
-            ? 'Impossible de charger le calendrier'
+            ? context.tr.couldNotLoadTheCalendar
             : controller.errorMessage.value,
       );
     }
@@ -290,7 +292,7 @@ class _MergedDayList extends StatelessWidget {
         noSchoolDay != null || schoolEvents.isNotEmpty || sessions.isNotEmpty;
 
     if (!hasContent) {
-      return const EmptyState(title: 'Rien de prévu ce jour');
+      return EmptyState(title: context.tr.nothingScheduledForThisDay);
     }
 
     return ListView(
@@ -312,7 +314,7 @@ class _MergedDayList extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: PrototypeSpacing.xs),
             child: Text(
-              'Emploi du temps',
+              context.tr.calendarViewTimetable,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -368,7 +370,7 @@ class _DayAgenda extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: PrototypeSpacing.xs),
             child: Text(
-              'Emploi du temps',
+              context.tr.calendarViewTimetable,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -415,7 +417,7 @@ class _NoSchoolBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Pas d\'école',
+                  context.tr.noSchool,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: Theme.of(context).colorScheme.error,
                   ),
@@ -435,7 +437,10 @@ class _NoSchoolBanner extends StatelessWidget {
               ],
             ),
           ),
-          StatusChip(label: event.kind, tone: SemanticTone.error),
+          StatusChip(
+            label: event.kindLabel(context.tr),
+            tone: SemanticTone.error,
+          ),
         ],
       ),
     );
@@ -452,7 +457,7 @@ class _SchoolEventRow extends StatelessWidget {
     return ListRow(
       title: event.title,
       subtitle: [
-        event.kind,
+        event.kindLabel(context.tr),
         if ((event.description ?? '').isNotEmpty) event.description!,
       ].join(' · '),
       leading: const Icon(Icons.event_outlined),

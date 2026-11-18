@@ -10,7 +10,6 @@ import '../../mock/mock_store.dart';
 import '../context/academic_year_controller.dart';
 import '../context/store_bound_controller.dart';
 import '../context/student_context_controller.dart';
-import 'fee_detail_controller.dart';
 import 'models/fee_formatting.dart';
 import 'payment_detail_controller.dart';
 
@@ -43,15 +42,15 @@ class _MockPaymentDetailPage extends LScopedView<StoreBoundController> {
     controller.storeTick.value;
     final payment = controller.store.paymentById(paymentId);
     if (payment == null) {
-      return const PrototypeDetailScaffold(
+      return PrototypeDetailScaffold(
         fallbackRoute: '/fees',
-        title: 'Reçu de paiement',
-        body: EmptyState(title: 'Paiement introuvable'),
+        title: context.tr.paymentDetails,
+        body: EmptyState(title: context.tr.paymentNotFound),
       );
     }
     return PrototypeDetailScaffold(
       fallbackRoute: '/fees',
-      title: 'Reçu de paiement',
+      title: context.tr.paymentReceipt,
       body: ListView(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
@@ -64,7 +63,7 @@ class _MockPaymentDetailPage extends LScopedView<StoreBoundController> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Montant',
+                        context.tr.amount,
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                     ),
@@ -83,9 +82,15 @@ class _MockPaymentDetailPage extends LScopedView<StoreBoundController> {
                   ),
                 ),
                 const Divider(height: PrototypeSpacing.xl),
-                SummaryMetric(label: 'Frais', value: payment.feeLabel),
+                SummaryMetric(
+                  label: context.tr.navFees,
+                  value: payment.feeLabel,
+                ),
                 const SizedBox(height: PrototypeSpacing.sm),
-                SummaryMetric(label: 'Mode', value: payment.method),
+                SummaryMetric(
+                  label: context.tr.paymentMethod,
+                  value: formatPaymentMethod(context.tr, payment.method),
+                ),
               ],
             ),
           ),
@@ -120,7 +125,7 @@ class _LivePaymentDetailPage extends LScopedView<PaymentDetailController> {
     if (controller.isBusy.value && controller.payment.value == null) {
       return PrototypeDetailScaffold(
         fallbackRoute: '/fees',
-        title: 'Reçu de paiement',
+        title: context.tr.paymentDetails,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -129,10 +134,10 @@ class _LivePaymentDetailPage extends LScopedView<PaymentDetailController> {
     if (payment == null) {
       return PrototypeDetailScaffold(
         fallbackRoute: '/fees',
-        title: 'Reçu de paiement',
+        title: context.tr.paymentDetails,
         body: EmptyState(
           title: controller.errorMessage.value.isEmpty
-              ? 'Paiement introuvable'
+              ? context.tr.paymentNotFound
               : controller.errorMessage.value,
         ),
       );
@@ -140,7 +145,9 @@ class _LivePaymentDetailPage extends LScopedView<PaymentDetailController> {
 
     return PrototypeDetailScaffold(
       fallbackRoute: '/fees',
-      title: 'Reçu de paiement',
+      title: payment.kind == 'disbursement'
+          ? context.tr.paymentKindDisbursement
+          : context.tr.paymentReceipt,
       body: ListView(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
@@ -153,7 +160,7 @@ class _LivePaymentDetailPage extends LScopedView<PaymentDetailController> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Montant',
+                        formatPaymentKind(context.tr, payment.kind),
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                     ),
@@ -165,25 +172,32 @@ class _LivePaymentDetailPage extends LScopedView<PaymentDetailController> {
                 ),
                 const SizedBox(height: PrototypeSpacing.xs),
                 Text(
-                  formatMoney(payment.amount, payment.currency),
+                  formatMoney(
+                    payment.amount,
+                    payment.currency,
+                    context.tr.localeName,
+                  ),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const Divider(height: PrototypeSpacing.xl),
-                SummaryMetric(label: 'Frais', value: payment.feeLabel),
+                SummaryMetric(
+                  label: context.tr.navFees,
+                  value: payment.feeLabel,
+                ),
                 const SizedBox(height: PrototypeSpacing.sm),
                 SummaryMetric(
-                  label: 'Mode',
-                  value: frenchPaymentMethod(payment.method),
+                  label: context.tr.paymentMethod,
+                  value: formatPaymentMethod(context.tr, payment.method),
                 ),
               ],
             ),
           ),
           const SizedBox(height: PrototypeSpacing.md),
           DocumentActionButton(
-            label: 'Télécharger le reçu',
+            label: context.tr.downloadReceipt,
             run: controller.downloadReceipt,
           ),
         ],

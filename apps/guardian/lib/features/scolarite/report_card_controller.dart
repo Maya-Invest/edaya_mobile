@@ -97,9 +97,7 @@ class ReportCardController extends LevitController
       }
       if (issuance.outcome == DocumentJobOutcome.rendering) {
         downloadStatus(ReportCardPdfStatus.pending);
-        downloadMessage(
-          'Le PDF est en cours de génération. Réessayez dans un instant.',
-        );
+        downloadMessage(systemL10n().thePdfIsBeingGeneratedTryAgainShortly);
         return;
       }
 
@@ -112,7 +110,7 @@ class ReportCardController extends LevitController
           final url = response['downloadUrl'] as String?;
           if (url == null || url.isEmpty) {
             downloadStatus(ReportCardPdfStatus.failed);
-            downloadMessage('Lien de téléchargement indisponible.');
+            downloadMessage(systemL10n().downloadLinkUnavailable);
             return;
           }
           final uri = Uri.parse(url);
@@ -122,18 +120,16 @@ class ReportCardController extends LevitController
           );
           if (!opened) {
             downloadStatus(ReportCardPdfStatus.failed);
-            downloadMessage('Impossible d\'ouvrir le PDF.');
+            downloadMessage(systemL10n().documentsOpenFailed);
             return;
           }
           downloadStatus(ReportCardPdfStatus.idle);
         case _PdfLookupStatus.pending:
           downloadStatus(ReportCardPdfStatus.pending);
-          downloadMessage(
-            'Le PDF est en cours de génération. Réessayez dans un instant.',
-          );
+          downloadMessage(systemL10n().thePdfIsBeingGeneratedTryAgainShortly);
         case _PdfLookupStatus.missing:
           downloadStatus(ReportCardPdfStatus.missing);
-          downloadMessage('Aucun PDF disponible pour ce bulletin.');
+          downloadMessage(systemL10n().noPdfIsAvailableForThisReportCard);
       }
     } on api.ApiError catch (error) {
       downloadStatus(ReportCardPdfStatus.failed);

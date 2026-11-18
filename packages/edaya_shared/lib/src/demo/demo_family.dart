@@ -89,7 +89,11 @@ extension DemoFamily on DemoSchool {
             'intro': en
                 ? 'Tell us about mathematics lessons.'
                 : 'Votre avis sur les cours de mathématiques.',
-            'scaleLabels': {for (var i = 1; i <= 5; i++) '$i': '$i'},
+            'scaleLabels': {
+              for (var i = 1; i <= 5; i++) '$i': '$i',
+              'cannot_assess': en ? 'Cannot assess' : 'Je ne peux pas évaluer',
+            },
+            'commentPrompt': en ? 'Please avoid naming other students.' : 'Évitez de nommer d’autres élèves.',
             'items': [
               {
                 'id': 'clarity',

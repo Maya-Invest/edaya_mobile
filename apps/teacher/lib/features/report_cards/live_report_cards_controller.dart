@@ -396,7 +396,9 @@ class LiveReportCardCommentController extends LevitController
             ),
         ];
         isReadOnly(
-          proposals.values.any((p) => p.status.startsWith('Approuvée')),
+          proposals.values.any(
+            (p) => p.status.startsWith(systemL10n().approved),
+          ),
         );
         fields(initial);
         if (!isReadOnly.value) {
@@ -449,8 +451,8 @@ class LiveReportCardCommentController extends LevitController
       final proposal = row['proposal'] as Map?;
       if (proposal == null) continue;
       final status = row['status'] == 'pending'
-          ? 'En attente d’approbation'
-          : 'Approuvée · En attente de publication';
+          ? systemL10n().gradebookPending
+          : systemL10n().approvedAwaitingPublication;
       final before = row['before'] as Map?;
       final beforeSections = {
         for (final section
@@ -596,8 +598,8 @@ class LiveReportCardCommentController extends LevitController
         }
         saveMessage(systemL10n().workflowCorrectionPending);
         return true;
-      } on Object catch (error) {
-        saveMessage(systemL10n().couldNotSaveMark('$error'));
+      } on Object {
+        saveMessage(systemL10n().commentCorrectionFailed);
         return false;
       }
     }
@@ -681,7 +683,7 @@ class LiveReportCardCommentController extends LevitController
       saveMessage(
         retryable
             ? systemL10n().attendanceSavedLocally
-            : 'Conflit de version : rechargez le bulletin et réconciliez votre commentaire.',
+            : systemL10n().theReportCardHasChangedReloadItAnd,
       );
       return retryable;
     }

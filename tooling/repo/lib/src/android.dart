@@ -161,7 +161,7 @@ Future<void> createKeystore() async {
         '-validity',
         '10000',
         '-dname',
-        'CN=Edaya $app, OU=Mobile, O=SoftiLab, L=Abidjan, ST=Abidjan, C=CI',
+        'CN=EDaya $app, OU=Mobile, O=SoftiLab, L=Abidjan, ST=Abidjan, C=CI',
       ],
       env: {'STORE_PASSWORD': password, 'KEY_PASSWORD': keyPassword},
       quiet: true,
@@ -278,7 +278,6 @@ Future<void> androidBuild(String target) async {
       final fingerprint = fingerprints[app]!;
       final common = [
         '--release',
-        '--no-pub',
         if (versionCode != null) '--build-number=$versionCode',
         '--dart-define=API_URL=$api',
         '--dart-define=TEST_OTP_ACCESS=false',

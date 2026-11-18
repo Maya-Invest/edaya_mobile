@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart' hide PersonAvatar;
 import 'package:flutter/material.dart';
 
 import '../spacing.dart';
@@ -103,7 +104,7 @@ class StudentContextCard extends StatelessWidget {
               ),
             ),
             IconButton(
-              tooltip: 'Choisir un élève',
+              tooltip: context.tr.selectAStudent,
               icon: const Icon(Icons.expand_more),
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               onPressed: onSelectStudent,

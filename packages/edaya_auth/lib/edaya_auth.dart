@@ -1,4 +1,4 @@
-/// Better Auth HTTP client for Edaya mobile apps.
+/// Better Auth HTTP client for EDaya mobile apps.
 library;
 
 export 'src/auth_client.dart';

@@ -76,7 +76,7 @@ class _NewRecordFormState extends State<NewRecordForm> {
       if (mounted && seq == lookup) setState(() => pupils = students);
     } catch (e) {
       if (mounted && seq == lookup) {
-        setState(() => error = 'Chargement des élèves impossible. $e');
+        setState(() => error = context.tr.couldNotLoadStudents(e));
       }
     }
   }
@@ -102,7 +102,7 @@ class _NewRecordFormState extends State<NewRecordForm> {
       }
     } catch (e) {
       if (mounted && seq == lookup) {
-        setState(() => error = 'Responsables indisponibles. $e');
+        setState(() => error = context.tr.guardiansUnavailable(e));
       }
     }
   }
@@ -193,8 +193,16 @@ class _NewRecordFormState extends State<NewRecordForm> {
       if (mounted) {
         setState(
           () => error = recorded
-              ? 'Incident enregistré. Élèves restant à associer : ${participants.difference(savedParticipants).map((id) => label(pupils.firstWhere((p) => p["id"] == id))).join(", ")}. $e'
-              : 'Enregistrement impossible. $e',
+              ? context.tr.incidentSavedStillToLink(
+                  participants
+                      .difference(savedParticipants)
+                      .map(
+                        (id) => label(pupils.firstWhere((p) => p["id"] == id)),
+                      )
+                      .join(", "),
+                  e,
+                )
+              : context.tr.couldNotSaveChangesLabel(e),
         );
       }
     } finally {
@@ -249,7 +257,9 @@ class _NewRecordFormState extends State<NewRecordForm> {
                 key: ValueKey((classId, classPickerRevision)),
                 isExpanded: true,
                 initialValue: classId,
-                decoration: const InputDecoration(labelText: 'Classe'),
+                decoration: InputDecoration(
+                  labelText: context.tr.teachingSelectClass,
+                ),
                 items: [
                   for (final c in tc.assignedClasses.value.where(
                     (c) => tc.visibleClassGroupIds.contains(c.id),
@@ -274,21 +284,21 @@ class _NewRecordFormState extends State<NewRecordForm> {
               if (pupils.isNotEmpty)
                 TextField(
                   key: ValueKey(('search', classId)),
-                  decoration: const InputDecoration(
-                    labelText: 'Rechercher un élève',
+                  decoration: InputDecoration(
+                    labelText: context.tr.searchForAStudent,
                     prefixIcon: Icon(Icons.search),
                   ),
                   onChanged: (text) =>
                       setState(() => pupilSearch = _searchName(text.trim())),
                 ),
               if (pupilSearch.isNotEmpty && visiblePupils.isEmpty)
-                const Text('Aucun élève trouvé.'),
+                Text(context.tr.noStudentsFound),
               if (widget.message) ...[
                 DropdownButtonFormField<String>(
                   isExpanded: true,
                   key: ValueKey(classId),
                   initialValue: studentId,
-                  decoration: const InputDecoration(labelText: 'Élève'),
+                  decoration: InputDecoration(labelText: context.tr.student),
                   items: [
                     for (final p in visiblePupils)
                       DropdownMenuItem(
@@ -309,8 +319,8 @@ class _NewRecordFormState extends State<NewRecordForm> {
                   isExpanded: true,
                   key: ValueKey((studentId, guardianId)),
                   initialValue: guardianId,
-                  decoration: const InputDecoration(
-                    labelText: 'Responsable destinataire',
+                  decoration: InputDecoration(
+                    labelText: context.tr.guardianRecipient,
                   ),
                   items: [
                     for (final g in guardians)
@@ -348,15 +358,15 @@ class _NewRecordFormState extends State<NewRecordForm> {
                 DropdownButtonFormField<String>(
                   isExpanded: true,
                   initialValue: kind,
-                  decoration: const InputDecoration(
-                    labelText: 'Nature du fait',
+                  decoration: InputDecoration(
+                    labelText: context.tr.incidentType,
                   ),
                   items: [
                     for (final e in {
-                      'minor_infraction': 'Fait mineur',
-                      'major_infraction': 'Fait majeur',
-                      'positive': 'Fait positif',
-                      'emergency': 'Urgence',
+                      'minor_infraction': context.tr.workflowIncidentMinor,
+                      'major_infraction': context.tr.workflowIncidentMajor,
+                      'positive': context.tr.positiveIncident,
+                      'emergency': context.tr.workflowIncidentEmergency,
                     }.entries)
                       DropdownMenuItem(value: e.key, child: Text(e.value)),
                   ],
@@ -390,7 +400,9 @@ class _NewRecordFormState extends State<NewRecordForm> {
                 controller: title,
                 enabled: !busy && !recorded,
                 decoration: InputDecoration(
-                  labelText: widget.message ? 'Objet' : 'Titre',
+                  labelText: widget.message
+                      ? context.tr.messagingSubject
+                      : context.tr.titleLabel,
                 ),
                 onChanged: (_) => setState(() => dirty = true),
               ),
@@ -401,8 +413,8 @@ class _NewRecordFormState extends State<NewRecordForm> {
                 maxLines: 6,
                 decoration: InputDecoration(
                   labelText: widget.message
-                      ? 'Premier message'
-                      : 'Faits observés',
+                      ? context.tr.firstMessage
+                      : context.tr.whatHappened,
                 ),
                 onChanged: (_) => setState(() => dirty = true),
               ),
@@ -419,10 +431,10 @@ class _NewRecordFormState extends State<NewRecordForm> {
                     : submit,
                 child: Text(
                   widget.message
-                      ? 'Envoyer'
+                      ? context.tr.messagingSend
                       : recorded
-                      ? 'Réessayer les associations'
-                      : 'Enregistrer l’incident',
+                      ? context.tr.retryLinkingStudents
+                      : context.tr.saveIncident,
                 ),
               ),
             ],

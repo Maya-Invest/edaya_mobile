@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_teacher_v2/design/workspace_layout.dart';
 import 'package:edaya_teacher_v2/app/workspace_navigation.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,9 @@ void main() {
     tester.view.physicalSize = const Size(1024, 768);
     await tester.pumpWidget(
       const MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('fr'),
         home: Scaffold(
           body: SingleChildScrollView(
             child: WorkspaceColumns(
@@ -47,6 +51,9 @@ void main() {
       tester.view.physicalSize = const Size(1024, 768);
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('fr'),
           home: Builder(
             builder: (context) => Scaffold(
               body: TextButton(

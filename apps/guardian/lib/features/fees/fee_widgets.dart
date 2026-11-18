@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../../design/colors.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
-import 'fee_detail_controller.dart';
 import 'models/fee_formatting.dart';
 import 'models/student_charge_line.dart';
 
@@ -85,7 +84,7 @@ class ChargeDetailSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final statusLabel = frenchChargeStatus(charge.status);
+    final statusLabel = formatChargeStatus(context.tr, charge.status);
     final isOverdue = charge.status == ChargeStatus.overdue;
     final progress = charge.expectedAmount == 0
         ? 0.0
@@ -106,7 +105,7 @@ class ChargeDetailSummaryCard extends StatelessWidget {
               ),
               if (charge.dueDate != null)
                 Text(
-                  'Échéance ${context.formatShortDate(charge.dueDate!)}',
+                  context.tr.dueDate(context.formatShortDate(charge.dueDate!)),
                   style: textTheme.labelSmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -118,14 +117,22 @@ class ChargeDetailSummaryCard extends StatelessWidget {
             children: [
               Expanded(
                 child: SummaryMetric(
-                  label: 'Attendu',
-                  value: formatMoney(charge.expectedAmount, charge.currency),
+                  label: context.tr.expected,
+                  value: formatMoney(
+                    charge.expectedAmount,
+                    charge.currency,
+                    context.tr.localeName,
+                  ),
                 ),
               ),
               Expanded(
                 child: SummaryMetric(
-                  label: 'Payé',
-                  value: formatMoney(charge.allocatedAmount, charge.currency),
+                  label: context.tr.feeStatusPaid,
+                  value: formatMoney(
+                    charge.allocatedAmount,
+                    charge.currency,
+                    context.tr.localeName,
+                  ),
                   valueColor: charge.allocatedAmount > 0
                       ? Theme.of(context).colorScheme.primary
                       : null,
@@ -133,10 +140,11 @@ class ChargeDetailSummaryCard extends StatelessWidget {
               ),
               Expanded(
                 child: SummaryMetric(
-                  label: 'Solde',
+                  label: context.tr.balance,
                   value: formatMoney(
                     charge.remainingObligation,
                     charge.currency,
+                    context.tr.localeName,
                   ),
                   valueColor: charge.remainingObligation > 0 && isOverdue
                       ? Theme.of(context).colorScheme.error
@@ -149,7 +157,7 @@ class ChargeDetailSummaryCard extends StatelessWidget {
           PrototypeProgressBar(value: progress),
           const SizedBox(height: PrototypeSpacing.xs),
           Text(
-            '${(progress * 100).round()} % réglé',
+            context.tr.paidLabel((progress * 100).round()),
             style: textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -195,13 +203,17 @@ class ChargeInstallmentCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  installment.label.isEmpty ? 'Échéance' : installment.label,
+                  installment.label.isEmpty
+                      ? context.tr.dueDateLabel
+                      : installment.label,
                   style: textTheme.titleSmall,
                 ),
                 if (installment.dueDate != null) ...[
                   const SizedBox(height: 4),
                   Text(
-                    'Échéance ${context.formatShortDate(installment.dueDate!)}',
+                    context.tr.dueDate(
+                      context.formatShortDate(installment.dueDate!),
+                    ),
                     style: textTheme.bodySmall,
                   ),
                 ],
@@ -209,8 +221,12 @@ class ChargeInstallmentCard extends StatelessWidget {
             ),
           ),
           FeeAmountTrailing(
-            amount: formatMoney(installment.expectedAmount, currency),
-            label: 'Attendu',
+            amount: formatMoney(
+              installment.expectedAmount,
+              currency,
+              context.tr.localeName,
+            ),
+            label: context.tr.expected,
           ),
         ],
       ),

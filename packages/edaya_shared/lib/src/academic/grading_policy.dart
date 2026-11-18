@@ -1,4 +1,16 @@
 import 'dart:math' as math;
+import 'package:intl/intl.dart';
+
+import '../l10n/l10n_lookup.dart';
+
+String formatGradeNumber(num? value, {int? precision, String? locale}) {
+  if (value == null) return '—';
+  final format = NumberFormat.decimalPattern(locale ?? systemL10n().localeName);
+  format.turnOffGrouping();
+  format.maximumFractionDigits = precision ?? 12;
+  format.minimumFractionDigits = precision ?? 0;
+  return format.format(value);
+}
 
 /// A read-only level/year policy. Original entries are never rewritten here.
 class GradingPolicyView {
@@ -51,7 +63,12 @@ class GradingPolicyView {
   String display(double? value) {
     if (value == null) return '—';
     final code = mention(value)?['letter'];
-    return '${round(value).toStringAsFixed(precision)} / $maximum${code == null ? '' : ' · $code'}';
+    final score = formatGradeNumber(round(value), precision: precision);
+    final max = formatGradeNumber(
+      maximum,
+      precision: maximum == maximum.round() ? 1 : null,
+    );
+    return '$score / $max${code == null ? '' : ' · $code'}';
   }
 }
 
@@ -103,5 +120,5 @@ String formatCalculatedGrade(double? value, Map<String, dynamic>? calculation) {
   final precision = (calculation?['decimalPlaces'] as num?)?.toInt() ?? 2;
   final maximum = calculation?['maximum'] ?? 20;
   final code = (calculation?['mention'] as Map?)?['code'];
-  return '${value.toStringAsFixed(precision)} / $maximum${code == null ? '' : ' · $code'}';
+  return '${formatGradeNumber(value, precision: precision)} / ${formatGradeNumber(maximum as num)}${code == null ? '' : ' · $code'}';
 }

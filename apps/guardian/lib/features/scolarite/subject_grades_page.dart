@@ -138,7 +138,7 @@ class SubjectGradesPage extends LScopedView<PeriodResultsController> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          '${words(context, 'Coefficient', 'Coefficient')} : ${mark['coefficient']}',
+                          '${words(context, 'Coefficient', 'Coefficient')} : ${formatGradeNumber(mark['coefficient'] as num?)}',
                         ),
                       ),
                       if (mark['notes'] is String &&
@@ -183,5 +183,7 @@ String markLabel(BuildContext context, Map<String, dynamic> mark) {
   if (entry?['kind'] == 'mention') {
     return '${entry?['label'] ?? entry?['code'] ?? '—'}';
   }
-  return mark['score'] == null ? '—' : '${mark['score']} / ${mark['maxScore']}';
+  return mark['score'] == null
+      ? '—'
+      : '${formatGradeNumber(mark['score'] as num?)} / ${formatGradeNumber(mark['maxScore'] as num?)}';
 }

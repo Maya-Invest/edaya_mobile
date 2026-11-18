@@ -65,7 +65,7 @@ PLAY_VERSION_CODE_BASE + storeBuild
 
 ## Recovery and evidence
 
-Both entry points share one release queue. Preparation reserves a ten-second UTC interval counted from January 1, 2020, and records its index as `storeBuild` in the prepared artifact. Independent GitHub workflow counters can restart without reusing store versions. Within each run, the two Play jobs can commit in parallel. Their receipts appear in the Actions summary and in `.release/<app>/play-<environment>.json`. Each manifest identifies the source commit, API URL, version code, and artifact checksums.
+Both entry points share one release queue. Each release attempt reserves the previous `storeBuild` plus one and records it in the prepared artifact. A failed attempt keeps its reservation. Within each run, the two Play jobs can commit in parallel. Their receipts appear in the Actions summary and in `.release/<app>/play-<environment>.json`. Each manifest identifies the source commit, API URL, version code, and artifact checksums. [Build number allocation](ci-setup.md#store-build-counter)
 
 Google commits one edit per app. If one commit fails, inspect both apps in Play Console before retrying. After resolving the cause, rerun **all jobs** on the intended branch to qualify and build both apps with a new version code. The publisher verifies any existing bundle by SHA-256 and rejects a downgrade on the target track. A production run uses its own production AABs.
 

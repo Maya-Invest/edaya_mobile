@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -55,7 +56,7 @@ class PrototypeDetailScaffold extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Fermer',
+                    tooltip: context.tr.closeAction,
                     icon: const Icon(Icons.close),
                     onPressed: () =>
                         popOrGo(context, fallbackRoute: fallbackRoute),
@@ -78,7 +79,7 @@ class PrototypeDetailScaffold extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Retour',
+          tooltip: context.tr.backAction,
           onPressed: () => popOrGo(context, fallbackRoute: fallbackRoute),
         ),
         title: titleWidget ?? (title != null ? Text(title!) : null),

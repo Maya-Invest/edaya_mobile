@@ -157,26 +157,46 @@ Future<void> closeWorkspaceSheet<T>(BuildContext context, [T? result]) async {
   }
 }
 
-typedef WorkspaceDestination = ({String label, String path, IconData icon});
+typedef WorkspaceDestination = ({
+  String Function(AppLocalizations) label,
+  String path,
+  IconData icon,
+});
 
-const teachingWorkspaces = <WorkspaceDestination>[
-  (label: 'Agenda', path: '/calendar', icon: Icons.calendar_today_outlined),
-  (label: 'Progression', path: '/progress', icon: Icons.menu_book_outlined),
-  (label: 'Évaluations', path: '/evaluations', icon: Icons.assignment_outlined),
-  (label: 'Bulletins', path: '/report-cards', icon: Icons.article_outlined),
+final teachingWorkspaces = <WorkspaceDestination>[
+  (
+    label: (tr) => tr.navAgenda,
+    path: '/calendar',
+    icon: Icons.calendar_today_outlined,
+  ),
+  (
+    label: (tr) => tr.teachingProgressTab,
+    path: '/progress',
+    icon: Icons.menu_book_outlined,
+  ),
+  (
+    label: (tr) => tr.navEvaluations,
+    path: '/evaluations',
+    icon: Icons.assignment_outlined,
+  ),
+  (
+    label: (tr) => tr.navReportCards,
+    path: '/report-cards',
+    icon: Icons.article_outlined,
+  ),
 ];
 
-const classLifeWorkspaces = <WorkspaceDestination>[
-  (label: 'Messages', path: '/inbox', icon: Icons.forum_outlined),
+final classLifeWorkspaces = <WorkspaceDestination>[
+  (label: (tr) => tr.navMessages, path: '/inbox', icon: Icons.forum_outlined),
   (
-    label: 'Avis des familles',
+    label: (tr) => tr.familyFeedbackTitle,
     path: '/evaluations/avis',
     icon: Icons.poll_outlined,
   ),
-  (label: 'Incidents', path: '/incidents', icon: Icons.flag_outlined),
+  (label: (tr) => tr.incidents, path: '/incidents', icon: Icons.flag_outlined),
 ];
 
-const workspaces = [...teachingWorkspaces, ...classLifeWorkspaces];
+final workspaces = [...teachingWorkspaces, ...classLifeWorkspaces];
 
 Future<void> chooseContext(BuildContext context) async {
   if (!await prepareWorkspaceChange(context) || !context.mounted) return;
@@ -229,7 +249,7 @@ class _ClassContextPickerState extends State<ClassContextPicker> {
       final preview = school.catalog;
       if (preview == null ||
           preview.workspace.account != session.user.value?.id) {
-        throw StateError('Ce profil n’est plus disponible.');
+        throw StateError(context.tr.thisProfileIsNoLongerAvailable);
       }
       if (session.schoolIdHeader != school.profile.schoolId ||
           session.actorIdHeader != school.profile.actorId) {
@@ -258,7 +278,7 @@ class _ClassContextPickerState extends State<ClassContextPicker> {
           teacher.catalog?.workspace != preview.workspace ||
           !teacher.assignments.value.any((a) => a.id == option.id)) {
         if (mounted) choices = _loadChoices();
-        throw StateError('Cette affectation n’est plus disponible.');
+        throw StateError(context.tr.thisAssignmentIsNoLongerAvailable);
       }
       if (teacher.activeAssignmentId.value != option.id) {
         await teacher.selectAssignment(option.id);
@@ -315,7 +335,7 @@ class _ClassContextPickerState extends State<ClassContextPicker> {
                 child: Text(school.error!),
               )
             else if (school.options.isEmpty)
-              const Text('Aucune affectation disponible.'),
+              Text(context.tr.noAssignmentsAvailable),
             SurfaceCard(
               padding: EdgeInsets.zero,
               child: Column(
@@ -365,7 +385,7 @@ GoRoute workspaceRoute({
       onExit: workspaceCanExit,
       pageBuilder: (_, state) => RecordSheetPage(
         key: state.pageKey,
-        title: 'Classe et matière',
+        title: systemL10n().classAndSubject,
         child: const ClassContextPicker(),
       ),
     ),
@@ -456,7 +476,9 @@ class WorkspaceShell extends StatelessWidget {
             .where((w) => path == w.path || path.startsWith('${w.path}/'))
             .toList()
           ..sort((a, b) => b.path.length.compareTo(a.path.length));
-    final title = account ? 'Mon profil' : owners.firstOrNull?.label;
+    final title = account
+        ? context.tr.myProfile
+        : owners.firstOrNull?.label(context.tr);
     final compact = MediaQuery.sizeOf(context).width < 600;
     final classButton = TextButton.icon(
       onPressed: () => chooseContext(context),
@@ -467,7 +489,7 @@ class WorkspaceShell extends StatelessWidget {
                   .find<TeacherContextController>()
                   .activeAssignment
                   ?.label ??
-              'Aucune affectation',
+              context.tr.noAssignment,
         ),
       ),
     );
@@ -561,7 +583,7 @@ class WorkspaceShell extends StatelessWidget {
           ? null
           : AppBar(
               leading: IconButton(
-                tooltip: 'Retour',
+                tooltip: context.tr.backAction,
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => backFromWorkspace(context),
               ),
@@ -622,9 +644,7 @@ class _AccessNotice extends StatelessWidget {
       container: true,
       liveRegion: true,
       child: MaterialBanner(
-        content: const Text(
-          'Ce dossier est indisponible ou vos droits d’accès ont changé.',
-        ),
+        content: Text(context.tr.thisRecordIsUnavailableOrYourAccessHas),
         actions: [
           TextButton(
             onPressed: () {
@@ -636,7 +656,7 @@ class _AccessNotice extends StatelessWidget {
                 ),
               );
             },
-            child: const Text('Fermer le message'),
+            child: Text(context.tr.dismissMessage),
           ),
         ],
       ),
@@ -727,23 +747,24 @@ Future<bool> confirmWorkspaceDiscard(BuildContext context) {
   if (host != null) return host.confirmDiscard(context);
   return showWorkspaceEditor<bool>(
     context: context,
-    title: 'Quitter la saisie ?',
-    builder: (_, finish) => _discardChoices(finish),
+    title: context.tr.guardianDiscardChanges,
+    builder: (context, finish) => _discardChoices(context, finish),
   ).then((value) => value == true);
 }
 
-Widget _discardChoices(ValueChanged<bool?> finish) => Column(
-  children: [
-    TextButton(
-      onPressed: () => finish(false),
-      child: const Text('Continuer la saisie'),
-    ),
-    TextButton(
-      onPressed: () => finish(true),
-      child: const Text('Abandonner la saisie'),
-    ),
-  ],
-);
+Widget _discardChoices(BuildContext context, ValueChanged<bool?> finish) =>
+    Column(
+      children: [
+        TextButton(
+          onPressed: () => finish(false),
+          child: Text(context.tr.gradebookContinue),
+        ),
+        TextButton(
+          onPressed: () => finish(true),
+          child: Text(context.tr.gradebookDiscard),
+        ),
+      ],
+    );
 
 class WorkspaceSheet extends StatefulWidget {
   const WorkspaceSheet({super.key, required this.title, required this.child});
@@ -842,8 +863,8 @@ class _WorkspaceSheetState extends State<WorkspaceSheet>
     return _discardConfirmation ??=
         edit<bool>(
               context,
-              'Quitter la saisie ?',
-              (_, finish) => _discardChoices(finish),
+              context.tr.guardianDiscardChanges,
+              (context, finish) => _discardChoices(context, finish),
             )
             .then((value) => value == true)
             .whenComplete(() => _discardConfirmation = null);
@@ -913,7 +934,7 @@ class _WorkspaceSheetState extends State<WorkspaceSheet>
               ),
               TextButton(
                 onPressed: () => closeWorkspaceSheet(context),
-                child: const Text('Fermer'),
+                child: Text(context.tr.closeAction),
               ),
             ],
           ),
@@ -945,7 +966,7 @@ Future<DateTime?> showWorkspaceDatePicker({
   required DateTime lastDate,
 }) => showWorkspaceEditor<DateTime>(
   context: context,
-  title: 'Choisir la date',
+  title: context.tr.chooseDate,
   builder: (context, finish) => SingleChildScrollView(
     child: CalendarDatePicker(
       initialDate: initialDate,

@@ -1,3 +1,4 @@
+import 'package:edaya_shared/edaya_shared.dart';
 import 'package:edaya_teacher_v2/app/workspace_navigation.dart';
 import 'package:edaya_teacher_v2/live/prototype_runtime.dart';
 import 'package:flutter/material.dart';
@@ -37,7 +38,14 @@ void main() {
     );
     addTearDown(router.dispose);
     addTearDown(dirty.dispose);
-    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpWidget(
+      MaterialApp.router(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('fr'),
+        routerConfig: router,
+      ),
+    );
     await tester.pumpAndSettle();
     router.go('/home');
     await tester.pumpAndSettle();
@@ -81,7 +89,12 @@ void main() {
     await tester.pumpWidget(
       LScope(
         name: 'routed-editor-test',
-        child: MaterialApp.router(routerConfig: router),
+        child: MaterialApp.router(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('fr'),
+          routerConfig: router,
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -112,6 +125,9 @@ void main() {
           () => const PrototypeRuntime(live: false),
         ),
         child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('fr'),
           home: WorkspaceShell(
             uri: Uri.parse('/evaluations?notice=access'),
             child: const Text('Assessments'),
@@ -135,6 +151,9 @@ void main() {
       LScope(
         name: 'single-sheet-test',
         child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('fr'),
           home: Scaffold(
             body: Builder(
               builder: (context) => TextButton(

@@ -33,7 +33,7 @@ PeriodResultsController periodResultsFor(LevitScope scope, String? period) {
           {
             'sectionId': 'academics',
             'sectionKind': 'module',
-            'name': 'Enseignements',
+            'name': null,
             'subResults': [
               for (final s in subjects)
                 {

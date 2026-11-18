@@ -32,18 +32,18 @@ class _MarksCorrectionsState extends State<MarksCorrectionsPanel> {
           DropdownButtonFormField<String>(
             isExpanded: true,
             initialValue: active?['id'] as String? ?? 'new',
-            decoration: const InputDecoration(labelText: 'Modification'),
+            decoration: InputDecoration(labelText: context.tr.change),
             items: [
               if (c.canRequestCorrection.value || active == null)
-                const DropdownMenuItem(
+                DropdownMenuItem(
                   value: 'new',
-                  child: Text('Autres notes'),
+                  child: Text(context.tr.otherMarks),
                 ),
               for (final r in pending)
                 DropdownMenuItem(
                   value: r['id'] as String,
                   child: Text(
-                    'En attente · ${(r["changes"] as List).length} élève(s)',
+                    context.tr.pendingPupilCount((r["changes"] as List).length),
                   ),
                 ),
             ],
@@ -58,7 +58,7 @@ class _MarksCorrectionsState extends State<MarksCorrectionsPanel> {
             (active['allowedActions'] as Map?)?['withdraw'] == true)
           TextButton(
             onPressed: () => c.withdrawCorrection(active),
-            child: const Text('Retirer ma demande'),
+            child: Text(context.tr.marksWithdrawCorrection),
           ),
       ],
     );
@@ -67,7 +67,9 @@ class _MarksCorrectionsState extends State<MarksCorrectionsPanel> {
 
 class _CorrectionDraft {
   _CorrectionDraft(this.row)
-    : score = TextEditingController(text: row.score?.toString() ?? ''),
+    : score = TextEditingController(
+        text: row.score == null ? '' : formatGradeNumber(row.score),
+      ),
       notes = TextEditingController(text: row.notes ?? ''),
       designation = row.designation ?? 'scored',
       mentionId = row.mentionId,
@@ -154,7 +156,9 @@ class _CorrectionFormState extends State<_CorrectionForm> {
       draft.selected = true;
       draft.designation = proposed['designation'] as String;
       draft.mentionId = proposed['mentionId'] as String?;
-      draft.score.text = (proposed['score'] as num?)?.toString() ?? '';
+      draft.score.text = proposed['score'] == null
+          ? ''
+          : formatGradeNumber(proposed['score'] as num);
       draft.notes.text = proposed['notes'] as String? ?? '';
       draft.deadlineStatus =
           proposed['status'] as String? ?? draft.row.deadlineStatus;
@@ -163,11 +167,11 @@ class _CorrectionFormState extends State<_CorrectionForm> {
 
   String pendingValue(Map value) {
     if (value['designation'] == 'absent') return 'Absent';
-    if (value['designation'] == 'exempt') return 'Dispensé';
+    if (value['designation'] == 'exempt') return context.tr.marksExempt;
     if (value['mentionId'] != null) {
       return widget.controller.mentionLabel(value['mentionId'] as String);
     }
-    return value['score']?.toString() ?? '—';
+    return formatGradeNumber(value['score'] as num?);
   }
 
   void changed() => setState(() {
@@ -196,10 +200,10 @@ class _CorrectionFormState extends State<_CorrectionForm> {
     if (confirm) {
       return Column(
         children: [
-          const Text('Quitter la saisie ?'),
+          Text(context.tr.guardianDiscardChanges),
           TextButton(
             onPressed: () => setState(() => confirm = false),
-            child: const Text('Continuer la saisie'),
+            child: Text(context.tr.gradebookContinue),
           ),
           TextButton(
             onPressed: () {
@@ -211,7 +215,7 @@ class _CorrectionFormState extends State<_CorrectionForm> {
                 if (mounted) closeWorkspaceSheet(context);
               });
             },
-            child: const Text('Abandonner la saisie'),
+            child: Text(context.tr.teacherSignatureDiscard),
           ),
         ],
       );
@@ -231,7 +235,13 @@ class _CorrectionFormState extends State<_CorrectionForm> {
             ListTile(
               title: Text(locked.fullName),
               subtitle: Text(
-                'Note officielle · ${pendingValue({'designation': locked.designation, 'score': locked.score, 'mentionId': locked.mentionId})}',
+                context.tr.officialMark(
+                  pendingValue({
+                    'designation': locked.designation,
+                    'score': locked.score,
+                    'mentionId': locked.mentionId,
+                  }),
+                ),
               ),
             ),
           for (final draft in rows) ...[
@@ -241,7 +251,10 @@ class _CorrectionFormState extends State<_CorrectionForm> {
                     (c) => c['resultId'] == draft.row.resultId,
                   ))
                 Text(
-                  '${draft.row.fullName} · En attente d’approbation : ${pendingValue(change["proposed"] as Map)}',
+                  context.tr.pendingApproval(
+                    draft.row.fullName,
+                    pendingValue(change["proposed"] as Map),
+                  ),
                 ),
 
             CheckboxListTile(
@@ -249,11 +262,14 @@ class _CorrectionFormState extends State<_CorrectionForm> {
               value: draft.selected,
               title: Text(draft.row.fullName),
               subtitle: Text(
-                'Note officielle · ${draft.row.designation == 'absent'
-                    ? context.tr.marksAbsent
-                    : draft.row.designation == 'exempt'
-                    ? context.tr.marksExempt
-                    : draft.row.mentionCode ?? draft.row.score?.toString() ?? '—'}',
+                context.tr.officialMark(
+                  draft.row.designation == 'absent'
+                      ? context.tr.marksAbsent
+                      : draft.row.designation == 'exempt'
+                      ? context.tr.marksExempt
+                      : draft.row.mentionCode ??
+                            formatGradeNumber(draft.row.score),
+                ),
               ),
               onChanged: busy
                   ? null
@@ -377,7 +393,15 @@ class _CorrectionFormState extends State<_CorrectionForm> {
           ),
           for (final draft in selected)
             Text(
-              '${draft.row.fullName}: ${draft.row.mentionCode ?? draft.row.score?.toString() ?? draft.row.designation ?? '—'} → ${draft.designation == 'scored' ? (draft.mentionId == null ? draft.score.text : widget.controller.mentionLabel(draft.mentionId!)) : draft.designation} · ${draft.notes.text}',
+              '${draft.row.fullName}: ${draft.row.mentionCode ?? (draft.row.designation == 'absent'
+                      ? context.tr.marksAbsent
+                      : draft.row.designation == 'exempt'
+                      ? context.tr.marksExempt
+                      : formatGradeNumber(draft.row.score))} → ${draft.designation == 'scored'
+                  ? (draft.mentionId == null ? draft.score.text : widget.controller.mentionLabel(draft.mentionId!))
+                  : draft.designation == 'absent'
+                  ? context.tr.marksAbsent
+                  : context.tr.marksExempt} · ${draft.notes.text}',
             ),
           LWatch(() => Text(widget.controller.saveMessage.value)),
           FilledButton(
@@ -407,7 +431,7 @@ class _CorrectionFormState extends State<_CorrectionForm> {
                       if (saved) dirty = false;
                     });
                   },
-            child: const Text('Soumettre les notes'),
+            child: Text(context.tr.gradebookSubmit),
           ),
         ],
       ),

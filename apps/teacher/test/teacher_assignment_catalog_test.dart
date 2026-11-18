@@ -69,8 +69,8 @@ void main() {
         ]),
       );
       expect(first.options.map((o) => o.label), [
-        '6e A · Mathématiques · Titulaire',
-        '6e B · Titulaire',
+        '6e A · Mathématiques · Homeroom teacher',
+        '6e B · Homeroom teacher',
       ]);
       expect(first.classes.where((c) => c.dailyAttendance).single.id, 'b');
       transport.paths.clear();

@@ -237,9 +237,9 @@ class AppSessionController extends LevitController {
       if (error.status == 401) {
         return _unauthorizedProfileMessage();
       }
-      return systemL10n().signedInSchoolSessionUnavailable('$error');
-    } on Object catch (error) {
-      return systemL10n().signedInSchoolSessionUnavailable('$error');
+      return systemL10n().schoolSessionUnavailable;
+    } on Object {
+      return systemL10n().schoolSessionUnavailable;
     }
   }
 

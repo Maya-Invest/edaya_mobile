@@ -1,4 +1,4 @@
-/// Domain-shaped HTTP client for the Edaya Core API.
+/// Domain-shaped HTTP client for the EDaya Core API.
 library;
 
 export 'src/api_error.dart';

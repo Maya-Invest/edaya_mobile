@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../academic/grading_policy.dart';
 
 import '../l10n/l10n_extension.dart';
 import '../ui/status_badge.dart';
@@ -45,12 +46,10 @@ class TeacherOutboxSyncSummaryCard extends StatelessWidget {
               for (final entry in conflicts)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    '${entry.kind.name} · ${entry.payload['studentId'] ?? entry.payload['id'] ?? ''}',
-                  ),
+                  title: Text(_conflictTitle(context.tr, entry)),
                   subtitle: Text(
                     entry.kind == TeacherOutboxKind.mark
-                        ? '${entry.payload['designation'] ?? '—'} · ${entry.payload['score'] ?? '—'}'
+                        ? _markPreview(context.tr, entry.payload)
                         : _commentPreview(entry.payload),
                   ),
                   trailing: onDiscardConflict == null
@@ -155,6 +154,42 @@ class TeacherOutboxSyncSummaryCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String _conflictTitle(AppLocalizations tr, TeacherOutboxEntry entry) {
+  final kind = switch (entry.kind) {
+    TeacherOutboxKind.attendance => tr.rollAttendance,
+    TeacherOutboxKind.logbook => tr.logbook,
+    TeacherOutboxKind.mark => tr.score,
+    TeacherOutboxKind.comment => tr.comment,
+    TeacherOutboxKind.correction => tr.outboxCorrection,
+  };
+  final data = entry.payload;
+  final name =
+      data['studentName'] ??
+      data['assessmentTitle'] ??
+      data['studentId'] ??
+      data['id'];
+  return [kind, if (name != null && name != '') name].join(' · ');
+}
+
+String _markPreview(AppLocalizations tr, Map<String, dynamic> payload) {
+  String value(Map row) => switch (row['designation']) {
+    'absent' => tr.marksAbsent,
+    'exempt' => tr.marksExempt,
+    _ =>
+      row['mentionCode']?.toString() ??
+          formatGradeNumber(row['score'] as num?, locale: tr.localeName),
+  };
+  final results = payload['results'];
+  if (results is! List) return value(payload);
+  return [
+    for (final row in results.whereType<Map>())
+      [
+        row['studentName'] ?? row['studentId'],
+        value(row),
+      ].whereType<String>().join(' · '),
+  ].join('\n');
 }
 
 String _commentPreview(Map<String, dynamic> payload) {

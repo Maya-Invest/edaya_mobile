@@ -180,22 +180,31 @@ class GuardianFamilyFeedbackQuestionnaireController extends LevitController
     return DataStatus.ready;
   }
 
+  String? _language;
+
+  void showInLanguage(String language) {
+    if (_language == language) return;
+    _language = language;
+    scheduleMicrotask(() {
+      if (!isClosed && _language == language) unawaited(load());
+    });
+  }
+
   Future<void> load() async {
+    final language = _language ?? systemL10n().localeName;
+    _language = language;
     errorMessage('');
     await runTask(() async {
       try {
-        final locale =
-            WidgetsBinding.instance.platformDispatcher.locale.languageCode;
-        questionnaire(
-          await getGuardianFamilyFeedbackQuestionnaire(
-            _schoolClient(),
-            campaignId: questionnaireArgs.campaignId,
-            studentId: questionnaireArgs.studentId,
-            locale: locale,
-          ),
+        final result = await getGuardianFamilyFeedbackQuestionnaire(
+          _schoolClient(),
+          campaignId: questionnaireArgs.campaignId,
+          studentId: questionnaireArgs.studentId,
+          locale: language,
         );
+        if (!isClosed && _language == language) questionnaire(result);
       } catch (error) {
-        errorMessage(error.toString());
+        if (!isClosed && _language == language) errorMessage(error.toString());
       }
     });
   }
@@ -250,6 +259,7 @@ class GuardianFamilyFeedbackQuestionnairePage
     BuildContext context,
     GuardianFamilyFeedbackQuestionnaireController controller,
   ) {
+    controller.showInLanguage(context.tr.localeName);
     return PrototypeDetailScaffold(
       fallbackRoute: '/inbox/avis',
       title: context.tr.familyFeedbackTitle,
@@ -350,7 +360,10 @@ class _QuestionnaireBody extends StatelessWidget {
                     },
                   ),
                 ChoiceChip(
-                  label: Text(context.tr.familyFeedbackCannotAssess),
+                  label: Text(
+                    instrument.scaleLabels['cannot_assess'] ??
+                        context.tr.familyFeedbackCannotAssess,
+                  ),
                   selected:
                       controller.answers.value[item.id] == 'cannot_assess',
                   onSelected: (_) {
@@ -367,6 +380,8 @@ class _QuestionnaireBody extends StatelessWidget {
           TextField(
             decoration: InputDecoration(
               labelText: context.tr.familyFeedbackComment,
+              helperText: instrument.commentPrompt,
+              helperMaxLines: 4,
             ),
             maxLines: 4,
             onChanged: controller.comment.call,

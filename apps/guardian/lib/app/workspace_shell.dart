@@ -172,7 +172,7 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
         : path.startsWith('/session')
         ? words(context, 'Séance', 'Session')
         : path.endsWith('/cahier')
-        ? words(context, 'Cahier de textes', 'Class logbook')
+        ? words(context, 'Cahier de texte', 'Logbook')
         : account
         ? words(context, 'Mon profil', 'My profile')
         : words(context, 'Détails', 'Details');
@@ -244,33 +244,36 @@ class GuardianSheetPage extends Page<Object?> {
         useSafeArea: true,
         showDragHandle: true,
         constraints: const BoxConstraints(maxWidth: 640),
-        builder: (context) => WorkspaceHost(
-          child: SizedBox(
-            height: MediaQuery.sizeOf(context).height * .88,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 12, 12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: Theme.of(context).textTheme.titleLarge,
+        builder: (context) {
+          final page = ModalRoute.of(context)!.settings as GuardianSheetPage;
+          return WorkspaceHost(
+            child: SizedBox(
+              height: MediaQuery.sizeOf(context).height * .88,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 12, 12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            page.title,
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
                         ),
-                      ),
-                      IconButton(
-                        tooltip: words(context, 'Fermer', 'Close'),
-                        onPressed: () => Navigator.of(context).maybePop(),
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
+                        IconButton(
+                          tooltip: words(context, 'Fermer', 'Close'),
+                          onPressed: () => Navigator.of(context).maybePop(),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Expanded(child: child),
-              ],
+                  Expanded(child: page.child),
+                ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       );
 }

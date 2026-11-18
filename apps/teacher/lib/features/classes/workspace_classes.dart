@@ -20,7 +20,7 @@ class ClassSections extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!prototypeIsLive(context)) {
-      return const Center(child: Text('Choisir une classe'));
+      return Center(child: Text(context.tr.chooseAClass));
     }
     final scope = context.levit.find<TeacherContextController>();
     return LWatch(() {
@@ -35,7 +35,7 @@ class ClassSections extends StatelessWidget {
       return Center(
         child: Text(
           scope.errorMessage.value.isEmpty
-              ? 'Aucune classe attribuée'
+              ? context.tr.noAssignedClasses
               : scope.errorMessage.value,
         ),
       );
@@ -88,13 +88,16 @@ class _Progress extends LScopedView<LiveClassWorkspaceController> {
             title: Text(c.errorMessage.value),
             trailing: TextButton(
               onPressed: c.load,
-              child: const Text('Réessayer'),
+              child: Text(context.tr.retry),
             ),
           ),
 
         WorkspaceColumns(
           first: [
-            Text('Chapitres', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.tr.chapters,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             if (c.progressOverview.value case final overview?)
               Text(
                 overview.chapterCount == 0
@@ -146,7 +149,7 @@ class BulletinsPage extends StatelessWidget {
     if (!prototypeIsLive(context)) {
       final reports = context.levit.find<MockStore>().reportCardClasses;
       if (reports.isEmpty) {
-        return const Center(child: Text('Aucun bulletin préparé.'));
+        return Center(child: Text(context.tr.noReportCardsPrepared));
       }
       return ReportCardRosterPage(
         classId: reports.first.classId,
@@ -158,10 +161,8 @@ class BulletinsPage extends StatelessWidget {
     return LWatch(() {
       final active = tc.activeAssignment;
       if (active?.isHomeroom != true) {
-        return const Center(
-          child: Text(
-            'Les bulletins sont réservés au titulaire de cette classe.',
-          ),
+        return Center(
+          child: Text(context.tr.reportCardsAreAvailableToTheHomeroomTeacher),
         );
       }
       final periodId = ev.selectedPeriodId.value;
@@ -173,7 +174,7 @@ class BulletinsPage extends StatelessWidget {
               key: ValueKey(periodId),
               initialValue: periodId,
               isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Période'),
+              decoration: InputDecoration(labelText: context.tr.periodFallback),
               items: [
                 for (final p in ev.periods.value)
                   DropdownMenuItem(
@@ -208,7 +209,7 @@ class IncidentsPage extends StatelessWidget {
       TextButton.icon(
         onPressed: () => context.push('/incidents/new'),
         icon: const Icon(Icons.add),
-        label: const Text('Signaler un incident'),
+        label: Text(context.tr.reportAnIncident),
       ),
       ClassSections(
         builder: (c) => IncidentGroup(key: ValueKey(c.id), id: c.id),
@@ -239,9 +240,9 @@ class IncidentGroup extends LScopedView<TeacherDisciplineController> {
         if (controller.busy.value) const LinearProgressIndicator(),
         if (controller.message.value.isNotEmpty) Text(controller.message.value),
         if (controller.incidents.value.isEmpty && !controller.busy.value)
-          const ListTile(title: Text('Aucun incident')),
+          ListTile(title: Text(context.tr.noIncidents)),
         if (controller.incidents.value.isNotEmpty)
-          const ComparisonHeading(['Incident', 'Date', 'Statut']),
+          ComparisonHeading([context.tr.incident, 'Date', context.tr.status]),
         for (final row in controller.incidents.value)
           LayoutBuilder(
             builder: (context, box) {
@@ -252,11 +253,11 @@ class IncidentGroup extends LScopedView<TeacherDisciplineController> {
 
               final date = DateTime.tryParse('${row['date']}');
               final status = switch (row['status']) {
-                'resolved' => 'Résolu',
-                'cancelled' => 'Annulé',
+                'resolved' => context.tr.messagingResolved,
+                'cancelled' => context.tr.feeStatusCancelled,
                 'open' when (row['eligibility'] as Map?)?['locked'] == true =>
                   context.tr.workflowIncidentTakenOver,
-                'open' => 'Ouvert',
+                'open' => context.tr.familyFeedbackSlotOpen,
                 _ => '—',
               };
               return useComparisonRows(context, box.maxWidth)

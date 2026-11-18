@@ -17,16 +17,17 @@ class SettingsPage extends LScopedView<SettingsController> {
 
   @override
   Widget buildView(BuildContext context, SettingsController controller) {
+    final tr = edaya.AppLocalizations.of(context)!;
     return PrototypeDetailScaffold(
       fallbackRoute: '/account',
-      title: 'Paramètres',
+      title: tr.settingsTitle,
       body: ListView(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
-          const SectionHeader(title: 'Préférences'),
+          SectionHeader(title: tr.preferences),
           SurfaceCard(
             child: ListTile(
-              title: const Text('Ouvrir les paramètres complets'),
+              title: Text(tr.openAllSettings),
               trailing: const Icon(Icons.open_in_new),
               onTap: () {
                 Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const edaya.SettingsPage()));
@@ -35,7 +36,7 @@ class SettingsPage extends LScopedView<SettingsController> {
           ),
           if (edaya.DemoAccess.of(context)?.store == null && edaya.DeveloperSettingsConfig.enabled) ...[
             const SizedBox(height: PrototypeSpacing.xl),
-            const SectionHeader(title: 'Développeur'),
+            SectionHeader(title: tr.developerSettings),
             const SurfaceCard(
               child: Padding(padding: EdgeInsets.all(PrototypeSpacing.sm), child: edaya.DevApiUrlSettings(compact: true)),
             ),

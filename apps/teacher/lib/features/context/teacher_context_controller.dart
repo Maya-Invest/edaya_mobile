@@ -364,12 +364,12 @@ class TeacherContextController extends LevitController
         });
         confirmedNoAssignments = selected == null;
         if (selected == null) {
-          errorMessage('Aucune affectation active pour cette année scolaire.');
+          errorMessage(systemL10n().noActiveAssignmentForThisSchoolYear);
         } else if (preferredAssignment == null &&
             saved != null &&
             selected.id != saved) {
           errorMessage(
-            'Votre affectation a changé. Un autre enseignement a été sélectionné.',
+            systemL10n().yourAssignmentHasChangedAnotherTeachingAssignmentHas,
           );
         }
         await _sessionStorage.writeClassSelection(_selectionKey, selected?.id);

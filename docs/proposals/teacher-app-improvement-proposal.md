@@ -1,4 +1,4 @@
-# Edaya Teacher App — Final-Form Improvement Proposal
+# EDaya Teacher App — Final-Form Improvement Proposal
 
 > Historical, unapproved feature proposal. Product ideas require separate approval; visual instructions are superseded. Current source and the mobile design-language specification govern UI work.
 
@@ -11,7 +11,7 @@
 
 The current teacher application is a working proof of concept with a credible product foundation. It already supports the essential chain from timetable to session detail, attendance, teaching logbook, evaluations, marks, teaching progress, and report-card visibility. Static analysis is clean, the default automated test suite passes, the app supports English and French, and its role-aware data access distinguishes subject teachers from homeroom teachers.
 
-The next stage should not be a collection of unrelated modules. The application should become the teacher's daily command center: it should show what needs attention, make repetitive classroom work exceptionally fast, remain safe under unreliable connectivity, and complete the workflows already represented in Edaya's functional offer.
+The next stage should not be a collection of unrelated modules. The application should become the teacher's daily command center: it should show what needs attention, make repetitive classroom work exceptionally fast, remain safe under unreliable connectivity, and complete the workflows already represented in EDaya's functional offer.
 
 The recommended priorities are:
 
@@ -31,7 +31,7 @@ This proposal is based on a review of:
 - The teacher live-integration harness and current sprint notes.
 - Related web application workflows for assessments, attendance, teaching, students, report cards, announcements, and inbox.
 - Backend domains for assessments, attendance, report cards, messaging, student notes, incidents, health records, resources, and teacher unavailability.
-- Edaya's English and French functional offer documents.
+- EDaya's English and French functional offer documents.
 
 The proposal assumes:
 

@@ -94,7 +94,7 @@ class SessionDetailController extends LevitController
 
         if (!isCurrent()) return;
         if (resolved == null) {
-          errorMessage('Séance introuvable');
+          errorMessage(systemL10n().sessionNotFound);
           return;
         }
 
@@ -160,7 +160,7 @@ class SessionDetailController extends LevitController
         title:
             lesson['displayLabel'] as String? ??
             lesson['title'] as String? ??
-            'Cours',
+            systemL10n().timetableSessionKindLesson,
         kind: 'lesson',
         startsAt: parseApiDateTime(lesson['startsAt']) ?? DateTime.now(),
         endsAt: parseApiDateTime(lesson['endsAt']) ?? DateTime.now(),
@@ -179,7 +179,7 @@ class SessionDetailController extends LevitController
         title:
             activity['displayLabel'] as String? ??
             activity['title'] as String? ??
-            'Activité',
+            systemL10n().timetableSessionKindActivity,
         kind: 'activity',
         startsAt: parseApiDateTime(activity['startsAt']) ?? DateTime.now(),
         endsAt: parseApiDateTime(activity['endsAt']) ?? DateTime.now(),
@@ -202,7 +202,9 @@ class SessionDetailController extends LevitController
       if (startsAt == null) return null;
       return CalendarSession(
         id: assessment['id'] as String,
-        title: assessment['title'] as String? ?? 'Évaluation',
+        title:
+            assessment['title'] as String? ??
+            systemL10n().timetableSessionKindAssessment,
         kind: 'assessment',
         startsAt: startsAt,
         endsAt: startsAt.add(const Duration(hours: 1)),

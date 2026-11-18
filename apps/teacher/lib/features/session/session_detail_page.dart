@@ -31,9 +31,9 @@ class SessionDetailPage extends StatelessWidget {
       builder: (_, _) {
         final s = store.sessionById(sessionId);
         if (s == null)
-          return const PrototypeDetailScaffold(
-            title: 'Séance',
-            body: EmptyState(title: 'Séance introuvable'),
+          return PrototypeDetailScaffold(
+            title: context.tr.session,
+            body: EmptyState(title: context.tr.sessionNotFound),
           );
         final book = store.getLogbook(sessionId);
         return _SessionTabs(
@@ -76,7 +76,7 @@ class _SessionScope extends LScopedView<LiveSessionController> {
         final s = controller.session.value;
         if (s == null || controller.errorMessage.value.isNotEmpty) {
           return PrototypeDetailScaffold(
-            title: 'Séance',
+            title: context.tr.session,
             fallbackRoute: '/calendar',
             body: Center(
               child: controller.isBusy.value
@@ -86,7 +86,7 @@ class _SessionScope extends LScopedView<LiveSessionController> {
                       children: [
                         Text(
                           controller.errorMessage.value.isEmpty
-                              ? 'Séance introuvable'
+                              ? context.tr.sessionNotFound
                               : controller.errorMessage.value,
                         ),
                         TextButton(

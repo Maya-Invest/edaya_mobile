@@ -73,10 +73,13 @@ class InvitationPage extends LScopedView<InvitationController> {
                           ),
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
-                        if (preview.expiresAt != null) ...[
+                        if (DateTime.tryParse(preview.expiresAt ?? '')
+                            case final expiry?) ...[
                           const SizedBox(height: 8),
                           Text(
-                            context.tr.invitationExpires(preview.expiresAt!),
+                            context.tr.invitationExpires(
+                              '${context.formatShortDate(expiry)} · ${context.formatTimeOfDay(expiry)}',
+                            ),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],

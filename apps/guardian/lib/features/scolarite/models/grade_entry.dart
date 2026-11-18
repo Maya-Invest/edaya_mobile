@@ -78,11 +78,11 @@ class GradeEntry {
   String get scoreLabel {
     if (originalMention != null) {
       final value = calculation?['reportedValue'];
-      return '$originalMention${value == null ? '' : ' · $value / ${calculation!['maximum']}'}';
+      return '$originalMention${value == null ? '' : ' · ${formatGradeNumber(value as num)} / ${formatGradeNumber(calculation!['maximum'] as num)}'}';
     }
     final value = score;
     if (value != null) {
-      return '${calculation == null ? value.toStringAsFixed(2) : value.toString()} / ${maxScore.toStringAsFixed(2)}';
+      return '${formatGradeNumber(value, precision: calculation == null ? 2 : null)} / ${formatGradeNumber(maxScore, precision: 2)}';
     }
     return switch (designation) {
       'absent' => systemL10n().marksAbsent,

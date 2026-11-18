@@ -37,7 +37,7 @@ abstract final class AppDateFormatting {
     required String localeTag,
   }) {
     final display = settings.toDisplayTime(dateTime);
-    return _timeFormat(settings.timeFormat.value, localeTag).format(display);
+    return clockFormat(settings.timeFormat.value, localeTag).format(display);
   }
 
   static DateFormat _dateFormat(
@@ -52,14 +52,14 @@ abstract final class AppDateFormatting {
     };
   }
 
-  static DateFormat _timeFormat(
+  static DateFormat clockFormat(
     TimeFormatPreference preference,
     String locale,
   ) {
     return switch (preference) {
       TimeFormatPreference.system => DateFormat.jm(locale),
       TimeFormatPreference.hour24 => DateFormat.Hm(locale),
-      TimeFormatPreference.hour12 => DateFormat.jm(locale),
+      TimeFormatPreference.hour12 => DateFormat('h:mm a', locale),
     };
   }
 }

@@ -57,11 +57,11 @@ The sibling frontend's `apple-app-site-association` now includes `SQFU4GGCX2.ca.
 
 ## Build versions and evidence
 
-Marketing versions come from each v2 app's `pubspec.yaml` (for example `1.0.0`). Increase them before the next public App Store version. Both entry points use the same prepared `storeBuild`, the number of ten-second intervals since January 1, 2020 UTC. The iOS build number is `1 + floor(storeBuild / 10000)`, `floor(storeBuild / 100) % 100`, and `storeBuild % 100`, joined with dots. For example, `21000001` produces `2101.0.1`. A full rerun at the branch tip receives a fresh number. The build fails if it would exceed `9999.99.99`.
+Marketing versions come from each v2 app's `pubspec.yaml` (for example `1.0.0`). Increase them before the next public App Store version. Testing and live releases share one `storeBuild` counter, which advances by one per release attempt. The iOS build number is `1 + floor(storeBuild / 10000)`, `floor(storeBuild / 100) % 100`, and `storeBuild % 100`, joined with dots. For example, `21000001` and `21000002` produce `2101.0.1` and `2101.0.2`. A full rerun at the branch tip receives a fresh number. The build fails if it would exceed `9999.99.99`. [Build number allocation](ci-setup.md#store-build-counter)
 
 If existing TestFlight builds already have larger build numbers for the same marketing version, increment the app's marketing version before onboarding this workflow. Public release versions must be newer than the current public version. The workflow never lets Xcode silently change the selected build number.
 
-Each `stage-ios_<app>-<run_id>-<attempt>` artifact contains one signed IPA and its manifest on release branches. The `qualified` artifact binds their hashes to the passed stages. Separate `receipts-ios-<app>-<phase>-<run_id>-<attempt>` artifacts record each successful upload and review submission.
+Each `stage-ios_<app>-<run_id>-<attempt>` artifact contains one signed IPA and its manifest. The qualification report records both hashes. The upload receipt artifact includes the signed manifest and the processed build record. Production review jobs restore these records, match them to the qualification report, and submit the exact processed build from App Store Connect. Each successful submission produces its own receipt.
 
 If a delivery fails, inspect both apps in App Store Connect. Uploads and review submissions are per app. Resolve any existing review conflict before rerunning **all jobs** so qualification and release share the new attempt number. Apple must accept the marketing version for each app. A different build already in review for that version requires an operator decision in App Store Connect.
 

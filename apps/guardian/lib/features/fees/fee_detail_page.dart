@@ -12,6 +12,8 @@ import '../context/store_bound_controller.dart';
 import '../context/student_context_controller.dart';
 import 'fee_detail_controller.dart';
 import 'fee_widgets.dart';
+import 'models/fee_formatting.dart' show formatChargeStatus;
+import 'models/student_charge_line.dart' show parseChargeStatus;
 
 class FeeDetailPage extends StatelessWidget {
   const FeeDetailPage({super.key, required this.feeId});
@@ -42,10 +44,10 @@ class _MockFeeDetailPage extends LScopedView<StoreBoundController> {
     controller.storeTick.value;
     final fee = controller.store.feeById(feeId);
     if (fee == null) {
-      return const PrototypeDetailScaffold(
+      return PrototypeDetailScaffold(
         fallbackRoute: '/fees',
-        title: 'Détail des frais',
-        body: EmptyState(title: 'Frais introuvables'),
+        title: context.tr.chargeDetails,
+        body: EmptyState(title: context.tr.chargeNotFound),
       );
     }
     final installments = controller.store.installmentsForFee(feeId);
@@ -62,17 +64,17 @@ class _MockFeeDetailPage extends LScopedView<StoreBoundController> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SummaryMetric(
-                  label: 'Attendu',
+                  label: context.tr.expected,
                   value: formatMoney(fee.expected, fee.currency),
                 ),
                 const SizedBox(height: PrototypeSpacing.sm),
                 SummaryMetric(
-                  label: 'Payé',
+                  label: context.tr.feeStatusPaid,
                   value: formatMoney(fee.paid, fee.currency),
                 ),
                 const SizedBox(height: PrototypeSpacing.sm),
                 SummaryMetric(
-                  label: 'Solde',
+                  label: context.tr.balance,
                   value: formatMoney(fee.balance, fee.currency),
                 ),
                 const SizedBox(height: PrototypeSpacing.sm),
@@ -89,16 +91,19 @@ class _MockFeeDetailPage extends LScopedView<StoreBoundController> {
           ),
           if (installments.isNotEmpty) ...[
             const SizedBox(height: PrototypeSpacing.xl),
-            const SectionHeader(title: 'Échéances'),
+            SectionHeader(title: context.tr.feeInstallments),
             for (final installment in installments) ...[
               ListRow(
                 title: installment.label,
-                subtitle: 'Échéance ${formatDate(installment.dueDate)}',
+                subtitle: context.tr.dueDate(formatDate(installment.dueDate)),
                 trailing: Text(
                   formatMoney(installment.balance, installment.currency),
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
-                badge: installment.status,
+                badge: formatChargeStatus(
+                  context.tr,
+                  parseChargeStatus(installment.status),
+                ),
               ),
               const SizedBox(height: PrototypeSpacing.xs),
             ],
@@ -135,7 +140,7 @@ class _LiveFeeDetailPage extends LScopedView<FeeDetailController> {
     if (controller.isBusy.value && controller.charge.value == null) {
       return PrototypeDetailScaffold(
         fallbackRoute: '/fees',
-        title: 'Détail des frais',
+        title: context.tr.chargeDetails,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -144,10 +149,10 @@ class _LiveFeeDetailPage extends LScopedView<FeeDetailController> {
     if (fee == null) {
       return PrototypeDetailScaffold(
         fallbackRoute: '/fees',
-        title: 'Détail des frais',
+        title: context.tr.chargeDetails,
         body: EmptyState(
           title: controller.errorMessage.value.isEmpty
-              ? 'Frais introuvables'
+              ? context.tr.chargeNotFound
               : controller.errorMessage.value,
         ),
       );
@@ -164,12 +169,12 @@ class _LiveFeeDetailPage extends LScopedView<FeeDetailController> {
           ChargeDetailSummaryCard(charge: fee),
           const SizedBox(height: PrototypeSpacing.md),
           DocumentActionButton(
-            label: 'Facture',
+            label: context.tr.invoice,
             run: controller.downloadInvoice,
           ),
           if (fee.installments.isNotEmpty) ...[
             const SizedBox(height: PrototypeSpacing.xl),
-            const SectionHeader(title: 'Échéances'),
+            SectionHeader(title: context.tr.feeInstallments),
             for (final installment in fee.installments) ...[
               ChargeInstallmentCard(
                 installment: installment,
