@@ -1268,10 +1268,16 @@ abstract class AppLocalizations {
   /// **'{average} / 20'**
   String scoreOutOfTwentyValue(String average);
 
+  /// No description provided for @reportRankOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Rank {rank}'**
+  String reportRankOnly(int rank);
+
   /// No description provided for @rankLabel.
   ///
   /// In en, this message translates to:
-  /// **'Rank {rank}/{classSize}'**
+  /// **'Rank {rank} of {classSize}'**
   String rankLabel(int rank, int classSize);
 
   /// No description provided for @reportCardNotFound.
@@ -2024,10 +2030,28 @@ abstract class AppLocalizations {
   /// **'Not marked'**
   String get rollUnmarked;
 
+  /// No description provided for @featureEditFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit facts'**
+  String get featureEditFacts;
+
+  /// No description provided for @featureDownloadStatement.
+  ///
+  /// In en, this message translates to:
+  /// **'Download account statement'**
+  String get featureDownloadStatement;
+
+  /// No description provided for @rollConflictProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolve the attendance conflict in My profile to finish roll call.'**
+  String get rollConflictProfile;
+
   /// No description provided for @rollList.
   ///
   /// In en, this message translates to:
-  /// **'List'**
+  /// **'Return to list'**
   String get rollList;
 
   /// No description provided for @rollRosterCount.
@@ -2081,13 +2105,13 @@ abstract class AppLocalizations {
   /// No description provided for @rollMarkRemaining.
   ///
   /// In en, this message translates to:
-  /// **'Mark remaining pupils present'**
+  /// **'Mark remaining present'**
   String get rollMarkRemaining;
 
   /// No description provided for @rollOneByOne.
   ///
   /// In en, this message translates to:
-  /// **'Photo mode'**
+  /// **'One pupil at a time'**
   String get rollOneByOne;
 
   /// No description provided for @rollPosition.
@@ -2171,7 +2195,7 @@ abstract class AppLocalizations {
   /// No description provided for @rollCreateBook.
   ///
   /// In en, this message translates to:
-  /// **'Fill in the logbook'**
+  /// **'Create entry'**
   String get rollCreateBook;
 
   /// No description provided for @rollEditBook.
@@ -3395,13 +3419,13 @@ abstract class AppLocalizations {
   /// No description provided for @familyFeedbackEntry.
   ///
   /// In en, this message translates to:
-  /// **'Family feedback'**
+  /// **'Feedback'**
   String get familyFeedbackEntry;
 
   /// No description provided for @familyFeedbackTitle.
   ///
   /// In en, this message translates to:
-  /// **'Family feedback'**
+  /// **'Feedback'**
   String get familyFeedbackTitle;
 
   /// No description provided for @familyFeedbackEmpty.
@@ -3479,7 +3503,7 @@ abstract class AppLocalizations {
   /// No description provided for @teacherTaskFamilyFeedback.
   ///
   /// In en, this message translates to:
-  /// **'Family feedback'**
+  /// **'Feedback'**
   String get teacherTaskFamilyFeedback;
 
   /// No description provided for @teacherTaskAttendance.
@@ -3971,7 +3995,7 @@ abstract class AppLocalizations {
   /// No description provided for @attendanceFinish.
   ///
   /// In en, this message translates to:
-  /// **'Finish'**
+  /// **'Finish roll call'**
   String get attendanceFinish;
 
   /// No description provided for @attendanceMarkRemaining.
@@ -4645,6 +4669,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Withdraw the proposed change for this pupil?'**
   String get gradebookWithdrawConfirm;
+
+  /// No description provided for @gradeViewDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'View details'**
+  String get gradeViewDetails;
 
   /// No description provided for @gradebookOptions.
   ///

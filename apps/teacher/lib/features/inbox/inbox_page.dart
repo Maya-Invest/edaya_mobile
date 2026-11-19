@@ -114,56 +114,66 @@ class _ThreadGroups extends LScopedView<ConversationController> {
           context.tr.workspaceNotifications,
         ],
         children: [
-          RefreshIndicator(
-            onRefresh: threads.refresh,
-            child: ListView(
-              key: const PageStorageKey('teacher-conversations'),
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              children: [
-                if (threads.busy.value) const LinearProgressIndicator(),
-                if (threads.error.value.isNotEmpty) Text(threads.error.value),
+          FeatureActionPanel(
+            actions: [
+              FeatureAction(
+                context.tr.newConversation,
+                Icons.edit_outlined,
+                () => context.push('/inbox/new'),
+              ),
+            ],
+            child: RefreshIndicator(
+              onRefresh: threads.refresh,
+              child: ListView(
+                key: const PageStorageKey('teacher-conversations'),
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                children: [
+                  if (threads.busy.value) const LinearProgressIndicator(),
+                  if (threads.error.value.isNotEmpty) Text(threads.error.value),
 
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: () => context.push('/inbox/new'),
-                    icon: const Icon(Icons.edit_outlined),
-                    label: Text(context.tr.messagingNew),
+                  if (!phoneActions(context))
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: () => context.push('/inbox/new'),
+                        icon: const Icon(Icons.edit_outlined),
+                        label: Text(context.tr.newConversation),
+                      ),
+                    ),
+                  ClassSections(
+                    builder: (c) => LWatch(() {
+                      final rows = threads.rows.value.where(
+                        (r) => group(r) == c.id,
+                      );
+                      return Column(
+                        children: [
+                          if (rows.isEmpty)
+                            ListTile(title: Text(context.tr.messagingEmpty)),
+                          for (final row in rows) thread(row),
+                        ],
+                      );
+                    }),
                   ),
-                ),
-                ClassSections(
-                  builder: (c) => LWatch(() {
-                    final rows = threads.rows.value.where(
-                      (r) => group(r) == c.id,
-                    );
-                    return Column(
-                      children: [
-                        if (rows.isEmpty)
-                          ListTile(title: Text(context.tr.messagingEmpty)),
-                        for (final row in rows) thread(row),
-                      ],
-                    );
-                  }),
-                ),
-                if (tc.activeAssignment == null) ...[
-                  if (threads.rows.value.any((r) => group(r) == null))
-                    ExpansionTile(
-                      title: Text(context.tr.noClassSpecified),
-                      children: [
-                        for (final row in threads.rows.value.where(
-                          (r) => group(r) == null,
-                        ))
-                          thread(row),
-                      ],
+                  if (tc.activeAssignment == null) ...[
+                    if (threads.rows.value.any((r) => group(r) == null))
+                      ExpansionTile(
+                        title: Text(context.tr.noClassSpecified),
+                        children: [
+                          for (final row in threads.rows.value.where(
+                            (r) => group(r) == null,
+                          ))
+                            thread(row),
+                        ],
+                      ),
+                  ],
+                  if (threads.rows.value.length < threads.total.value)
+                    TextButton(
+                      onPressed: () => threads.refresh(more: true),
+                      child: Text(context.tr.showMore),
                     ),
                 ],
-                if (threads.rows.value.length < threads.total.value)
-                  TextButton(
-                    onPressed: () => threads.refresh(more: true),
-                    child: Text(context.tr.showMore),
-                  ),
-              ],
+              ),
             ),
           ),
           RefreshIndicator(

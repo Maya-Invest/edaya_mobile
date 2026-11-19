@@ -706,8 +706,13 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String reportRankOnly(int rank) {
+    return 'Rang $rank';
+  }
+
+  @override
   String rankLabel(int rank, int classSize) {
-    return 'Rang $rank/$classSize';
+    return 'Rang $rank sur $classSize';
   }
 
   @override
@@ -1186,7 +1191,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get rollUnmarked => 'À saisir';
 
   @override
-  String get rollList => 'Liste';
+  String get featureEditFacts => 'Modifier les faits';
+
+  @override
+  String get featureDownloadStatement => 'Télécharger le relevé de compte';
+
+  @override
+  String get rollConflictProfile =>
+      'Pour terminer l’appel, résolvez le conflit de présence dans Mon profil.';
+
+  @override
+  String get rollList => 'Retour à la liste';
 
   @override
   String rollRosterCount(int total, int marked) {
@@ -1222,7 +1237,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get rollMarkRemaining => 'Marquer les élèves restants présents';
 
   @override
-  String get rollOneByOne => 'Mode photo';
+  String get rollOneByOne => 'Un élève à la fois';
 
   @override
   String rollPosition(int position, int total) {
@@ -1268,7 +1283,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get rollRequestChange => 'Demander une modification';
 
   @override
-  String get rollCreateBook => 'Renseigner le cahier de texte';
+  String get rollCreateBook => 'Créer une entrée';
 
   @override
   String get rollEditBook => 'Modifier le cahier de texte';
@@ -1991,10 +2006,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get exportAttendancePdf => 'PDF de la feuille d’appel';
 
   @override
-  String get familyFeedbackEntry => 'Avis des familles';
+  String get familyFeedbackEntry => 'Avis';
 
   @override
-  String get familyFeedbackTitle => 'Avis des familles';
+  String get familyFeedbackTitle => 'Avis';
 
   @override
   String get familyFeedbackEmpty =>
@@ -2036,7 +2051,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get familyFeedbackSlotCompleted => 'Terminée';
 
   @override
-  String get teacherTaskFamilyFeedback => 'Avis des familles';
+  String get teacherTaskFamilyFeedback => 'Avis';
 
   @override
   String get teacherTaskAttendance => 'Présences à saisir';
@@ -2303,7 +2318,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attendanceLate => 'En retard';
 
   @override
-  String get attendanceFinish => 'Terminer';
+  String get attendanceFinish => 'Terminer l’appel';
 
   @override
   String get attendanceMarkRemaining => 'Marquer les autres présents';
@@ -2668,6 +2683,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get gradebookWithdrawConfirm =>
       'Retirer la modification proposée pour cet élève ?';
+
+  @override
+  String get gradeViewDetails => 'Voir les détails';
 
   @override
   String get gradebookOptions => 'Options du résultat';

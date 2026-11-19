@@ -1,4 +1,4 @@
-import 'package:edaya_shared/edaya_shared.dart' show systemL10n;
+import 'package:edaya_shared/edaya_shared.dart' show demoGrade, systemL10n;
 import 'package:flutter/foundation.dart';
 import '../features/session/session_logbook_draft_storage.dart';
 
@@ -272,6 +272,26 @@ class MockStore extends ChangeNotifier {
     } on Object {
       return null;
     }
+  }
+
+  // The completed fractions assessment predates the editable demo evaluations.
+  Map<String, dynamic>? latestSubmittedMark(String classId, String studentId) {
+    const scores = [14, 16, 12, 14, 10, 15, 18, 11, 19, 13];
+    final roster = studentsFor(classId);
+    final index = roster.indexWhere((student) => student.id == studentId);
+    if (index < 0) return null;
+    final cohort = List.generate(
+      roster.length,
+      (i) => scores[i % scores.length],
+    );
+    final score = cohort[index];
+    return {
+      'score': score,
+      'maxScore': 20,
+      'rank': 1 + cohort.where((other) => other > score).length,
+      'participantCount': cohort.length,
+      'grading': demoGrade(score),
+    };
   }
 
   List<MockMark> marksFor(String evaluationId) =>

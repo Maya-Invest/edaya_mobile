@@ -167,7 +167,7 @@ class _LiveFeeDetailPage extends LScopedView<FeeDetailController> {
           Text(fee.label, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: PrototypeSpacing.md),
           ChargeDetailSummaryCard(charge: fee),
-          const SizedBox(height: PrototypeSpacing.md),
+          const SizedBox(height: PrototypeSpacing.sm),
           DocumentActionButton(
             label: context.tr.invoice,
             run: controller.downloadInvoice,

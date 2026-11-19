@@ -417,6 +417,7 @@ GoRoute workspaceRoute({
           key: request.key,
           title: request.title,
           wide: request.wide,
+          fitContent: request.fitContent,
           child: request.child,
         );
       },
@@ -431,8 +432,9 @@ class WorkspaceEditorRequest {
     required this.child,
     required this.key,
     this.wide = false,
+    this.fitContent = false,
   });
-  final bool wide;
+  final bool wide, fitContent;
   final String title;
   final Widget child;
   final LocalKey key;
@@ -574,8 +576,12 @@ class WorkspaceShell extends StatelessWidget {
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => backFromWorkspace(context),
               ),
-              toolbarHeight: MediaQuery.textScalerOf(context).scale(20) + 36,
-              title: WorkspacePageHeading(
+              toolbarHeight: WorkspacePageHeading.toolbarHeight(
+                context,
+                hasPicker: live && !account,
+              ),
+              title: WorkspacePageHeading.forAppBar(
+                context,
                 title: title,
                 picker: live && !account ? classButton : null,
               ),
@@ -649,10 +655,12 @@ Future<T?> showWorkspaceEditor<T>({
   required String title,
   Uri? ownerUri,
   bool wide = false,
+  bool fitContent = false,
   required Widget Function(BuildContext, ValueChanged<T?>) builder,
 }) {
   final host = context.findAncestorStateOfType<_WorkspaceSheetState>();
-  if (host != null) return host.edit(context, title, builder);
+  if (host != null)
+    return host.edit(context, title, builder, fitContent: fitContent);
   if (GoRouter.maybeOf(context) case final router?) {
     final uri = ownerUri ?? GoRouterState.of(context).uri;
     final token = '${++_nextEditor}';
@@ -660,6 +668,7 @@ Future<T?> showWorkspaceEditor<T>({
     late final WorkspaceEditorRequest request;
     request = WorkspaceEditorRequest(
       wide: wide,
+      fitContent: fitContent,
       key: ValueKey('workspace-editor-$token'),
       title: title,
       child: LScope.capture(
@@ -709,13 +718,23 @@ Future<T?> showWorkspaceEditor<T>({
     useSafeArea: true,
     isScrollControlled: true,
     constraints: BoxConstraints(maxWidth: wide ? 960 : 640),
-    builder: (sheetContext) => LScope.capture(
-      context,
-      child: WorkspaceSheet(
-        title: title,
-        child: Builder(
-          builder: (inner) =>
-              builder(inner, (value) => Navigator.pop(sheetContext, value)),
+    builder: (sheetContext) => Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+      ),
+      child: MediaQuery.removeViewInsets(
+        context: sheetContext,
+        removeBottom: true,
+        child: LScope.capture(
+          context,
+          child: WorkspaceSheet(
+            fitContent: fitContent,
+            title: title,
+            child: Builder(
+              builder: (inner) =>
+                  builder(inner, (value) => Navigator.pop(sheetContext, value)),
+            ),
+          ),
         ),
       ),
     ),
@@ -747,7 +766,13 @@ Widget _discardChoices(BuildContext context, ValueChanged<bool?> finish) =>
     );
 
 class WorkspaceSheet extends StatefulWidget {
-  const WorkspaceSheet({super.key, required this.title, required this.child});
+  const WorkspaceSheet({
+    super.key,
+    required this.title,
+    required this.child,
+    this.fitContent = false,
+  });
+  final bool fitContent;
   final String title;
   final Widget child;
 
@@ -835,7 +860,8 @@ class _WorkspaceSheetState extends State<WorkspaceSheet>
     });
   }
 
-  final _editors = <({Widget child, String title, VoidCallback cancel})>[];
+  final _editors =
+      <({Widget child, String title, VoidCallback cancel, bool fitContent})>[];
   bool _disposed = false;
   Future<bool>? _discardConfirmation;
 
@@ -853,10 +879,17 @@ class _WorkspaceSheetState extends State<WorkspaceSheet>
   Future<T?> edit<T>(
     BuildContext source,
     String title,
-    Widget Function(BuildContext, ValueChanged<T?>) builder,
-  ) {
+    Widget Function(BuildContext, ValueChanged<T?>) builder, {
+    bool fitContent = false,
+  }) {
     final result = Completer<T?>();
-    late final ({Widget child, String title, VoidCallback cancel}) entry;
+    late final ({
+      Widget child,
+      String title,
+      VoidCallback cancel,
+      bool fitContent,
+    })
+    entry;
     void finish(T? value) {
       if (!result.isCompleted) result.complete(value);
       if (_disposed) return;
@@ -871,6 +904,7 @@ class _WorkspaceSheetState extends State<WorkspaceSheet>
     }
 
     entry = (
+      fitContent: fitContent,
       title: title,
       cancel: () {
         if (!result.isCompleted) result.complete(null);
@@ -895,9 +929,10 @@ class _WorkspaceSheetState extends State<WorkspaceSheet>
   }
 
   @override
-  Widget build(BuildContext context) => FractionallySizedBox(
-    heightFactor: .88,
-    child: Column(
+  Widget build(BuildContext context) {
+    final compact = _editors.lastOrNull?.fitContent ?? widget.fitContent;
+    final body = Column(
+      mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(
@@ -920,9 +955,10 @@ class _WorkspaceSheetState extends State<WorkspaceSheet>
           ),
         ),
         const Divider(height: 1),
-        Expanded(
+        Flexible(
+          fit: compact ? FlexFit.loose : FlexFit.tight,
           child: Stack(
-            fit: StackFit.expand,
+            fit: compact ? StackFit.loose : StackFit.expand,
             children: [
               Offstage(offstage: _editors.isNotEmpty, child: widget.child),
               for (final entry in _editors)
@@ -935,8 +971,10 @@ class _WorkspaceSheetState extends State<WorkspaceSheet>
           ),
         ),
       ],
-    ),
-  );
+    );
+    if (!compact) return FractionallySizedBox(heightFactor: .88, child: body);
+    return SafeArea(top: false, child: body);
+  }
 }
 
 Future<DateTime?> showWorkspaceDatePicker({
@@ -963,8 +1001,9 @@ class RecordSheetPage extends Page<Object?> {
     required this.title,
     required this.child,
     this.wide = false,
+    this.fitContent = false,
   });
-  final bool wide;
+  final bool wide, fitContent;
   final String title;
   final Widget child;
   @override
@@ -997,7 +1036,11 @@ class RecordSheetPage extends Page<Object?> {
               child: MediaQuery.removeViewInsets(
                 context: context,
                 removeBottom: true,
-                child: WorkspaceSheet(title: page.title, child: page.child),
+                child: WorkspaceSheet(
+                  title: page.title,
+                  child: page.child,
+                  fitContent: page.fitContent,
+                ),
               ),
             ),
           ),
@@ -1010,27 +1053,16 @@ class RecordSheetPage extends Page<Object?> {
 class ClassContextButton extends StatelessWidget {
   const ClassContextButton({super.key});
   @override
-  Widget build(BuildContext context) => TextButton(
-    style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-    onPressed: () => chooseContext(context),
-    child: Row(
-      children: [
-        const Icon(Icons.groups_outlined),
-        const SizedBox(width: 8),
-        Expanded(
-          child: LWatch(
-            () => Text(
-              context.levit
-                      .find<TeacherContextController>()
-                      .activeAssignment
-                      ?.label ??
-                  context.tr.noAssignment,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ),
-      ],
+  Widget build(BuildContext context) => LWatch(
+    () => WorkspacePickerButton(
+      name:
+          context.levit
+              .find<TeacherContextController>()
+              .activeAssignment
+              ?.label ??
+          context.tr.noAssignment,
+      icon: Icons.groups_outlined,
+      onPressed: () => chooseContext(context),
     ),
   );
 }

@@ -53,82 +53,101 @@ void main() {
     },
   );
 
-  for (final width in [320.0, 390.0, 600.0, 1024.0]) {
+  for (final width in [320.0, 390.0, 599.0, 600.0, 1024.0]) {
     for (final scale in [1.0, 2.0]) {
-      testWidgets(
-        'feature header and tabs at $width/$scale retain labels and scroll',
-        (tester) async {
-          await tester.binding.setSurfaceSize(Size(width, 844));
-          addTearDown(() => tester.binding.setSurfaceSize(null));
-          final scroll = ScrollController();
-          addTearDown(scroll.dispose);
-          final router = GoRouter(
-            routes: [
-              GoRoute(
-                path: '/',
-                builder: (_, _) => Scaffold(
-                  appBar: AppBar(
-                    toolbarHeight: 76,
-                    title: WorkspacePageHeading(
-                      title: 'Évaluations',
-                      picker: TextButton(
-                        onPressed: () {},
-                        child: const Text(
-                          'Alexandra Antoinette / Classe de mathématiques',
-                          overflow: TextOverflow.ellipsis,
+      for (final brightness in Brightness.values) {
+        testWidgets(
+          'feature header and tabs at $width/$scale/$brightness retain labels and scroll',
+          (tester) async {
+            await tester.binding.setSurfaceSize(Size(width, 844));
+            addTearDown(() => tester.binding.setSurfaceSize(null));
+            final scroll = ScrollController();
+            addTearDown(scroll.dispose);
+            final router = GoRouter(
+              routes: [
+                GoRoute(
+                  path: '/',
+                  builder: (context, _) => Scaffold(
+                    appBar: AppBar(
+                      toolbarHeight: WorkspacePageHeading.toolbarHeight(
+                        context,
+                      ),
+                      title: WorkspacePageHeading.forAppBar(
+                        context,
+                        title: 'Évaluations',
+                        picker: WorkspacePickerButton(
+                          name:
+                              'Alexandra Antoinette / Classe de mathématiques',
+                          icon: Icons.person_outline,
+                          onPressed: () {},
                         ),
                       ),
                     ),
-                  ),
-                  body: WorkspaceTabs(
-                    labels: const ['Conversations', 'Notifications'],
-                    values: const ['conversations', 'notifications'],
-                    children: [
-                      ListView(
-                        controller: scroll,
-                        children: [
-                          for (var i = 0; i < 60; i++)
-                            ListTile(title: Text('Message $i')),
-                        ],
-                      ),
-                      const Center(child: Text('Notifications list')),
-                    ],
+                    body: WorkspaceTabs(
+                      labels: const ['Conversations', 'Notifications'],
+                      values: const ['conversations', 'notifications'],
+                      children: [
+                        ListView(
+                          controller: scroll,
+                          children: [
+                            for (var i = 0; i < 60; i++)
+                              ListTile(title: Text('Message $i')),
+                          ],
+                        ),
+                        const Center(child: Text('Notifications list')),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          );
-          addTearDown(router.dispose);
-          await tester.pumpWidget(
-            MaterialApp.router(
-              routerConfig: router,
-              builder: (_, child) => MediaQuery(
-                data: MediaQueryData(
-                  size: Size(width, 844),
-                  textScaler: TextScaler.linear(scale),
+              ],
+            );
+            addTearDown(router.dispose);
+            await tester.pumpWidget(
+              MaterialApp.router(
+                theme: ThemeData(brightness: brightness),
+                routerConfig: router,
+                builder: (_, child) => MediaQuery(
+                  data: MediaQueryData(
+                    size: Size(width, 844),
+                    textScaler: TextScaler.linear(scale),
+                  ),
+                  child: child!,
                 ),
-                child: child!,
               ),
-            ),
-          );
-          await tester.pumpAndSettle();
-          scroll.jumpTo(300);
-          await tester.ensureVisible(find.widgetWithText(Tab, 'Notifications'));
-          await tester.pumpAndSettle();
-          await tester.tap(find.widgetWithText(Tab, 'Notifications'));
-          await tester.pumpAndSettle();
-          expect(
-            router.routeInformationProvider.value.uri.queryParameters['tab'],
-            'notifications',
-          );
-          await tester.ensureVisible(find.widgetWithText(Tab, 'Conversations'));
-          await tester.pumpAndSettle();
-          await tester.tap(find.widgetWithText(Tab, 'Conversations'));
-          await tester.pumpAndSettle();
-          expect(scroll.offset, 300);
-          expect(tester.takeException(), isNull);
-        },
-      );
+            );
+            await tester.pumpAndSettle();
+            final title = find.text('Évaluations');
+            final picker = find.byType(WorkspacePickerButton);
+            expect(tester.widget<Text>(title).style?.fontSize, 18);
+            expect(tester.getSize(picker).height, greaterThanOrEqualTo(48));
+            if (scale == 2 && width < 600) {
+              expect(
+                tester.getTopLeft(picker).dy,
+                greaterThanOrEqualTo(tester.getBottomLeft(title).dy),
+              );
+            }
+            scroll.jumpTo(300);
+            await tester.ensureVisible(
+              find.widgetWithText(Tab, 'Notifications'),
+            );
+            await tester.pumpAndSettle();
+            await tester.tap(find.widgetWithText(Tab, 'Notifications'));
+            await tester.pumpAndSettle();
+            expect(
+              router.routeInformationProvider.value.uri.queryParameters['tab'],
+              'notifications',
+            );
+            await tester.ensureVisible(
+              find.widgetWithText(Tab, 'Conversations'),
+            );
+            await tester.pumpAndSettle();
+            await tester.tap(find.widgetWithText(Tab, 'Conversations'));
+            await tester.pumpAndSettle();
+            expect(scroll.offset, 300);
+            expect(tester.takeException(), isNull);
+          },
+        );
+      }
     }
   }
 }

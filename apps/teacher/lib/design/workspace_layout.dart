@@ -30,7 +30,7 @@ class WorkspaceColumns extends StatelessWidget {
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, box) {
-      const gap = PrototypeSpacing.lg;
+      const gap = PrototypeSpacing.sectionGap;
       final split =
           box.maxWidth >= minimumSplitWidth &&
           MediaQuery.textScalerOf(context).scale(14) < 22;
@@ -52,7 +52,7 @@ class WorkspaceColumns extends StatelessWidget {
       );
       return Wrap(
         spacing: gap,
-        runSpacing: PrototypeSpacing.md,
+        runSpacing: PrototypeSpacing.sectionGap,
         children: [
           if (first.isNotEmpty)
             section(second.isEmpty ? box.maxWidth : left, first),

@@ -1,7 +1,9 @@
 import 'dart:async';
 
-import 'package:edaya_shared/edaya_shared.dart' show AppLocalizations;
+import 'package:edaya_shared/edaya_shared.dart'
+    show AppLocalizations, FeatureActionBar;
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:edaya_teacher_v2/mock/mock_store.dart';
@@ -15,16 +17,76 @@ import 'integration/support/integration_test_lifecycle.dart';
 Finder statusChip(String label) =>
     find.byWidgetPredicate((w) => w is ChoiceChip && w.tooltip == label);
 Future<void> openActions(WidgetTester tester) async {
-  final attendance = find.byKey(const ValueKey('session-actions'));
-  await tester.tap(
-    attendance.evaluate().isNotEmpty
-        ? attendance
-        : find.byType(PopupMenuButton<String>).first,
-  );
+  await tester.tap(find.byType(FloatingActionButton).hitTestable().first);
   await tester.pumpAndSettle();
 }
 
 void main() {
+  testWidgets(
+    'blocked finish explains the conflict and opens My profile from the action sheet',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(390, 844);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => Scaffold(
+              body: RollCall(
+                rows: [
+                  LiveSessionStudent(
+                    studentId: 'ada',
+                    fullName: 'Ada',
+                    initials: 'A',
+                    status: AttendanceStatus.present,
+                  ),
+                ],
+                submitted: false,
+                busy: false,
+                pending: true,
+                conflict: true,
+                message: '',
+                onSave: (_, _, _, _) async => true,
+                onBulk: () async {},
+                onFinish: () async => fail('blocked register submitted'),
+                onSync: () async {},
+                onMove: (_, _) async => false,
+                windowOpen: false,
+                schoolTime: (date) => date,
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/account',
+            builder: (_, _) =>
+                const Scaffold(body: Text('Account destination')),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        MaterialApp.router(
+          routerConfig: router,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await openActions(tester);
+      final finish = tester.widget<ListTile>(
+        find.widgetWithText(ListTile, 'Finish roll call'),
+      );
+      expect(finish.enabled, isFalse);
+      expect((finish.subtitle as Text).data, contains('My profile'));
+      await tester.tap(find.widgetWithText(ListTile, 'My profile'));
+      await tester.pumpAndSettle();
+      expect(find.text('Account destination'), findsOneWidget);
+    },
+  );
+
   testWidgets(
     'photo pass stays on a rejected write and advances only once across a resize',
     (tester) async {
@@ -74,7 +136,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       await openActions(tester);
-      await tester.tap(find.text('Mode photo'));
+      await tester.tap(find.text('Un élève à la fois'));
       await tester.pumpAndSettle();
       final mark = find.text('Présent');
       await tester.tap(mark);
@@ -190,7 +252,14 @@ void main() {
       await tester.pump();
       expect(sent, ['Ada']);
       expect(tester.widget<ChoiceChip>(chip('Sam', 'Absent')).selected, true);
-      expect(find.text('2/3 renseignés'), findsOneWidget);
+      expect(
+        tester
+            .widget<FeatureActionBar>(find.byType(FeatureActionBar))
+            .actions
+            .singleWhere((a) => a.label == 'Terminer l’appel')
+            .subtitle,
+        '2/3 renseignés',
+      );
       first.complete(true);
       await tester.pump();
       expect(sent, ['Ada', 'Sam']);
@@ -198,15 +267,72 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.widget<ChoiceChip>(chip('Ada', 'Présent')).selected, true);
       expect(tester.widget<ChoiceChip>(chip('Sam', 'Absent')).selected, false);
-      expect(find.text('1/3 renseignés'), findsOneWidget);
+      expect(
+        tester
+            .widget<FeatureActionBar>(find.byType(FeatureActionBar))
+            .actions
+            .singleWhere((a) => a.label == 'Terminer l’appel')
+            .subtitle,
+        '1/3 renseignés',
+      );
       expect(tester.widget<ChoiceChip>(other), same(originalChip));
       expect(tester.getTopLeft(other), originalPosition);
       expect(tester.takeException(), isNull);
     },
   );
 
+  testWidgets(
+    'the pupil sheet fits its contents and Save stays reachable above the keyboard',
+    (tester) async {
+      const viewport = Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = viewport;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetViewInsets);
+      final h = PrototypeWidgetTestHarness()..bootstrap(authenticated: true);
+      final lesson = h.store.sessions.firstWhere(
+        (s) => !s.attendanceComplete && h.store.getAttendance(s.id).isNotEmpty,
+      );
+      await tester.pumpWidget(h.buildApp(locale: const Locale('fr')));
+      h.router.go('/session/${lesson.id}');
+      await tester.pumpAndSettle();
+      final entry = h.store.getAttendance(lesson.id).first;
+      final pupil = h.store.studentById(entry.studentId)!;
+      await tester.tap(find.byTooltip(pupil.fullName));
+      await tester.pumpAndSettle();
+      final sheet = find.byType(BottomSheet);
+      expect(tester.getSize(sheet).height, lessThan(viewport.height * .65));
+      final field = find.byType(TextFormField).last;
+      final save = find.widgetWithText(FilledButton, 'Enregistrer');
+      expect(
+        tester.getTopLeft(save).dy - tester.getBottomLeft(field).dy,
+        closeTo(12, 1),
+      );
+      await tester.tap(
+        find.descendant(of: sheet, matching: statusChip('Présent')),
+      );
+      await tester.enterText(field, 'En classe');
+      tester.view.viewInsets = const FakeViewPadding(bottom: 340);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(save);
+      await tester.pumpAndSettle();
+      expect(
+        tester.getBottomRight(save).dy,
+        lessThanOrEqualTo(viewport.height - 340),
+      );
+      await tester.tap(save);
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomSheet), findsNothing);
+      expect(entry.status, AttendanceStatus.present);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   for (final viewport in const [
     Size(390, 844),
+    Size(599, 844),
+    Size(600, 844),
     Size(768, 1024),
     Size(1024, 768),
     Size(320, 844),
@@ -242,15 +368,24 @@ void main() {
           final labels = AppLocalizations.of(
             tester.element(find.byType(RollCall)),
           )!;
-          expect(
-            find.text(
-              labels.rollRosterCount(
-                h.store.getAttendance(lesson.id).length,
-                0,
-              ),
-            ),
-            findsOneWidget,
+          final progress = find.text(
+            labels.rollRosterCount(h.store.getAttendance(lesson.id).length, 0),
           );
+          if (viewport.width < 600) {
+            expect(progress, findsNothing);
+            await openActions(tester);
+            expect(progress, findsOneWidget);
+            Navigator.of(tester.element(progress)).pop();
+            await tester.pumpAndSettle();
+          } else {
+            expect(
+              find.descendant(
+                of: find.byType(FilledButton),
+                matching: progress,
+              ),
+              findsOneWidget,
+            );
+          }
           final picker = find.byType(AttendanceStatusPicker).first;
           final present = find.descendant(
             of: picker,
@@ -282,7 +417,9 @@ void main() {
           await tester.pumpAndSettle();
           expect(find.text(labels.bookGeneral), findsOneWidget);
           expect(find.text(labels.bookChapters), findsOneWidget);
-          if (viewport.width < 600) await openActions(tester);
+          if (viewport.width < 600 &&
+              !tester.any(find.text(labels.bookAddChapter)))
+            await openActions(tester);
           final add = find.text(labels.bookAddChapter);
           await tester.ensureVisible(add);
           await tester.pumpAndSettle();
@@ -330,7 +467,7 @@ void main() {
       }
 
       if (viewport.width < 600) await openActions(tester);
-      await tap(find.text('Mode photo'));
+      await tap(find.text('Un élève à la fois'));
       expect(find.text('1 sur ${rows.length}'), findsOneWidget);
       await tap(find.byIcon(Icons.chevron_right).last);
       expect(find.text('2 sur ${rows.length}'), findsOneWidget);
@@ -340,19 +477,17 @@ void main() {
       await tap(find.text('Absent'));
       expect(rows[1].status, AttendanceStatus.absent);
       for (var i = 2; i < rows.length; i++) {
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 320)),
-        );
+        await tester.pump(const Duration(milliseconds: 320));
         await tap(find.text('Présent'));
       }
       if (viewport.width < 600) await openActions(tester);
-      expect(find.text('Mode photo'), findsOneWidget);
+      expect(find.text('Un élève à la fois'), findsOneWidget);
       expect(rows.first.status, isNull);
       if (viewport.width < 600) {
         expect(
           tester
-              .widget<PopupMenuItem<int>>(
-                find.widgetWithText(PopupMenuItem<int>, 'Terminer'),
+              .widget<ListTile>(
+                find.widgetWithText(ListTile, 'Terminer l’appel'),
               )
               .enabled,
           isFalse,
@@ -361,7 +496,7 @@ void main() {
         expect(
           tester
               .widget<FilledButton>(
-                find.widgetWithText(FilledButton, 'Terminer'),
+                find.widgetWithText(FilledButton, 'Terminer l’appel'),
               )
               .onPressed,
           isNull,
@@ -371,12 +506,13 @@ void main() {
       expect(rows[1].status, AttendanceStatus.absent);
       expect(s.attendanceComplete, isFalse);
       if (viewport.width < 600) await openActions(tester);
-      await tap(find.text('Terminer'));
+      await tap(find.text('Terminer l’appel'));
       expect(s.attendanceComplete, isTrue);
       await tap(find.widgetWithText(Tab, 'Cahier de texte'));
       if (viewport.width < 600) {
-        await openActions(tester);
-        await tap(find.byType(PopupMenuItem<String>).first);
+        final create = find.text('Créer une entrée');
+        if (!tester.any(create)) await openActions(tester);
+        await tap(create);
       } else {
         await tap(find.byIcon(Icons.edit_outlined));
       }

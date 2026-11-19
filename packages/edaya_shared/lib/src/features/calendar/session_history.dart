@@ -190,6 +190,7 @@ class SessionHistoryPanel extends LScopedView<SessionHistoryController> {
                   if (attendance?['reason'] case final String reason) reason,
                 ];
                 return Card(
+                  margin: const EdgeInsets.only(bottom: 8),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(
                       EdayaTokens.radiusSurface,

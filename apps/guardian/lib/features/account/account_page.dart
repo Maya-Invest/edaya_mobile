@@ -69,8 +69,9 @@ class _MockAccountPage extends LScopedView<StoreBoundController> {
                 ],
               ),
             ),
-            const SizedBox(height: PrototypeSpacing.md),
+            const SizedBox(height: PrototypeSpacing.listGap),
             SurfaceCard(
+              padding: EdgeInsets.zero,
               child: Column(
                 children: [
                   ListTile(
@@ -166,8 +167,9 @@ class _LiveAccountPage extends LScopedView<AccountController> {
                 ],
               ),
             ),
-            const SizedBox(height: PrototypeSpacing.md),
+            const SizedBox(height: PrototypeSpacing.listGap),
             SurfaceCard(
+              padding: EdgeInsets.zero,
               child: Column(
                 children: [
                   ListTile(

@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'demo_school.dart';
+import 'demo_grading.dart';
 
 enum DemoRole { guardian, teacher }
 
@@ -61,7 +62,41 @@ class DemoStore {
     final path = p.join(await getDatabasesPath(), 'edaya-demo-$id.db');
     final db = await openDatabase(
       path,
-      version: 1,
+      version: 2,
+      onUpgrade: (db, oldVersion, _) async {
+        if (oldVersion < 2) {
+          final row = (await db.query(
+            'school',
+            columns: ['body'],
+            where: 'id = 1',
+          )).single;
+          final school = jsonDecode(row['body'] as String) as Map;
+          void updateGrade(Map record) {
+            final grading = record['grading'];
+            if (grading is Map &&
+                grading['reportedValue'] is num &&
+                grading['maximum'] == 20) {
+              grading['mention'] = demoGrade(
+                grading['reportedValue'] as num,
+              )['mention'];
+            }
+            for (final child
+                in (record['sectionResults'] ??
+                        record['subResults'] ??
+                        const [])
+                    as List) {
+              updateGrade(child as Map);
+            }
+          }
+
+          for (final report in school['results'] as List) {
+            updateGrade(report as Map);
+          }
+          await db.update('school', {
+            'body': jsonEncode(school),
+          }, where: 'id = 1');
+        }
+      },
       onCreate: (db, _) async {
         await db.execute(
           'CREATE TABLE school (id INTEGER PRIMARY KEY, body TEXT NOT NULL)',

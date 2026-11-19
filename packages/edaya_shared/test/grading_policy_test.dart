@@ -24,6 +24,51 @@ GradingPolicyView policy({
   },
 });
 void main() {
+  test(
+    'an official average displays the same captured precision used for ranking',
+    () {
+      final grade = {'maximum': 20, 'decimalPlaces': 1, 'reportedValue': 13.2};
+      expect(
+        formatCalculatedGrade(13.299, grade),
+        startsWith(formatGradeNumber(13.2, precision: 1)),
+      );
+    },
+  );
+  test(
+    'teacher fallback uses complete official cohorts and reporting precision',
+    () {
+      Map<String, dynamic> mark(double raw, double reported) => {
+        'grading': {
+          'scaleId': 'A',
+          'policyRevision': 2,
+          'reportedValue': reported,
+          'value': raw,
+        },
+      };
+      final rows = [
+        {...mark(15, 15), 'rank': 2, 'participantCount': 30},
+        mark(13.24, 13.2),
+        mark(13.23, 13.2),
+        mark(0, 0),
+        {...mark(10, 10), 'designation': 'absent'},
+        {'designation': 'exempt'},
+        <String, dynamic>{},
+      ];
+      expect(withOfficialRanks(rows, complete: false), same(rows));
+      final ranked = withOfficialRanks(rows, complete: true);
+      expect(ranked.map((r) => r['rank']), [2, 2, 2, 4, null, null, null]);
+      expect(ranked.map((r) => r['participantCount']), [
+        30,
+        4,
+        4,
+        4,
+        null,
+        null,
+        null,
+      ]);
+    },
+  );
+
   test('matches rounded boundaries and the final maximum', () {
     expect(policy().mention(1.995)?['letter'], 'B');
     expect(policy(rounding: 'truncate').mention(1.999)?['letter'], 'F');

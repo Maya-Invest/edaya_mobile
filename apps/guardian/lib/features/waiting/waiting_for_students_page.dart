@@ -33,7 +33,7 @@ class WaitingForStudentsPage extends LScopedView<WaitingForStudentsController> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                 child: LWatch(() {
                   final session = context.levit.find<AppSessionController>();
                   final busy =
@@ -141,7 +141,7 @@ class _PendingInvitationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 8),
       child: DecoratedBox(
         decoration: BoxDecoration(
           border: Border.all(

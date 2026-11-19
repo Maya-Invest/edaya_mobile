@@ -36,6 +36,7 @@ class TeacherLiveWidgetTestHarness {
   final LanguagePreference language;
 
   Size? viewportSize;
+  Stream<bool> connections = const Stream.empty();
   LevitScope? _scope;
 
   LevitScope get scope {
@@ -100,6 +101,7 @@ class TeacherLiveWidgetTestHarness {
           scope,
           store: MockStore(),
           live: true,
+          connections: connections,
           cookieJar: portalSession.authClient.cookieJar,
           authClient: portalSession.authClient,
           pushNotifications: NoOpPushNotificationService(),

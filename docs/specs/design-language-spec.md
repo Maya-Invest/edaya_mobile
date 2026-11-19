@@ -81,6 +81,7 @@ Bundled, offline fonts. Logos are artwork, never UI text.
 | `displaySmall` | Poppins | 28 | 600 |
 | `headlineMedium` | Poppins | 24 | 600 |
 | `headlineSmall` | Poppins | 24 | 600 |
+| Feature title | Poppins | 18 | 600 |
 | `titleLarge` | Poppins | 20 | 600 |
 | `titleMedium` | Inter | 16 | 600 |
 | `titleSmall` | Inter | 14 | 600 |
@@ -275,3 +276,5 @@ In teacher v2, attendance choice chips are interactive status selectors. Their s
 ## Feature header refinement
 
 Feature pages use the existing 20sp section token for page headings and keep the class/pupil picker on the same row. Constrain and ellipsize picker text while preserving full accessible labels and 48dp touch targets. Large accessibility text may use simplified controls or stack when necessary. This is a feature-header variant: both Home pages retain their existing type scale, header, context cards, spacing and layout. The Guardian Presence tile alone is removed when history moves into Agenda.
+
+Feature lists use 16 dp screen gutters and 8 dp between cards. Forms use 12 dp between controls, with 24 dp between distinct sections. Roll-call pupil cards have 8 dp vertical padding and 4 dp between the name and attendance choices.

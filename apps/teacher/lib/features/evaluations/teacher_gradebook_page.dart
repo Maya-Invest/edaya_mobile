@@ -122,6 +122,11 @@ class TeacherGradebookPage extends LScopedView<TeacherGradebookController> {
               await c.load();
             },
     );
+    final fab = FeatureAction(
+      context.tr.workspaceNewEvaluation,
+      Icons.add,
+      add.onPressed,
+    );
     final showEvaluations =
         selected != null ||
         GoRouterState.of(context).uri.queryParameters['view'] == 'evaluations';
@@ -136,6 +141,7 @@ class TeacherGradebookPage extends LScopedView<TeacherGradebookController> {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               child: LayoutBuilder(
                 builder: (context, box) {
+                  if (phoneActions(context)) return period;
                   if (MediaQuery.textScalerOf(context).scale(14) > 22)
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -187,6 +193,7 @@ class TeacherGradebookPage extends LScopedView<TeacherGradebookController> {
                       key: ValueKey((active!.id, selected)),
                       evaluationId: selected,
                       header: choice,
+                      action: fab,
                     )
                   : ListView(
                       padding: const EdgeInsets.all(16),
@@ -197,6 +204,8 @@ class TeacherGradebookPage extends LScopedView<TeacherGradebookController> {
                       ],
                     ),
             ),
+            if (!showEvaluations || selected == null)
+              FeatureActionBar(actions: [fab]),
           ],
         ),
       ),
@@ -218,38 +227,16 @@ class _AverageRows extends StatelessWidget {
         child: TextButton(onPressed: c.load, child: Text(c.error.value)),
       );
     }
-    final stackResult = MediaQuery.textScalerOf(context).scale(14) > 22;
-    String result(Map<String, dynamic> row) => formatCalculatedGrade(
-      (row['average'] as num?)?.toDouble(),
-      (row['grading'] as Map?)?.cast<String, dynamic>(),
-    );
-    Widget averageValue(Map<String, dynamic> row) => Align(
-      alignment: Alignment.centerLeft,
-      widthFactor: 1,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primaryContainer,
-          borderRadius: BorderRadius.circular(PrototypeRadii.sm),
-        ),
-        child: Text(
-          result(row),
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onPrimaryContainer,
-          ),
-        ),
-      ),
-    );
-    String appreciation(Map row) => row['comment'] == null
-        ? context.tr.reportCardNotPrepared
-        : (row['comment'] as Map)['proposal'] != null
-        ? ((row['comment'] as Map)['proposal'] as Map)['status'] ==
-                  'approved_pending_publication'
-              ? context.tr.approvedAwaitingPublication
-              : context.tr.gradebookPending
-        : ((row['comment'] as Map)['text'] as String).isEmpty
-        ? context.tr.commentNeeded
-        : context.tr.commentEntered;
+    Future<void> open(Map<String, dynamic> row) async {
+      await showWorkspaceEditor<Object?>(
+        context: context,
+        wide: true,
+        title: '${row['firstName']} ${row['lastName']}'.trim(),
+        builder: (_, close) => _SubjectSummary(row: row, controller: c),
+      );
+      await c.load();
+    }
+
     return RefreshIndicator(
       onRefresh: c.load,
       child: ListView(
@@ -261,19 +248,6 @@ class _AverageRows extends StatelessWidget {
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Text(
-              context.tr.workspacePeriodAverage,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-          if (c.students.value.isNotEmpty)
-            ComparisonHeading([
-              context.tr.student,
-              context.tr.average,
-              context.tr.reportComment,
-            ]),
           if (c.students.value.isEmpty)
             Text(context.tr.noStudentsEnrolledInThisClassAndSubject),
           for (final row in c.students.value)
@@ -281,34 +255,19 @@ class _AverageRows extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: PrototypeSpacing.xs),
               child: SurfaceCard(
                 padding: EdgeInsets.zero,
-                child: ResponsiveRosterTile(
-                  cellWidgets: {1: averageValue(row)},
-                  cells: [
-                    '${row['lastName']} ${row['firstName']}',
-                    result(row),
-                    appreciation(row),
-                  ],
-                  compact: ListTile(
-                    title: Text('${row['lastName']} ${row['firstName']}'),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (stackResult) averageValue(row),
-                        Text(appreciation(row)),
-                      ],
-                    ),
-                    trailing: stackResult ? null : averageValue(row),
-                    onTap: () async {
-                      await showWorkspaceEditor<Object?>(
-                        context: context,
-                        wide: true,
-                        title: '${row['lastName']} ${row['firstName']}',
-                        builder: (_, close) =>
-                            _SubjectSummary(row: row, controller: c),
-                      );
-                      await c.load();
-                    },
-                  ),
+                child: GradeRecordRow(
+                  title: '${row['firstName']} ${row['lastName']}'.trim(),
+                  result: row,
+                  onDetails: () => open(row),
+                  editLabel: row['comment'] == null
+                      ? null
+                      : _commentAction(context, row),
+                  onEdit: row['comment'] == null
+                      ? null
+                      : () async {
+                          await _openComment(context, row, c);
+                          await c.load();
+                        },
                 ),
               ),
             ),
@@ -316,6 +275,28 @@ class _AverageRows extends StatelessWidget {
       ),
     );
   });
+}
+
+String _commentAction(BuildContext context, Map row) =>
+    row['comment']['proposal']?['status'] == 'approved_pending_publication'
+    ? context.tr.viewComment
+    : context.tr.editComment;
+
+Future<void> _openComment(
+  BuildContext context,
+  Map row,
+  TeacherGradebookController controller,
+) async {
+  await showWorkspaceEditor<Object?>(
+    context: context,
+    title: context.tr.reportComment,
+    builder: (_, close) => ReportCardCommentPage(
+      classId: controller.teacher.activeAssignment!.classGroupId,
+      periodId: controller.evaluations.selectedPeriodId.value!,
+      rosterId: row['studentId'] as String,
+      subjectId: controller.teacher.activeAssignment!.classSubjectId,
+    ),
+  );
 }
 
 class _SubjectSummary extends StatelessWidget {
@@ -330,34 +311,34 @@ class _SubjectSummary extends StatelessWidget {
         context.tr.periodAverage,
         style: Theme.of(context).textTheme.titleMedium,
       ),
-      Text(
+      GradeValue(
         formatCalculatedGrade(
           (row['average'] as num?)?.toDouble(),
           (row['grading'] as Map?)?.cast<String, dynamic>(),
         ),
+        row,
         style: Theme.of(context).textTheme.headlineMedium,
       ),
-      const SizedBox(height: 16),
+      const SizedBox(height: PrototypeSpacing.sectionGap),
       WorkspaceColumns(
         first: [
           for (final result in (row['contributions'] as List).cast<Map>())
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(result['title'] as String),
-              subtitle: Text(
-                context.tr.coefficient(
-                  formatGradeNumber(result['coefficient'] as num?),
-                ),
-              ),
-              trailing: Text(
-                result['designation'] == 'absent'
-                    ? 'Absent'
-                    : result['designation'] == 'exempt'
-                    ? context.tr.marksExempt
-                    : '${formatGradeNumber(result['score'] as num?)} / ${formatGradeNumber(result['maxScore'] as num?)}',
+            GradeRecordRow(
+              title: result['title'] as String,
+              result: result,
+              details: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 12,
+                children: [
+                  Text(
+                    context.tr.coefficient(
+                      formatGradeNumber(result['coefficient'] as num?),
+                    ),
+                  ),
+                  if (result['notes'] case final String notes) Text(notes),
+                ],
               ),
             ),
-          const SizedBox(height: 16),
         ],
         second: [
           if (row['comment'] == null)
@@ -373,23 +354,8 @@ class _SubjectSummary extends StatelessWidget {
                 '${proposal['status'] == 'approved_pending_publication' ? 'Approuvée · En attente de publication' : 'En attente d’approbation'} · ${proposal['text']}',
               ),
             FilledButton(
-              onPressed: () => showWorkspaceEditor<Object?>(
-                context: context,
-                title: context.tr.reportComment,
-                builder: (_, close) => ReportCardCommentPage(
-                  classId: controller.teacher.activeAssignment!.classGroupId,
-                  periodId: controller.evaluations.selectedPeriodId.value!,
-                  rosterId: row['studentId'] as String,
-                  subjectId:
-                      controller.teacher.activeAssignment!.classSubjectId,
-                ),
-              ),
-              child: Text(
-                (row['comment'] as Map)['proposal']?['status'] ==
-                        'approved_pending_publication'
-                    ? context.tr.viewComment
-                    : context.tr.editComment,
-              ),
+              onPressed: () => _openComment(context, row, controller),
+              child: Text(_commentAction(context, row)),
             ),
           ],
         ],
@@ -403,8 +369,10 @@ class EvaluationMarksPane extends LScopedView<LiveMarksController> {
     super.key,
     required this.evaluationId,
     this.header,
+    this.action,
   });
   final Widget? header;
+  final FeatureAction? action;
   final String evaluationId;
   @override
   LiveMarksController onConfigScope(LevitScope scope) => scope.put(
@@ -426,7 +394,11 @@ class EvaluationMarksPane extends LScopedView<LiveMarksController> {
   );
   @override
   Widget buildView(BuildContext context, LiveMarksController controller) {
-    return GradebookMarksView(controller: controller, header: header);
+    return GradebookMarksView(
+      controller: controller,
+      header: header,
+      action: action,
+    );
   }
 }
 

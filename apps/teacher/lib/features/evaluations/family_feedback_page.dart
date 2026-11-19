@@ -254,7 +254,7 @@ class _LiveFamilyFeedbackDetailPage extends LScopedView<_FeedbackDetailLoader> {
                         const SizedBox(height: PrototypeSpacing.md),
                         Text(item.themes!),
                       ],
-                      const SizedBox(height: PrototypeSpacing.lg),
+                      const SizedBox(height: PrototypeSpacing.sectionGap),
                     ],
                     second: [
                       if (item.overallSuppressed)

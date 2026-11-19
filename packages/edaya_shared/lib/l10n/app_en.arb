@@ -445,7 +445,9 @@
       }
     }
   },
-  "rankLabel": "Rank {rank}/{classSize}",
+  "reportRankOnly": "Rank {rank}",
+  "@reportRankOnly": {"placeholders": {"rank": {"type": "int"}}},
+  "rankLabel": "Rank {rank} of {classSize}",
   "@rankLabel": {
     "placeholders": {
       "rank": {
@@ -758,7 +760,10 @@
   "rollRegisterChanged": "The register has changed. Review the updated entries before finishing.",
   "rollExcused": "Excused by staff",
   "rollUnmarked": "Not marked",
-  "rollList": "List",
+  "featureEditFacts": "Edit facts",
+  "featureDownloadStatement": "Download account statement",
+  "rollConflictProfile": "Resolve the attendance conflict in My profile to finish roll call.",
+  "rollList": "Return to list",
   "rollRosterCount": "{marked}/{total} marked",
   "bookGeneral": "General information",
   "bookChapters": "Chapters covered",
@@ -784,8 +789,8 @@
       }
     }
   },
-  "rollMarkRemaining": "Mark remaining pupils present",
-  "rollOneByOne": "Photo mode",
+  "rollMarkRemaining": "Mark remaining present",
+  "rollOneByOne": "One pupil at a time",
   "rollPosition": "{position} of {total}",
   "rollToSend": "Pending sync · Retry",
   "rollLeftAt": "Left at {time}",
@@ -799,7 +804,7 @@
   "rollFamilySummary": "Family summary",
   "rollChapters": "Chapter coverage",
   "rollRequestChange": "Request a change",
-  "rollCreateBook": "Fill in the logbook",
+  "rollCreateBook": "Create entry",
   "rollEditBook": "Edit logbook",
   "@rollPosition": {
     "placeholders": {
@@ -1279,8 +1284,8 @@
   "exportTimetablePdf": "Timetable PDF",
   "exportRosterPdf": "Class roster PDF",
   "exportAttendancePdf": "Attendance sheet PDF",
-  "familyFeedbackEntry": "Family feedback",
-  "familyFeedbackTitle": "Family feedback",
+  "familyFeedbackEntry": "Feedback",
+  "familyFeedbackTitle": "Feedback",
   "familyFeedbackEmpty": "No family feedback campaigns yet.",
   "familyFeedbackConfidential": "Confidential and aggregated. This is not an academic assessment.",
   "familyFeedbackSubmit": "Submit",
@@ -1293,7 +1298,7 @@
   "familyFeedbackThemes": "Themes",
   "familyFeedbackSlotOpen": "Open",
   "familyFeedbackSlotCompleted": "Completed",
-  "teacherTaskFamilyFeedback": "Family feedback",
+  "teacherTaskFamilyFeedback": "Feedback",
   "teacherTaskAttendance": "Attendance to record",
   "teacherTaskLogbook": "Logbook",
   "teacherTaskMarks": "Marks to enter",
@@ -1389,7 +1394,7 @@
   "attendancePresent": "Present",
   "attendanceAbsent": "Absent",
   "attendanceLate": "Late",
-  "attendanceFinish": "Finish",
+  "attendanceFinish": "Finish roll call",
   "attendanceMarkRemaining": "Mark remaining present",
   "workflowReviseCorrection": "Revise request",
   "workflowIncidentTakenOver": "Staff have taken over this incident",
@@ -1522,6 +1527,7 @@
   "gradebookMissing": "Entry required",
   "gradebookInvalid": "Enter a valid result within the assessment scale.",
   "gradebookWithdrawConfirm": "Withdraw the proposed change for this pupil?",
+  "gradeViewDetails": "View details",
   "gradebookOptions": "Result options",
   "seeYourChildrenSSchoolInformation": "See your children’s school information.",
   "assignments": "Assignments",

@@ -192,22 +192,27 @@ class _SessionTabs extends StatelessWidget {
             builder: (context, box) {
               final style = Theme.of(context).textTheme.titleSmall!;
               final labels = [context.tr.rollAttendance, context.tr.logbook];
-              final textWidth = (box.maxWidth / 2 - 52).clamp(
+              const padding = 4.0;
+              const iconSpace = 28.0;
+              final tabWidth = (box.maxWidth / 2 - 2 * padding).clamp(
                 1.0,
                 double.infinity,
               );
+              var showIcons = true;
               double height = 48;
               for (final label in labels) {
                 final text = TextPainter(
                   text: TextSpan(text: label, style: style),
                   textDirection: Directionality.of(context),
                   textScaler: MediaQuery.textScalerOf(context),
-                )..layout(maxWidth: textWidth);
+                )..layout();
+                if (text.width + iconSpace > tabWidth) showIcons = false;
+                text.layout(maxWidth: tabWidth);
                 if (text.height + 12 > height) height = text.height + 12;
                 text.dispose();
               }
               return TabBar(
-                labelPadding: const EdgeInsets.symmetric(horizontal: 8),
+                labelPadding: const EdgeInsets.symmetric(horizontal: padding),
                 labelStyle: style,
                 tabs: [
                   for (final (index, label) in labels.indexed)
@@ -216,13 +221,15 @@ class _SessionTabs extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            index == 0
-                                ? Icons.how_to_reg_outlined
-                                : Icons.menu_book_outlined,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
+                          if (showIcons) ...[
+                            Icon(
+                              index == 0
+                                  ? Icons.how_to_reg_outlined
+                                  : Icons.menu_book_outlined,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                          ],
                           Flexible(
                             child: Text(label, textAlign: TextAlign.center),
                           ),
@@ -376,148 +383,157 @@ class _BookView extends StatelessWidget {
     );
     void addChapter() =>
         open(title: t.bookAddChapter, initial: null, choices: available);
-    return ListView(
-      key: PageStorageKey('logbook-$sessionId'),
-      padding: const EdgeInsets.all(16),
-      children: [
-        if (compact)
-          Align(
-            alignment: Alignment.centerRight,
-            child: PopupMenuButton<String>(
-              tooltip: t.workspaceActions,
-              onSelected: (action) =>
-                  action == 'general' ? editGeneral() : addChapter(),
-              itemBuilder: (_) => [
-                PopupMenuItem(value: 'general', child: Text(generalAction)),
-                PopupMenuItem(
-                  value: 'chapter',
-                  enabled: available.isNotEmpty,
-                  child: Text(t.bookAddChapter),
-                ),
-              ],
-            ),
-          ),
-        WorkspaceColumns(
-          minimumSplitWidth: 672,
-          sectionSpacing: 12,
-          first: [
-            heading(t.bookGeneral),
-            if (drafts.containsKey('general')) Text(t.rollLocalDraft),
-            if (!compact)
-              Align(
-                alignment: Alignment.centerLeft,
-                child: FilledButton.icon(
-                  icon: const Icon(Icons.edit_outlined),
-                  label: Text(generalAction),
-                  onPressed: () => open(
-                    title: generalAction,
-                    initial:
-                        c?.generalEditorValue() ??
-                        drafts['general'] ??
-                        LogbookEdit.general(note),
-                  ),
-                ),
-              ),
-            value(t.rollContent, note.content, proposed?.content),
-            value(
-              t.rollObjectives,
-              note.objectives.join('\n'),
-              proposed?.objectives.join('\n'),
-            ),
-            value(
-              t.rollHomework,
-              note.homework ?? '',
-              proposed == null ? null : proposed.homework ?? '',
-            ),
-            value(
-              t.rollFamilySummary,
-              note.familySummary ?? '',
-              proposed == null ? null : proposed.familySummary ?? '',
-            ),
-          ],
-          second: [
-            heading(t.bookChapters),
-            for (final entry
-                in (c?.historicalChapters ?? <String, String?>{}).entries)
-              ListTile(
-                title: Text(programme[entry.key] ?? t.chapterFallback),
-                subtitle: Text(
-                  [
-                    t.logbookReference,
-                    if (entry.value != null) entry.value!,
-                  ].join(' · '),
-                ),
-              ),
-            for (final id in {
-              ...programme.keys,
-              ...chapters.keys,
-              ...effective.keys,
-            })
-              if (chapters.containsKey(id) || effective.containsKey(id))
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(programme[id] ?? t.chapterFallback),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (chapters.containsKey(id))
-                        Text(
-                          chapters[id]!
-                              ? t.logbookFinishedHere
-                              : t.logbookCovered,
+    final create = note.isEmpty && !validated;
+    return FeatureActionPanel(
+      actions: [
+        if (create)
+          FeatureAction(generalAction, Icons.edit_outlined, editGeneral),
+        if (available.isNotEmpty)
+          FeatureAction(t.bookAddChapter, Icons.add, addChapter),
+      ],
+      child: ListView(
+        key: PageStorageKey('logbook-$sessionId'),
+        padding: const EdgeInsets.all(16),
+        children: [
+          WorkspaceColumns(
+            minimumSplitWidth: 672,
+            sectionSpacing: 12,
+            first: [
+              Row(
+                children: [
+                  Expanded(child: heading(t.bookGeneral)),
+                  if (compact && !create)
+                    PopupMenuButton<String>(
+                      tooltip: generalAction,
+                      onSelected: (_) => editGeneral(),
+                      itemBuilder: (_) => [
+                        PopupMenuItem(
+                          value: 'edit',
+                          child: Text(generalAction),
                         ),
-                      if (c?.officialChapterNotes(id) case final String notes)
-                        Text(notes),
-                      if (pending != null &&
-                          c?.proposedChapterNotes(id) !=
-                              c?.officialChapterNotes(id))
-                        Text(
-                          '${t.workflowCorrectionPending} · ${c?.proposedChapterNotes(id) ?? '—'}',
-                        ),
-                      if (pending != null && effective[id] != chapters[id])
-                        Text(
-                          '${t.workflowCorrectionPending} · ${effective[id] == null ? '—' : (effective[id]! ? t.logbookFinishedHere : t.logbookCovered)}',
-                        ),
-                      if (drafts.containsKey('chapter:$id'))
-                        Text(t.rollLocalDraft),
-                    ],
-                  ),
-                  trailing: IconButton(
-                    tooltip: t.bookEditChapter(
-                      programme[id] ?? t.chapterFallback,
+                      ],
                     ),
-                    icon: const Icon(Icons.edit_outlined),
-                    onPressed: !programme.containsKey(id)
-                        ? null
-                        : () => open(
-                            title: t.bookEditChapter(programme[id]!),
-                            initial: chapterValue(id),
-                            choices: programme,
-                          ),
-                  ),
-                ),
-            if (available.isEmpty)
-              Text(programme.isEmpty ? t.bookNoProgramme : t.bookAllLinked)
-            else ...[
-              if (available.keys.any((id) => drafts.containsKey('chapter:$id')))
-                Text(t.rollLocalDraft),
+                ],
+              ),
+              if (drafts.containsKey('general')) Text(t.rollLocalDraft),
               if (!compact)
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.add),
-                    label: Text(t.bookAddChapter),
+                  child: FilledButton.icon(
+                    icon: const Icon(Icons.edit_outlined),
+                    label: Text(generalAction),
                     onPressed: () => open(
-                      title: t.bookAddChapter,
-                      initial: null,
-                      choices: available,
+                      title: generalAction,
+                      initial:
+                          c?.generalEditorValue() ??
+                          drafts['general'] ??
+                          LogbookEdit.general(note),
                     ),
                   ),
                 ),
+              value(t.rollContent, note.content, proposed?.content),
+              value(
+                t.rollObjectives,
+                note.objectives.join('\n'),
+                proposed?.objectives.join('\n'),
+              ),
+              value(
+                t.rollHomework,
+                note.homework ?? '',
+                proposed == null ? null : proposed.homework ?? '',
+              ),
+              value(
+                t.rollFamilySummary,
+                note.familySummary ?? '',
+                proposed == null ? null : proposed.familySummary ?? '',
+              ),
             ],
-          ],
-        ),
-      ],
+            second: [
+              heading(t.bookChapters),
+              for (final entry
+                  in (c?.historicalChapters ?? <String, String?>{}).entries)
+                ListTile(
+                  title: Text(programme[entry.key] ?? t.chapterFallback),
+                  subtitle: Text(
+                    [
+                      t.logbookReference,
+                      if (entry.value != null) entry.value!,
+                    ].join(' · '),
+                  ),
+                ),
+              for (final id in {
+                ...programme.keys,
+                ...chapters.keys,
+                ...effective.keys,
+              })
+                if (chapters.containsKey(id) || effective.containsKey(id))
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(programme[id] ?? t.chapterFallback),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (chapters.containsKey(id))
+                          Text(
+                            chapters[id]!
+                                ? t.logbookFinishedHere
+                                : t.logbookCovered,
+                          ),
+                        if (c?.officialChapterNotes(id) case final String notes)
+                          Text(notes),
+                        if (pending != null &&
+                            c?.proposedChapterNotes(id) !=
+                                c?.officialChapterNotes(id))
+                          Text(
+                            '${t.workflowCorrectionPending} · ${c?.proposedChapterNotes(id) ?? '—'}',
+                          ),
+                        if (pending != null && effective[id] != chapters[id])
+                          Text(
+                            '${t.workflowCorrectionPending} · ${effective[id] == null ? '—' : (effective[id]! ? t.logbookFinishedHere : t.logbookCovered)}',
+                          ),
+                        if (drafts.containsKey('chapter:$id'))
+                          Text(t.rollLocalDraft),
+                      ],
+                    ),
+                    trailing: IconButton(
+                      tooltip: t.bookEditChapter(
+                        programme[id] ?? t.chapterFallback,
+                      ),
+                      icon: const Icon(Icons.edit_outlined),
+                      onPressed: !programme.containsKey(id)
+                          ? null
+                          : () => open(
+                              title: t.bookEditChapter(programme[id]!),
+                              initial: chapterValue(id),
+                              choices: programme,
+                            ),
+                    ),
+                  ),
+              if (available.isEmpty)
+                Text(programme.isEmpty ? t.bookNoProgramme : t.bookAllLinked)
+              else ...[
+                if (available.keys.any(
+                  (id) => drafts.containsKey('chapter:$id'),
+                ))
+                  Text(t.rollLocalDraft),
+                if (!compact)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.add),
+                      label: Text(t.bookAddChapter),
+                      onPressed: () => open(
+                        title: t.bookAddChapter,
+                        initial: null,
+                        choices: available,
+                      ),
+                    ),
+                  ),
+              ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

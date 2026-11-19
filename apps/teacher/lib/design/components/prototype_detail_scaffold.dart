@@ -87,10 +87,14 @@ class PrototypeDetailScaffold extends StatelessWidget {
           tooltip: context.tr.backAction,
           onPressed: () => popOrGo(context, fallbackRoute: fallbackRoute),
         ),
-        toolbarHeight: MediaQuery.textScalerOf(context).scale(20) + 36,
+        toolbarHeight: WorkspacePageHeading.toolbarHeight(
+          context,
+          hasPicker: prototypeIsLive(context),
+        ),
         title:
             titleWidget ??
-            WorkspacePageHeading(
+            WorkspacePageHeading.forAppBar(
+              context,
               title: title ?? '',
               picker: prototypeIsLive(context)
                   ? const ClassContextButton()

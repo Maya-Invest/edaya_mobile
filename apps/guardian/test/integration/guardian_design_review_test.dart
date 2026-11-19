@@ -2,6 +2,7 @@
 library;
 
 import 'dart:io';
+import 'dart:ui' show Locale;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:edaya_guardian_v2/features/account/account_page.dart';
@@ -258,6 +259,7 @@ Future<void> main() async {
           final layoutLabel = formFactor.slug;
 
           final guestHarness = PrototypeWidgetTestHarness()
+            ..locale = Locale(localeSlug)
             ..bootstrap(authenticated: false);
           await pumpPrototypeApp(tester, guestHarness, formFactor: formFactor);
           await navigateTo(guestHarness, '/login');
@@ -272,6 +274,7 @@ Future<void> main() async {
           await resetIntegrationTestSurface(tester);
 
           final harness = PrototypeWidgetTestHarness()
+            ..locale = Locale(localeSlug)
             ..bootstrap(authenticated: true);
           await pumpPrototypeApp(tester, harness, formFactor: formFactor);
           await navigateTo(harness, '/home');

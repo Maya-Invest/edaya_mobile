@@ -38,8 +38,7 @@ class SessionDetailController extends LevitController
   final assessmentTitle = LxVar<String?>(null);
   final assessmentDescription = LxVar<String?>(null);
   final assessmentInstructions = LxVar<String?>(null);
-  final assessmentMention = LxVar<String?>(null);
-  final assessmentScore = LxVar<double?>(null);
+  final assessmentMark = LxVar<Map<String, dynamic>?>(null);
   final assessmentMaxScore = LxVar<double?>(null);
   final assessmentCoefficient = LxVar<double?>(null);
   final activityNotes = LxVar<String?>(null);
@@ -54,8 +53,7 @@ class SessionDetailController extends LevitController
     autoDispose(assessmentTitle);
     autoDispose(assessmentDescription);
     autoDispose(assessmentInstructions);
-    autoDispose(assessmentScore);
-    autoDispose(assessmentMention);
+    autoDispose(assessmentMark);
     autoDispose(assessmentMaxScore);
     autoDispose(assessmentCoefficient);
     autoDispose(activityNotes);
@@ -80,8 +78,7 @@ class SessionDetailController extends LevitController
     assessmentTitle(null);
     assessmentDescription(null);
     assessmentInstructions(null);
-    assessmentMention(null);
-    assessmentScore(null);
+    assessmentMark(null);
     assessmentMaxScore(null);
     assessmentCoefficient(null);
     activityNotes(null);
@@ -249,25 +246,23 @@ class SessionDetailController extends LevitController
       assessmentMaxScore((assessment['maxScore'] as num?)?.toDouble());
       assessmentCoefficient((assessment['coefficient'] as num?)?.toDouble());
 
-      final results = await client.assessmentResults.list({
-        'studentId': studentId,
-        'assessmentId': resolved.id,
-      });
-      if (!isCurrent()) return;
-      if (results.isNotEmpty) {
-        final entry = results.first['originalEntry'] as Map?;
-        assessmentMention(
-          entry?['kind'] == 'mention'
-              ? '${entry!['code']} — ${entry['label']}'
-              : null,
+      Map<String, dynamic>? mark;
+      try {
+        final response = await client.runQuery(
+          'get-guardian-assessment-result',
+          {'studentId': studentId, 'assessmentId': resolved.id},
         );
-        final rawScore = results.first['score'];
-        assessmentScore(
-          rawScore is num
-              ? rawScore.toDouble()
-              : double.tryParse(rawScore?.toString() ?? ''),
-        );
+        mark = (response['mark'] as Map?)?.cast<String, dynamic>();
+      } on api.ApiError catch (error) {
+        if (error.status != 404) rethrow;
+        final results = await client.assessmentResults.list({
+          'studentId': studentId,
+          'assessmentId': resolved.id,
+        });
+        if (results.isNotEmpty)
+          mark = {...results.first, 'maxScore': assessment['maxScore']};
       }
+      if (isCurrent()) assessmentMark(mark);
     } on Object {
       // Optional enrichment — leave fields null.
     }

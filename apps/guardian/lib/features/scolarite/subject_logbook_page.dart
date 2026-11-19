@@ -56,7 +56,7 @@ class _MockSubjectLogbookPage extends LScopedView<StoreBoundController> {
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
           Text(resolvedSubject, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: PrototypeSpacing.md),
+          const SizedBox(height: PrototypeSpacing.sectionGap),
           SectionHeader(title: context.tr.entries),
           if (entries.isEmpty)
             EmptyState(
@@ -120,7 +120,7 @@ class _LiveSubjectLogbookPage extends LScopedView<SubjectLogbookController> {
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
           Text(title, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: PrototypeSpacing.md),
+          const SizedBox(height: PrototypeSpacing.sectionGap),
           SectionHeader(title: context.tr.entries),
           if (entries.isEmpty)
             EmptyState(

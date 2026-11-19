@@ -53,7 +53,7 @@ class _MockAccountPage extends LScopedView<StoreBoundController> {
             edaya.systemL10n().accountTitle,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
-          const SizedBox(height: PrototypeSpacing.md),
+          const SizedBox(height: PrototypeSpacing.listGap),
           SurfaceCard(
             child: Row(
               children: [
@@ -77,8 +77,9 @@ class _MockAccountPage extends LScopedView<StoreBoundController> {
               ],
             ),
           ),
-          const SizedBox(height: PrototypeSpacing.md),
+          const SizedBox(height: PrototypeSpacing.listGap),
           SurfaceCard(
+            padding: EdgeInsets.zero,
             child: Column(
               children: [
                 ListTile(
@@ -239,7 +240,7 @@ class _LiveAccountPage extends StatelessWidget {
                   edaya.systemL10n().accountTitle,
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
-                const SizedBox(height: PrototypeSpacing.md),
+                const SizedBox(height: PrototypeSpacing.listGap),
                 SurfaceCard(
                   child: Row(
                     children: [
@@ -263,8 +264,9 @@ class _LiveAccountPage extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: PrototypeSpacing.md),
+                const SizedBox(height: PrototypeSpacing.listGap),
                 SurfaceCard(
+                  padding: EdgeInsets.zero,
                   child: Column(
                     children: [
                       ListTile(
@@ -285,7 +287,6 @@ class _LiveAccountPage extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: PrototypeSpacing.md),
                 const SizedBox(height: PrototypeSpacing.xl),
                 if (DemoAccess.of(context)?.store != null)
                   const DemoButton()

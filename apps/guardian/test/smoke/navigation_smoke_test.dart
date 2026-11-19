@@ -99,6 +99,24 @@ void main() {
       }
     }
   }
+  testWidgets('fee amounts and status fit a narrow phone at double text size', (
+    tester,
+  ) async {
+    final h = PrototypeWidgetTestHarness()
+      ..bootstrap(authenticated: true)
+      ..textScale = 2;
+    await configureDesignReviewViewport(tester, DesignReviewFormFactor.phone);
+    const size = Size(320, 844);
+    tester.view.physicalSize = size;
+    await tester.binding.setSurfaceSize(size);
+    h.viewportSize = size;
+    await tester.pumpWidget(h.designReviewRoot(child: h.buildApp()));
+    h.router.go('/fees');
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    await resetIntegrationTestSurface(tester);
+    await resetIntegrationTestViewport(tester);
+  });
   testWidgets('all menu destinations and child picker stay reachable', (
     tester,
   ) async {

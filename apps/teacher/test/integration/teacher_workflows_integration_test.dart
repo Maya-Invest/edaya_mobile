@@ -90,7 +90,7 @@ Future<void> tapPageAction(WidgetTester tester, String label) async {
   while (DateTime.now().isBefore(deadline)) {
     await tester.pump(const Duration(milliseconds: 200));
     var target = find.text(label).hitTestable();
-    final menu = find.byKey(const ValueKey('session-actions'));
+    final menu = find.byType(FloatingActionButton).hitTestable();
     if (!tester.any(target)) {
       final overflow = tester.any(menu)
           ? menu
@@ -105,6 +105,8 @@ Future<void> tapPageAction(WidgetTester tester, String label) async {
       of: target,
       matching: find.byWidgetPredicate(
         (w) =>
+            (w is ListTile && w.enabled) ||
+            (w is FloatingActionButton && w.onPressed != null) ||
             (w is PopupMenuItem && w.enabled) ||
             (w is ButtonStyleButton && w.onPressed != null),
       ),
@@ -528,7 +530,7 @@ Future<void> main() async {
         await baseline.schoolClient.attendance.list({'lessonSessionId': id}),
         isEmpty,
       );
-      await tapPageAction(tester, 'Terminer');
+      await tapPageAction(tester, 'Terminer l’appel');
       final call = await baseline.schoolClient.runQuery(
         'get-teacher-attendance-call',
         {
@@ -623,7 +625,7 @@ Future<void> main() async {
       );
       expect(call['submitted'], false);
       expect(call['records'], isEmpty);
-      await tapPageAction(tester, 'Terminer');
+      await tapPageAction(tester, 'Terminer l’appel');
       await persisted(
         tester,
         () => harness.portalSession.schoolClient.runQuery(
@@ -922,7 +924,7 @@ Future<void> main() async {
       }
 
       await mount(tester, '/session/$id/logbook');
-      await tapPageAction(tester, 'Renseigner le cahier de texte');
+      await tapPageAction(tester, 'Créer une entrée');
       await until(tester, find.byType(LogbookForm));
       await until(tester, field('Contenu abordé'));
       await tester.enterText(field('Contenu abordé'), content);
@@ -947,7 +949,7 @@ Future<void> main() async {
         (await baseline.schoolClient.lessonSessions.get(id))['sessionNote'],
         isNull,
       );
-      await tapPageAction(tester, 'Renseigner le cahier de texte');
+      await tapPageAction(tester, 'Créer une entrée');
       await until(tester, field('Contenu abordé'));
       expect(
         tester.widget<TextField>(field('Contenu abordé')).controller!.text,
@@ -999,7 +1001,13 @@ Future<void> main() async {
       harness.scope.find<GoRouter>().go('/home');
       await gone(tester, SessionDetailPage);
       harness.scope.find<GoRouter>().go('/session/$id/logbook');
-      await tapPageAction(tester, 'Demander une modification');
+      final entryOptions = find.byTooltip('Demander une modification');
+      await reveal(tester, entryOptions);
+      await tester.tap(entryOptions);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.widgetWithText(PopupMenuItem<String>, 'Demander une modification'),
+      );
       await until(tester, field('Contenu abordé'));
       final revised = 'Révision $id';
       await tester.enterText(field('Contenu abordé'), revised);
@@ -1607,6 +1615,8 @@ Future<void> main() async {
   testWidgets(
     '[teacher-v2.offline.retry] queues offline attendance and retries without duplicate records',
     (tester) async {
+      final connections = StreamController<bool>.broadcast();
+      addTearDown(connections.close);
       final transport = SwitchableTransport();
       addTearDown(transport.close);
       final auth = AuthClient(
@@ -1622,6 +1632,7 @@ Future<void> main() async {
       harness = await TeacherLiveWidgetTestHarness.create(
         authenticatedSession: isolated,
       );
+      harness.connections = connections.stream;
       final lesson = await lessonFixture();
       final id = lesson['id'] as String;
       final call = await baseline.schoolClient.runQuery(
@@ -1646,58 +1657,34 @@ Future<void> main() async {
         tester,
         find.byWidgetPredicate((w) => w is RollCall && w.pending),
       );
-      await tester.tap(find.byKey(const ValueKey('session-actions')));
-      await tester.pump(const Duration(milliseconds: 300));
-      expect(
-        find.widgetWithText(PopupMenuItem<int>, 'Réessayer'),
-        findsOneWidget,
-      );
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+      expect(find.text('Réessayer'), findsNothing);
       expect(
         tester
-            .widget<PopupMenuItem<int>>(
-              find.widgetWithText(PopupMenuItem<int>, 'Terminer'),
-            )
+            .widget<ListTile>(find.widgetWithText(ListTile, 'Terminer l’appel'))
             .enabled,
         isFalse,
       );
-      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
-      await tester.pump(const Duration(milliseconds: 300));
+      Navigator.of(
+        tester.element(find.widgetWithText(ListTile, 'Terminer l’appel')),
+      ).pop();
+      await tester.pumpAndSettle();
       final outbox = harness.scope.find<TeacherOutboxController>();
-      await persisted(tester, () async {
-        await outbox.refreshSummary();
-        return outbox.summary.value.pendingCount;
-      }, (count) => count == 1);
-      expect(transport.blockedWrites, greaterThan(0));
-      expect(
-        await baseline.schoolClient.attendance.list({'lessonSessionId': id}),
-        isEmpty,
-      );
-      harness.scope.find<GoRouter>().go('/settings');
-      final settings = find.byType(account.SettingsPage);
-      await until(tester, settings);
-      final sync = find.descendant(
-        of: settings,
-        matching: find.text('Synchroniser'),
-      );
-      final list = find
-          .descendant(of: settings, matching: find.byType(Scrollable))
-          .first;
-      await tester.scrollUntilVisible(sync, 350, scrollable: list);
       transport.offline = false;
-      await reveal(tester, sync);
-      await tester.tap(sync);
-      await persisted(
+      connections.add(true);
+      outbox.didChangeAppLifecycleState(AppLifecycleState.resumed);
+      await until(
         tester,
-        () async => outbox.summary.value.pendingCount,
-        (count) => count == 0,
+        find.byWidgetPredicate(
+          (w) => w is RollCall && !w.pending && !w.savingDraft,
+        ),
       );
       expect(
         await baseline.schoolClient.attendance.list({'lessonSessionId': id}),
         isEmpty,
       );
-      harness.scope.find<GoRouter>().go('/session/$id/attendance');
-      await until(tester, find.text('Présent'));
-      await tapPageAction(tester, 'Terminer');
+      await tapPageAction(tester, 'Terminer l’appel');
       final saved = await persisted(
         tester,
         () => baseline.schoolClient.attendance.list({'lessonSessionId': id}),
@@ -1773,6 +1760,19 @@ Future<void> main() async {
   testWidgets(
     '[teacher-v2.marks.correction] submits marks then requests and withdraws a correction without changing official scores',
     (tester) async {
+      Future<void> revealCorrectionAction(Finder action) async {
+        FocusManager.instance.primaryFocus?.unfocus();
+        await tester.pump();
+        final scroll = find
+            .descendant(
+              of: find.byType(PupilMarkCorrectionSheet),
+              matching: find.byType(Scrollable),
+            )
+            .first;
+        await tester.scrollUntilVisible(action, 180, scrollable: scroll);
+        await reveal(tester, action);
+      }
+
       final id = fixtureId('correction-assessment');
       final periods = await baseline.schoolClient.academicPeriods.list({
         'academicYearId': profile.academicYearId,
@@ -1808,9 +1808,7 @@ Future<void> main() async {
       await persisted(
         tester,
         () async =>
-            !evaluations.isBusy.value &&
-            evaluations.classSubjects.value.isNotEmpty &&
-            evaluations.evaluations.value.isNotEmpty,
+            evaluations.periods.value.any((item) => item['id'] == period['id']),
         (ready) => ready,
       );
       final termPicker = find.byWidgetPredicate(
@@ -1904,7 +1902,7 @@ Future<void> main() async {
       await tester.enterText(field('Motif'), reason);
       await tester.pump();
       final send = find.widgetWithText(FilledButton, 'Envoyer la demande');
-      await reveal(tester, send);
+      await revealCorrectionAction(send);
       await tester.tap(send);
       final review = await persisted(
         tester,
@@ -1950,7 +1948,7 @@ Future<void> main() async {
         FilledButton,
         'Mettre à jour la demande',
       );
-      await reveal(tester, update);
+      await revealCorrectionAction(update);
       await tester.tap(update);
       await persisted(
         tester,
@@ -1970,17 +1968,7 @@ Future<void> main() async {
       await until(tester, find.text('Modifier la note').hitTestable());
       await tester.tap(find.text('Modifier la note').hitTestable());
       await until(tester, find.byType(PupilMarkCorrectionSheet));
-      await tester.scrollUntilVisible(
-        find.text('Retirer la demande'),
-        200,
-        scrollable: find
-            .descendant(
-              of: find.byType(PupilMarkCorrectionSheet),
-              matching: find.byType(Scrollable),
-            )
-            .first,
-      );
-      await reveal(tester, find.text('Retirer la demande'));
+      await revealCorrectionAction(find.text('Retirer la demande'));
       await tester.tap(find.text('Retirer la demande'));
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(FilledButton, 'Retirer la demande'));
@@ -2047,17 +2035,7 @@ Future<void> main() async {
         find.byKey(const ValueKey('correction-score')),
         '19',
       );
-      await tester.scrollUntilVisible(
-        update,
-        200,
-        scrollable: find
-            .descendant(
-              of: find.byType(PupilMarkCorrectionSheet),
-              matching: find.byType(Scrollable),
-            )
-            .first,
-      );
-      await reveal(tester, update);
+      await revealCorrectionAction(update);
       await tester.tap(update);
       final groupedReview = await persisted(
         tester,

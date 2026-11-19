@@ -409,7 +409,7 @@ class _CommentFormState extends State<_CommentForm> {
               widget.row.rank,
             ),
           ),
-          const SizedBox(height: PrototypeSpacing.md),
+          const SizedBox(height: PrototypeSpacing.sm),
           TextField(
             controller: _homeroom,
             maxLines: 3,
@@ -418,7 +418,7 @@ class _CommentFormState extends State<_CommentForm> {
               border: OutlineInputBorder(),
             ),
           ),
-          const SizedBox(height: PrototypeSpacing.md),
+          const SizedBox(height: PrototypeSpacing.sm),
           TextField(
             controller: _subject,
             maxLines: 3,
@@ -427,7 +427,7 @@ class _CommentFormState extends State<_CommentForm> {
               border: OutlineInputBorder(),
             ),
           ),
-          const SizedBox(height: PrototypeSpacing.lg),
+          const SizedBox(height: PrototypeSpacing.sm),
           FilledButton(
             onPressed: () => widget.onSave(_homeroom.text, _subject.text),
             child: Text(context.tr.save),
@@ -852,7 +852,7 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
                   _dirty = true;
                 }),
               ),
-              const SizedBox(height: PrototypeSpacing.md),
+              const SizedBox(height: PrototypeSpacing.sm),
               TextField(
                 controller: _title,
                 decoration: InputDecoration(
@@ -860,7 +860,7 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
                   border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: PrototypeSpacing.md),
+              const SizedBox(height: PrototypeSpacing.sm),
               DropdownButtonFormField<String>(
                 initialValue: _kind,
                 decoration: InputDecoration(
@@ -892,7 +892,7 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
                   _dirty = true;
                 }),
               ),
-              const SizedBox(height: PrototypeSpacing.md),
+              const SizedBox(height: PrototypeSpacing.sm),
               TextField(
                 controller: _maxScore,
                 keyboardType: const TextInputType.numberWithOptions(
@@ -903,7 +903,7 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
                   border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: PrototypeSpacing.md),
+              const SizedBox(height: PrototypeSpacing.sm),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(
@@ -952,7 +952,7 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
                   },
                 ),
               if (_error != null) Text(_error!),
-              const SizedBox(height: PrototypeSpacing.md),
+              const SizedBox(height: PrototypeSpacing.sm),
               FilledButton(
                 onPressed: _saving
                     ? null
@@ -1075,10 +1075,16 @@ class _LiveReportCardRosterPage
                 void open() => context.push(
                   '/report-cards/$classId/$periodId/${row.studentId}',
                 );
+                final grade = GradeValue(row.averageLabel, {
+                  'grading': row.grading,
+                  'rank': row.rank,
+                  'classSize': row.classSize,
+                }, allowHistoricalOverallRank: true);
                 return LayoutBuilder(
                   builder: (context, box) {
                     if (useComparisonRows(context, box.maxWidth)) {
                       return ComparisonRow(
+                        cellWidgets: {if (row.hasReportCard) 2: grade},
                         cells: [
                           row.studentName,
                           row.hasReportCard
@@ -1094,21 +1100,14 @@ class _LiveReportCardRosterPage
                         onTap: row.hasReportCard ? open : null,
                       );
                     }
-                    return ListRow(
-                      title: row.studentName,
+                    return ListTile(
+                      title: Text(row.studentName),
                       subtitle: row.hasReportCard
-                          ? context.tr.rank(
-                              row.aggregateLabel ?? 'Moy.',
-                              row.averageLabel,
-                              row.rank ?? '—',
-                            )
-                          : context.tr.reportCardNotGenerated,
-                      badge: row.hasReportCard
-                          ? (row.hasComment ? 'OK' : context.tr.comment)
+                          ? grade
+                          : Text(context.tr.reportCardNotGenerated),
+                      trailing: row.hasReportCard
+                          ? Text(row.hasComment ? 'OK' : context.tr.comment)
                           : null,
-                      badgeTone: row.hasComment
-                          ? SemanticTone.info
-                          : SemanticTone.warning,
                       onTap: row.hasReportCard ? open : null,
                     );
                   },
@@ -1295,6 +1294,17 @@ class _LiveCommentFormState extends State<_LiveCommentForm> {
                   firstFraction: 2 / 3,
                   first: [
                     if (widget.report case final report?) ...[
+                      if (report['overallAverage'] is num)
+                        GradeValue(
+                          formatCalculatedGrade(
+                            (report['overallAverage'] as num).toDouble(),
+                            (report['grading'] as Map?)
+                                ?.cast<String, dynamic>(),
+                          ),
+                          report,
+                          allowHistoricalOverallRank: true,
+                        ),
+
                       if (report['calculationStale'] == true)
                         Text(
                           context
@@ -1304,25 +1314,31 @@ class _LiveCommentFormState extends State<_LiveCommentForm> {
                       for (final section in _bulletinSubjectSections(
                         report['sectionResults'],
                       ))
-                        ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(
-                            section['name'] as String? ??
-                                context.tr.teachingSelectSubject,
-                          ),
-                          subtitle: Text(
-                            section['comment'] as String? ??
-                                context.tr.commentNeeded,
-                          ),
-                          trailing: Text(
-                            formatCalculatedGrade(
-                              (section['average'] as num?)?.toDouble(),
-                              (section['grading'] as Map?)
-                                  ?.cast<String, dynamic>(),
-                            ),
+                        GradeRecordRow(
+                          title:
+                              section['name'] as String? ??
+                              context.tr.teachingSelectSubject,
+                          result: section,
+                          details: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            spacing: 12,
+                            children: [
+                              if (section['coefficient'] is num)
+                                Text(
+                                  context.tr.coefficient(
+                                    formatGradeNumber(
+                                      section['coefficient'] as num,
+                                    ),
+                                  ),
+                                ),
+                              Text(
+                                section['comment'] as String? ??
+                                    context.tr.commentNeeded,
+                              ),
+                            ],
                           ),
                         ),
-                      const SizedBox(height: PrototypeSpacing.md),
+                      const SizedBox(height: PrototypeSpacing.listGap),
                     ],
                   ],
                   second: [
@@ -1355,7 +1371,7 @@ class _LiveCommentFormState extends State<_LiveCommentForm> {
                           border: const OutlineInputBorder(),
                         ),
                       ),
-                      const SizedBox(height: PrototypeSpacing.md),
+                      const SizedBox(height: PrototypeSpacing.sm),
                     ],
                     if (widget.correctionRequired)
                       TextField(

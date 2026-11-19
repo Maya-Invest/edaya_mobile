@@ -695,8 +695,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String reportRankOnly(int rank) {
+    return 'Rank $rank';
+  }
+
+  @override
   String rankLabel(int rank, int classSize) {
-    return 'Rank $rank/$classSize';
+    return 'Rank $rank of $classSize';
   }
 
   @override
@@ -1172,7 +1177,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rollUnmarked => 'Not marked';
 
   @override
-  String get rollList => 'List';
+  String get featureEditFacts => 'Edit facts';
+
+  @override
+  String get featureDownloadStatement => 'Download account statement';
+
+  @override
+  String get rollConflictProfile =>
+      'Resolve the attendance conflict in My profile to finish roll call.';
+
+  @override
+  String get rollList => 'Return to list';
 
   @override
   String rollRosterCount(int total, int marked) {
@@ -1205,10 +1220,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookProgress => 'Progress';
 
   @override
-  String get rollMarkRemaining => 'Mark remaining pupils present';
+  String get rollMarkRemaining => 'Mark remaining present';
 
   @override
-  String get rollOneByOne => 'Photo mode';
+  String get rollOneByOne => 'One pupil at a time';
 
   @override
   String rollPosition(int position, int total) {
@@ -1254,7 +1269,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rollRequestChange => 'Request a change';
 
   @override
-  String get rollCreateBook => 'Fill in the logbook';
+  String get rollCreateBook => 'Create entry';
 
   @override
   String get rollEditBook => 'Edit logbook';
@@ -1967,10 +1982,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportAttendancePdf => 'Attendance sheet PDF';
 
   @override
-  String get familyFeedbackEntry => 'Family feedback';
+  String get familyFeedbackEntry => 'Feedback';
 
   @override
-  String get familyFeedbackTitle => 'Family feedback';
+  String get familyFeedbackTitle => 'Feedback';
 
   @override
   String get familyFeedbackEmpty => 'No family feedback campaigns yet.';
@@ -2011,7 +2026,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get familyFeedbackSlotCompleted => 'Completed';
 
   @override
-  String get teacherTaskFamilyFeedback => 'Family feedback';
+  String get teacherTaskFamilyFeedback => 'Feedback';
 
   @override
   String get teacherTaskAttendance => 'Attendance to record';
@@ -2276,7 +2291,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attendanceLate => 'Late';
 
   @override
-  String get attendanceFinish => 'Finish';
+  String get attendanceFinish => 'Finish roll call';
 
   @override
   String get attendanceMarkRemaining => 'Mark remaining present';
@@ -2638,6 +2653,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get gradebookWithdrawConfirm =>
       'Withdraw the proposed change for this pupil?';
+
+  @override
+  String get gradeViewDetails => 'View details';
 
   @override
   String get gradebookOptions => 'Result options';

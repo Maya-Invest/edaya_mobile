@@ -1,3 +1,4 @@
+import '../ui/feature_actions.dart';
 import 'dart:math';
 import '../demo/demo_document.dart';
 import '../demo/demo_transport.dart';
@@ -344,10 +345,12 @@ class DocumentActionButton extends StatefulWidget {
     required this.label,
     required this.run,
     this.icon = Icons.picture_as_pdf_outlined,
+    this.floating = false,
   });
 
   final String label;
   final Future<DocumentJobResult> Function() run;
+  final bool floating;
   final IconData icon;
 
   @override
@@ -386,6 +389,12 @@ class _DocumentActionButtonState extends State<DocumentActionButton> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.floating)
+      return FeatureActionBar(
+        actions: [
+          FeatureAction(widget.label, widget.icon, _busy ? null : _handle),
+        ],
+      );
     return FilledButton.tonalIcon(
       onPressed: _busy ? null : _handle,
       icon: _busy

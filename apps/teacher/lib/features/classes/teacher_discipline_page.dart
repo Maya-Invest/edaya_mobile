@@ -211,7 +211,7 @@ class TeacherDisciplinePage extends LScopedView<TeacherDisciplineController> {
           if (controller.busy.value) const LinearProgressIndicator(),
           if (controller.message.value.isNotEmpty)
             Text(controller.message.value),
-          for (final incident in rows)
+          for (final incident in rows) ...[
             SurfaceCard(
               child: WorkspaceColumns(
                 first: [
@@ -231,35 +231,31 @@ class TeacherDisciplinePage extends LScopedView<TeacherDisciplineController> {
                               .firstOrNull ??
                           '',
                     ),
-                  TextButton(
-                    onPressed: controller.busy.value
-                        ? null
-                        : () => openEditor(
-                            context,
-                            incident['id'] as String,
-                            'facts',
-                          ),
-                    child: Text(
-                      (incident['eligibility'] as Map)['locked'] == true
-                          ? context.tr.workflowRequestCorrection
-                          : context.tr.edit,
-                    ),
+                  PopupMenuButton<String>(
+                    tooltip: context.tr.workspaceActions,
+                    enabled: !controller.busy.value,
+                    onSelected: (step) =>
+                        openEditor(context, incident['id'] as String, step),
+                    itemBuilder: (_) => [
+                      PopupMenuItem(
+                        value: 'facts',
+                        child: Text(
+                          (incident['eligibility'] as Map)['locked'] == true
+                              ? context.tr.workflowRequestCorrection
+                              : context.tr.featureEditFacts,
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'follow',
+                        child: Text(context.tr.workflowFollowUp),
+                      ),
+                    ],
                   ),
                 ],
                 second: [
                   Text(
                     context.tr.followUp,
                     style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  TextButton(
-                    onPressed: controller.busy.value
-                        ? null
-                        : () => openEditor(
-                            context,
-                            incident['id'] as String,
-                            'follow',
-                          ),
-                    child: Text(context.tr.workflowFollowUp),
                   ),
                   for (final event
                       in ((incident['eligibility'] as Map)['history'] as List)
@@ -273,6 +269,8 @@ class TeacherDisciplinePage extends LScopedView<TeacherDisciplineController> {
                 ],
               ),
             ),
+            const SizedBox(height: PrototypeSpacing.listGap),
+          ],
         ],
       ),
     );
@@ -323,6 +321,7 @@ class _IncidentFactsFormState extends State<_IncidentFactsForm> {
     title: Text(context.tr.workflowDiscipline),
     content: Column(
       mainAxisSize: MainAxisSize.min,
+      spacing: PrototypeSpacing.sm,
       children: [
         TextField(
           controller: title,

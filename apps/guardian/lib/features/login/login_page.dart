@@ -77,7 +77,7 @@ class _LoginChrome extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(PrototypeSpacing.xl),
+            padding: const EdgeInsets.all(PrototypeSpacing.screenPadding),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
               child: Column(
@@ -85,7 +85,7 @@ class _LoginChrome extends StatelessWidget {
                   const EdayaBrandLogo(variant: EdayaLogoVariant.vertical, width: 160),
                   const SizedBox(height: PrototypeSpacing.xs),
                   Text(context.tr.guardianSpace, style: Theme.of(context).textTheme.bodyMedium),
-                  const SizedBox(height: PrototypeSpacing.xxl),
+                  const SizedBox(height: PrototypeSpacing.sectionGap),
                   SurfaceCard(child: child),
                   const DemoButton(),
                 ],

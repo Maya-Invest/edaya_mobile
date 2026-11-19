@@ -240,6 +240,11 @@ Future<void> pumpUntilCalendarHasSessions(
   Duration timeout = const Duration(seconds: 45),
 }) async {
   final targetDay = preferDay ?? integrationCalendarReferenceDay();
+  // The agenda only displays upcoming lessons. Exercise the seeded school day
+  // even when this journey is run after the last lesson in that fixture.
+  final previousClock = SchoolClock.sample;
+  addTearDown(() => SchoolClock.sample = previousClock);
+  SchoolClock.sample = DateTime(targetDay.year, targetDay.month, targetDay.day);
   await navigateCalendarWeekToDay(tester, targetDay);
   if (_sessionRows(tester, titleNeedle).evaluate().isNotEmpty) {
     return;

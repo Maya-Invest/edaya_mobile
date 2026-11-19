@@ -1,13 +1,31 @@
 part of 'demo_school.dart';
 
 extension DemoTeaching on DemoSchool {
+  List<Row> submittedResults(Row assessment) {
+    final marks = matching('assessment-results', {
+      'assessmentId': assessment['id'],
+    });
+    return withOfficialRanks([
+      for (final m in marks)
+        {
+          ...m,
+          if (m['score'] is num)
+            'calculation': demoGrade(
+              20 * (m['score'] as num) / (assessment['maxScore'] as num),
+            ),
+        },
+    ], complete: assessment['marksStatus'] == 'submitted');
+  }
+
   List<Row> contributions(dynamic student, dynamic subject, dynamic period) => [
-    for (final mark in matching('assessment-results', {'studentId': student}))
-      if (one('assessments', mark['assessmentId']) case final assessment
-          when assessment['classSubjectId'] == subject &&
-              assessment['periodId'] == period &&
-              assessment['marksStatus'] == 'submitted')
-        {...assessment, ...mark},
+    for (final assessment in matching('assessments', {
+      'classSubjectId': subject,
+      'periodId': period,
+      'marksStatus': 'submitted',
+    }))
+      for (final mark in submittedResults(assessment))
+        if (mark['studentId'] == student)
+          {...assessment, ...mark, 'grading': mark['calculation']},
   ];
   Row attendanceCall(Row anchor) {
     final lesson = anchor['lessonSessionId'];
@@ -108,9 +126,7 @@ extension DemoTeaching on DemoSchool {
         return {
           'assessment': sheet,
           'students': roster(sheet['classGroupId']),
-          'results': matching('assessment-results', {
-            'assessmentId': sheet['id'],
-          }),
+          'results': submittedResults(sheet),
           'allowedActions': {
             'submit': sheet['marksStatus'] == 'draft',
             'requestCorrection': sheet['marksStatus'] == 'submitted',
@@ -121,39 +137,46 @@ extension DemoTeaching on DemoSchool {
       case 'get-teacher-subject-period-summary':
         final subject = one('class-subjects', b['classSubjectId']);
         return {
-          'students': roster(subject['classGroupId']).map((student) {
-            final marks = contributions(
-              student['id'],
-              subject['id'],
-              b['periodId'],
-            );
-            double sum = 0, weights = 0;
-            for (final m in marks) {
-              if (m['score'] is! num) continue;
-              final weight = (m['coefficient'] as num).toDouble();
-              sum += 20 * (m['score'] as num) / (m['maxScore'] as num) * weight;
-              weights += weight;
-            }
-            final report = matching('results', {
-              'studentId': student['id'],
-              'periodId': b['periodId'],
-            }).firstOrNull;
-            final comment = (report?['sectionResults'] as List?)
-                ?.where((s) => s['classSubjectId'] == subject['id'])
-                .firstOrNull;
-            return {
-              ...student,
-              'studentId': student['id'],
-              'average': weights == 0 ? null : sum / weights,
-              'contributions': marks,
-              if (comment != null)
-                'comment': {
-                  'text': comment['comment'] ?? '',
-                  'sectionId': comment['sectionId'],
-                  'resultId': report!['id'],
-                },
-            };
-          }).toList(),
+          'cohortComplete': true,
+          'students': withOfficialRanks(
+            roster(subject['classGroupId']).map((student) {
+              final marks = contributions(
+                student['id'],
+                subject['id'],
+                b['periodId'],
+              );
+              double sum = 0, weights = 0;
+              for (final m in marks) {
+                if (m['score'] is! num) continue;
+                final weight = (m['coefficient'] as num).toDouble();
+                sum +=
+                    20 * (m['score'] as num) / (m['maxScore'] as num) * weight;
+                weights += weight;
+              }
+              final report = matching('results', {
+                'studentId': student['id'],
+                'periodId': b['periodId'],
+              }).firstOrNull;
+              final comment = (report?['sectionResults'] as List?)
+                  ?.where((s) => s['classSubjectId'] == subject['id'])
+                  .firstOrNull;
+              return {
+                ...student,
+                'studentId': student['id'],
+                'average': weights == 0 ? null : sum / weights,
+                if (weights > 0) 'grading': demoGrade(sum / weights),
+                'contributions': marks,
+                if (comment != null)
+                  'comment': {
+                    'text': comment['comment'] ?? '',
+                    'sectionId': comment['sectionId'],
+                    'resultId': report!['id'],
+                  },
+              };
+            }).toList(),
+            complete: true,
+            averages: true,
+          ),
         };
       case 'list-teacher-family-feedback-results':
       case 'get-teacher-family-feedback-result':

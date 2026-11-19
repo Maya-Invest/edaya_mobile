@@ -103,6 +103,7 @@ class _Progress extends LScopedView<LiveClassWorkspaceController> {
                       in c.progressOverview.value?.matters ??
                           const <TeachingMatterProgress>[])
                     ListTile(
+                      contentPadding: EdgeInsets.zero,
                       title: Text(m.name),
                       trailing: Text(switch (m.status) {
                         TeachingMatterStatus.completed =>
@@ -119,14 +120,11 @@ class _Progress extends LScopedView<LiveClassWorkspaceController> {
                 key: PageStorageKey(('logbook', id)),
                 padding: const EdgeInsets.all(16),
                 children: [
-                  Text(
-                    context.tr.logbook,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
                   if (entries.isEmpty && !c.isBusy.value)
-                    ListTile(title: Text(context.tr.noCompletedLogbook)),
+                    ListTile(contentPadding: EdgeInsets.zero, title: Text(context.tr.noCompletedLogbook)),
                   for (final l in entries)
                     ListTile(
+                      contentPadding: EdgeInsets.zero,
                       title: Text(l.displayLabel),
                       subtitle: Text(
                         '${formatDate(l.startsAt)} · ${context.tr.logbookCompleted}',
@@ -207,18 +205,29 @@ class BulletinsPage extends StatelessWidget {
 class IncidentsPage extends StatelessWidget {
   const IncidentsPage({super.key});
   @override
-  Widget build(BuildContext context) => ListView(
-    children: [
-      TextButton.icon(
-        onPressed: () => context.push('/incidents/new'),
-        icon: const Icon(Icons.add),
-        label: Text(context.tr.reportAnIncident),
+  Widget build(BuildContext context) {
+    final action = FeatureAction(
+      context.tr.reportAnIncident,
+      Icons.add,
+      () => context.push('/incidents/new'),
+    );
+    return FeatureActionPanel(
+      actions: [action],
+      child: ListView(
+        children: [
+          if (!phoneActions(context))
+            TextButton.icon(
+              onPressed: action.run,
+              icon: Icon(action.icon),
+              label: Text(action.label),
+            ),
+          ClassSections(
+            builder: (c) => IncidentGroup(key: ValueKey(c.id), id: c.id),
+          ),
+        ],
       ),
-      ClassSections(
-        builder: (c) => IncidentGroup(key: ValueKey(c.id), id: c.id),
-      ),
-    ],
-  );
+    );
+  }
 }
 
 class IncidentGroup extends LScopedView<TeacherDisciplineController> {

@@ -126,7 +126,7 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
         ),
-        if (footer != null) footer!,
+        if (footer != null) ...[const SizedBox(height: 24), footer!],
         const SizedBox(height: 24),
       ],
     );
@@ -191,7 +191,7 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(

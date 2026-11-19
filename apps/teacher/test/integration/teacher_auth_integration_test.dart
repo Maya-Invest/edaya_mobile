@@ -73,6 +73,7 @@ Future<void> main() async {
           current,
           store: MockStore(),
           live: true,
+          connections: const Stream.empty(),
           pushNotifications: NoOpPushNotificationService(),
         );
       },

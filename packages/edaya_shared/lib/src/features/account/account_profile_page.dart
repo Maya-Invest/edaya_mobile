@@ -141,7 +141,7 @@ class _ProfileForm extends StatelessWidget {
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       children: [
         ?profileActions,
         if (DemoAccess.of(context)?.store != null) const DemoButton() else ListTile(
@@ -215,7 +215,7 @@ class _ProfileForm extends StatelessWidget {
           autofillHints: const [AutofillHints.givenName],
           onChanged: (_) => controller.markFormChanged(),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         TextField(
           enabled: !controller.isSaving.value,
           controller: controller.lastNameController,
@@ -225,7 +225,7 @@ class _ProfileForm extends StatelessWidget {
           autofillHints: const [AutofillHints.familyName],
           onChanged: (_) => controller.markFormChanged(),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         TextField(
           enabled: !controller.isSaving.value,
           controller: controller.emailController,
@@ -238,7 +238,7 @@ class _ProfileForm extends StatelessWidget {
           onChanged: (_) => controller.markFormChanged(),
         ),
         if (controller.showsPhoneField) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           TextField(
             enabled: !controller.isSaving.value,
             controller: controller.phoneController,
@@ -254,7 +254,7 @@ class _ProfileForm extends StatelessWidget {
           ),
         ],
         if (controller.isGuardian) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           TextField(
             enabled: !controller.isSaving.value,
             controller: controller.alternativePhoneController,
@@ -264,7 +264,7 @@ class _ProfileForm extends StatelessWidget {
             keyboardType: TextInputType.phone,
             onChanged: (_) => controller.markFormChanged(),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Text(context.tr.guardianNotificationDestinations),
           SwitchListTile(
             title: Text(context.tr.guardianEmailNotifications),
@@ -289,7 +289,7 @@ class _ProfileForm extends StatelessWidget {
           ),
         ],
         if (controller.saveMessage.value.isNotEmpty) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Text(
             controller.saveMessage.value,
             style: TextStyle(

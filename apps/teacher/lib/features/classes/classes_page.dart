@@ -202,7 +202,7 @@ class _MockStudentProfilePage extends LScopedView<StoreBoundController> {
               ],
             ),
           ),
-          const SizedBox(height: PrototypeSpacing.md),
+          const SizedBox(height: PrototypeSpacing.sectionGap),
           SectionHeader(title: context.tr.quickOverview),
           const SizedBox(height: PrototypeSpacing.sm),
           ListRow(
@@ -211,11 +211,21 @@ class _MockStudentProfilePage extends LScopedView<StoreBoundController> {
             badge: 'OK',
           ),
           const SizedBox(height: PrototypeSpacing.xs),
-          ListRow(
-            title: context.tr.latestMark,
-            subtitle: 'Mathématiques · DS Fractions',
-            trailing: Text('14/20'),
-          ),
+          if (controller.store.latestSubmittedMark(classId, studentId)
+              case final mark?)
+            SurfaceCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.tr.latestMark,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const Text('Mathématiques · DS Fractions'),
+                  GradeValue(officialMarkLabel(context, mark), mark),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -410,7 +420,7 @@ class _LiveProgressTab extends LView<LiveClassWorkspaceController> {
               ],
               onChanged: controller.selectSubject,
             ),
-          const SizedBox(height: PrototypeSpacing.md),
+          const SizedBox(height: PrototypeSpacing.sectionGap),
           if (overview == null)
             EmptyState(
               title: context.tr.teachingProgressTab,

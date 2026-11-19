@@ -75,6 +75,7 @@ abstract final class EdayaTokens {
   static const darkBrandSlate = Color(0xFF64748B);
   static const typeWebPage = 28.0;
   static const typeMobilePage = 24.0;
+  static const typeFeatureTitle = 18.0;
   static const typeSection = 20.0;
   static const typeCard = 16.0;
   static const typeBody = 16.0;

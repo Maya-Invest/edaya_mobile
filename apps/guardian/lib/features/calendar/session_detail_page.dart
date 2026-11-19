@@ -85,7 +85,7 @@ class _MockSessionDetailPage extends LScopedView<StoreBoundController> {
           Text(
             DateFormat.yMMMMEEEEd(context.tr.localeName).format(session.date),
           ),
-          const SizedBox(height: PrototypeSpacing.md),
+          const SizedBox(height: PrototypeSpacing.listGap),
           SurfaceCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,7 +134,7 @@ class _MockSessionDetailPage extends LScopedView<StoreBoundController> {
               ],
             ),
           ),
-          const SizedBox(height: PrototypeSpacing.md),
+          const SizedBox(height: PrototypeSpacing.sectionGap),
           switch (category) {
             HomeDayCategory.assessment => _MockAssessmentSection(
               assessment: assessment,
@@ -197,7 +197,7 @@ class _MockAssessmentSection extends StatelessWidget {
           ),
         ),
         if (score != null && maxScore != null) ...[
-          const SizedBox(height: PrototypeSpacing.md),
+          const SizedBox(height: PrototypeSpacing.sectionGap),
           SectionHeader(title: context.tr.studentSMark),
           SurfaceCard(
             child: Text(
@@ -315,7 +315,7 @@ class _LiveSessionDetailPage extends LScopedView<SessionDetailController> {
               context.tr.localeName,
             ).format(session.startsAt),
           ),
-          const SizedBox(height: PrototypeSpacing.md),
+          const SizedBox(height: PrototypeSpacing.listGap),
           SurfaceCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -357,7 +357,7 @@ class _LiveSessionDetailPage extends LScopedView<SessionDetailController> {
               ],
             ),
           ),
-          const SizedBox(height: PrototypeSpacing.md),
+          const SizedBox(height: PrototypeSpacing.sectionGap),
           switch (session.kind) {
             'assessment' => _AssessmentSection(controller: controller),
             'activity' => _ActivitySection(controller: controller),
@@ -435,9 +435,7 @@ class _AssessmentSection extends StatelessWidget {
       );
     }
 
-    final score = controller.assessmentScore.value;
-    final maxScore = controller.assessmentMaxScore.value;
-
+    final mark = controller.assessmentMark.value;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -472,22 +470,14 @@ class _AssessmentSection extends StatelessWidget {
             ],
           ),
         ),
-        if (controller.assessmentMention.value != null)
-          SurfaceCard(
-            child: Text(
-              controller.assessmentMention.value!,
-              style: textTheme.titleLarge,
-            ),
-          ),
-        if (score != null && maxScore != null) ...[
-          const SizedBox(height: PrototypeSpacing.md),
+        if (mark != null) ...[
+          const SizedBox(height: PrototypeSpacing.sectionGap),
           SectionHeader(title: context.tr.studentSMark),
           SurfaceCard(
-            child: Text(
-              '${formatGradeNumber(score)}/${formatGradeNumber(maxScore)}',
-              style: textTheme.titleLarge?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-              ),
+            child: GradeValue(
+              officialMarkLabel(context, mark),
+              mark,
+              style: textTheme.titleLarge,
             ),
           ),
         ],

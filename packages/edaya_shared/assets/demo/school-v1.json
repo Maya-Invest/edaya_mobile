@@ -733,13 +733,31 @@
           "name": "Mathématiques",
           "coefficient": 2,
           "average": 16,
-          "comment": "Bonne maîtrise des proportions."
+          "comment": "Bonne maîtrise des proportions.",
+          "rank": 1,
+          "participantCount": 3,
+          "grading": {
+            "maximum": 20,
+            "reportedValue": 16,
+            "mention": {
+              "code": "TB",
+              "label": "Très bien"
+            }
+          }
         }
       ],
       "version": 1,
       "status": "published",
       "teacherComment": "Un travail régulier.",
-      "generatedAt": "2026-06-20"
+      "generatedAt": "2026-06-20",
+      "grading": {
+        "maximum": 20,
+        "reportedValue": 16,
+        "mention": {
+          "code": "TB",
+          "label": "Très bien"
+        }
+      }
     },
     {
       "id": "demo-fatou-report-demo-2026",
@@ -783,13 +801,31 @@
           "name": "Mathématiques",
           "coefficient": 2,
           "average": 15,
-          "comment": "Bonne maîtrise des proportions."
+          "comment": "Bonne maîtrise des proportions.",
+          "rank": 2,
+          "participantCount": 3,
+          "grading": {
+            "maximum": 20,
+            "reportedValue": 15,
+            "mention": {
+              "code": "B",
+              "label": "Bien"
+            }
+          }
         }
       ],
       "version": 1,
       "status": "published",
       "teacherComment": "Un travail régulier.",
-      "generatedAt": "2026-06-20"
+      "generatedAt": "2026-06-20",
+      "grading": {
+        "maximum": 20,
+        "reportedValue": 15,
+        "mention": {
+          "code": "B",
+          "label": "Bien"
+        }
+      }
     },
     {
       "id": "demo-yao-report-demo-2026",
@@ -833,13 +869,31 @@
           "name": "Mathématiques",
           "coefficient": 2,
           "average": 14,
-          "comment": "Bonne maîtrise des proportions."
+          "comment": "Bonne maîtrise des proportions.",
+          "rank": 3,
+          "participantCount": 3,
+          "grading": {
+            "maximum": 20,
+            "reportedValue": 14,
+            "mention": {
+              "code": "B",
+              "label": "Bien"
+            }
+          }
         }
       ],
       "version": 1,
       "status": "published",
       "teacherComment": "Un travail régulier.",
-      "generatedAt": "2026-06-20"
+      "generatedAt": "2026-06-20",
+      "grading": {
+        "maximum": 20,
+        "reportedValue": 14,
+        "mention": {
+          "code": "B",
+          "label": "Bien"
+        }
+      }
     },
     {
       "id": "demo-youssef-report-demo-2026",
@@ -883,13 +937,31 @@
           "name": "Mathématiques",
           "coefficient": 2,
           "average": 16,
-          "comment": "Bonne maîtrise des proportions."
+          "comment": "Bonne maîtrise des proportions.",
+          "rank": 1,
+          "participantCount": 2,
+          "grading": {
+            "maximum": 20,
+            "reportedValue": 16,
+            "mention": {
+              "code": "TB",
+              "label": "Très bien"
+            }
+          }
         }
       ],
       "version": 1,
       "status": "published",
       "teacherComment": "Un travail régulier.",
-      "generatedAt": "2026-06-20"
+      "generatedAt": "2026-06-20",
+      "grading": {
+        "maximum": 20,
+        "reportedValue": 16,
+        "mention": {
+          "code": "TB",
+          "label": "Très bien"
+        }
+      }
     },
     {
       "id": "demo-ines-report-demo-2026",
@@ -933,13 +1005,31 @@
           "name": "Mathématiques",
           "coefficient": 2,
           "average": 15,
-          "comment": "Bonne maîtrise des proportions."
+          "comment": "Bonne maîtrise des proportions.",
+          "rank": 2,
+          "participantCount": 2,
+          "grading": {
+            "maximum": 20,
+            "reportedValue": 15,
+            "mention": {
+              "code": "B",
+              "label": "Bien"
+            }
+          }
         }
       ],
       "version": 1,
       "status": "published",
       "teacherComment": "Un travail régulier.",
-      "generatedAt": "2026-06-20"
+      "generatedAt": "2026-06-20",
+      "grading": {
+        "maximum": 20,
+        "reportedValue": 15,
+        "mention": {
+          "code": "B",
+          "label": "Bien"
+        }
+      }
     }
   ],
   "document-issuances": [

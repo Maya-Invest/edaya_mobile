@@ -1,3 +1,4 @@
+import 'dart:ui' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'integration_test_lifecycle.dart';
@@ -7,11 +8,14 @@ Future<void> pumpPrototypeApp(
   WidgetTester tester,
   PrototypeWidgetTestHarness harness, {
   DesignReviewFormFactor formFactor = DesignReviewFormFactor.phone,
+  Locale locale = const Locale('fr', 'FR'),
 }) async {
   await configureDesignReviewViewport(tester, formFactor);
   harness.viewportSize = designReviewLogicalSize(formFactor);
 
-  await tester.pumpWidget(harness.designReviewRoot(child: harness.buildApp()));
+  await tester.pumpWidget(
+    harness.designReviewRoot(child: harness.buildApp(locale: locale)),
+  );
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 400));
 }

@@ -90,3 +90,6 @@ export 'src/academic/grading_policy.dart';
 export 'src/api/student_subject_participation.dart';
 
 export 'src/features/auth/account_security_page.dart';
+export 'src/ui/feature_actions.dart';
+export 'src/academic/grade_presentation.dart';
+export 'src/demo/demo_grading.dart' show demoGrade;

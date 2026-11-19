@@ -90,7 +90,7 @@ class PasswordlessLoginForm extends StatelessWidget {
                 ),
                 onChanged: controller.setEmail,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               if (teacherQuickLogin)
                 TextButton(
                   onPressed: controller.isBusy.value
@@ -141,7 +141,7 @@ class PasswordlessLoginForm extends StatelessWidget {
                   controller.enrollmentSecret.value,
                   key: const Key('auth-enrollment-secret'),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
               ],
               TextFormField(
                 key: const Key('auth-code'),
@@ -168,7 +168,7 @@ class PasswordlessLoginForm extends StatelessWidget {
                 ),
                 onChanged: (value) => controller.otp(value),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
             ],
           ],
         );

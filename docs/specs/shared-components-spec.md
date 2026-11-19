@@ -120,7 +120,7 @@ Teacher v2 uses a 1168 dp page limit and aligns the labeled Home profile action 
 
 Teacher v2 uses one roll-call roster and pupil-photo view for daily and lesson attendance. The list is the only submission surface. Session details use full-page attendance and logbook tabs, with the logbook editor in a single routed sheet.
 
-The teacher v2 attendance roster and pupil-details sheet share an animated choice-chip picker. Présent, Absent and Retard use green, red and orange selected fills, a checkmark and a visible label. Unmarked roster rows leave both chips unselected without a status subtitle or reserved blank line beneath the pupil’s name. Roster chips show each tap immediately and save changes in order. Keep other pupil controls active and hold their row positions while a draft saves; a rejected change restores the affected pupil’s previous value. Detail chips commit with their form. Keep Photo mode, Rest present and Finish together in the compact overflow menu below 600dp, or a wrapping action row at larger widths. On wide landscape tablets these controls occupy the left panel. Show a retry notice when synchronization needs attention.
+The teacher v2 attendance roster and pupil-details sheet share an animated choice-chip picker. Présent, Absent and Retard use green, red and orange selected fills, a checkmark and a visible label. Unmarked roster rows leave both chips unselected without a status subtitle or reserved blank line beneath the pupil’s name. Roster chips show each tap immediately and save changes in order. Keep other pupil controls active and hold their row positions while a draft saves; a rejected change restores the affected pupil’s previous value. Detail chips commit with their form. Keep One pupil at a time, Mark remaining present and Finish roll call together in the Actions sheet below 600dp, or a wrapping action row at larger widths. On wide landscape tablets these controls occupy the left panel. Show local save status and direct unresolved conflicts to My profile.
 
 Teacher v2's `GradebookMarksView` renders stable inline `DraftMarkRow` inputs with explicit batch saving and one footer. Its assessment-scoped `LiveMarksController` keeps raw local entries separate from confirmed or queued results. Save-before-leave guards cover selectors, context switching, route exit and browser-history changes to the assessment query. `PupilMarkCorrectionSheet` replaces the class-wide correction form in the gradebook; official values stay visible and only the selected pupil is changed. Named request IDs and revisions preserve retry safety. Shared mark outbox entries accept either legacy single-result payloads or batch `results` payloads; both teacher apps can restore them.
 
@@ -142,11 +142,30 @@ On Android and iOS, `DemoButton` offers **Try demo** on the signed-out Guardian 
 
 | Component | Current example | Contract |
 |---|---|---|
-| `WorkspacePageHeading` | Both feature shells | 20sp token title, single row with constrained ellipsized picker; Home keeps its original header |
+| `WorkspacePageHeading` | Both feature shells | 18sp token title, remaining width for the picker, stacked on phones with enlarged text; Home keeps its original header |
 | `WorkspaceTabs` | Agenda, Progress, Messages | Route query selects the tab; initially the first tab; keep mounted panel state and scroll; scrollable labels at enlarged text |
 | `SessionHistoryPanel` | Both Agenda History tabs | Authorized date-window reads, newest first, pull-to-refresh, Load older, year boundary, stale-response protection; explicit missing attendance and daily records |
 | `ChildPicker` | Guardian Children | School headings, independent pupil cards, enrollment-year-only expansion with Apply; no chevron for one year |
 
-Below 600dp, session page actions use a three-dot menu. Roster names ellipsize on the row with attendance and pupil details. Only selected attendance choices show icon and label; unselected choices show an accessible icon. At enlarged text the roster may stack. Comments, departures and corrections remain in the pupil sheet; editor Save/Cancel stay visible.
+Below 600dp, `FeatureActionBar` displays a labeled floating command or opens the Actions sheet for multiple commands. Each active tab owns its actions. Teacher attendance, logbook, evaluations, incidents, Conversations and the guardian fees overview use this pattern. On wider screens commands remain inline. Selected records own their menus. Keep editor, picker and questionnaire controls with their forms.
 
-Teacher Progress uses Chapters / Logbook tabs. Evaluations keeps period + filled New evaluation and Period average / Evaluations as the two fixed control rows; the chooser scrolls with the roster. Average values use tinted containers. Both Messages destinations use Conversations / Notifications, keep composition in Conversations, and use pull-to-refresh without refresh buttons.
+Attendance displays the pupil and details control above two centered, wrapping labeled status choices. A submitted roster shows the official status and opens corrections from the pupil menu. Reconnection and resume replay eligible attendance drafts for the active identity. An unresolved conflict links directly to My profile.
+
+Teacher and Guardian use `GradeRecordRow` for official mark lists. The pupil, subject or evaluation name occupies the first line. The second line combines the official mark, localized ordinal rank and school appreciation, for example **16,00/20 · 1er/3 · Très bien**. Long text wraps. Screen readers receive the full rank phrase. Both the row and its centered 48 dp menu open details. Authorized record actions appear in the menu. Written comments, notes and pending corrections remain independent. Published report subjects retain their captured rank and wording. Only scored, comparable results participate; ties at reporting precision use competition ranking.
+
+Teacher Progress uses Chapters / Logbook. Evaluations keeps its period picker visible and scrolls the assessment chooser with the roster. Draft Save and Submit remain in the footer. Conversations and Notifications retain independent state and pull-to-refresh.
+
+### Discoverability check with teachers and guardians
+
+On a phone, give participants each task from its starting page without naming the control. Use a demo or test school. Use separate records for each attempt so previous edits do not suggest a path.
+
+| Starting page | Task prompt | Observe |
+|---|---|---|
+| Teacher, incomplete lesson register | One pupil is absent. Record the rest as present and finish the register. | First tap, time to completion, confirmed submission, preservation of the absence |
+| Teacher, register with a queued conflict | Find what is preventing completion and open the place where you can resolve it. | Whether the teacher finds the explanation and My profile without help |
+| Teacher, submitted evaluation | Request a correction to one pupil’s result and explain your reason. | Whether the teacher finds the pupil menu and can distinguish the official mark from the proposal |
+| Guardian, Conversations | Send the school a new question, then return to Notifications. | Whether the guardian finds composition on the first tab and can recover the original list |
+| Guardian, Results | Find the child’s rank in one evaluation, explain the appreciation, then find the published report download. | Identification of the participant count, scale wording and selected report menu |
+| Guardian, Fees | Find the account statement and the invoice for one charge. | Whether the guardian distinguishes the overview command from the individual document |
+
+Record unaided completion, wrong turns and requests for help on each version. Alternate which version participants see first. Report teacher and guardian outcomes separately alongside observed accessibility issues.

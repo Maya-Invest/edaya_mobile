@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -26,6 +27,48 @@ void main() {
     if (!store.closed) await store.erase();
     await directory.delete(recursive: true);
   });
+
+  test(
+    'a version-one demo updates captured grade wording and keeps saved work',
+    () async {
+      store = await DemoStore.start(DemoRole.teacher);
+      final id = store.id;
+      await store.close();
+      final db = await databaseFactory.openDatabase(
+        '${directory.path}/edaya-demo-$id.db',
+      );
+      final row = (await db.query('school')).single;
+      final school = jsonDecode(row['body'] as String) as Map;
+      final report = (school['results'] as List).firstWhere(
+        (r) => r['status'] == 'published',
+      );
+      final section = report['sectionResults'][0];
+      expect(section['grading']['mention']['label'], 'Très bien');
+      for (final record in [report, section]) {
+        record['grading']['mention'] = {
+          'code': 'TB',
+          'label': 'Très bonne maîtrise des compétences évaluées',
+        };
+      }
+      section['comment'] = 'Commentaire conservé';
+      await db.update('school', {'body': jsonEncode(school)}, where: 'id = 1');
+      await db.setVersion(1);
+      await db.close();
+      store = (await DemoStore.resume(DemoRole.teacher))!;
+      expect(store.id, id);
+      final archive = createEdayaSchoolClient(
+        store.auth,
+        getAcademicYearId: () => 'demo-2025',
+      );
+      final updated = await archive.results.get(report['id'] as String);
+      expect(updated['grading']['mention'], demoGrade(16)['mention']);
+      expect(
+        updated['sectionResults'][0]['grading']['mention'],
+        demoGrade(16)['mention'],
+      );
+      expect(updated['sectionResults'][0]['comment'], 'Commentaire conservé');
+    },
+  );
 
   test(
     'guardian stays local, resumes edits and removes only demo data on exit',
@@ -71,6 +114,19 @@ void main() {
         'studentId': 'demo-amina',
         'periodId': 'demo-archive-period',
       });
+      final overview = await client.getGuardianPeriodResults({
+        'studentId': 'demo-amina',
+        'periodId': 'demo-t1',
+      });
+      final mark = (overview['marks'] as List).first as Map;
+      final detail = await client.getGuardianAssessmentResult({
+        'studentId': 'demo-amina',
+        'assessmentId': mark['assessmentId'],
+      });
+      for (final key in ['score', 'rank', 'participantCount', 'grading']) {
+        expect(mark[key], isNotNull);
+        expect(detail['mark'][key], mark[key]);
+      }
       final archived = await archive.results.list({'studentId': 'demo-amina'});
       expect(archived.single['status'], 'published');
       final published = await archive.getGuardianPeriodResults({

@@ -341,7 +341,7 @@ class _QuestionnaireBody extends StatelessWidget {
           Text(instrument.confidentialityNotice),
           const SizedBox(height: 8),
           Text(instrument.scaleHelper),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           for (final item in instrument.items) ...[
             Text(item.stem, style: Theme.of(context).textTheme.titleSmall),
             Wrap(
@@ -375,7 +375,7 @@ class _QuestionnaireBody extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
           ],
           TextField(
             decoration: InputDecoration(
@@ -386,7 +386,7 @@ class _QuestionnaireBody extends StatelessWidget {
             maxLines: 4,
             onChanged: controller.comment.call,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           FilledButton(
             key: const ValueKey('feedback-submit'),
             onPressed:

@@ -74,8 +74,9 @@ class SubjectGradesPage extends LScopedView<PeriodResultsController> {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 8),
-              Text(
+              GradeValue(
                 resultLabel(section),
+                section,
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: 4),
@@ -92,6 +93,12 @@ class SubjectGradesPage extends LScopedView<PeriodResultsController> {
                         'Provisional average',
                       ),
               ),
+              if (section['coefficient'] is num)
+                Text(
+                  context.tr.coefficient(
+                    formatGradeNumber(section['coefficient'] as num),
+                  ),
+                ),
               if (section['comment'] is String)
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
@@ -113,77 +120,44 @@ class SubjectGradesPage extends LScopedView<PeriodResultsController> {
         for (final mark in marks) ...[
           SurfaceCard(
             padding: EdgeInsets.zero,
-            child: ExpansionTile(
+            child: GradeRecordRow(
               key: PageStorageKey(mark['id']),
               initiallyExpanded: mark['id'] == expandedMark,
-              maintainState: true,
-              shape: const Border(),
-              collapsedShape: const Border(),
-              title: Text('${mark['title']}'),
-              subtitle: Text(
-                [
-                  if (mark['date'] is String)
-                    DateFormat.yMMMd(
-                      Localizations.localeOf(context).languageCode,
-                    ).format(DateTime.parse(mark['date'] as String)),
-                  markLabel(context, mark),
-                ].join(' · '),
-              ),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          '${words(context, 'Coefficient', 'Coefficient')} : ${formatGradeNumber(mark['coefficient'] as num?)}',
-                        ),
+              title: '${mark['title']}',
+              result: mark,
+              details: Column(
+                spacing: 12,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (mark['date'] case final String date)
+                    Text(
+                      DateFormat.yMMMd(
+                        Localizations.localeOf(context).languageCode,
+                      ).format(DateTime.parse(date)),
+                    ),
+                  if (mark['coefficient'] is num)
+                    Text(
+                      context.tr.coefficient(
+                        formatGradeNumber(mark['coefficient'] as num),
                       ),
-                      if (mark['notes'] is String &&
-                          (mark['notes'] as String).trim().isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        Text(mark['notes'] as String),
-                      ],
-                      for (final field in ['description', 'instructions'])
-                        if (mark[field] is String &&
-                            (mark[field] as String).trim().isNotEmpty) ...[
-                          const SizedBox(height: 12),
-                          Text(mark[field] as String),
-                        ],
-                    ],
-                  ),
-                ),
-              ],
+                    ),
+                  if (mark['notes'] is String &&
+                      (mark['notes'] as String).trim().isNotEmpty)
+                    Text(mark['notes'] as String),
+                  for (final field in ['description', 'instructions'])
+                    if (mark[field] is String &&
+                        (mark[field] as String).trim().isNotEmpty)
+                      Text(mark[field] as String),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
         ],
       ],
     );
   }
 }
 
-String markLabel(BuildContext context, Map<String, dynamic> mark) {
-  if (mark['designation'] == 'absent') {
-    return words(context, 'Absent', 'Absent');
-  }
-  if (mark['designation'] == 'exempt') {
-    return words(context, 'Dispensé', 'Exempt');
-  }
-  final grading = (mark['grading'] as Map?)?.cast<String, dynamic>();
-  if (grading != null) {
-    return formatCalculatedGrade(
-      (grading['reportedValue'] as num?)?.toDouble(),
-      grading,
-    );
-  }
-  final entry = mark['originalEntry'] as Map?;
-  if (entry?['kind'] == 'mention') {
-    return '${entry?['label'] ?? entry?['code'] ?? '—'}';
-  }
-  return mark['score'] == null
-      ? '—'
-      : '${formatGradeNumber(mark['score'] as num?)} / ${formatGradeNumber(mark['maxScore'] as num?)}';
-}
+String markLabel(BuildContext context, Map<String, dynamic> mark) =>
+    officialMarkLabel(context, mark);

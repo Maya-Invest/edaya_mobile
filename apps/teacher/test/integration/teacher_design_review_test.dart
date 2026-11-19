@@ -2,6 +2,7 @@
 library;
 
 import 'dart:io';
+import 'dart:ui' show Locale;
 
 import 'package:edaya_shared/edaya_shared.dart'
     hide LoginPage, SettingsPage, AccountProfilePage;
@@ -256,7 +257,12 @@ Future<void> main() async {
 
           final guestHarness = PrototypeWidgetTestHarness()
             ..bootstrap(authenticated: false);
-          await pumpPrototypeApp(tester, guestHarness, formFactor: formFactor);
+          await pumpPrototypeApp(
+            tester,
+            guestHarness,
+            formFactor: formFactor,
+            locale: Locale(localeSlug),
+          );
           await navigateTo(guestHarness, '/login');
           await pumpUntilFound(tester, find.byType(LoginPage));
           await captureCurrent(
@@ -272,7 +278,12 @@ Future<void> main() async {
             ..bootstrap(authenticated: true);
           expect(harness.store.sessions, isNotEmpty);
 
-          await pumpPrototypeApp(tester, harness, formFactor: formFactor);
+          await pumpPrototypeApp(
+            tester,
+            harness,
+            formFactor: formFactor,
+            locale: Locale(localeSlug),
+          );
           await navigateTo(harness, '/home');
 
           for (final route in authenticatedRoutesBase) {

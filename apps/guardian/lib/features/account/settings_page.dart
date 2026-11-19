@@ -26,6 +26,7 @@ class SettingsPage extends LScopedView<SettingsController> {
         children: [
           SectionHeader(title: tr.preferences),
           SurfaceCard(
+            padding: EdgeInsets.zero,
             child: ListTile(
               title: Text(tr.openAllSettings),
               trailing: const Icon(Icons.open_in_new),
@@ -38,7 +39,7 @@ class SettingsPage extends LScopedView<SettingsController> {
             const SizedBox(height: PrototypeSpacing.xl),
             SectionHeader(title: tr.developerSettings),
             const SurfaceCard(
-              child: Padding(padding: EdgeInsets.all(PrototypeSpacing.sm), child: edaya.DevApiUrlSettings(compact: true)),
+              child: edaya.DevApiUrlSettings(compact: true),
             ),
           ],
         ],

@@ -11,8 +11,14 @@ import 'package:edaya_api_client/edaya_api_client.dart'
     show GeneratedSchoolClientEntities;
 
 class GradebookMarksView extends StatefulWidget {
-  const GradebookMarksView({super.key, required this.controller, this.header});
+  const GradebookMarksView({
+    super.key,
+    required this.controller,
+    this.header,
+    this.action,
+  });
   final Widget? header;
+  final FeatureAction? action;
   final LiveMarksController controller;
   @override
   State<GradebookMarksView> createState() => _GradebookMarksState();
@@ -131,10 +137,15 @@ class _GradebookMarksState extends State<GradebookMarksView> {
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                             ),
-                            IconButton(
+                            PopupMenuButton<String>(
                               tooltip: tr.duplicateEvaluation,
-                              icon: const Icon(Icons.copy_outlined),
-                              onPressed: () async {
+                              itemBuilder: (_) => [
+                                PopupMenuItem(
+                                  value: 'duplicate',
+                                  child: Text(tr.duplicateEvaluation),
+                                ),
+                              ],
+                              onSelected: (_) async {
                                 if (!await leave() || !context.mounted) return;
                                 try {
                                   final source = await context.levit
@@ -189,6 +200,8 @@ class _GradebookMarksState extends State<GradebookMarksView> {
             ),
           ),
         ),
+        if (widget.action case final action?)
+          FeatureActionBar(actions: [action]),
         if (!submitted) _DraftActions(controller: c),
       ],
     );
@@ -468,55 +481,56 @@ class _OfficialMarkRow extends StatelessWidget {
               )['proposed']
               as Map;
     final official = MarkDraft.fromRow(row);
+    final evaluation = c.evaluation.value;
+    final date = DateTime.tryParse(evaluation?.date ?? '');
     return SurfaceCard(
-      onTap: open,
-      child: LayoutBuilder(
-        builder: (context, box) => _markRowLayout(
-          context,
-          box,
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(row.fullName, style: Theme.of(context).textTheme.titleSmall),
-              if (!c.canEditCorrection(row)) Text(tr.gradebookLocked),
-            ],
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      pupilResultLabel(context, c, official.values),
-                      key: ValueKey('official-${row.studentId}'),
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    if (proposed != null) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        '${tr.gradebookPending} · ${pupilResultLabel(context, c, proposed)}',
-                      ),
-                    ],
-                  ],
+      padding: EdgeInsets.zero,
+      child: GradeRecordRow(
+        title: row.fullName,
+        result: row.official,
+        editLabel: c.canEditCorrection(row) ? tr.gradebookEdit : null,
+        onEdit: c.canEditCorrection(row) ? open : null,
+        details: Column(
+          spacing: 12,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GradeValue(
+              '${tr.gradebookOfficial} · ${row.official.isEmpty ? pupilResultLabel(context, c, official.values) : officialMarkLabel(context, row.official)}',
+              row.official,
+              key: ValueKey('official-${row.studentId}'),
+            ),
+            if (date != null)
+              Text(
+                MaterialLocalizations.of(
+                  context,
+                ).formatMediumDate(date.toLocal()),
+              ),
+            if (evaluation?.coefficient case final num coefficient)
+              Text(
+                tr.coefficient(
+                  formatGradeNumber(
+                    coefficient,
+                    locale: Localizations.localeOf(context).languageCode,
+                  ),
                 ),
               ),
-              PopupMenuButton<String>(
-                tooltip: tr.gradebookOptions,
-                onSelected: (_) => open(),
-                itemBuilder: (_) => [
-                  PopupMenuItem(value: 'edit', child: Text(tr.gradebookEdit)),
-                ],
+            if (row.notes?.isNotEmpty ?? false)
+              Text('${tr.marksComment} · ${row.notes}'),
+            if (proposed != null)
+              Text(
+                '${tr.gradebookPending} · ${pupilResultLabel(context, c, proposed)}',
               ),
-            ],
-          ),
+            if (pending?['reason'] case final String reason)
+              Text('${tr.gradebookReason} · $reason'),
+            if (!c.canEditCorrection(row)) Text(tr.gradebookLocked),
+          ],
         ),
       ),
     );
   });
 }
 
-/// Both submission states retain the same name, result and action columns.
+/// Draft inputs retain their responsive editor columns.
 Widget _markRowLayout(
   BuildContext context,
   BoxConstraints box,

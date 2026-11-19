@@ -1,3 +1,4 @@
+import '../offline/teacher_outbox_controller.dart';
 import 'dart:convert';
 import 'dart:async';
 
@@ -76,6 +77,7 @@ class LiveSessionController extends LevitController
     required AcademicYearController academicYear,
     required SchoolClientFactory schoolClient,
     TeacherOutboxStore? outboxStore,
+    this.replay,
     TeacherContextController? teacherContext,
     String? Function()? schoolId,
     TeacherOutboxContext? Function()? outboxContext,
@@ -86,6 +88,7 @@ class LiveSessionController extends LevitController
        _teacherContext = teacherContext,
        _outboxContext = outboxContext;
 
+  final TeacherOutboxController? replay;
   final String sessionId;
   final LiveCalendarController _calendar;
   final AcademicYearController _academicYear;
@@ -110,6 +113,12 @@ class LiveSessionController extends LevitController
   final Map<String, bool> _sessionProgress = {};
 
   @override
+  void onClose() {
+    replay?.registers.remove(draftWrites);
+    super.onClose();
+  }
+
+  @override
   void onInit() {
     super.onInit();
     autoDispose(session);
@@ -121,6 +130,11 @@ class LiveSessionController extends LevitController
     autoDispose(pendingOutboxCount);
     autoDispose(attendanceSubmitted);
     autoDispose(draftWrites.writing);
+    replay?.registers[draftWrites] = (
+      id: () => 'attendance-call-$sessionId',
+      refresh: load,
+    );
+
     autoDispose(attendanceError);
     autoDispose(logbookError);
     autoDispose(draftPending);
@@ -222,7 +236,7 @@ class LiveSessionController extends LevitController
     logbookError('');
     await runTask(() async {
       try {
-        await syncPendingOutbox();
+        await syncPendingOutbox(skipManagedAttendance: replay != null);
         final current =
             _calendar.sessionById(sessionId) ??
             session.value ??
@@ -597,7 +611,11 @@ class LiveSessionController extends LevitController
       saveMessage(systemL10n().attendanceIncomplete);
       return;
     }
-    await syncPendingOutbox();
+    if (replay != null) {
+      await replay!.syncPending(attendanceOnly: true);
+    } else {
+      await syncPendingOutbox();
+    }
     final pending = await _outboxStore.listPending();
     if (pending.any((entry) => entry.id == 'attendance-call-$sessionId')) {
       saveMessage(systemL10n().attendanceSubmitNeedsSync);
@@ -971,7 +989,7 @@ class LiveSessionController extends LevitController
     await load();
   }
 
-  Future<int> syncPendingOutbox() async {
+  Future<int> syncPendingOutbox({bool skipManagedAttendance = false}) async {
     _outboxStore.bindContext(_outboxContext?.call());
     final pending = await _outboxStore.listPending();
     var syncedCount = 0;
@@ -987,6 +1005,10 @@ class LiveSessionController extends LevitController
           (entry.payload['notePayload'] is Map
               ? (entry.payload['notePayload'] as Map)['id'] as String?
               : null);
+      if (skipManagedAttendance &&
+          (entry.kind == TeacherOutboxKind.attendance ||
+              proposal?['workflow'] == 'attendance'))
+        continue;
       final matchesSession = switch (entry.kind) {
         TeacherOutboxKind.attendance =>
           (lessonSessionId == sessionId ||

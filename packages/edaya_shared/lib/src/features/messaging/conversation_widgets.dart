@@ -5,6 +5,7 @@ import 'package:levit_flutter/levit_flutter.dart';
 import '../../access/school_client.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../ui/workspace_tabs.dart';
+import '../../ui/feature_actions.dart';
 import '../auth/app_session_controller.dart';
 import 'conversation_controller.dart';
 import 'conversation_message_bubble.dart';
@@ -71,6 +72,22 @@ class MessagingInbox extends LScopedView<ConversationController> {
             ),
         ]..sort((a, b) => b.at.compareTo(a.at));
     final unread = controller.unreadCount.value;
+    Future<void> compose() async {
+      final id = await showLevitModalBottomSheet<String>(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => _ComposeMessage(
+          key: ValueKey('${controller.identity.value}|$studentId'),
+          controller: controller,
+          studentId: studentId,
+          studentName: studentName,
+        ),
+      );
+      if (id != null && context.mounted) {
+        context.push('/inbox/conversation/$id');
+      }
+    }
+
     return _MessagingLifecycle(
       controller: controller,
       child: WorkspaceTabs(
@@ -80,114 +97,109 @@ class MessagingInbox extends LScopedView<ConversationController> {
           context.tr.workspaceNotifications,
         ],
         children: [
-          Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Wrap(
-                  spacing: 12,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(context.tr.unreadCount(unread)),
-                    if (guardian)
-                      FilledButton.icon(
-                        onPressed: () async {
-                          final id = await showLevitModalBottomSheet<String>(
-                            context: context,
-                            isScrollControlled: true,
-                            builder: (_) => _ComposeMessage(
-                              key: ValueKey(
-                                '${controller.identity.value}|$studentId',
-                              ),
-                              controller: controller,
-                              studentId: studentId,
-                              studentName: studentName,
-                            ),
-                          );
-                          if (id != null && context.mounted) {
-                            context.push('/inbox/conversation/$id');
-                          }
-                        },
-                        icon: const Icon(Icons.edit_outlined),
-                        label: Text(context.tr.messagingNew),
-                      ),
-                  ],
+          FeatureActionPanel(
+            actions: [
+              if (guardian)
+                FeatureAction(
+                  context.tr.newConversation,
+                  Icons.edit_outlined,
+                  compose,
                 ),
-              ),
-              if (controller.busy.value) const LinearProgressIndicator(),
-              if (controller.error.value.isNotEmpty)
+            ],
+            child: Column(
+              children: [
                 Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Text(context.tr.messagingUnavailable),
-                ),
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: controller.refresh,
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
-                    physics: const AlwaysScrollableScrollPhysics(),
+                  child: Wrap(
+                    spacing: 12,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      if (combined.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Text(context.tr.messagingEmpty),
-                        ),
-                      for (final item in combined)
-                        Card(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          child: ListTile(
-                            leading: Icon(
-                              item.row != null
-                                  ? Icons.forum_outlined
-                                  : Icons.notifications_outlined,
-                            ),
-                            title: Text(
-                              item.row?['subject'] as String? ??
-                                  item.notice!.title,
-                              style: TextStyle(
-                                fontWeight:
-                                    (item.row?['unread'] == true ||
-                                        item.notice?.unread == true)
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                              ),
-                            ),
-                            subtitle: Text(
-                              item.row == null
-                                  ? item.notice!.body
-                                  : '${item.row!['destination'] == 'school' ? item.row!['schoolName'] : item.row!['teacherName']} · ${item.row!['studentName'] ?? item.row!['guardianName']}\n${item.row!['lastMessage']}${item.row!['destination'] == 'school' ? '\n${_enquiryStatus(context, item.row!['status'])}' : ''}',
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            trailing:
-                                (item.row?['unread'] == true ||
-                                    item.notice?.unread == true)
-                                ? Icon(
-                                    Icons.mark_email_unread_outlined,
-                                    semanticLabel: context.tr.messagingUnread,
-                                  )
-                                : null,
-                            onTap: () {
-                              if (item.row != null) {
-                                context.push(
-                                  '/inbox/conversation/${item.row!['id']}',
-                                );
-                              } else {
-                                onNotice(item.notice!.id);
-                              }
-                            },
-                          ),
-                        ),
-                      if (controller.rows.value.length < controller.total.value)
-                        TextButton(
-                          onPressed: () => controller.refresh(more: true),
-                          child: Text(context.tr.messagingLoadMore),
+                      Text(context.tr.unreadCount(unread)),
+                      if (guardian && !phoneActions(context))
+                        FilledButton.icon(
+                          onPressed: compose,
+                          icon: const Icon(Icons.edit_outlined),
+                          label: Text(context.tr.newConversation),
                         ),
                     ],
                   ),
                 ),
-              ),
-            ],
+                if (controller.busy.value) const LinearProgressIndicator(),
+                if (controller.error.value.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(context.tr.messagingUnavailable),
+                  ),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: controller.refresh,
+                    child: ListView(
+                      padding: const EdgeInsets.all(16),
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        if (combined.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            child: Text(context.tr.messagingEmpty),
+                          ),
+                        for (final item in combined)
+                          Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            child: ListTile(
+                              leading: Icon(
+                                item.row != null
+                                    ? Icons.forum_outlined
+                                    : Icons.notifications_outlined,
+                              ),
+                              title: Text(
+                                item.row?['subject'] as String? ??
+                                    item.notice!.title,
+                                style: TextStyle(
+                                  fontWeight:
+                                      (item.row?['unread'] == true ||
+                                          item.notice?.unread == true)
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                              subtitle: Text(
+                                item.row == null
+                                    ? item.notice!.body
+                                    : '${item.row!['destination'] == 'school' ? item.row!['schoolName'] : item.row!['teacherName']} · ${item.row!['studentName'] ?? item.row!['guardianName']}\n${item.row!['lastMessage']}${item.row!['destination'] == 'school' ? '\n${_enquiryStatus(context, item.row!['status'])}' : ''}',
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              trailing:
+                                  (item.row?['unread'] == true ||
+                                      item.notice?.unread == true)
+                                  ? Icon(
+                                      Icons.mark_email_unread_outlined,
+                                      semanticLabel: context.tr.messagingUnread,
+                                    )
+                                  : null,
+                              onTap: () {
+                                if (item.row != null) {
+                                  context.push(
+                                    '/inbox/conversation/${item.row!['id']}',
+                                  );
+                                } else {
+                                  onNotice(item.notice!.id);
+                                }
+                              },
+                            ),
+                          ),
+                        if (controller.rows.value.length <
+                            controller.total.value)
+                          TextButton(
+                            onPressed: () => controller.refresh(more: true),
+                            child: Text(context.tr.messagingLoadMore),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           RefreshIndicator(
             onRefresh: onRefreshNotices ?? controller.refresh,
@@ -262,7 +274,12 @@ class ConversationPage extends LScopedView<ConversationController> {
         appBar: AppBar(
           automaticallyImplyLeading:
               ModalRoute.of(context) is! ModalBottomSheetRoute,
-          title: WorkspacePageHeading(
+          toolbarHeight: WorkspacePageHeading.toolbarHeight(
+            context,
+            hasPicker: false,
+          ),
+          title: WorkspacePageHeading.forAppBar(
+            context,
             title:
                 row?['subject'] as String? ?? context.tr.messagingConversations,
           ),
@@ -386,6 +403,7 @@ class _ReplyComposerState extends State<_ReplyComposer> {
     child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
+        spacing: 12,
         children: [
           TextField(
             controller: text,
@@ -497,6 +515,7 @@ class _ComposeMessageState extends State<_ComposeMessage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
+          spacing: 12,
           children: [
             Text(
               context.tr.messagingNew,
@@ -537,11 +556,8 @@ class _ComposeMessageState extends State<_ComposeMessage> {
                       },
               ),
             if (destination != 'school')
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text(
-                  '${widget.studentName ?? ''}\n${context.tr.messagingOversight}',
-                ),
+              Text(
+                '${widget.studentName ?? ''}\n${context.tr.messagingOversight}',
               ),
             if (destination == 'school' && widget.studentId != null)
               SwitchListTile(

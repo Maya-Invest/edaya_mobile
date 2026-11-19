@@ -32,10 +32,12 @@ class AccountProfilePage extends StatelessWidget {
         padding: const EdgeInsets.all(PrototypeSpacing.md),
         children: [
           ListTile(
+            contentPadding: EdgeInsets.zero,
             title: Text(edaya.systemL10n().name),
             subtitle: Text(store.guardianFullName),
           ),
           ListTile(
+            contentPadding: EdgeInsets.zero,
             title: const Text('E-mail'),
             subtitle: Text(MockStore.guardianEmail),
           ),

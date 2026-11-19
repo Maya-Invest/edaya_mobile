@@ -118,7 +118,7 @@ Future<void> main() async {
           '/scolarite/notes' => find.text('Bulletin publié'),
           '/attendance' => find.text('Appel du jour'),
           '/fees' => find.text('Attendu'),
-          '/inbox' => find.text('Nouveau message'),
+          '/inbox' => find.text('Nouvelle conversation'),
           '/inbox/avis' => await campaignRow(tester, h, campaignId),
           '/child' => find.text('Documents'),
           _ => throw StateError('Missing content check for ${d.path}'),
@@ -230,6 +230,10 @@ Future<void> main() async {
       final name = '${sibling['firstName']} ${sibling['lastName']}';
       await pumpUntilFound(tester, find.text(name));
       await tester.tap(find.text(name));
+      await tester.pump();
+      if (tester.any(find.text('Appliquer'))) {
+        await tester.tap(find.text('Appliquer'));
+      }
       await pumpUntilFound(tester, find.byType(HomePage));
       await tester.pump(const Duration(milliseconds: 400));
       expect(
@@ -285,7 +289,22 @@ Future<void> main() async {
           )
           .toList();
       if (marks.isNotEmpty) {
-        final title = find.text(marks.first['title'] as String).first;
+        final mark = marks.first;
+        final detail = await client.getGuardianAssessmentResult({
+          'studentId': h.profile!.primaryStudentId,
+          'assessmentId': mark['assessmentId'],
+        });
+        for (final field in [
+          'score',
+          'designation',
+          'grading',
+          'originalEntry',
+          'rank',
+          'participantCount',
+        ]) {
+          expect(detail['mark'][field], mark[field], reason: field);
+        }
+        final title = find.text(mark['title'] as String).first;
         await tester.scrollUntilVisible(
           title,
           250,

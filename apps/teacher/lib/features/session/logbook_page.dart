@@ -137,11 +137,11 @@ class _LogbookFormState extends State<LogbookForm> {
         if (widget.initial?.needsReview == true) Text(t.logbookReviewDraft),
         if (general) ...[
           field(t.rollContent, content, 3),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           field(t.rollObjectives, objectives, 2),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           field(t.rollHomework, homework, 2),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           field(t.rollFamilySummary, family, 2),
         ] else ...[
           if (widget.initial == null)
@@ -177,7 +177,7 @@ class _LogbookFormState extends State<LogbookForm> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
           if (chapterId != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             CheckboxListTile(
               title: Text(t.logbookFinishedHere),
               value: completed,
@@ -188,6 +188,7 @@ class _LogbookFormState extends State<LogbookForm> {
                       changed();
                     },
             ),
+            const SizedBox(height: 12),
             field(t.matterNotesLabel, chapterNotes, 2),
             if (widget.initial?.chapterId != null)
               CheckboxListTile(
@@ -203,12 +204,12 @@ class _LogbookFormState extends State<LogbookForm> {
           ],
         ],
         if (widget.validated) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           field(t.marksCorrectionReason, reason, 2),
         ],
         if (error != null)
           Padding(padding: const EdgeInsets.only(top: 12), child: Text(error!)),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         Align(
           alignment: Alignment.centerRight,
           child: FilledButton(

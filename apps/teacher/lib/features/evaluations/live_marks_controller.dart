@@ -19,6 +19,7 @@ class LiveMarkRow {
     required this.fullName,
     required this.initials,
     this.photoUrl,
+    this.official = const {},
     this.resultId,
     this.score,
     this.mentionId,
@@ -31,6 +32,7 @@ class LiveMarkRow {
     this.syncState = MarkSyncState.synced,
   });
 
+  final Map<String, dynamic> official;
   final String studentId;
   final String fullName;
   final String initials;
@@ -58,6 +60,7 @@ class LiveMarkRow {
   }) {
     return LiveMarkRow(
       studentId: studentId,
+      official: official,
       fullName: fullName,
       initials: initials,
       photoUrl: photoUrl,
@@ -234,8 +237,9 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
             gradedCount: (review['results'] as List).length,
             totalStudents: (review['students'] as List).length,
             maxScore: (sheet['maxScore'] as num).toDouble(),
+            coefficient: sheet['coefficient'] as num?,
             kind: sheet['kind'] as String? ?? 'quiz',
-            date: sheet['startsAt'] as String?,
+            date: (sheet['startsAt'] ?? sheet['dueAt']) as String?,
           );
         }
         if (isClosed) return;
@@ -278,7 +282,26 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
           }
         }
         final studentRows = (review['students'] as List).cast<Map>();
-        final results = (review['results'] as List).cast<Map>();
+        final captured =
+            ((sheet['marksReview'] as Map?)?['rosterStudentIds'] as List?)
+                ?.toSet();
+        final loaded = studentRows.map((s) => s['id']).toSet();
+        final rawResults = (review['results'] as List)
+            .map((r) => Map<String, dynamic>.from(r as Map))
+            .toList();
+        final results = withOfficialRanks(
+          rawResults,
+          complete:
+              marksStatus.value == 'submitted' &&
+              captured != null &&
+              captured.isNotEmpty &&
+              loaded.containsAll(captured) &&
+              rawResults
+                  .map((r) => r['studentId'])
+                  .toSet()
+                  .containsAll(captured) &&
+              rawResults.every((r) => captured.contains(r['studentId'])),
+        );
         final scoreByStudent = {
           for (final row in results)
             if (row['studentId'] is String) row['studentId'] as String: row,
@@ -292,6 +315,10 @@ class LiveMarksController extends LevitController with LevitReactiveTasksMixin {
           final result = scoreByStudent[studentId];
           return LiveMarkRow(
             studentId: studentId,
+            official: {
+              if (result != null) ...result.cast<String, dynamic>(),
+              'maxScore': sheet['maxScore'],
+            },
             fullName: displayName,
             initials: personInitials(displayName),
             photoUrl: row['photoUrl'] as String?,

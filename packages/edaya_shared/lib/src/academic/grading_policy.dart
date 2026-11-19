@@ -120,5 +120,55 @@ String formatCalculatedGrade(double? value, Map<String, dynamic>? calculation) {
   final precision = (calculation?['decimalPlaces'] as num?)?.toInt() ?? 2;
   final maximum = calculation?['maximum'] ?? 20;
   final code = (calculation?['mention'] as Map?)?['code'];
-  return '${formatGradeNumber(value, precision: precision)} / ${formatGradeNumber(maximum as num)}${code == null ? '' : ' · $code'}';
+  final reported = calculation?['reportedValue'] as num? ?? value;
+  return '${formatGradeNumber(reported, precision: precision)} / ${formatGradeNumber(maximum as num)}${code == null ? '' : ' · $code'}';
+}
+
+/// Fill missing backend positions only for a verified complete teacher roster.
+/// Inputs are the unfiltered official result rows, before outbox edits.
+List<Map<String, dynamic>> withOfficialRanks(
+  List<Map<String, dynamic>> rows, {
+  required bool complete,
+  bool averages = false,
+}) {
+  if (!complete) return rows;
+  final groups = <Object, List<({int index, double value})>>{};
+  for (var index = 0; index < rows.length; index++) {
+    final row = rows[index], grade = row['grading'] ?? row['calculation'];
+    if (row['designation'] == 'absent' || row['designation'] == 'exempt')
+      continue;
+    final value = grade is Map
+        ? grade['reportedValue']
+        : row[averages ? 'average' : 'score'];
+    if (value is! num || !value.isFinite) continue;
+    final group = grade is Map
+        ? (
+            grade['scaleId'],
+            grade['scaleRevision'],
+            grade['policyRevision'],
+            grade['units'],
+          )
+        : 'legacy';
+    (groups[group] ??= []).add((
+      index: index,
+      value: grade is Map ? value.toDouble() : (value * 100).round() / 100,
+    ));
+  }
+  final ranked = [...rows];
+  for (final entries in groups.values) {
+    entries.sort((a, b) => b.value.compareTo(a.value));
+    var rank = 0;
+    for (var i = 0; i < entries.length; i++) {
+      final item = entries[i];
+      if (i == 0 || entries[i - 1].value != item.value) rank = i + 1;
+      final row = rows[item.index];
+      if (row['rank'] == null && row['participantCount'] == null)
+        ranked[item.index] = {
+          ...row,
+          'rank': rank,
+          'participantCount': entries.length,
+        };
+    }
+  }
+  return ranked;
 }

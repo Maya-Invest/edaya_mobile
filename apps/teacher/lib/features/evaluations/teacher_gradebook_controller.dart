@@ -142,9 +142,13 @@ class TeacherGradebookController extends LevitController {
       );
       if (isClosed || request != generation) return;
       students(
-        (data['students'] as List)
-            .map((r) => (r as Map).cast<String, dynamic>())
-            .toList(),
+        withOfficialRanks(
+          (data['students'] as List)
+              .map((r) => (r as Map).cast<String, dynamic>())
+              .toList(),
+          complete: data['cohortComplete'] == true,
+          averages: true,
+        ),
       );
     } on Object {
       if (!isClosed && request == generation) {

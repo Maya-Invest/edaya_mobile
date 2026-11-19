@@ -48,6 +48,7 @@ class ReportCardStudentRow {
     this.grading,
     this.aggregateLabel,
     this.rank,
+    this.classSize,
     this.hasComment = false,
   });
 
@@ -61,7 +62,7 @@ class ReportCardStudentRow {
   final Map<String, dynamic>? grading;
   final String? aggregateLabel;
   String get averageLabel => formatCalculatedGrade(overallAverage, grading);
-  final int? rank;
+  final int? rank, classSize;
   final bool hasComment;
 
   bool get hasReportCard => reportCardId != null;
@@ -252,6 +253,7 @@ class LiveReportCardRosterController extends LevitController
             overallAverage: (result?['overallAverage'] as num?)?.toDouble(),
             grading: (result?['grading'] as Map?)?.cast<String, dynamic>(),
             aggregateLabel: result?['aggregateLabel'] as String?,
+            classSize: (result?['classSize'] as num?)?.toInt(),
             rank: (result?['rank'] as num?)?.toInt(),
             hasComment: (result?['teacherComment'] as String? ?? '')
                 .trim()

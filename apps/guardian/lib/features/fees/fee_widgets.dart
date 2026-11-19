@@ -29,8 +29,9 @@ class FeeAmountTrailing extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
+        Wrap(
+          alignment: WrapAlignment.end,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(
               amount,
@@ -49,8 +50,9 @@ class FeeAmountTrailing extends StatelessWidget {
             ],
           ],
         ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
+        Wrap(
+          alignment: WrapAlignment.end,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             if (labelColor != null) ...[
               Icon(Icons.error_outline, size: 12, color: labelColor),

@@ -12,6 +12,7 @@ class ListRow extends StatelessWidget {
     this.subtitle,
     this.leading,
     this.trailing,
+    this.stackTrailingAtLargeText = false,
     this.badge,
     this.badgeTone,
     this.onTap,
@@ -24,6 +25,7 @@ class ListRow extends StatelessWidget {
   final String? subtitle;
   final Widget? leading;
   final Widget? trailing;
+  final bool stackTrailingAtLargeText;
   final String? badge;
   final SemanticTone? badgeTone;
   final VoidCallback? onTap;
@@ -45,6 +47,10 @@ class ListRow extends StatelessWidget {
               ).colorScheme.primaryContainer.withValues(alpha: 0.35)
             : null);
 
+    final stacked =
+        stackTrailingAtLargeText &&
+        MediaQuery.sizeOf(context).width < 600 &&
+        MediaQuery.textScalerOf(context).scale(14) > 20;
     return SurfaceCard(
       onTap: onTap,
       tint: effectiveTint,
@@ -64,10 +70,14 @@ class ListRow extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(subtitle!, style: Theme.of(context).textTheme.bodySmall),
                 ],
+                if (stacked && trailing != null) ...[
+                  const SizedBox(height: PrototypeSpacing.xs),
+                  trailing!,
+                ],
               ],
             ),
           ),
-          if (badge != null || trailing != null) ...[
+          if (badge != null || (!stacked && trailing != null)) ...[
             const SizedBox(width: PrototypeSpacing.sm),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -79,7 +89,7 @@ class ListRow extends StatelessWidget {
                         badgeTone ??
                         (unread ? SemanticTone.info : SemanticTone.neutral),
                   ),
-                if (trailing != null) ...[
+                if (!stacked && trailing != null) ...[
                   if (badge != null)
                     const SizedBox(height: PrototypeSpacing.xs),
                   trailing!,

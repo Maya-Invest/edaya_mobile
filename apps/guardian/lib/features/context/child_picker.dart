@@ -321,7 +321,14 @@ class _ChildPickerState extends State<ChildPicker> {
                                         .find<AppSessionController>()
                                         .schoolIdHeader ==
                                     group.profile.schoolId,
-                            onTap: busy ? null : () => select(group, child),
+                            onTap: busy
+                                ? null
+                                : years.length > 1
+                                ? () => setState(() {
+                                    if (!expanded.add(key))
+                                      expanded.remove(key);
+                                  })
+                                : () => select(group, child, yearId: selected),
                             trailing: years.length <= 1
                                 ? null
                                 : IconButton(

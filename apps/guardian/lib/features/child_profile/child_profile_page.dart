@@ -123,7 +123,7 @@ class _ChildProfileBody extends StatelessWidget {
           const SizedBox(height: 12),
           Text(context.tr.childProfilePending),
           if (controller.isSubmitter) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             OutlinedButton(
               onPressed: controller.isSaving.value
                   ? null
@@ -141,7 +141,7 @@ class _ChildProfileBody extends StatelessWidget {
                   : context.tr.childProfileRejectedNoReason,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           FilledButton(
             onPressed: controller.isSaving.value
                 ? null
@@ -150,7 +150,7 @@ class _ChildProfileBody extends StatelessWidget {
           ),
         ] else ...[
           Text(context.tr.childProfileSubmitHint),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           FilledButton(
             onPressed: controller.isSaving.value
                 ? null
@@ -159,11 +159,11 @@ class _ChildProfileBody extends StatelessWidget {
           ),
         ],
         if (controller.statusMessage.value.isNotEmpty) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Text(controller.statusMessage.value),
         ],
         if (controller.isSaving.value) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           const LinearProgressIndicator(),
         ],
         const SizedBox(height: PrototypeSpacing.xl),

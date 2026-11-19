@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../navigation/record_access_transport.dart';
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:edaya_shared/edaya_shared.dart';
@@ -94,6 +95,7 @@ void registerPrototypeDependencies(
   CookieJar? cookieJar,
   AuthClient? authClient,
   PushNotificationService? pushNotifications,
+  Stream<bool>? connections,
   bool includeBootstrap = true,
   DemoStore? demo,
 }) {
@@ -262,6 +264,20 @@ void registerPrototypeDependencies(
     );
     scope.put<TeacherOutboxController>(
       () => TeacherOutboxController(
+        connections:
+            connections ??
+            (demo == null
+                ? Connectivity().onConnectivityChanged.map(
+                    (states) => states.any((s) => s != ConnectivityResult.none),
+                  )
+                : null),
+        scopedClient: (identity) => createEdayaSchoolClient(
+          scope.find<AuthClient>(),
+          getAcademicYearId: () => identity.academicYearId,
+          getActorKind: () => identity.actorKind,
+          getActorId: () => identity.actorId,
+          getSchoolId: () => identity.schoolId,
+        ),
         outboxStore: scope.find<TeacherOutboxStore>(),
         schoolClient: scope.find<SchoolClientFactory>(),
         context: () => teacherOutboxContextForSession(

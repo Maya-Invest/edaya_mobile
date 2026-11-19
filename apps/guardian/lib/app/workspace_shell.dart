@@ -57,7 +57,7 @@ const destinations =
       (
         path: '/inbox/avis',
         fr: 'Avis',
-        en: 'Surveys',
+        en: 'Feedback',
         icon: Icons.poll_outlined,
         academic: false,
       ),
@@ -89,27 +89,35 @@ class ChildContextCard extends StatelessWidget {
     final year = live
         ? context.levit.find<AcademicYearController>().selectedYearLabel
         : mock?.selectedYear;
+    void chooseChild() {
+      final path = GoRouterState.of(context).uri.path;
+      final root = path.startsWith('/session')
+          ? '/calendar'
+          : path.startsWith('/scolarite/progress') || path.endsWith('/cahier')
+          ? '/scolarite/progress'
+          : path.startsWith('/scolarite')
+          ? '/scolarite/notes'
+          : path.startsWith('/fees')
+          ? '/fees'
+          : path.startsWith('/inbox/avis')
+          ? '/inbox/avis'
+          : path.startsWith('/inbox')
+          ? '/inbox'
+          : path;
+      context.push(
+        Uri(path: '/children', queryParameters: {'return': root}).toString(),
+      );
+    }
+
+    if (compact)
+      return WorkspacePickerButton(
+        name: name,
+        icon: Icons.person_outline,
+        onPressed: chooseChild,
+      );
     return SurfaceCard(
       padding: EdgeInsets.zero,
-      onTap: () {
-        final path = GoRouterState.of(context).uri.path;
-        final root = path.startsWith('/session')
-            ? '/calendar'
-            : path.startsWith('/scolarite/progress') || path.endsWith('/cahier')
-            ? '/scolarite/progress'
-            : path.startsWith('/scolarite')
-            ? '/scolarite/notes'
-            : path.startsWith('/fees')
-            ? '/fees'
-            : path.startsWith('/inbox/avis')
-            ? '/inbox/avis'
-            : path.startsWith('/inbox')
-            ? '/inbox'
-            : path;
-        context.push(
-          Uri(path: '/children', queryParameters: {'return': root}).toString(),
-        );
-      },
+      onTap: chooseChild,
       child: Padding(
         padding: EdgeInsets.all(compact ? 12 : 16),
         child: Row(
@@ -205,10 +213,14 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
           centerTitle: false,
           toolbarHeight: home
               ? null
-              : MediaQuery.textScalerOf(context).scale(20) + 44,
+              : WorkspacePageHeading.toolbarHeight(
+                  context,
+                  hasPicker: !account,
+                ),
           title: home
               ? Text(title)
-              : WorkspacePageHeading(
+              : WorkspacePageHeading.forAppBar(
+                  context,
                   title: title,
                   picker: !account && path != '/children'
                       ? const ChildContextCard(compact: true)

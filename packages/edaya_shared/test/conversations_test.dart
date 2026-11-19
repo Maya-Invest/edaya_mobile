@@ -318,7 +318,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('New message'));
+      await tester.tap(find.text('New conversation'));
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byWidgetPredicate(

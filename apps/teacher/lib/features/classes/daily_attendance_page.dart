@@ -1,3 +1,4 @@
+import '../offline/teacher_outbox_controller.dart';
 import 'package:edaya_api_client/edaya_api_client.dart';
 import '../session/roll_call.dart';
 import '../session/attendance_draft_queue.dart';
@@ -18,11 +19,19 @@ class DailyAttendanceController extends LevitController {
     required this.classId,
     required this.client,
     required this.outbox,
+    this.replay,
     DateTime? schoolDay,
   }) : date = LxVar(schoolDay ?? SchoolClock.now());
   final String classId;
   final SchoolClientFactory client;
   final TeacherOutboxStore outbox;
+  final TeacherOutboxController? replay;
+  @override
+  void onClose() {
+    replay?.registers.remove(draftWrites);
+    super.onClose();
+  }
+
   final LxVar<DateTime> date;
   final rows = LxVar<List<Map<String, dynamic>>>([]);
   final submitted = LxVar(false);
@@ -57,6 +66,7 @@ class DailyAttendanceController extends LevitController {
     ]) {
       autoDispose(variable);
     }
+    replay?.registers[draftWrites] = (id: () => draftId, refresh: load);
     unawaited(load());
   }
 
@@ -386,6 +396,7 @@ class DailyAttendancePage extends LScopedView<DailyAttendanceController> {
       classId: classId,
       client: scope.find<SchoolClientFactory>(),
       outbox: scope.find<TeacherOutboxStore>(),
+      replay: scope.find<TeacherOutboxController>(),
       schoolDay:
           initialDate ??
           scope.find<TeacherContextController>().schoolTime(SchoolClock.now()),

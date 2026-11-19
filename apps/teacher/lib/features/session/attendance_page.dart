@@ -1,3 +1,4 @@
+import '../offline/teacher_outbox_controller.dart';
 import 'roll_call.dart';
 import 'package:edaya_shared/edaya_shared.dart' hide PersonAvatar;
 import 'package:flutter/material.dart';
@@ -22,6 +23,7 @@ LiveSessionController putLiveSessionController(
       academicYear: scope.find<AcademicYearController>(),
       schoolClient: scope.find<SchoolClientFactory>(),
       outboxStore: scope.find<TeacherOutboxStore>(),
+      replay: scope.find<TeacherOutboxController>(),
       teacherContext: scope.find<TeacherContextController>(),
       schoolId: () => scope.find<AppSessionController>().grants.value?.schoolId,
       outboxContext: () => teacherOutboxContextForSession(

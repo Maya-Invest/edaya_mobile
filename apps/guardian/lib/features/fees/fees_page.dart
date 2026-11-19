@@ -63,25 +63,19 @@ class _MockFeesPage extends LScopedView<StoreBoundController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: SummaryMetric(
-                        label: context.tr.expected,
-                        value: proto.formatMoney(store.feeExpected, currency),
-                      ),
+                _FeeSummaryMetrics(
+                  metrics: [
+                    SummaryMetric(
+                      label: context.tr.expected,
+                      value: proto.formatMoney(store.feeExpected, currency),
                     ),
-                    Expanded(
-                      child: SummaryMetric(
-                        label: context.tr.feeStatusPaid,
-                        value: proto.formatMoney(store.feePaid, currency),
-                      ),
+                    SummaryMetric(
+                      label: context.tr.feeStatusPaid,
+                      value: proto.formatMoney(store.feePaid, currency),
                     ),
-                    Expanded(
-                      child: SummaryMetric(
-                        label: context.tr.balance,
-                        value: proto.formatMoney(store.feeBalance, currency),
-                      ),
+                    SummaryMetric(
+                      label: context.tr.balance,
+                      value: proto.formatMoney(store.feeBalance, currency),
                     ),
                   ],
                 ),
@@ -123,6 +117,7 @@ class _MockFeesPage extends LScopedView<StoreBoundController> {
           SectionHeader(title: context.tr.feeLinesSection),
           for (final fee in store.feeLines) ...[
             ListRow(
+              stackTrailingAtLargeText: true,
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -169,6 +164,7 @@ class _MockFeesPage extends LScopedView<StoreBoundController> {
           SectionHeader(title: context.tr.paymentsSection),
           for (final payment in store.payments) ...[
             ListRow(
+              stackTrailingAtLargeText: true,
               title: formatPaymentMethod(context.tr, payment.method),
               subtitle:
                   '${payment.feeLabel} · ${proto.formatDate(payment.date)}',
@@ -244,167 +240,199 @@ class _LiveFeesPage extends LScopedView<FeesController> {
             : 'XOF');
     final schoolId = context.levit.find<AppSessionController>().schoolIdHeader;
 
-    return AdaptiveContent(
-      child: ListView(
-        padding: const EdgeInsets.all(PrototypeSpacing.md),
-        children: [
-          SectionHeader(title: context.tr.summary),
-          SurfaceCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    final phone = phoneActions(context);
+    final statement = DocumentActionButton(
+      label: context.tr.featureDownloadStatement,
+      floating: phone,
+      icon: Icons.download_outlined,
+      run: () => controller.downloadStatement(schoolId: schoolId),
+    );
+    return Column(
+      children: [
+        Expanded(
+          child: AdaptiveContent(
+            child: ListView(
+              padding: const EdgeInsets.all(PrototypeSpacing.md),
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: SummaryMetric(
-                        label: context.tr.expected,
-                        value: formatMoney(
-                          controller.totalExpected,
-                          currency,
-                          context.tr.localeName,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: SummaryMetric(
-                        label: context.tr.feeStatusPaid,
-                        value: formatMoney(
-                          controller.totalPaid,
-                          currency,
-                          context.tr.localeName,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: SummaryMetric(
-                        label: context.tr.balance,
-                        value: formatMoney(
-                          controller.totalBalance,
-                          currency,
-                          context.tr.localeName,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: PrototypeSpacing.sm),
-                PrototypeProgressBar(value: progress),
-                const SizedBox(height: PrototypeSpacing.xs),
-                Text(
-                  context.tr.paidLabel((progress * 100).round()),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                if (controller.overdueCount > 0) ...[
-                  const SizedBox(height: PrototypeSpacing.sm),
-                  Row(
+                SectionHeader(title: context.tr.summary),
+                SurfaceCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.error_outline,
-                        size: 16,
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                      const SizedBox(width: PrototypeSpacing.xxs),
-                      Expanded(
-                        child: Text(
-                          context.tr.overdueChargesCount(
-                            controller.overdueCount,
+                      _FeeSummaryMetrics(
+                        metrics: [
+                          SummaryMetric(
+                            label: context.tr.expected,
+                            value: formatMoney(
+                              controller.totalExpected,
+                              currency,
+                              context.tr.localeName,
+                            ),
                           ),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.error,
-                              ),
+                          SummaryMetric(
+                            label: context.tr.feeStatusPaid,
+                            value: formatMoney(
+                              controller.totalPaid,
+                              currency,
+                              context.tr.localeName,
+                            ),
+                          ),
+                          SummaryMetric(
+                            label: context.tr.balance,
+                            value: formatMoney(
+                              controller.totalBalance,
+                              currency,
+                              context.tr.localeName,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: PrototypeSpacing.sm),
+                      PrototypeProgressBar(value: progress),
+                      const SizedBox(height: PrototypeSpacing.xs),
+                      Text(
+                        context.tr.paidLabel((progress * 100).round()),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
+                      if (controller.overdueCount > 0) ...[
+                        const SizedBox(height: PrototypeSpacing.sm),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 16,
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                            const SizedBox(width: PrototypeSpacing.xxs),
+                            Expanded(
+                              child: Text(
+                                context.tr.overdueChargesCount(
+                                  controller.overdueCount,
+                                ),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      const SizedBox(height: PrototypeSpacing.md),
+                      if (!phone) statement,
                     ],
                   ),
-                ],
-                const SizedBox(height: PrototypeSpacing.md),
-                DocumentActionButton(
-                  label: context.tr.accountStatement,
-                  run: () => controller.downloadStatement(schoolId: schoolId),
                 ),
+                const SizedBox(height: PrototypeSpacing.xl),
+                SectionHeader(title: context.tr.feeLinesSection),
+                for (final fee in controller.charges.value) ...[
+                  ListRow(
+                    stackTrailingAtLargeText: true,
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: fee.status == ChargeStatus.overdue
+                            ? Theme.of(context).colorScheme.errorContainer
+                            : Theme.of(context).colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.receipt_long_outlined,
+                        size: 20,
+                        color: fee.status == ChargeStatus.overdue
+                            ? Theme.of(context).colorScheme.error
+                            : Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    title: fee.label,
+                    subtitle:
+                        '${context.tr.dueDate(fee.dueDate != null ? context.formatShortDate(fee.dueDate!) : '—')} · ${context.tr.paymentCount(fee.settlementCount)}',
+                    selected: selectedFeeId == fee.id,
+                    trailing: FeeAmountTrailing(
+                      amount: formatMoney(
+                        fee.remainingObligation,
+                        fee.currency,
+                        context.tr.localeName,
+                      ),
+                      label: formatChargeStatus(context.tr, fee.status),
+                      labelColor: fee.status == ChargeStatus.overdue
+                          ? Theme.of(context).colorScheme.error
+                          : null,
+                      showChevron: true,
+                    ),
+                    onTap: () => context.push(
+                      Uri(
+                        path: '/fees/fee/${fee.id}',
+                        queryParameters: GoRouterState.of(
+                          context,
+                        ).uri.queryParameters,
+                      ).toString(),
+                    ),
+                  ),
+                  const SizedBox(height: PrototypeSpacing.xs),
+                ],
+                const SizedBox(height: PrototypeSpacing.xl),
+                SectionHeader(title: context.tr.paymentsSection),
+                for (final payment in controller.payments.value) ...[
+                  ListRow(
+                    stackTrailingAtLargeText: true,
+                    title: formatPaymentMethod(context.tr, payment.method),
+                    subtitle:
+                        '${payment.feeLabel} · ${context.formatShortDate(payment.paymentDate)}',
+                    selected: selectedPaymentId == payment.id,
+                    trailing: FeeAmountTrailing(
+                      amount: formatMoney(
+                        payment.amount,
+                        payment.currency,
+                        context.tr.localeName,
+                      ),
+                      label: formatPaymentKind(context.tr, payment.kind),
+                      showChevron: true,
+                    ),
+                    onTap: () => context.push(
+                      Uri(
+                        path: '/fees/payment/${payment.id}',
+                        queryParameters: GoRouterState.of(
+                          context,
+                        ).uri.queryParameters,
+                      ).toString(),
+                    ),
+                  ),
+                  const SizedBox(height: PrototypeSpacing.xs),
+                ],
               ],
             ),
           ),
-          const SizedBox(height: PrototypeSpacing.xl),
-          SectionHeader(title: context.tr.feeLinesSection),
-          for (final fee in controller.charges.value) ...[
-            ListRow(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: fee.status == ChargeStatus.overdue
-                      ? Theme.of(context).colorScheme.errorContainer
-                      : Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.receipt_long_outlined,
-                  size: 20,
-                  color: fee.status == ChargeStatus.overdue
-                      ? Theme.of(context).colorScheme.error
-                      : Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              title: fee.label,
-              subtitle:
-                  '${context.tr.dueDate(fee.dueDate != null ? context.formatShortDate(fee.dueDate!) : '—')} · ${context.tr.paymentCount(fee.settlementCount)}',
-              selected: selectedFeeId == fee.id,
-              trailing: FeeAmountTrailing(
-                amount: formatMoney(
-                  fee.remainingObligation,
-                  fee.currency,
-                  context.tr.localeName,
-                ),
-                label: formatChargeStatus(context.tr, fee.status),
-                labelColor: fee.status == ChargeStatus.overdue
-                    ? Theme.of(context).colorScheme.error
-                    : null,
-                showChevron: true,
-              ),
-              onTap: () => context.push(
-                Uri(
-                  path: '/fees/fee/${fee.id}',
-                  queryParameters: GoRouterState.of(
-                    context,
-                  ).uri.queryParameters,
-                ).toString(),
-              ),
-            ),
-            const SizedBox(height: PrototypeSpacing.xs),
-          ],
-          const SizedBox(height: PrototypeSpacing.xl),
-          SectionHeader(title: context.tr.paymentsSection),
-          for (final payment in controller.payments.value) ...[
-            ListRow(
-              title: formatPaymentMethod(context.tr, payment.method),
-              subtitle:
-                  '${payment.feeLabel} · ${context.formatShortDate(payment.paymentDate)}',
-              selected: selectedPaymentId == payment.id,
-              trailing: FeeAmountTrailing(
-                amount: formatMoney(
-                  payment.amount,
-                  payment.currency,
-                  context.tr.localeName,
-                ),
-                label: formatPaymentKind(context.tr, payment.kind),
-                showChevron: true,
-              ),
-              onTap: () => context.push(
-                Uri(
-                  path: '/fees/payment/${payment.id}',
-                  queryParameters: GoRouterState.of(
-                    context,
-                  ).uri.queryParameters,
-                ).toString(),
-              ),
-            ),
-            const SizedBox(height: PrototypeSpacing.xs),
-          ],
-        ],
-      ),
+        ),
+        if (phone && path == '/fees') statement,
+      ],
     );
   }
+}
+
+class _FeeSummaryMetrics extends StatelessWidget {
+  const _FeeSummaryMetrics({required this.metrics});
+
+  final List<SummaryMetric> metrics;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) {
+      final textScale = MediaQuery.textScalerOf(context);
+      if (box.maxWidth / metrics.length < textScale.scale(88)) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: PrototypeSpacing.sm,
+          children: metrics,
+        );
+      }
+      return Row(
+        children: [for (final metric in metrics) Expanded(child: metric)],
+      );
+    },
+  );
 }

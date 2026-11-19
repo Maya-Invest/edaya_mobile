@@ -173,7 +173,7 @@ class AccountSecurityPage extends LScopedView<AccountSecurityController> {
     return Scaffold(
       appBar: embedded ? null : AppBar(title: Text(context.tr.accountSecurity)),
       body: ListView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         children: [
           Text(context.tr.recentSignInHint),
           if (controller.error.value.isNotEmpty)

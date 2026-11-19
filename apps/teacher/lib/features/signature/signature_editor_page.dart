@@ -194,7 +194,7 @@ class _SignatureEditorPageState extends State<SignatureEditorPage> {
                       ? context.tr.teacherSignatureDrawHint
                       : context.tr.teacherSignatureCropHint,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Expanded(
                   child: Center(
                     child: LayoutBuilder(
@@ -292,7 +292,7 @@ class _SignatureEditorPageState extends State<SignatureEditorPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -334,7 +334,7 @@ class _SignatureEditorPageState extends State<SignatureEditorPage> {
                     ],
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 FilledButton(
                   onPressed: !_exporting && (source != null || hasInk)
                       ? _use

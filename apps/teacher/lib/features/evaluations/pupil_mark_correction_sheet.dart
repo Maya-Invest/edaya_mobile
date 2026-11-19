@@ -37,7 +37,7 @@ class _PupilMarkCorrectionState extends State<PupilMarkCorrectionSheet> {
   LiveMarksController get c => widget.controller;
   LiveMarkRow get row =>
       c.students.value.firstWhere((r) => r.studentId == widget.studentId);
-  late final TextEditingController score, reason;
+  late final TextEditingController score, reason, notes;
   late String designation;
   String? mention;
   late Map<String, dynamic> initialValues;
@@ -65,6 +65,9 @@ class _PupilMarkCorrectionState extends State<PupilMarkCorrectionSheet> {
           ? ''
           : formatGradeNumber(initialValues['score'] as num),
     );
+    notes = TextEditingController(
+      text: initialValues['notes'] as String? ?? '',
+    );
     reason = TextEditingController(text: pending?['reason'] as String? ?? '');
     designation = initialValues['designation'] as String? ?? 'scored';
     mention = initialValues['mentionId'] as String?;
@@ -72,6 +75,7 @@ class _PupilMarkCorrectionState extends State<PupilMarkCorrectionSheet> {
 
   @override
   void dispose() {
+    notes.dispose();
     score.dispose();
     reason.dispose();
     super.dispose();
@@ -111,13 +115,14 @@ class _PupilMarkCorrectionState extends State<PupilMarkCorrectionSheet> {
         children: [
           Text(row.fullName, style: Theme.of(context).textTheme.titleLarge),
           Text(c.evaluation.value?.title ?? ''),
-          const SizedBox(height: 16),
-          Text(
-            '${tr.gradebookOfficial} · ${pupilResultLabel(context, c, MarkDraft.fromRow(row).values)}',
+          const SizedBox(height: 12),
+          GradeValue(
+            '${tr.gradebookOfficial} · ${row.official.isEmpty ? pupilResultLabel(context, c, MarkDraft.fromRow(row).values) : officialMarkLabel(context, row.official)}',
+            row.official,
           ),
           Text(tr.gradebookApproval),
           if (pending != null) Text(tr.gradebookPending),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             initialValue: designation,
             decoration: InputDecoration(labelText: tr.gradebookProposed),
@@ -136,7 +141,7 @@ class _PupilMarkCorrectionState extends State<PupilMarkCorrectionSheet> {
                   }
                 : null,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           if (designation == 'scored') ...[
             if (c.mentionFirst)
               DropdownButtonFormField<String>(
@@ -174,8 +179,16 @@ class _PupilMarkCorrectionState extends State<PupilMarkCorrectionSheet> {
                 ),
                 onChanged: (_) => changed(),
               ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
           ],
+          TextField(
+            controller: notes,
+            readOnly: !allowed || busy,
+            minLines: 1,
+            maxLines: 5,
+            decoration: InputDecoration(labelText: tr.marksComment),
+            onChanged: (_) => changed(),
+          ),
           if (grouped) Text(tr.gradebookGrouped),
           TextField(
             controller: reason,
@@ -193,7 +206,7 @@ class _PupilMarkCorrectionState extends State<PupilMarkCorrectionSheet> {
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           if (c.saveMessage.value.isNotEmpty) Text(c.saveMessage.value),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           FilledButton(
             onPressed: !allowed || busy || !dirty
                 ? null
@@ -211,6 +224,9 @@ class _PupilMarkCorrectionState extends State<PupilMarkCorrectionSheet> {
                     final saved = await c.correctPupil(row, {
                       ...initialValues,
                       ...draft.values,
+                      'notes': notes.text.trim().isEmpty
+                          ? null
+                          : notes.text.trim(),
                     }, reason.text.trim());
                     if (!mounted) return;
                     if (saved) {

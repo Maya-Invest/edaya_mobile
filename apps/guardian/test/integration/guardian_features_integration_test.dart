@@ -103,8 +103,8 @@ Future<void> main() async {
     (tester) async {
       final subject = 'Opening hours ${DateTime.now().microsecondsSinceEpoch}';
       await pumpGuardianRoute(tester, harness, location: '/inbox');
-      await pumpUntilFound(tester, find.text('Nouveau message'));
-      await tester.tap(find.text('Nouveau message'));
+      await pumpUntilFound(tester, find.text('Nouvelle conversation'));
+      await tester.tap(find.text('Nouvelle conversation'));
       await pumpUntilFound(
         tester,
         find.byType(DropdownButtonFormField<String>),
@@ -175,7 +175,30 @@ Future<void> main() async {
         periodId,
       );
       expect(find.byKey(ValueKey(card['id'])), findsOneWidget);
-      expect(find.text(resultLabel(data)), findsWidgets);
+      final actions = find.byTooltip('Actions du bulletin');
+      await tester.ensureVisible(actions);
+      await tester.tap(actions);
+      await tester.pumpAndSettle();
+      expect(find.text('Télécharger le bulletin'), findsOneWidget);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      final grading = data['grading'] as Map?;
+      final mention = grading?['mention'] as Map?;
+      final fullValue = resultLabel(data);
+      final label = mention?['label'] as String?;
+      if (label != null &&
+          label.trim().isNotEmpty &&
+          mention?['code'] != null) {
+        final suffix = ' · ${mention!['code']}';
+        expect(
+          find.text(fullValue.substring(0, fullValue.length - suffix.length)),
+          findsWidgets,
+        );
+        expect(find.text(label), findsWidgets);
+        expect(find.text(fullValue), findsNothing);
+      } else {
+        expect(find.text(fullValue), findsWidgets);
+      }
     },
   );
 

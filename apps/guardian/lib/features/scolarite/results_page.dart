@@ -49,7 +49,7 @@ class ResultsPage extends LScopedView<PeriodResultsController> {
             if (id != null) controller.select(id);
           },
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         if (controller.loading.value) const LinearProgressIndicator(),
         if (controller.failed.value)
           _Retry(
@@ -81,8 +81,10 @@ class ResultsPage extends LScopedView<PeriodResultsController> {
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
                 const SizedBox(height: 8),
-                Text(
+                GradeValue(
                   resultLabel(data),
+                  data,
+                  showRank: false,
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 if (data['calculationReady'] != true)
@@ -136,11 +138,14 @@ class ResultsPage extends LScopedView<PeriodResultsController> {
                   collapsedShape: const Border(),
                   maintainState: true,
                   title: Text(
-                    section['name']?.toString() ??
-                        context.tr.academicSubjects,
+                    section['name']?.toString() ?? context.tr.academicSubjects,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
-                  subtitle: Text(resultLabel(section)),
+                  subtitle: GradeValue(
+                    resultLabel(section),
+                    section,
+                    showRank: false,
+                  ),
                   children: [
                     if (section['comment'] is String)
                       Padding(
@@ -165,7 +170,7 @@ class ResultsPage extends LScopedView<PeriodResultsController> {
                   year: controller.yearId,
                 ),
               ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
           ],
         ],
       ],
@@ -182,33 +187,10 @@ class _SubjectRow extends StatelessWidget {
   final Map<String, dynamic> subject;
   final String period, year;
   @override
-  Widget build(BuildContext context) => ListTile(
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-    title: Text('${subject['name']}'),
-    subtitle: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 4),
-        Wrap(
-          spacing: 16,
-          runSpacing: 4,
-          children: [
-            Text(
-              resultLabel(subject),
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            Text(
-              '${words(context, 'Coefficient', 'Coefficient')} ${formatGradeNumber(subject['coefficient'] as num?)}',
-            ),
-          ],
-        ),
-        if (subject['comment'] is String) Text(subject['comment'] as String),
-      ],
-    ),
-    trailing: const Icon(Icons.chevron_right),
-    onTap: () => context.push(
+  Widget build(BuildContext context) => GradeRecordRow(
+    title: '${subject['name']}',
+    result: subject,
+    onDetails: () => context.push(
       Uri(
         path:
             '/scolarite/period/$period/subject/${subject['subjectId'] ?? subject['classSubjectId']}',
@@ -233,16 +215,24 @@ class _ReportDownload extends LScopedView<ReportCardController> {
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          OutlinedButton.icon(
-            onPressed:
-                controller.downloadStatus.value ==
-                    ReportCardPdfStatus.downloading
-                ? null
-                : controller.downloadPdf,
-            icon: const Icon(Icons.download_outlined),
-            label: Text(
-              words(context, 'Télécharger le bulletin', 'Download report card'),
-            ),
+          PopupMenuButton<String>(
+            tooltip: words(context, 'Actions du bulletin', 'Report actions'),
+            onSelected: (_) => controller.downloadPdf(),
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                value: 'download',
+                enabled:
+                    controller.downloadStatus.value !=
+                    ReportCardPdfStatus.downloading,
+                child: Text(
+                  words(
+                    context,
+                    'Télécharger le bulletin',
+                    'Download report card',
+                  ),
+                ),
+              ),
+            ],
           ),
           if (controller.downloadMessage.value.isNotEmpty)
             Text(controller.downloadMessage.value),

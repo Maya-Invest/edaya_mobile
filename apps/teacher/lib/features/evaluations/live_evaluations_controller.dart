@@ -21,6 +21,7 @@ class LiveEvaluationSummary {
     required this.totalStudents,
     this.maxScore = 20,
     this.kind = 'quiz',
+    this.coefficient,
     this.date,
   });
 
@@ -36,6 +37,7 @@ class LiveEvaluationSummary {
   final double maxScore;
   final String kind;
   final String? date;
+  final num? coefficient;
 
   bool get needsMarks => totalStudents > 0 && gradedCount < totalStudents;
 
@@ -53,6 +55,7 @@ class LiveEvaluationSummary {
       maxScore: maxScore,
       kind: kind,
       date: date,
+      coefficient: coefficient,
     );
   }
 }
@@ -350,6 +353,7 @@ class LiveEvaluationsController extends LevitController
                 gradedCount: gradedByAssessment[assessmentId] ?? 0,
                 totalStudents: totalStudents,
                 maxScore: (assessment['maxScore'] as num?)?.toDouble() ?? 20,
+                coefficient: assessment['coefficient'] as num?,
                 kind: assessment['kind'] as String? ?? 'quiz',
                 date:
                     assessment['startsAt'] as String? ??

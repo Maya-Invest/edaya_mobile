@@ -136,7 +136,7 @@ class _LoginChrome extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(PrototypeSpacing.lg),
+            padding: const EdgeInsets.all(PrototypeSpacing.screenPadding),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
