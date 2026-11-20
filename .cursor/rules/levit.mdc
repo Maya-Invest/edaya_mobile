@@ -1,0 +1,31 @@
+---
+description: Levit runtime patterns — scopes, controllers, reactive DI for Flutter/Dart
+globs: **/*.dart
+alwaysApply: false
+---
+
+# Levit Agent Guidance
+
+**Read the Levit LLM docs before building or refactoring Levit code:**
+
+- Entry point: [`spec/levit/AGENTS.md`](../../spec/levit/AGENTS.md)
+- Routine edits (default): [`spec/levit/LLM-Short.txt`](../../spec/levit/LLM-Short.txt)
+- Scopes, stores, async DI, middleware: [`spec/levit/LLM.txt`](../../spec/levit/LLM.txt)
+
+Start with `LLM-Short.txt`. Open `LLM.txt` when the short doc is not enough.
+
+## Core rules
+
+1. Identify the lifetime boundary first (app, route, feature, subtree, test).
+2. Prefer kit imports: `levit_flutter` (Flutter) or `levit` (pure Dart).
+3. In Flutter widgets, resolve deps with `context.levit.find` — not bare `Levit.find` when an `LScope` is in the tree.
+4. Call `Levit.enableAutoLinking()` in Flutter `main()` before `runApp`.
+5. Keep business logic in controllers/stores; keep widgets thin.
+6. Use `LWatch` for focused reactive rebuilds.
+
+## Do not
+
+- Put business logic in widgets when a `LevitController` or store is appropriate
+- Use bare `Levit.find` inside widget trees that already have an `LScope`
+- Import low-level Levit packages when `levit_flutter` covers the use case
+- use StatefulWidget (StatelessWidget + controller/store is enough for what we need)

@@ -15,4 +15,57 @@ packages/**/pubspec.lock
 
 # Platform-specific generated files
 **/.cxx/
+**/.kotlin/
 **/DerivedData/
+
+# macOS
+.DS_Store
+**/.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+__MACOSX/
+
+# Flutter macOS desktop (generated locally; team targets Android/iOS)
+**/macos/
+
+/release-apks/
+.tmp-home
+.tmp-pub-cache
+/typescript
+/.integration-results/
+**/__pycache__/
+
+# Sanitized local/CI test evidence
+.ci-evidence/
+
+# Prepared clients, isolated backend, release evidence
+.generated/
+.ci/
+.release/
+.ci-evidence/
+.cache/repo-tools/
+packages/edaya_api_client/lib/src/generated/
+packages/edaya_api_client/spec/client-bindings.json
+
+.cache/clients/
+
+# Apple release dependencies and fastlane local output
+tooling/apple/.bundle/
+tooling/apple/vendor/
+tooling/apple/fastlane/report.xml
+tooling/apple/fastlane/README.md
+tooling/apple/fastlane/Preview.html

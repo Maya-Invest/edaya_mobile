@@ -1,5 +1,5 @@
 name: edaya_auth
-description: Better Auth HTTP client for Edaya mobile apps.
+description: Better Auth HTTP client for EDaya mobile apps.
 publish_to: none
 resolution: workspace
 
@@ -7,6 +7,7 @@ environment:
   sdk: ^3.11.1
 
 dependencies:
+  edaya_api_client: any
   http: ^1.6.0
 
 dev_dependencies:

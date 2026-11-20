@@ -1,7 +1,12 @@
 class TransportRequestOptions {
-  const TransportRequestOptions({this.body, this.headers = const {}});
+  const TransportRequestOptions({
+    this.body,
+    this.headers = const {},
+    this.abortTrigger,
+  });
 
   final Object? body;
+  final Future<void>? abortTrigger;
   final Map<String, String> headers;
 }
 

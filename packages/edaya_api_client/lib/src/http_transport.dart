@@ -3,21 +3,36 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'api_error.dart';
+import 'conditional_read_cache.dart';
 import 'entity_envelope.dart';
 import 'transport.dart';
+
+typedef AccessTokenProvider = Future<String?> Function({required Uri resource});
+typedef AccessTokenInvalidator =
+    void Function({required Uri resource, required String token});
 
 class HttpTransport implements Transport {
   HttpTransport({
     required this.baseUrl,
     this.client,
+    ConditionalReadCache? directoryCache,
     this.getAcademicYearId,
-    this.cookieHeader,
-  });
+    this.getActorKind,
+    this.getActorId,
+    this.getSchoolId,
+    this.getAccessToken,
+    this.invalidateAccessToken,
+  }) : directoryCache = directoryCache ?? ConditionalReadCache();
 
+  final ConditionalReadCache directoryCache;
   final String baseUrl;
   final http.Client? client;
   final String? Function()? getAcademicYearId;
-  final String? Function()? cookieHeader;
+  final String? Function()? getActorKind;
+  final String? Function()? getActorId;
+  final String? Function()? getSchoolId;
+  final AccessTokenProvider? getAccessToken;
+  final AccessTokenInvalidator? invalidateAccessToken;
 
   http.Client get _client => client ?? http.Client();
 
@@ -42,17 +57,67 @@ class HttpTransport implements Transport {
       headers['X-Academic-Year-Id'] = yearId;
     }
 
-    final cookies = cookieHeader?.call();
-    if (cookies != null && cookies.isNotEmpty) {
-      headers['Cookie'] = cookies;
+    final actorKind = getActorKind?.call();
+    if (actorKind != null && actorKind.isNotEmpty) {
+      headers['X-Actor-Kind'] = actorKind;
     }
 
-    final response = await _client.send(
-      http.Request(method, uri)
-        ..headers.addAll(headers)
-        ..body = options?.body == null ? '' : jsonEncode(options!.body),
-    );
+    final actorId = getActorId?.call();
+    if (actorId != null && actorId.isNotEmpty) {
+      headers['X-Actor-Id'] = actorId;
+    }
 
+    final schoolId = getSchoolId?.call();
+    if (schoolId != null && schoolId.isNotEmpty) {
+      headers['X-School-Id'] = schoolId;
+    }
+
+    final resource = Uri.parse(uri.origin);
+    final token = await getAccessToken?.call(resource: resource);
+    headers.remove('Cookie');
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+
+    Future<http.StreamedResponse> send(String? etag) async {
+      Future<http.StreamedResponse> attempt() {
+        final request = http.AbortableRequest(
+          method,
+          uri,
+          abortTrigger: options?.abortTrigger,
+        )..headers.addAll(headers);
+        if (etag != null) request.headers['If-None-Match'] = etag;
+        if (options?.body != null) request.body = jsonEncode(options!.body);
+        return _client.send(request);
+      }
+
+      final response = await attempt();
+      if (response.statusCode == 401 && token != null) {
+        invalidateAccessToken?.call(resource: resource, token: token);
+        if (method == 'GET' || method == 'HEAD') {
+          await response.stream.drain<void>();
+          headers['Authorization'] =
+              'Bearer ${await getAccessToken!(resource: resource)}';
+          return attempt();
+        }
+      }
+      return response;
+    }
+
+    final response = method == 'GET' && uri.path == '/core/directory/students'
+        ? await directoryCache.read(
+            uri,
+            jsonEncode([
+              uri.origin,
+              actorKind,
+              actorId,
+              schoolId,
+              yearId,
+              headers['Accept-Language'],
+            ]),
+            send,
+          )
+        : await send(null);
     return _parseResponse<T>(path, response);
   }
 
@@ -62,7 +127,10 @@ class HttpTransport implements Transport {
     return base.resolve(normalized.substring(1));
   }
 
-  Future<T> _parseResponse<T>(String path, http.StreamedResponse response) async {
+  Future<T> _parseResponse<T>(
+    String path,
+    http.StreamedResponse response,
+  ) async {
     final bodyBytes = await response.stream.toBytes();
     final bodyText = utf8.decode(bodyBytes);
 

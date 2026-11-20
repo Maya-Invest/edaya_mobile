@@ -1,0 +1,25 @@
+require_relative '../release'
+
+default_platform(:ios)
+
+platform :ios do
+  desc 'Build and verify signed IPAs from qualified inputs'
+  lane :build do
+    AppleRelease.build(self)
+  end
+
+  desc 'Upload verified IPAs to TestFlight'
+  lane :upload_beta do
+    AppleRelease.testflight(self)
+  end
+
+  desc 'Check production build eligibility before either app goes to review'
+  lane :check_review do
+    AppleRelease.submit(self, check_only: true)
+  end
+
+  desc 'Submit processed builds from this production run to App Review without rebuilding'
+  lane :submit do
+    AppleRelease.submit(self)
+  end
+end

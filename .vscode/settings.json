@@ -1,0 +1,11 @@
+{
+  "dart.analysisExcludedFolders": [
+    "build",
+    "apps/guardian/build",
+    "apps/teacher/build",
+    "packages/edaya_api_client/build",
+    "packages/edaya_auth/build",
+    "packages/edaya_shared/build",
+    "tooling/integration_tests/build"
+  ]
+}

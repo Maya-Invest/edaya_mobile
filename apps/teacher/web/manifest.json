@@ -1,11 +1,11 @@
 {
-    "name": "edaya_teacher",
-    "short_name": "edaya_teacher",
+    "name": "EDaya Prof",
+    "short_name": "EDaya Prof",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F0F7FF",
+    "theme_color": "#2563EB",
+    "description": "EDaya teacher classroom app — Accueil, agenda, classes, evaluations, and messages.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

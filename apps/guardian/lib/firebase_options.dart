@@ -45,28 +45,27 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyDtexs89UM3NWOjReVsMM9fBAB62n_aLTI',
-    appId: '1:839288643279:web:a28ac66ca356180aea61ba',
+    appId: '1:839288643279:web:71f13d2ce170b219ea61ba',
     messagingSenderId: '839288643279',
     projectId: 'edayaplus',
     authDomain: 'edayaplus.firebaseapp.com',
     storageBucket: 'edayaplus.firebasestorage.app',
-    measurementId: 'G-ZGFDEK8H0F',
+    measurementId: 'G-4P2W0C1WER',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCKQ1BkJZCOJ7JUZEjLUkDRruAiCyPTe1Y',
-    appId: '1:839288643279:android:50120e7d55f88830ea61ba',
+    appId: '1:839288643279:android:fcc6ab5c25b16c6aea61ba',
     messagingSenderId: '839288643279',
     projectId: 'edayaplus',
     storageBucket: 'edayaplus.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDi_st8k6OZtl5VzsouajkC7boNmoTNQLw',
-    appId: '1:839288643279:ios:906514199fb5dd5eea61ba',
+    appId: '1:839288643279:ios:041e327d9cdaafbeea61ba',
     messagingSenderId: '839288643279',
     projectId: 'edayaplus',
     storageBucket: 'edayaplus.firebasestorage.app',
-    iosBundleId: 'com.edaya.edayaGuardian',
+    iosBundleId: 'ca.maya-invest.edaya.guardian',
   );
 }

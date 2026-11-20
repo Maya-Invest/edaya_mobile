@@ -1,0 +1,52 @@
+name: _Full validation
+on:
+  workflow_call:
+    inputs:
+      target: {type: string, required: true}
+      source_sha: {type: string, required: true}
+      backend_sha: {type: string, required: true}
+      release_mode: {type: boolean, default: false}
+      job_results: {type: string, required: true}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  qualification:
+    name: Full validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      CI: 'true'
+      TARGET: ${{ inputs.target }}
+      CI_SOURCE_SHA: ${{ inputs.source_sha }}
+      CI_BACKEND_SHA: ${{ inputs.backend_sha }}
+      RELEASE_MODE: ${{ inputs.release_mode }}
+    steps:
+      - name: Require every qualification job to succeed
+        env:
+          RESULTS: ${{ inputs.job_results }}
+        run: echo "$RESULTS" | jq -e '. as $r | ["preparation","quality","unit","android_guardian","android_teacher","ios_guardian","ios_teacher","integration_api","integration_guardian_v2","integration_teacher_v2"] | all(.[]; $r[.].result == "success")'
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: stage-*-${{ github.run_id }}-${{ github.run_attempt }}
+          merge-multiple: true
+          path: .
+      - name: Verify evidence and artifact hashes
+        env:
+          JOB_RESULTS: ${{ inputs.job_results }}
+        run: dart run edaya_repo:repo ci finalize "$TARGET"
+      - name: Verify both IPA signing records before uploads
+        if: inputs.release_mode
+        run: ruby -r ./tooling/apple/release.rb -e 'AppleRelease.signed_ipas(AppleRelease.release_inputs)'
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qualified-${{ github.run_id }}-${{ github.run_attempt }}
+          include-hidden-files: true
+          if-no-files-found: error
+          path: .ci-evidence/qualification.json

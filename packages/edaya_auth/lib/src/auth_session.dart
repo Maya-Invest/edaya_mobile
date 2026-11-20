@@ -1,11 +1,7 @@
 import 'auth_user.dart';
 
 class AuthSession {
-  const AuthSession({
-    required this.id,
-    required this.userId,
-    this.expiresAt,
-  });
+  const AuthSession({required this.id, required this.userId, this.expiresAt});
 
   factory AuthSession.fromJson(Map<String, dynamic> json) {
     return AuthSession(
@@ -27,19 +23,14 @@ class AuthSession {
 }
 
 class AuthSessionSnapshot {
-  const AuthSessionSnapshot({
-    required this.session,
-    required this.user,
-  });
+  const AuthSessionSnapshot({required this.session, required this.user});
 
   factory AuthSessionSnapshot.fromJson(Map<String, dynamic> json) {
     return AuthSessionSnapshot(
       session: AuthSession.fromJson(
         Map<String, dynamic>.from(json['session'] as Map),
       ),
-      user: AuthUser.fromJson(
-        Map<String, dynamic>.from(json['user'] as Map),
-      ),
+      user: AuthUser.fromJson(Map<String, dynamic>.from(json['user'] as Map)),
     );
   }
 

@@ -1,0 +1,2111 @@
+{
+  "logbookFinishedHere": "Completed in this session",
+  "logbookCovered": "Covered",
+  "logbookReference": "Historical reference",
+  "logbookRemoveChapter": "Remove chapter from this session",
+  "logbookReviewDraft": "Review this recovered draft before saving.",
+  "logbookEmptyCurriculum": "No chapters configured",
+  "logbookChapterCounts": "{completed} of {total} chapters completed · {ongoing} ongoing",
+  "@logbookChapterCounts": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "ongoing": {
+        "type": "int"
+      }
+    }
+  },
+  "navInboxShort": "Inbox",
+  "navEvaluationsShort": "Assessments",
+  "navMessages": "Messages",
+  "teacherSpace": "Teacher space",
+  "guardianSpace": "Family space",
+  "signInContactSubtitle": "Sign in with your email or phone number.",
+  "signInEmailSubtitle": "Sign in with your email address.",
+  "@@locale": "en",
+  "demoTry": "Try demo",
+  "demoExit": "Exit demo",
+  "demoExitDetail": "Exit and clear your demo changes on this device?",
+  "demoLabel": "Demo",
+  "appTitleGuardian": "EDaya",
+  "appTitleTeacher": "EDaya Prof",
+  "accountTitle": "Account",
+  "accountProfileTitle": "Contact profile",
+  "accountProfileDescription": "Update the name and contact details shown to the school.",
+  "accountProfileLoginEmail": "Sign-in email: {email}",
+  "@accountProfileLoginEmail": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "accountProfileUnavailable": "Your school profile is not available.",
+  "accountProfileLoadError": "Could not load your profile. {error}",
+  "@accountProfileLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountProfileSaveError": "Could not save your profile. {error}",
+  "@accountProfileSaveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountProfileUpdateSuccess": "Profile updated.",
+  "firstNameLabel": "First name",
+  "lastNameLabel": "Last name",
+  "phoneLabel": "Phone",
+  "signingOut": "Signing out…",
+  "signOut": "Sign out",
+  "nothingToShowYet": "Nothing to show yet.",
+  "somethingWentWrong": "Something went wrong.",
+  "retry": "Retry",
+  "signInTitle": "Sign in",
+  "signInButton": "Sign in",
+  "contactLabel": "Email or phone number",
+  "invalidContact": "Enter a valid contact.",
+  "emailLabel": "Email",
+  "passwordLabel": "Password",
+  "signInFailed": "Sign-in failed",
+  "signedInSchoolSessionUnavailable": "Signed in, but school session is unavailable: {error}",
+  "@signedInSchoolSessionUnavailable": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "apiUrlCannotBeEmpty": "API URL cannot be empty",
+  "enterValidApiUrl": "Enter a valid API URL",
+  "restartRequired": "Restart required",
+  "apiUrlUpdatedReloadPage": "API URL updated to {url}. Reload the page to connect to the new server.",
+  "@apiUrlUpdatedReloadPage": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "apiUrlUpdatedRestartApp": "API URL updated to {url}. Restart the app to connect to the new server.",
+  "@apiUrlUpdatedRestartApp": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "restartApp": "Restart app",
+  "ok": "OK",
+  "help": "Help",
+  "currentApiUrl": "Current: {url}",
+  "@currentApiUrl": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "usingSavedDevOverride": "Using saved dev override",
+  "apiBaseUrlLabel": "API base URL",
+  "presetLocalhost": "Localhost",
+  "presetAndroidEmulator": "Android emulator",
+  "presetStaging": "Staging",
+  "presetProduction": "Production",
+  "presetLanEditIp": "LAN (edit IP)",
+  "resetDefault": "Reset default",
+  "save": "Save",
+  "developerSettings": "Developer settings",
+  "loginSubtitleGuardianDev": "Use dev guardian credentials to test against the local API.",
+  "loginSubtitleStaffDev": "Use dev staff credentials to test against the local API.",
+  "missingSessionDetailsRouteData": "Missing session details route data.",
+  "missingGradeDetailsRouteData": "Missing grade details route data.",
+  "missingReportCardRouteData": "Missing report card route data.",
+  "missingPaymentDetailsRouteData": "Missing payment details route data.",
+  "missingMessageDetailsRouteData": "Missing message details route data.",
+  "missingAttendanceFlowRouteData": "Missing attendance flow route data.",
+  "missingMarksEntryRouteData": "Missing marks entry route data.",
+  "signedInNoGuardianProfile": "Your account has no linked family profile. Contact your school.",
+  "signedInNoStaffProfile": "Your account has no linked staff profile. Contact your school.",
+  "signedInNoTeacherProfile": "Your account has no linked teacher profile. Contact your school.",
+  "accountNotLinkedToStaff": "This account is not linked to a staff profile.",
+  "accountNotLinkedToTeacher": "This account is not linked to a teacher profile.",
+  "navProfile": "Profile",
+  "navHome": "Home",
+  "navAgenda": "Agenda",
+  "navClasses": "Classes",
+  "navCalendar": "Calendar",
+  "navAcademic": "Academic",
+  "navFees": "Fees",
+  "navInbox": "Inbox",
+  "navEvaluations": "Assessments",
+  "teacherMockSignInHint": "In this demo, you can use any email address.",
+  "teacherMockVerifyHint": "Enter any code to continue the demo.",
+  "teacherTodaySessions": "Today’s sessions",
+  "teacherNoUpcomingSessions": "No upcoming sessions",
+  "teacherSessionsAgendaHint": "You can find today’s sessions in the agenda.",
+  "guardianSchoolLife": "School life",
+  "teacherSchoolNotices": "School notices",
+  "teacherClassLife": "School life",
+  "navTeaching": "Teaching",
+  "navReportCards": "Report cards",
+  "teachingTitle": "Teaching",
+  "reportCardsTitle": "Report cards",
+  "teachingSelectClass": "Class",
+  "teachingSelectSubject": "Subject",
+  "teachingProgressTab": "Progress",
+  "teachingLogbookTab": "Logbook",
+  "noTeachingLogEntries": "No logbook entries for this subject yet.",
+  "couldNotLoadTeachingData": "Could not load teaching data: {error}",
+  "@couldNotLoadTeachingData": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotLoadReportCards": "Could not load report cards: {error}",
+  "@couldNotLoadReportCards": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "reportCardClassNoResults": "No report cards generated for this period.",
+  "reportCardClassProgress": "{filled} / {total} comments filled",
+  "@reportCardClassProgress": {
+    "placeholders": {
+      "filled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "reportCardRosterComingSoon": "Student roster coming soon.",
+  "missingReportCardRosterRouteData": "Missing report card roster route data.",
+  "couldNotLoadReportCardRoster": "Could not load report card roster: {error}",
+  "@couldNotLoadReportCardRoster": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotLoadReportCardComments": "Could not load report card comments: {error}",
+  "@couldNotLoadReportCardComments": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotSaveReportCardComment": "Could not save report card comment: {error}",
+  "@couldNotSaveReportCardComment": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "reportCardCommentsTitle": "Report card comments",
+  "reportCardCommentHint": "Enter your comment",
+  "reportCardCommentsReadOnly": "This report card is published and cannot be edited.",
+  "reportCardCommentNoEditableFields": "No comment fields are available for your role on this report card.",
+  "subjectComment": "{subject} comment",
+  "@subjectComment": {
+    "placeholders": {
+      "subject": {
+        "type": "String"
+      }
+    }
+  },
+  "reportCardStatusDraft": "Draft",
+  "reportCardStatusPublished": "Published",
+  "tooltipAccount": "Account",
+  "loading": "Loading…",
+  "selectAStudent": "Select a student",
+  "notEnrolled": "Not enrolled",
+  "schoolYear": "School year",
+  "tooltipMyStudents": "My students",
+  "unknownUser": "Unknown user",
+  "noAcademicYearsAvailable": "No academic years available.",
+  "activeYear": "Active year",
+  "couldNotLoadAcademicYears": "Could not load academic years: {error}",
+  "@couldNotLoadAcademicYears": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotLoadStudentContext": "Could not load student context: {error}",
+  "@couldNotLoadStudentContext": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotLoadEnrollment": "Could not load enrollment: {error}",
+  "@couldNotLoadEnrollment": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "myStudents": "My students",
+  "noLinkedStudentsFound": "No linked students found.",
+  "identifierLabel": "Identifier: {identifier}",
+  "@identifierLabel": {
+    "placeholders": {
+      "identifier": {
+        "type": "String"
+      }
+    }
+  },
+  "statusLabel": "Status: {status}",
+  "@statusLabel": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotLoadLinkedStudents": "Could not load linked students: {error}",
+  "@couldNotLoadLinkedStudents": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarViewTimetable": "Timetable",
+  "calendarViewEvents": "Events",
+  "allAttendance": "All attendance",
+  "selectStudentToViewCalendar": "Select a student to view the calendar.",
+  "studentNotEnrolledForYear": "This student is not enrolled for the selected school year.",
+  "noClassesScheduledForDay": "No classes scheduled for this day.",
+  "noSchoolEventsForPeriod": "No school events for this period.",
+  "couldNotLoadCalendar": "Could not load calendar: {error}",
+  "@couldNotLoadCalendar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotLoadSessionDetails": "Could not load session details: {error}",
+  "@couldNotLoadSessionDetails": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotLoadAttendance": "Could not load attendance: {error}",
+  "@couldNotLoadAttendance": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "attendance": "Attendance",
+  "timetableSessionKindLesson": "Lesson",
+  "timetableSessionKindActivity": "Activity",
+  "timetableSessionKindAssessment": "Assessment",
+  "noAttendanceRecorded": "No attendance recorded.",
+  "classLogbook": "Class logbook",
+  "noLogbookEntryForSession": "No logbook entry for this session.",
+  "homeworkLabel": "Homework",
+  "homeworkValue": "Homework: {homework}",
+  "@homeworkValue": {
+    "placeholders": {
+      "homework": {
+        "type": "String"
+      }
+    }
+  },
+  "progressPercent": "Progress: {percent}%",
+  "@progressPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "noAttendanceRecordsForStudent": "No attendance records for this student.",
+  "tooltipPreviousWeek": "Previous week",
+  "tooltipNextWeek": "Next week",
+  "dayLetterMon": "M",
+  "dayLetterTue": "T",
+  "dayLetterWed": "W",
+  "dayLetterThu": "T",
+  "dayLetterFri": "F",
+  "dayLetterSat": "S",
+  "dayLetterSun": "S",
+  "academicViewGrades": "Grades",
+  "academicViewCurriculum": "Curriculum",
+  "academicViewReports": "Reports",
+  "allPeriods": "All periods",
+  "selectStudentToViewAcademic": "Select a student to view academic information.",
+  "noGradesForPeriod": "No grades recorded for this period.",
+  "noCurriculumProgressYet": "No curriculum progress available yet.",
+  "noReportCardsYet": "No published report cards yet.",
+  "couldNotLoadAcademicData": "Could not load academic data: {error}",
+  "@couldNotLoadAcademicData": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotLoadReportCard": "Could not load report card: {error}",
+  "@couldNotLoadReportCard": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "subjectFallback": "Subject",
+  "periodFallback": "Period",
+  "unitFallback": "Unit",
+  "gradePeriodCoefficient": "{periodName} · Coefficient {coefficient}",
+  "@gradePeriodCoefficient": {
+    "placeholders": {
+      "periodName": {
+        "type": "String"
+      },
+      "coefficient": {
+        "type": "String"
+      }
+    }
+  },
+  "score": "Score",
+  "notGradedYet": "Not graded yet",
+  "notes": "Notes",
+  "average": "Average",
+  "scoreOutOfTwenty": "/ 20",
+  "graded": "Graded",
+  "pending": "Pending",
+  "assessmentCount": "{count, plural, =0{0 assessments} =1{1 assessment} other{{count} assessments}}",
+  "@assessmentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "subjectAverage": "Average {average} / 20",
+  "@subjectAverage": {
+    "placeholders": {
+      "average": {
+        "type": "String"
+      }
+    }
+  },
+  "noScoreDash": "—",
+  "percentComplete": "{percent}% complete",
+  "@percentComplete": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "noProgrammeUnitsTracked": "No programme units tracked yet.",
+  "publishedReportCard": "Published report card",
+  "publishedOn": "Published {date}",
+  "@publishedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "scoreOutOfTwentyValue": "{average} / 20",
+  "@scoreOutOfTwentyValue": {
+    "placeholders": {
+      "average": {
+        "type": "String"
+      }
+    }
+  },
+  "reportRankOnly": "Rank {rank}",
+  "@reportRankOnly": {"placeholders": {"rank": {"type": "int"}}},
+  "rankLabel": "Rank {rank} of {classSize}",
+  "@rankLabel": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      },
+      "classSize": {
+        "type": "int"
+      }
+    }
+  },
+  "reportCardNotFound": "Report card not found.",
+  "overallAverage": "Overall average: {average} / 20",
+  "@overallAverage": {
+    "placeholders": {
+      "average": {
+        "type": "String"
+      }
+    }
+  },
+  "classRank": "Class rank: {rank}/{classSize}",
+  "@classRank": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      },
+      "classSize": {
+        "type": "int"
+      }
+    }
+  },
+  "homeroomComment": "Homeroom comment",
+  "principalComment": "Principal comment",
+  "feeLinesSection": "Fee lines",
+  "noFeeLinesForYear": "No fee lines for this school year.",
+  "paymentsSection": "Payments",
+  "noPaymentsRecordedYet": "No payments recorded yet.",
+  "selectStudentToViewFees": "Select a student to view fees and payments.",
+  "noFeesOrPaymentsForYear": "No fee lines or payments for the selected school year.",
+  "schoolFee": "School fee",
+  "couldNotLoadFees": "Could not load fees: {error}",
+  "@couldNotLoadFees": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentMethodCash": "Cash",
+  "paymentMethodCard": "Card",
+  "paymentMethodBankTransfer": "Bank transfer",
+  "paymentMethodMobileMoney": "Mobile money",
+  "paymentMethodOther": "Other",
+  "feeStatusPaid": "Paid",
+  "feeStatusPartiallyPaid": "Partially paid",
+  "feeStatusOverdue": "Overdue",
+  "feeStatusCancelled": "Cancelled",
+  "feeStatusDue": "Due",
+  "summary": "Summary",
+  "expected": "Expected",
+  "paid": "Paid",
+  "balance": "Balance",
+  "overdueFeeLinesCount": "{count, plural, =0{0 overdue fee lines} =1{1 overdue fee line} other{{count} overdue fee lines}}",
+  "@overdueFeeLinesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dueDate": "Due {date}",
+  "@dueDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentCount": "{count, plural, =0{0 payments} =1{1 payment} other{{count} payments}}",
+  "@paymentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "paidAmount": "Paid {amount}",
+  "@paidAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentDetails": "Payment details",
+  "amount": "Amount",
+  "date": "Date",
+  "method": "Method",
+  "reference": "Reference",
+  "unreadCount": "{count, plural, =0{0 unread messages} =1{1 unread message} other{{count} unread messages}}",
+  "@unreadCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noMessagesInInbox": "No messages in your inbox yet.",
+  "couldNotLoadInbox": "Could not load inbox: {error}",
+  "@couldNotLoadInbox": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "inboxStatusPending": "Pending",
+  "inboxStatusNew": "New",
+  "inboxStatusFailed": "Failed",
+  "inboxStatusRead": "Read",
+  "inboxStatusCancelled": "Cancelled",
+  "messageDefaultTitle": "Message",
+  "messageTitle": "Message",
+  "couldNotMarkMessageRead": "Could not mark message as read: {error}",
+  "@couldNotMarkMessageRead": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "allClasses": "All classes",
+  "evaluationsTitle": "Assessments",
+  "calendarTitle": "Calendar",
+  "evaluationCount": "{count, plural, =0{0 evaluations} =1{1 evaluation} other{{count} evaluations}}",
+  "@evaluationCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionCount": "{count, plural, =0{0 sessions} =1{1 session} other{{count} sessions}}",
+  "@sessionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tooltipNewEvaluation": "New evaluation",
+  "tooltipFilter": "Filter",
+  "teacherFallbackName": "Teacher",
+  "filterTitle": "Filter",
+  "classLabel": "Class",
+  "couldNotLoadTeachingContext": "Could not load teaching context: {error}",
+  "@couldNotLoadTeachingContext": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "signInToViewCalendar": "Sign in to view your teaching calendar.",
+  "noClassesAssignedForYear": "No classes assigned for this school year.",
+  "classSessionFallback": "Class session",
+  "logbook": "Logbook",
+  "attendanceProgress": "Attendance {recorded} / {total}",
+  "@attendanceProgress": {
+    "placeholders": {
+      "recorded": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "takeAttendance": "Take attendance",
+  "logbookNotAvailableForSession": "Logbook is not available for this session.",
+  "attendanceRecordingLessonOnly": "You can only record attendance for lessons you teach.",
+  "noCurriculumChaptersLinked": "No curriculum chapters linked to this subject.",
+  "chapterLabel": "Chapter",
+  "contentLabel": "Content",
+  "objectivesLabel": "Objectives (one per line)",
+  "progressPercentLabel": "Progress %",
+  "saveLogbook": "Save logbook",
+  "logbookSaved": "Logbook saved",
+  "sessionNotesLabel": "Lesson notes",
+  "sessionNotesDescription": "Session-wide narrative for this lesson.",
+  "sessionNotesHint": "What was covered in this lesson?",
+  "saveSessionNotes": "Save notes",
+  "sessionNotesSaved": "Lesson notes saved",
+  "couldNotSaveSessionNote": "Could not save lesson notes: {error}",
+  "@couldNotSaveSessionNote": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "curriculumProgressTitle": "Curriculum progress",
+  "curriculumProgressDescription": "Record how far each curriculum matter advanced in this lesson.",
+  "subjectProgressSummary": "Subject {percent}%",
+  "@subjectProgressSummary": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "cumulativeProgressLabel": "Overall {percent}%",
+  "@cumulativeProgressLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "lessonProgressLabel": "This lesson {percent}%",
+  "@lessonProgressLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "lessonProgressPercentLabel": "Progress for this lesson (%)",
+  "matterNotesLabel": "Matter notes",
+  "noMatterProgressForSession": "No progress recorded for this matter in this lesson yet.",
+  "recordMatterProgress": "Record progress",
+  "editMatterProgress": "Edit progress",
+  "saveMatterProgress": "Save progress",
+  "matterProgressSaved": "Curriculum progress saved",
+  "couldNotSaveMatterProgress": "Could not save curriculum progress: {error}",
+  "@couldNotSaveMatterProgress": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "matterProgressMinimum": "Must be at least {percent}%",
+  "@matterProgressMinimum": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "progressMustNotDecrease": "Progress must be at least {percent}%",
+  "@progressMustNotDecrease": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "matterStatusNotStarted": "Not started",
+  "matterStatusInProgress": "In progress",
+  "matterStatusCompleted": "Completed",
+  "addCurriculumProgress": "Add curriculum progress",
+  "addAnotherCurriculumProgress": "Add another matter",
+  "pickSubjectMatterTitle": "Select curriculum matter",
+  "pickSubjectMatterDescription": "Choose the matter you covered in this lesson.",
+  "noRecordedMatterProgress": "No curriculum progress recorded for this lesson yet.",
+  "allMattersRecordedForSession": "All linked curriculum matters have been recorded for this lesson.",
+  "notRecorded": "Not recorded",
+  "record": "Record",
+  "edit": "Edit",
+  "attendanceStatusPresent": "Present",
+  "attendanceStatusAbsent": "Absent",
+  "attendanceStatusLate": "Late",
+  "attendanceFlowTitle": "Attendance · {classLabel}",
+  "@attendanceFlowTitle": {
+    "placeholders": {
+      "classLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "noStudentsToRecord": "No students to record.",
+  "attendanceRecordedProgress": "{recorded} / {total} recorded",
+  "@attendanceRecordedProgress": {
+    "placeholders": {
+      "recorded": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "attendanceComplete": "Attendance complete",
+  "markAllPresent": "Mark all present",
+  "attendanceModeGrid": "Grid",
+  "attendanceModeSequential": "Sequential",
+  "attendanceExceptionTitle": "Attendance · {studentName}",
+  "@attendanceExceptionTitle": {
+    "placeholders": {
+      "studentName": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceReasonLabel": "Reason",
+  "attendanceReasonHint": "e.g. illness, appointment",
+  "attendanceNotesLabel": "Notes",
+  "attendanceNotesHint": "Optional context for the school office",
+  "rollWriteRejected": "The change could not be saved. Check the register and try again.",
+  "rollRegisterChanged": "The register has changed. Review the updated entries before finishing.",
+  "rollExcused": "Excused by staff",
+  "rollUnmarked": "Not marked",
+  "featureEditFacts": "Edit facts",
+  "featureDownloadStatement": "Download account statement",
+  "rollConflictProfile": "Resolve the attendance conflict in My profile to finish roll call.",
+  "rollList": "Return to list",
+  "rollRosterCount": "{marked}/{total} marked",
+  "bookGeneral": "General information",
+  "bookChapters": "Chapters covered",
+  "bookAddChapter": "Add a chapter",
+  "bookEditChapter": "Edit {name}",
+  "bookAllLinked": "All programme chapters are linked to this lesson.",
+  "bookNoProgramme": "No chapters are available for this class and subject.",
+  "bookProgress": "Progress",
+  "@rollRosterCount": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "marked": {
+        "type": "int"
+      }
+    }
+  },
+  "@bookEditChapter": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "rollMarkRemaining": "Mark remaining present",
+  "rollOneByOne": "One pupil at a time",
+  "rollPosition": "{position} of {total}",
+  "rollToSend": "Pending sync · Retry",
+  "rollLeftAt": "Left at {time}",
+  "rollDeparture": "Record departure",
+  "rollAttendance": "Attendance",
+  "rollLocalDraft": "Local draft available",
+  "rollProposedLogbook": "Proposed logbook",
+  "rollContent": "Lesson content",
+  "rollObjectives": "Objectives",
+  "rollHomework": "Homework",
+  "rollFamilySummary": "Family summary",
+  "rollChapters": "Chapter coverage",
+  "rollRequestChange": "Request a change",
+  "rollCreateBook": "Create entry",
+  "rollEditBook": "Edit logbook",
+  "@rollPosition": {
+    "placeholders": {
+      "position": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@rollLeftAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceSavedLocally": "Saved locally — will sync when online",
+  "calendarTodayTitle": "Today",
+  "calendarGoToToday": "Go to today",
+  "calendarCurrentSession": "Now",
+  "calendarNextSession": "Up next",
+  "calendarNoSessionsToday": "No sessions scheduled for today.",
+  "calendarIncompleteAttendance": "Attendance · {classLabel} {subjectLabel}",
+  "@calendarIncompleteAttendance": {
+    "placeholders": {
+      "classLabel": {
+        "type": "String"
+      },
+      "subjectLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionAttendanceComplete": "Attendance complete",
+  "sessionAttendanceIncomplete": "Attendance incomplete",
+  "logbookDraftRestored": "Restored unsaved logbook draft",
+  "done": "Done",
+  "cancel": "Cancel",
+  "reviewAgain": "Review again",
+  "couldNotLoadSession": "Could not load session: {error}",
+  "@couldNotLoadSession": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotSaveAttendance": "Could not save attendance: {error}",
+  "@couldNotSaveAttendance": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotSaveLogbook": "Could not save logbook: {error}",
+  "@couldNotSaveLogbook": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "chapterFallback": "Chapter",
+  "evaluationGradedProgress": "{graded} / {total} graded",
+  "@evaluationGradedProgress": {
+    "placeholders": {
+      "graded": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "selectPeriodToViewEvaluations": "Select a period to view evaluations.",
+  "noEvaluationsForPeriod": "No evaluations for this period.",
+  "couldNotLoadEvaluations": "Could not load evaluations: {error}",
+  "@couldNotLoadEvaluations": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotLoadMarks": "Could not load marks: {error}",
+  "@couldNotLoadMarks": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotSaveMark": "Could not save mark: {error}",
+  "@couldNotSaveMark": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "publishedReportCardImmutable": "This student's report card has already been published for this period. Marks can no longer be changed.",
+  "marksLockedReportCardPublished": "Report card published",
+  "marksEntryPeriodLockedHint": "Report cards have been published for this period. Marks can no longer be recorded for these students.",
+  "couldNotLoadSubjects": "Could not load subjects: {error}",
+  "@couldNotLoadSubjects": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotLoadPeriods": "Could not load periods: {error}",
+  "@couldNotLoadPeriods": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "titleRequired": "Title is required.",
+  "maxScoreMustBePositive": "Max score must be greater than zero.",
+  "periodRequired": "Period is required.",
+  "couldNotCreateEvaluation": "Could not create evaluation: {error}",
+  "@couldNotCreateEvaluation": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "newEvaluation": "New evaluation",
+  "noSubjectsAssignedForYear": "No subjects assigned for this school year.",
+  "classSubjectLabel": "Class · Subject",
+  "titleLabel": "Title",
+  "outOfLabel": "Out of",
+  "kindLabel": "Kind",
+  "evaluationKindQuiz": "Quiz",
+  "evaluationKindHomework": "Homework",
+  "evaluationKindProject": "Project",
+  "evaluationKindOther": "Other",
+  "createEvaluation": "Create evaluation",
+  "enterValidMaxScore": "Enter a valid max score.",
+  "assessmentDateLabel": "Assessment date",
+  "homeworkDueDateLabel": "Homework due date",
+  "assessmentDateRequired": "Select an assessment date.",
+  "homeworkDueDateRequired": "Select a homework due date.",
+  "invalidScoreValue": "Enter a score between 0 and {maxScore}.",
+  "@invalidScoreValue": {
+    "placeholders": {
+      "maxScore": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusSaved": "Saved",
+  "syncStatusSavedLocally": "Saved locally",
+  "syncStatusPending": "Waiting to sync",
+  "syncStatusSyncing": "Syncing",
+  "syncStatusSynced": "Synced",
+  "syncStatusFailed": "Sync failed",
+  "duplicateEvaluation": "Duplicate",
+  "completeEvaluation": "Mark complete",
+  "ungradedOnlyFilter": "Ungraded only",
+  "fillAllMarks": "Fill all",
+  "clearAllMarks": "Clear all",
+  "familyVisibleSummaryLabel": "Family-visible summary",
+  "familyVisiblePreviewLabel": "Family preview",
+  "accountSyncSectionTitle": "Synchronization",
+  "accountPendingSyncSummary": "{count, plural, =0{0 items waiting to sync} =1{1 item waiting to sync} other{{count} items waiting to sync}}",
+  "@accountPendingSyncSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "accountPendingSyncOldest": "Oldest pending {age}",
+  "@accountPendingSyncOldest": {
+    "placeholders": {
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "accountPendingSyncNone": "All changes are synced",
+  "accountSyncNow": "Sync now",
+  "accountPendingSyncJustNow": "just now",
+  "accountPendingSyncMinutes": "{minutes} min ago",
+  "@accountPendingSyncMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "accountPendingSyncHours": "{hours} hr ago",
+  "@accountPendingSyncHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "accountPendingSyncDays": "{days} d ago",
+  "@accountPendingSyncDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "outOfMaxScore": "Out of {maxScore}",
+  "@outOfMaxScore": {
+    "placeholders": {
+      "maxScore": {
+        "type": "String"
+      }
+    }
+  },
+  "currentScore": "Current: {score}",
+  "@currentScore": {
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "scoreHintOutOf": "/ {maxScore}",
+  "@scoreHintOutOf": {
+    "placeholders": {
+      "maxScore": {
+        "type": "String"
+      }
+    }
+  },
+  "periodLabel": "Period",
+  "timeRange": "{start} – {end}",
+  "@timeRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionDateTime": "{date} · {timeRange}",
+  "@sessionDateTime": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "timeRange": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentMethodAndDate": "{method} · {date}",
+  "@paymentMethodAndDate": {
+    "placeholders": {
+      "method": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTitle": "Settings",
+  "settingsTheme": "Theme",
+  "settingsThemeSystem": "System default",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsLanguage": "Language",
+  "settingsLanguageSystem": "System default",
+  "settingsLanguageEnglish": "English",
+  "settingsLanguageFrench": "French",
+  "settingsTimezone": "Time zone",
+  "settingsTimezoneDevice": "Device time zone",
+  "settingsTimezoneUtc": "UTC",
+  "settingsTimezoneParis": "Paris",
+  "settingsTimezoneAbidjan": "Abidjan",
+  "settingsTimezoneLagos": "Lagos",
+  "settingsTimezoneNewYork": "New York",
+  "settingsDateFormat": "Date format",
+  "settingsDateFormatSystem": "System default",
+  "settingsDateFormatShort": "Short",
+  "settingsDateFormatMedium": "Medium",
+  "settingsDateFormatLong": "Long",
+  "settingsTimeFormat": "Time format",
+  "settingsTimeFormatSystem": "System default",
+  "settingsTimeFormat24h": "24-hour",
+  "settingsTimeFormat12h": "12-hour",
+  "emailRequired": "Enter your email.",
+  "sendCodeButton": "Send code",
+  "noEmailAccount": "No account exists for this email.",
+  "invitationGuidance": "Ask your school for an invitation to create an account.",
+  "createEmailAccount": "Create account",
+  "useAnotherEmail": "Use another email",
+  "emailSendUnconfirmed": "We couldn’t confirm whether the code was sent.",
+  "restartEmailVerification": "Verify your email again to continue.",
+  "otpSendFailed": "Could not send a verification code.",
+  "verifyEmailTitle": "Verify your email",
+  "otpLabel": "Verification code",
+  "verifyCodeButton": "Verify and continue",
+  "resendCodeButton": "Resend code",
+  "useDifferentEmail": "Use a different email",
+  "verificationCodeSent": "We sent a code to {email}.",
+  "@verificationCodeSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "invitationTitle": "Join your school",
+  "invitationContinue": "Continue",
+  "invitationAcceptCta": "Accept invitation",
+  "invitationAccepting": "Linking your account…",
+  "invitationSuccess": "Your account is linked. Opening your family view.",
+  "invitationWrongKind": "This invitation is for another EDaya app.",
+  "invitationWrongAccount": "This invitation is for a different account. Sign out, then continue with the invited email.",
+  "invitationSignOutSwitch": "Sign out and continue",
+  "invitationNotFound": "This invitation link was not found.",
+  "invitationExpired": "This invitation has expired. Ask the school office for a new link.",
+  "invitationRevoked": "This invitation was replaced. Open the latest email or ask the school office to resend.",
+  "invitationInvalid": "This invitation is not valid.",
+  "invitationAlreadyAccepted": "This invitation was already used.",
+  "invitationLoadError": "Could not load this invitation. {error}",
+  "@invitationLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "invitationSummary": "{name} is invited as a guardian at {school}.",
+  "@invitationSummary": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "school": {
+        "type": "String"
+      }
+    }
+  },
+  "invitationExpires": "Expires {date}",
+  "@invitationExpires": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "missingChargeDetailsRouteData": "Missing charge details route data.",
+  "waitingForStudentsTitle": "You're signed in",
+  "waitingForStudentsBody": "Your account is ready. When the school links you to a child, their timetable, grades, and messages will appear here.",
+  "waitingForStudentsCheckAgain": "Check again",
+  "waitingPendingInvitationsTitle": "Pending invitations",
+  "waitingNoPendingInvitations": "No pending invitations for this email. If the school sent a link, open it from the email.",
+  "noChildrenLinkedYet": "No children are linked to your account yet.",
+  "feeStatusWaived": "Waived",
+  "availableAmount": "Available",
+  "outstandingAmount": "Outstanding",
+  "overdueAmount": "Overdue",
+  "remainingAmountLabel": "Remaining",
+  "chargeSchedule": "Payment schedule",
+  "noInstallmentsForCharge": "No installment schedule for this charge.",
+  "installmentDue": "{label} · due {date}",
+  "@installmentDue": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentKind": "Type",
+  "paymentKindReceipt": "Receipt",
+  "paymentKindDisbursement": "Refund",
+  "mutationConflict": "This change conflicts with the current record. Reload it and review before trying again.",
+  "mutationSavedRefreshFailed": "Your change was saved, but the screen could not refresh. Reopen this screen to see the saved result.",
+  "profilePhotoCropTitle": "Adjust portrait",
+  "profilePhotoCropHint": "Rotate and confirm a square JPEG of {limit} or smaller.",
+  "profilePhotoRotate": "Rotate",
+  "profilePhotoConfirmCrop": "Use this photo",
+  "profilePhotoTooLarge": "The photo still exceeds {limit} after compression.",
+  "profilePhotoUpdateSuccess": "Profile photo updated.",
+  "profilePhotoUpdateError": "Could not update the profile photo. {error}",
+  "@profilePhotoUpdateError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "childProfileTitle": "Child portrait",
+  "childProfileUnavailable": "Select a child to propose a portrait.",
+  "childProfileLoadError": "Could not load the child portrait. {error}",
+  "@childProfileLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "childProfilePublished": "Published portrait",
+  "childProfileProposed": "Proposed portrait",
+  "childProfileNoPublished": "No published portrait yet.",
+  "childProfilePending": "Waiting for school review.",
+  "childProfilePendingIndicator": "A portrait is waiting for review.",
+  "childProfileSubmitHint": "Take or choose a photo. The school must approve it before it appears on documents.",
+  "childProfileSubmit": "Submit portrait",
+  "childProfileResubmit": "Submit a new portrait",
+  "childProfileWithdraw": "Withdraw proposal",
+  "childProfileSubmitted": "Portrait submitted for review.",
+  "childProfileWithdrawn": "Proposal withdrawn.",
+  "childProfileSubmitError": "Could not submit the portrait. {error}",
+  "@childProfileSubmitError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "childProfileWithdrawError": "Could not withdraw the proposal. {error}",
+  "@childProfileWithdrawError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "childProfileRejected": "The school rejected this portrait: {reason}",
+  "@childProfileRejected": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "childProfileRejectedNoReason": "No reason was provided.",
+  "documentsTitle": "Official documents",
+  "tooltipDocuments": "Official documents",
+  "documentsEntry": "Official documents",
+  "documentsEmpty": "No official documents for this school year yet.",
+  "documentsDownloadRecall": "Already downloaded files cannot be remotely recalled.",
+  "documentsDownload": "Download",
+  "documentsGeneratePdf": "Generate PDF",
+  "documentsOpened": "Opening the PDF.",
+  "documentsRendering": "The PDF is still rendering. Open Official documents when it is ready.",
+  "documentsFailed": "This document failed ({code}).",
+  "@documentsFailed": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "documentsNotIssued": "No downloadable PDF is ready yet.",
+  "documentsOpenFailed": "Could not open the PDF.",
+  "documentStatusRequested": "Pending",
+  "documentStatusRendering": "Pending",
+  "documentStatusReady": "Issued",
+  "documentStatusFailed": "Error",
+  "documentStatusSuperseded": "Replaced",
+  "documentStatusVoided": "Voided",
+  "documentStatusPreview": "Preview",
+  "exportLogbookPdf": "Logbook PDF",
+  "exportTimetablePdf": "Timetable PDF",
+  "exportRosterPdf": "Class roster PDF",
+  "exportAttendancePdf": "Attendance sheet PDF",
+  "familyFeedbackEntry": "Feedback",
+  "familyFeedbackTitle": "Feedback",
+  "familyFeedbackEmpty": "No family feedback campaigns yet.",
+  "familyFeedbackConfidential": "Confidential and aggregated. This is not an academic assessment.",
+  "familyFeedbackSubmit": "Submit",
+  "familyFeedbackSubmitted": "Your response was recorded.",
+  "familyFeedbackAlreadyCompleted": "A response is already recorded for this student.",
+  "familyFeedbackClosed": "This campaign is closed.",
+  "familyFeedbackComment": "Optional comment",
+  "familyFeedbackCannotAssess": "Cannot assess",
+  "familyFeedbackInsufficient": "Insufficient responses",
+  "familyFeedbackThemes": "Themes",
+  "familyFeedbackSlotOpen": "Open",
+  "familyFeedbackSlotCompleted": "Completed",
+  "teacherTaskFamilyFeedback": "Feedback",
+  "teacherTaskAttendance": "Attendance to record",
+  "teacherTaskLogbook": "Logbook",
+  "teacherTaskMarks": "Marks to enter",
+  "chooseSchool": "Choose a school",
+  "teacherTaskReportComments": "Report comments",
+  "outboxConflictTitle": "Changes needing review",
+  "outboxDiscardEdit": "Discard this local edit",
+  "outboxDiscardConfirm": "This removes only the selected local edit. The server record is unchanged. Review the current record before entering a new edit.",
+  "marksAbsent": "Absent",
+  "marksExempt": "Exempt",
+  "marksDesignation": "Mark designation",
+  "marksSubmit": "Submit for approval",
+  "marksSubmitted": "Marks submitted and visible to families.",
+  "marksResolveConflicts": "Resolve pending conflicts before submitting.",
+  "marksInvalidNumber": "Enter a valid numeric mark.",
+  "marksRequestCorrection": "Request correction",
+  "marksCorrectionRequested": "Correction requested. Official marks are unchanged.",
+  "marksCorrectionHint": "Official marks stay unchanged until staff approval.",
+  "marksCorrectionReason": "Reason for correction",
+  "marksCorrectionConfirm": "I have checked all proposed changes.",
+  "marksCorrectionPending": "Pending correction",
+  "marksCorrectionApproved": "Approved correction",
+  "marksCorrectionRejected": "Rejected correction",
+  "marksCorrectionWithdrawn": "Withdrawn correction",
+  "marksWithdrawCorrection": "Withdraw request",
+  "marksComment": "Mark comment",
+  "marksPublishedLock": "Locked by a published report",
+  "marksOfficial": "Submitted · official marks",
+  "marksOriginal": "Original",
+  "marksProposed": "Proposed",
+  "deliveryChannel": "Send my code by",
+  "phoneUnavailable": "Phone verification is temporarily unavailable. Use email.",
+  "phoneCountryHint": "Côte d’Ivoire mobile numbers only. Example: +2250712345678.",
+  "authenticatorSetup": "Add this secret to your authenticator app, then enter its code.",
+  "authenticatorCode": "Authenticator code",
+  "recoveryCode": "Recovery code",
+  "useRecoveryCode": "Use a recovery code",
+  "saveRecoveryCodes": "Save these recovery codes securely. They are shown only once.",
+  "savedRecoveryCodes": "I have saved my codes",
+  "accountSecurity": "Account security",
+  "recentSignInHint": "Sign in again before changing login identifiers or your authenticator.",
+  "linkIdentifier": "Link another login identifier",
+  "unlinkIdentifier": "Unlink and sign out",
+  "enableAuthenticator": "Set up authenticator",
+  "recoveryEligible": "Allow this identifier for account recovery",
+  "contactMethod": "Verify with",
+  "verifyContactTitle": "Enter your verification code",
+  "verificationContact": "Enter the code for {contact}.",
+  "useMostRecentCode": "Use the most recent code. Each resend replaces the previous code.",
+  "sendBySms": "Send by SMS",
+  "resendCountdown": "You can request another code in {seconds}s.",
+  "changeContact": "Change contact",
+  "checkWhatsApp": "Check WhatsApp for the code.",
+  "checkSms": "Check your text messages for the code.",
+  "checkEmailCode": "Check your email for the code.",
+  "codeExpired": "This code has expired. Request a new code.",
+  "codeDeliveryFailed": "We could not send the code. After the countdown, request another code.",
+  "codeDeliveryUncertain": "Delivery is not confirmed. If the code arrives, you can still use it.",
+  "@resendCountdown": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@verificationContact": {
+    "placeholders": {
+      "contact": {
+        "type": "String"
+      }
+    }
+  },
+  "retryRequest": "Retry request",
+  "testingOnly": "Testing only",
+  "testCodeAutofilled": "Test mode is on. Your verification code was filled in automatically.",
+  "showTestCode": "Show test code",
+  "copyTestCode": "Copy",
+  "testCodeUnavailable": "Test code unavailable",
+  "attendanceIncomplete": "Record every student before finishing attendance.",
+  "attendanceSubmitNeedsSync": "Synchronize saved drafts before finishing attendance.",
+  "workflowSynced": "Synchronized",
+  "attendanceArrival": "Record arrival",
+  "workflowCorrectionPending": "Correction pending review",
+  "workflowRequestCorrection": "Request correction",
+  "dailyAttendance": "Daily attendance",
+  "workflowDiscipline": "Discipline",
+  "workflowFollowUp": "Add follow-up",
+  "deadlineCompliance": "Homework submission",
+  "deadlineMet": "On time",
+  "deadlineLate": "Late",
+  "deadlineMissed": "Missed",
+  "deadlineExcused": "Excused",
+  "attendancePresent": "Present",
+  "attendanceAbsent": "Absent",
+  "attendanceLate": "Late",
+  "attendanceFinish": "Finish roll call",
+  "attendanceMarkRemaining": "Mark remaining present",
+  "workflowReviseCorrection": "Revise request",
+  "workflowIncidentTakenOver": "Staff have taken over this incident",
+  "workflowIncidentTitle": "Title",
+  "workflowIncidentFacts": "Facts",
+  "workflowIncidentPositive": "Positive",
+  "workflowIncidentMinor": "Minor incident",
+  "workflowIncidentMajor": "Major incident",
+  "workflowIncidentEmergency": "Emergency",
+  "workflowTeacherExplanation": "Teacher explanation",
+  "messagingNew": "New message",
+  "messagingSchool": "School",
+  "messagingTeacher": "Teacher",
+  "messagingSubject": "Subject",
+  "messagingBody": "Message",
+  "messagingSend": "Send",
+  "messagingReply": "Reply",
+  "messagingEmpty": "No conversations yet",
+  "messagingOversight": "Authorized school staff can review teacher conversations.",
+  "messagingIncludeChild": "Include the selected child",
+  "messagingUnavailable": "Messaging is currently unavailable for this recipient.",
+  "messagingHistory": "Read-only conversation",
+  "messagingLoadMore": "Load older messages",
+  "messagingRefresh": "Refresh",
+  "messagingAwaitingSchool": "Awaiting school",
+  "messagingAwaitingGuardian": "Awaiting guardian reply",
+  "messagingResolved": "Resolved",
+  "messagingFailed": "Unable to send. Your draft is preserved. Try again.",
+  "messagingChanged": "New activity is available. Review the conversation before sending again.",
+  "messagingRequired": "Enter a subject and a message.",
+  "messagingSchoolAuthor": "School staff",
+  "messagingRead": "Read",
+  "messagingUnread": "Unread",
+  "messagingConversations": "Conversations",
+  "teacherSignatureTitle": "Signature",
+  "teacherSignatureUsage": "Your signature is used automatically on new periodic and annual report cards and incident reports you create at this school.",
+  "teacherSignatureEmpty": "No signature saved",
+  "teacherSignatureDraw": "Draw",
+  "teacherSignatureChooseImage": "Choose image",
+  "teacherSignatureTakePhoto": "Take photo",
+  "teacherSignatureUndo": "Undo",
+  "teacherSignatureClear": "Clear",
+  "teacherSignatureUse": "Use signature",
+  "teacherSignaturePreview": "Signature preview",
+  "teacherSignatureDrawHint": "Sign inside the box with your finger or stylus.",
+  "teacherSignatureCropHint": "Drag over the image to select your signature. Rotate or reset the crop if needed.",
+  "teacherSignatureResetCrop": "Reset crop",
+  "teacherSignatureRemove": "Remove signature",
+  "teacherSignatureRemoveConfirm": "Remove your signature? It will no longer appear on new reports. Already requested and issued documents keep their signature.",
+  "teacherSignatureSaved": "Signature saved",
+  "teacherSignatureRemoved": "Signature removed",
+  "teacherSignatureSaveError": "Unable to save your signature. Check your connection and try again. Your saved signature is preserved.",
+  "teacherSignatureLoadError": "Unable to load your signature. Try again.",
+  "teacherSignatureImageError": "This image cannot be used. Choose a valid image up to 20 MB.",
+  "teacherSignatureTooLarge": "The signature must be smaller than 1 MB. Crop it more closely and try again.",
+  "teacherSignatureDiscard": "Discard changes",
+  "teacherSignatureDraft": "Preview before saving",
+  "messagingSentDescription": "Sent by {author}, {timestamp}",
+  "@messagingSentDescription": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      },
+      "timestamp": {
+        "type": "String"
+      }
+    }
+  },
+  "messagingReceivedDescription": "Received from {author}, {timestamp}",
+  "@messagingReceivedDescription": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      },
+      "timestamp": {
+        "type": "String"
+      }
+    }
+  },
+  "gradingMention": "Grade band",
+  "termsConfirm": "Accept",
+  "termsRead": "Read the Terms of Use",
+  "termsAccept": "I accept the Terms of Use",
+  "termsLoading": "Loading the Terms of Use…",
+  "termsUnavailable": "The Terms of Use could not be loaded. Please retry to continue.",
+  "termsRetry": "Retry loading terms",
+  "termsRequired": "Accept the Terms of Use before continuing.",
+  "termsChanged": "The Terms of Use have changed. Read and accept the new version to continue.",
+  "termsDraft": "Draft preview — this text is awaiting approval and is not a published agreement.",
+  "guardianMainPhone": "Main phone",
+  "guardianAlternativePhone": "Alternative phone",
+  "guardianNotificationDestinations": "SMS uses your main phone and email uses your saved address. Messages remain available in your app inbox.",
+  "guardianEmailNotifications": "Email notifications",
+  "guardianSmsNotifications": "SMS notifications",
+  "guardianPushNotifications": "Push notifications",
+  "guardianDiscardChanges": "Discard unsaved changes?",
+  "guardianDiscard": "Discard",
+  "reportModuleExplicitWeight": "Explicit weight",
+  "reportModuleCoefficientWeight": "Contributing coefficients",
+  "reportSubjectCoefficient": "Coefficient",
+  "teacherQuickLogin": "Sign in with a quick code",
+  "teacherQuickHint": "Enter the code sent by your school.",
+  "teacherQuickLabel": "8-character teacher code",
+  "teacherQuickInvalid": "Invalid or expired code.",
+  "logbookNotSaved": "Logbook not saved",
+  "logbookCompleted": "Logbook completed",
+  "noCompletedLogbook": "No completed logbook",
+  "gradebookSave": "Save",
+  "gradebookSubmit": "Submit marks",
+  "gradebookUnsaved": "Unsaved changes",
+  "gradebookSaved": "Draft saved",
+  "gradebookQueued": "To send",
+  "gradebookClear": "Clear entry",
+  "gradebookEdit": "Edit mark",
+  "gradebookOfficial": "Official mark",
+  "gradebookProposed": "Proposed result",
+  "gradebookReason": "Reason",
+  "gradebookSend": "Send request",
+  "gradebookUpdate": "Update request",
+  "gradebookWithdraw": "Withdraw request",
+  "gradebookApproval": "The official result remains unchanged until approval.",
+  "gradebookPending": "Pending approval",
+  "gradebookGrouped": "This reason belongs to an existing grouped request. Other pupils’ proposals will be preserved.",
+  "gradebookLocked": "This result cannot be edited with your current permissions.",
+  "gradebookDiscard": "Discard changes",
+  "gradebookContinue": "Continue editing",
+  "gradebookDraft": "Draft",
+  "gradebookResult": "Result",
+  "gradebookPupil": "Pupil",
+  "gradebookMissing": "Entry required",
+  "gradebookInvalid": "Enter a valid result within the assessment scale.",
+  "gradebookWithdrawConfirm": "Withdraw the proposed change for this pupil?",
+  "gradeViewDetails": "View details",
+  "gradebookOptions": "Result options",
+  "seeYourChildrenSSchoolInformation": "See your children’s school information.",
+  "assignments": "Assignments",
+  "showMore": "Show more",
+  "quickOverview": "Quick overview",
+  "dailyAttendanceRegisters": "Daily attendance registers",
+  "approved": "Approved",
+  "approvedAwaitingPublication": "Approved, awaiting publication",
+  "reportComment": "Report comment",
+  "subjectCommentLabel": "Subject comment",
+  "publishedComment": "Published comment · {comment}",
+  "@publishedComment": {
+    "placeholders": {
+      "comment": {
+        "type": "Object"
+      }
+    }
+  },
+  "commentEntered": "Comment entered",
+  "commentNeeded": "Comment needed",
+  "archive": "Archive",
+  "noPdfIsAvailableForThisReportCard": "No PDF is available for this report card.",
+  "noSchoolNotices": "No school notices",
+  "noFeedbackPublishedForThisClassAndSubject": "No feedback published for this class and subject",
+  "noReportCardsPrepared": "No report cards prepared.",
+  "noEditableFields": "No editable fields",
+  "noCommentHasBeenSharedForThisActivity": "No comment has been shared for this activity.",
+  "noClassesScheduled": "No classes scheduled",
+  "noDetailsAvailableForThisAssessment": "No details available for this assessment.",
+  "noTeachingAssignmentSelected": "No teaching assignment selected.",
+  "noIncidents": "No incidents",
+  "noMessages": "No messages",
+  "noCurriculum": "No curriculum",
+  "noStudents": "No students",
+  "noStudentsEnrolledInThisClassAndSubject": "No students enrolled in this class and subject.",
+  "noStudentsFound": "No students found.",
+  "noAssignment": "No assignment",
+  "noActiveAssignmentForThisSchoolYear": "No active assignment for this school year.",
+  "noAssignmentsAvailable": "No assignments available.",
+  "thisSchoolHasNoPublishedSchoolYear": "This school has no published school year.",
+  "noPublishedSchoolYear": "No published school year.",
+  "noAssignedClasses": "No assigned classes",
+  "noLogbookEntriesForThisSubject": "No logbook entries for this subject",
+  "noMarks": "No marks",
+  "noSessionsToday": "No sessions today",
+  "otherMarks": "Other marks",
+  "feedback": "Feedback",
+  "reportCard": "Report card",
+  "reportCardNotGenerated": "Report card not generated",
+  "reportCardNotPrepared": "Report card not prepared",
+  "reportCardPrepared": "Report card prepared",
+  "reportCardLabel": "Report card · {period}",
+  "@reportCardLabel": {
+    "placeholders": {
+      "period": {
+        "type": "Object"
+      }
+    }
+  },
+  "reportCardNeedsUpdating": "Report card needs updating",
+  "campaignsAndArchives": "Campaigns and archives",
+  "thisRecordIsUnavailableOrYourAccessHas": "This record is unavailable or your access has changed.",
+  "thisProfileIsNoLongerAvailable": "This profile is no longer available.",
+  "helpCenter": "Help center",
+  "thisAssignmentIsNoLongerAvailable": "This assignment is no longer available.",
+  "thisAssessmentIsUnavailableOrYourAccessHas": "This assessment is unavailable or your access has changed.",
+  "changeClass": "Change class",
+  "chapters": "Chapters",
+  "couldNotLoadStudents": "Could not load students. {error}",
+  "@couldNotLoadStudents": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "chooseDate": "Choose date",
+  "chooseAClass": "Choose a class",
+  "classAndSubject": "Class and subject",
+  "selectAClassAndAPeriod": "Select a class and a period.",
+  "code": "Code",
+  "coefficient": "Coefficient {coefficient}",
+  "@coefficient": {
+    "placeholders": {
+      "coefficient": {
+        "type": "Object"
+      }
+    }
+  },
+  "comment": "Comment",
+  "staffComment": "Staff comment",
+  "commentSaved": "Comment saved",
+  "generalComment": "General comment",
+  "homeroomTeacherComment": "Homeroom teacher comment",
+  "complete": "Complete",
+  "theReportCardHasChangedReloadItAnd": "The report card has changed. Reload it and review your comment.",
+  "instructions": "Instructions",
+  "viewDailyAttendance": "View daily attendance",
+  "viewComment": "View comment",
+  "conversation": "Conversation",
+  "create": "Create",
+  "createAssessment": "Create assessment",
+  "latestMark": "Latest mark",
+  "documents": "Documents",
+  "chargeDetails": "Charge details",
+  "pendingPupilCount": "{count, plural, =0{Pending · 0 pupils} =1{Pending · 1 pupil} other{Pending · {count} pupils}}",
+  "@pendingPupilCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "couldNotSaveChanges": "Could not save changes.",
+  "couldNotSaveChangesLabel": "Could not save changes. {error}",
+  "@couldNotSaveChangesLabel": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "saveIncident": "Save incident",
+  "teachingAssignments": "Teaching assignments",
+  "entries": "Entries",
+  "invoice": "Invoice",
+  "takeDailyAttendance": "Take daily attendance",
+  "positiveIncident": "Positive incident",
+  "whatHappened": "What happened?",
+  "closeAction": "Close",
+  "dismissMessage": "Dismiss message",
+  "chargeNotFound": "Charge not found",
+  "schedule": "Schedule",
+  "couldNotLoadTheCalendar": "Could not load the calendar",
+  "couldNotLoadAssignmentsTryAgain": "Could not load assignments. Try again.",
+  "couldNotLoadResultsTryAgain": "Could not load results. Try again.",
+  "incident": "Incident",
+  "incidentSavedStillToLink": "Incident saved. Still to link: {students}. {error}",
+  "@incidentSavedStillToLink": {
+    "placeholders": {
+      "students": {
+        "type": "Object"
+      },
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "incidents": "Incidents",
+  "thePdfIsBeingGeneratedTryAgainShortly": "The PDF is being generated. Try again shortly.",
+  "logbookEntriesWillAppearHereAsTheyAre": "Logbook entries will appear here as they are added.",
+  "reportCardsAreAvailableToTheHomeroomTeacher": "Report cards are available to the homeroom teacher for this class.",
+  "detailsAreHiddenUntilTheConfidentialityThresholdIs": "Details are hidden until the confidentiality threshold is met.",
+  "theseResultsReflectTheMostRecentCalculation": "These results reflect the most recent calculation.",
+  "downloadLinkUnavailable": "Download link unavailable.",
+  "read": "Read · {date}",
+  "@read": {
+    "placeholders": {
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "theCommentWillBeAvailableOnceTheSchool": "The comment will be available once the school prepares the report card.",
+  "myClassesAndRoles": "My classes and roles",
+  "messageNotFound": "Message not found",
+  "unreadMessages": "Unread messages",
+  "paymentMethod": "Payment method",
+  "change": "Change",
+  "editComment": "Edit comment",
+  "myAccount": "My account",
+  "myProfile": "My profile",
+  "avgRank": "Avg. {average} · Rank {rank}",
+  "@avgRank": {
+    "placeholders": {
+      "average": {
+        "type": "Object"
+      },
+      "rank": {
+        "type": "Object"
+      }
+    }
+  },
+  "periodAverage": "Period average",
+  "indicativeAverageAcrossTheSubjectsTracked": "Indicative average across the subjects tracked.",
+  "averageRank": "Average {average} · Rank {rank}",
+  "@averageRank": {
+    "placeholders": {
+      "average": {
+        "type": "Object"
+      },
+      "rank": {
+        "type": "Object"
+      }
+    }
+  },
+  "incidentType": "Incident type",
+  "name": "Name",
+  "studentSMark": "Student’s mark",
+  "maximumScore": "Maximum score",
+  "officialMark": "Official mark · {result}",
+  "@officialMark": {
+    "placeholders": {
+      "result": {
+        "type": "Object"
+      }
+    }
+  },
+  "marks": "Marks",
+  "newFeedbackFromHomePastFeedbackHere": "New feedback from Home, past feedback here",
+  "newFeedbackIsAvailablePastFeedbackStaysUnder": "New feedback is available. Past feedback stays under Assessments.",
+  "newConversation": "New conversation",
+  "newAssessment": "New assessment",
+  "openAllSettings": "Open all settings",
+  "paymentNotFound": "Payment not found",
+  "parent": "Parent",
+  "noSchool": "No school",
+  "photo": "Photo",
+  "firstMessage": "First message",
+  "studentProfile": "Student profile",
+  "curriculum": "Curriculum · {percent}%",
+  "@curriculum": {
+    "placeholders": {
+      "percent": {
+        "type": "Object"
+      }
+    }
+  },
+  "preferences": "Preferences",
+  "period": "Period · {period}",
+  "@period": {
+    "placeholders": {
+      "period": {
+        "type": "Object"
+      }
+    }
+  },
+  "searchForAStudent": "Search for a student",
+  "accountStatement": "Account statement",
+  "fillWithMaximumScore": "Fill with maximum score",
+  "guardianRecipient": "Guardian recipient",
+  "guardiansUnavailable": "Guardians unavailable. {error}",
+  "@guardiansUnavailable": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "backAction": "Back",
+  "paymentReceipt": "Payment receipt",
+  "nothingScheduledForThisDay": "Nothing scheduled for this day",
+  "retryLoadingAttendance": "Retry loading attendance",
+  "retryLinkingStudents": "Retry linking students",
+  "archivedResultsForThisCampaign": "Archived results for this campaign.",
+  "resultNotFound": "Result not found",
+  "results": "Results",
+  "enterTheCodeSentTo": "Enter the code sent to {contact}.",
+  "@enterTheCodeSentTo": {
+    "placeholders": {
+      "contact": {
+        "type": "Object"
+      }
+    }
+  },
+  "cannotAssess": "Cannot assess · {count}",
+  "@cannotAssess": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "noClassSpecified": "No class specified",
+  "academics": "Learning",
+  "confidentialityThreshold": "Confidentiality threshold",
+  "reportAnIncident": "Report an incident",
+  "couldNotSubmit": "Could not submit: {error}",
+  "@couldNotSubmit": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "status": "Status",
+  "followUp": "Follow-up",
+  "session": "Session",
+  "sessionNotFound": "Session not found",
+  "responseRate": "Response rate · {percent}%",
+  "@responseRate": {
+    "placeholders": {
+      "percent": {
+        "type": "Object"
+      }
+    }
+  },
+  "homeroomTeacher": "Homeroom teacher",
+  "viewAllAttendance": "View all attendance",
+  "downloadReceipt": "Download receipt",
+  "confirmEachMarkWithEnterOrNext": "Confirm each mark with Enter or Next.",
+  "yourAssignmentHasChangedAnotherTeachingAssignmentHas": "Your assignment has changed. Another teaching assignment has been selected.",
+  "verifyCode": "Verify code",
+  "ofTheCurriculumCovered": "{percent}% of the curriculum covered",
+  "@ofTheCurriculumCovered": {
+    "placeholders": {
+      "percent": {
+        "type": "Object"
+      }
+    }
+  },
+  "paidLabel": "{percent}% paid",
+  "@paidLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "Object"
+      }
+    }
+  },
+  "returnToResults": "{error} Return to results.",
+  "@returnToResults": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "pendingCommentCount": "{count, plural, =0{0 comments pending} =1{1 comment pending} other{{count} comments pending}}",
+  "@pendingCommentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "overdueChargesCount": "{count, plural, =0{0 overdue charges} =1{1 overdue charge} other{{count} overdue charges}}",
+  "@overdueChargesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "responseCount": "{count, plural, =0{0 responses} =1{1 response} other{{count} responses}}",
+  "@responseCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rank": "{label} {average} · Rank {rank}",
+  "@rank": {
+    "placeholders": {
+      "label": {
+        "type": "Object"
+      },
+      "average": {
+        "type": "Object"
+      },
+      "rank": {
+        "type": "Object"
+      }
+    }
+  },
+  "pendingApproval": "{label} · Pending approval: {proposal}",
+  "@pendingApproval": {
+    "placeholders": {
+      "label": {
+        "type": "Object"
+      },
+      "proposal": {
+        "type": "Object"
+      }
+    }
+  },
+  "homeroomTeacherLabel": "{subject} · Homeroom teacher",
+  "@homeroomTeacherLabel": {
+    "placeholders": {
+      "subject": {
+        "type": "Object"
+      }
+    }
+  },
+  "pendingLabel": "{className} · {count} pending",
+  "@pendingLabel": {
+    "placeholders": {
+      "className": {
+        "type": "Object"
+      },
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "gradedLabel": "{className} · {period} · {graded}/{total} graded",
+  "@gradedLabel": {
+    "placeholders": {
+      "className": {
+        "type": "Object"
+      },
+      "period": {
+        "type": "Object"
+      },
+      "graded": {
+        "type": "Object"
+      },
+      "total": {
+        "type": "Object"
+      }
+    }
+  },
+  "subjectPupilCount": "{subject} · {count} students",
+  "@subjectPupilCount": {
+    "placeholders": {
+      "subject": {
+        "type": "Object"
+      },
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "toRead": "{count} to read",
+  "@toRead": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "surveyResponseRatio": "{completed}/{eligible} responses",
+  "@surveyResponseRatio": {
+    "placeholders": {
+      "completed": {
+        "type": "Object"
+      },
+      "eligible": {
+        "type": "Object"
+      }
+    }
+  },
+  "dueDateLabel": "Due date",
+  "dueDateRequired": "Due date required",
+  "due": "Due · {date}",
+  "@due": {
+    "placeholders": {
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "feeInstallments": "Installments",
+  "student": "Student",
+  "studentNotFound": "Student not found",
+  "studentNotFoundForThisSurvey": "Student not found for this survey.",
+  "students": "Students",
+  "assessmentNotFound": "Assessment not found",
+  "assessmentWorkspace": "Assessments",
+  "@profilePhotoCropHint": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "@profilePhotoTooLarge": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceSubmitFailed": "Couldn’t submit attendance. Try again.",
+  "attendanceSaveFailed": "Couldn’t save the attendance change.",
+  "attendanceCorrectionHint": "Request a correction to change submitted attendance.",
+  "commentCorrectionFailed": "Couldn’t send the comment correction. Try again.",
+  "calendarHoliday": "Holiday",
+  "calendarBreak": "School break",
+  "calendarEvent": "Event",
+  "paperSchoolCertificate": "Certificate of school attendance",
+  "paperEnrollment": "Enrollment record",
+  "paperStudentId": "Student ID card",
+  "paperWithdrawal": "School withdrawal certificate",
+  "paperSummons": "School summons",
+  "feedbackCommunication": "Communication",
+  "feedbackClarity": "Clarity of expectations",
+  "feedbackSupport": "Student support",
+  "feedbackExperience": "Student experience",
+  "feedbackQuestion": "Survey question",
+  "guardianPushDescription": "School updates and alerts for families",
+  "teacherPushDescription": "School updates and alerts for staff",
+  "duplicateTitle": "{title} (copy)",
+  "@duplicateTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "schoolSessionUnavailable": "Couldn’t open your school session. Try again.",
+  "verificationInvalid": "Invalid or expired code.",
+  "sessionsToday": "{count, plural, =0{0 sessions today} =1{1 session today} other{{count} sessions today}}",
+  "@sessionsToday": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "availableMarks": "{count, plural, =0{0 marks available} =1{1 mark available} other{{count} marks available}}",
+  "@availableMarks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "absenceCount": "{count, plural, =0{0 absences} =1{1 absence} other{{count} absences}}",
+  "@absenceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "lateArrivals": "{count, plural, =0{0 late arrivals} =1{1 late arrival} other{{count} late arrivals}}",
+  "@lateArrivals": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "surveyCount": "{count, plural, =0{0 surveys} =1{1 survey} other{{count} surveys}}",
+  "@surveyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "openSurveyCount": "{count, plural, =0{0 open surveys} =1{1 open survey} other{{count} open surveys}}",
+  "@openSurveyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "availableDocuments": "{count, plural, =0{0 documents available} =1{1 document available} other{{count} documents available}}",
+  "@availableDocuments": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "outboxCorrection": "Correction request",
+  "accountActionFailed": "Couldn’t complete this account action. Try again.",
+  "academicSubjects": "Subjects",
+  "workspaceSchedule": "Schedule",
+  "workspaceHistory": "History",
+  "workspaceNotifications": "Notifications",
+  "workspaceChapters": "Chapters",
+  "workspacePeriodAverage": "Period average",
+  "workspaceEvaluations": "Evaluations",
+  "workspaceNewEvaluation": "New evaluation",
+  "workspaceActions": "Actions",
+  "workspaceNoHistory": "No past sessions in this period",
+  "workspaceLoadOlder": "Load older",
+  "workspaceNotRecorded": "Not recorded",
+  "workspaceAttendanceComplete": "Attendance completed",
+  "workspaceAttendanceIncomplete": "Attendance incomplete",
+  "workspaceLogbookComplete": "Logbook completed",
+  "workspaceLogbookIncomplete": "Logbook incomplete",
+  "workspacePeriod": "Period",
+  "workspaceChooseEvaluation": "Choose an evaluation",
+  "workspaceJustificationRejected": "Justification rejected",
+  "workspaceJustificationPending": "Justification pending"
+}

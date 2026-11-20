@@ -57,14 +57,14 @@ bool isEntityCollectionPath(String path) {
 }
 
 bool isEntityGetPath(String path) {
-  return RegExp(r'/core/entities/[^/]+/[^/]+$').hasMatch(path)
-      && !path.endsWith('/list')
-      && !path.endsWith('/one')
-      && !path.endsWith('/save')
-      && !path.endsWith('/count')
-      && !path.endsWith('/delete')
-      && !path.endsWith('/batch-save')
-      && !path.endsWith('/batch-delete');
+  return RegExp(r'/core/entities/[^/]+/[^/]+$').hasMatch(path) &&
+      !path.endsWith('/list') &&
+      !path.endsWith('/one') &&
+      !path.endsWith('/save') &&
+      !path.endsWith('/count') &&
+      !path.endsWith('/delete') &&
+      !path.endsWith('/batch-save') &&
+      !path.endsWith('/batch-delete');
 }
 
 T parseApiResponse<T>(String path, int status, Object? body) {

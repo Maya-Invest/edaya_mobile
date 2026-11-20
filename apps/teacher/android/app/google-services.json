@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "839288643279",
+    "project_id": "edayaplus",
+    "storage_bucket": "edayaplus.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:839288643279:android:63c4324ab6ab1a3eea61ba",
+        "android_client_info": {
+          "package_name": "ca.mayainvest.edaya.teacher"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCKQ1BkJZCOJ7JUZEjLUkDRruAiCyPTe1Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

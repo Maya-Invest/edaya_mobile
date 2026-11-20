@@ -1,0 +1,456 @@
+import '../../design/workspace_layout.dart';
+import 'package:edaya_shared/edaya_shared.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:levit_flutter/levit_flutter.dart';
+import '../../app/workspace_navigation.dart';
+import '../../design/components/surface_card.dart';
+import '../../design/spacing.dart';
+import '../../live/entity_queries.dart';
+import '../context/teacher_context_controller.dart';
+import '../context/academic_year_controller.dart';
+import 'live_evaluations_controller.dart';
+import 'live_marks_controller.dart';
+import 'gradebook_marks_view.dart';
+import 'teacher_gradebook_controller.dart';
+import 'evaluations_page.dart';
+
+class TeacherGradebookPage extends LScopedView<TeacherGradebookController> {
+  const TeacherGradebookPage({super.key, this.initialAssessmentId});
+  final String? initialAssessmentId;
+  @override
+  TeacherGradebookController onConfigScope(LevitScope scope) => scope.put(
+    () => TeacherGradebookController(
+      scope.find<TeacherContextController>(),
+      scope.find<LiveEvaluationsController>(),
+      scope.find<SchoolClientFactory>(),
+      scope,
+      initialAssessmentId: initialAssessmentId,
+    ),
+  );
+  @override
+  Widget buildView(
+    BuildContext context,
+    TeacherGradebookController controller,
+  ) {
+    final c = controller;
+    final ev = c.evaluations;
+    final selected = initialAssessmentId;
+    final active = c.teacher.activeAssignment;
+    final evaluations = [...ev.evaluations.value]
+      ..sort((a, b) => (b.date ?? '').compareTo(a.date ?? ''));
+    if (selected != null && c.assessmentError.value.isNotEmpty) {
+      return Center(
+        child: TextButton(
+          onPressed: () => context.replace('/evaluations'),
+          child: Text(context.tr.returnToResults(c.assessmentError.value)),
+        ),
+      );
+    }
+    if (selected != null && !evaluations.any((e) => e.id == selected)) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (active?.classSubjectId == null) {
+      return Center(child: Text(context.tr.noTeachingAssignmentSelected));
+    }
+    final period = _GradebookPicker(
+      key: ValueKey(('period', ev.selectedPeriodId.value)),
+      initialValue:
+          ev.periods.value.any((p) => p['id'] == ev.selectedPeriodId.value)
+          ? ev.selectedPeriodId.value
+          : null,
+      isExpanded: true,
+      decoration: InputDecoration(labelText: context.tr.workspacePeriod),
+      items: [
+        for (final p in ev.periods.value)
+          DropdownMenuItem(
+            value: p['id'] as String,
+            child: Text(
+              academicPeriodLabel(p),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+      ],
+      onChanged: (id) async {
+        if (!await prepareWorkspaceChange(context) || !context.mounted) return;
+        if (id != null) {
+          ev.selectPeriod(id);
+          context.replace('/evaluations');
+        }
+      },
+    );
+    final choice = _GradebookPicker(
+      key: ValueKey(('evaluation', selected)),
+      initialValue: evaluations.any((e) => e.id == selected) ? selected : null,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: context.tr.workspaceChooseEvaluation,
+      ),
+      items: [
+        for (final e in evaluations)
+          DropdownMenuItem(
+            value: e.id,
+            child: Text(e.title, overflow: TextOverflow.ellipsis),
+          ),
+      ],
+      onChanged: (id) async {
+        if (!await prepareWorkspaceChange(context) || !context.mounted) return;
+        if (id == null) return;
+        ev.selectedEvaluationId(id);
+        context.replace(
+          Uri(
+            path: '/evaluations',
+            queryParameters: {'view': 'evaluations', 'assessment': id},
+          ).toString(),
+        );
+      },
+    );
+    final add = FilledButton.icon(
+      style: FilledButton.styleFrom(minimumSize: const Size(48, 48)),
+      label: Text(
+        context.tr.workspaceNewEvaluation,
+        textAlign: TextAlign.center,
+      ),
+      icon: const Icon(Icons.add),
+      onPressed: ev.selectedPeriodId.value == null
+          ? null
+          : () async {
+              if (!await prepareWorkspaceChange(context) || !context.mounted) {
+                return;
+              }
+              await context.push('/evaluations/create');
+              await c.load();
+            },
+    );
+    final fab = FeatureAction(
+      context.tr.workspaceNewEvaluation,
+      Icons.add,
+      add.onPressed,
+    );
+    final showEvaluations =
+        selected != null ||
+        GoRouterState.of(context).uri.queryParameters['view'] == 'evaluations';
+    return DefaultTabController(
+      key: ValueKey(showEvaluations),
+      length: 2,
+      initialIndex: showEvaluations ? 1 : 0,
+      child: Builder(
+        builder: (context) => Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: LayoutBuilder(
+                builder: (context, box) {
+                  if (phoneActions(context)) return period;
+                  if (MediaQuery.textScalerOf(context).scale(14) > 22)
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [period, const SizedBox(height: 8), add],
+                    );
+                  return Row(
+                    children: [
+                      Expanded(child: period),
+                      const SizedBox(width: 8),
+                      Expanded(flex: 2, child: add),
+                    ],
+                  );
+                },
+              ),
+            ),
+            Builder(
+              builder: (tabContext) => TabBar(
+                isScrollable: MediaQuery.textScalerOf(context).scale(14) > 22,
+                tabs: [
+                  Tab(text: context.tr.workspacePeriodAverage),
+                  Tab(text: context.tr.workspaceEvaluations),
+                ],
+                onTap: (index) async {
+                  if (index == (showEvaluations ? 1 : 0)) return;
+                  if (!await prepareWorkspaceChange(context)) {
+                    if (context.mounted)
+                      DefaultTabController.of(tabContext).index =
+                          showEvaluations ? 1 : 0;
+                    return;
+                  }
+                  if (!context.mounted) return;
+                  ev.selectedEvaluationId(null);
+                  context.replace(
+                    '/evaluations?view=${index == 0 ? 'average' : 'evaluations'}',
+                  );
+                },
+              ),
+            ),
+            if (ev.errorMessage.value.isNotEmpty)
+              TextButton(
+                onPressed: ev.reload,
+                child: Text(ev.errorMessage.value),
+              ),
+            Expanded(
+              child: !showEvaluations
+                  ? _AverageRows(controller: c)
+                  : selected != null && evaluations.any((e) => e.id == selected)
+                  ? EvaluationMarksPane(
+                      key: ValueKey((active!.id, selected)),
+                      evaluationId: selected,
+                      header: choice,
+                      action: fab,
+                    )
+                  : ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        choice,
+                        const SizedBox(height: 16),
+                        Text(context.tr.workspaceChooseEvaluation),
+                      ],
+                    ),
+            ),
+            if (!showEvaluations || selected == null)
+              FeatureActionBar(actions: [fab]),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AverageRows extends StatelessWidget {
+  const _AverageRows({required this.controller});
+  final TeacherGradebookController controller;
+  @override
+  Widget build(BuildContext context) => LWatch(() {
+    final c = controller;
+    if (c.loading.value) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (c.error.value.isNotEmpty) {
+      return Center(
+        child: TextButton(onPressed: c.load, child: Text(c.error.value)),
+      );
+    }
+    Future<void> open(Map<String, dynamic> row) async {
+      await showWorkspaceEditor<Object?>(
+        context: context,
+        wide: true,
+        title: '${row['firstName']} ${row['lastName']}'.trim(),
+        builder: (_, close) => _SubjectSummary(row: row, controller: c),
+      );
+      await c.load();
+    }
+
+    return RefreshIndicator(
+      onRefresh: c.load,
+      child: ListView(
+        key: PageStorageKey((
+          'averages',
+          c.teacher.activeAssignmentId.value,
+          c.evaluations.selectedPeriodId.value,
+        )),
+        padding: const EdgeInsets.all(PrototypeSpacing.md),
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          if (c.students.value.isEmpty)
+            Text(context.tr.noStudentsEnrolledInThisClassAndSubject),
+          for (final row in c.students.value)
+            Padding(
+              padding: const EdgeInsets.only(bottom: PrototypeSpacing.xs),
+              child: SurfaceCard(
+                padding: EdgeInsets.zero,
+                child: GradeRecordRow(
+                  title: '${row['firstName']} ${row['lastName']}'.trim(),
+                  result: row,
+                  onDetails: () => open(row),
+                  editLabel: row['comment'] == null
+                      ? null
+                      : _commentAction(context, row),
+                  onEdit: row['comment'] == null
+                      ? null
+                      : () async {
+                          await _openComment(context, row, c);
+                          await c.load();
+                        },
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  });
+}
+
+String _commentAction(BuildContext context, Map row) =>
+    row['comment']['proposal']?['status'] == 'approved_pending_publication'
+    ? context.tr.viewComment
+    : context.tr.editComment;
+
+Future<void> _openComment(
+  BuildContext context,
+  Map row,
+  TeacherGradebookController controller,
+) async {
+  await showWorkspaceEditor<Object?>(
+    context: context,
+    title: context.tr.reportComment,
+    builder: (_, close) => ReportCardCommentPage(
+      classId: controller.teacher.activeAssignment!.classGroupId,
+      periodId: controller.evaluations.selectedPeriodId.value!,
+      rosterId: row['studentId'] as String,
+      subjectId: controller.teacher.activeAssignment!.classSubjectId,
+    ),
+  );
+}
+
+class _SubjectSummary extends StatelessWidget {
+  const _SubjectSummary({required this.row, required this.controller});
+  final Map<String, dynamic> row;
+  final TeacherGradebookController controller;
+  @override
+  Widget build(BuildContext context) => ListView(
+    padding: const EdgeInsets.all(16),
+    children: [
+      Text(
+        context.tr.periodAverage,
+        style: Theme.of(context).textTheme.titleMedium,
+      ),
+      GradeValue(
+        formatCalculatedGrade(
+          (row['average'] as num?)?.toDouble(),
+          (row['grading'] as Map?)?.cast<String, dynamic>(),
+        ),
+        row,
+        style: Theme.of(context).textTheme.headlineMedium,
+      ),
+      const SizedBox(height: PrototypeSpacing.sectionGap),
+      WorkspaceColumns(
+        first: [
+          for (final result in (row['contributions'] as List).cast<Map>())
+            GradeRecordRow(
+              title: result['title'] as String,
+              result: result,
+              details: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 12,
+                children: [
+                  Text(
+                    context.tr.coefficient(
+                      formatGradeNumber(result['coefficient'] as num?),
+                    ),
+                  ),
+                  if (result['notes'] case final String notes) Text(notes),
+                ],
+              ),
+            ),
+        ],
+        second: [
+          if (row['comment'] == null)
+            Text(context.tr.theCommentWillBeAvailableOnceTheSchool)
+          else ...[
+            Text(
+              context.tr.subjectCommentLabel,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            Text((row['comment'] as Map)['text'] as String),
+            if ((row['comment'] as Map)['proposal'] case final Map proposal)
+              Text(
+                '${proposal['status'] == 'approved_pending_publication' ? 'Approuvée · En attente de publication' : 'En attente d’approbation'} · ${proposal['text']}',
+              ),
+            FilledButton(
+              onPressed: () => _openComment(context, row, controller),
+              child: Text(_commentAction(context, row)),
+            ),
+          ],
+        ],
+      ),
+    ],
+  );
+}
+
+class EvaluationMarksPane extends LScopedView<LiveMarksController> {
+  const EvaluationMarksPane({
+    super.key,
+    required this.evaluationId,
+    this.header,
+    this.action,
+  });
+  final Widget? header;
+  final FeatureAction? action;
+  final String evaluationId;
+  @override
+  LiveMarksController onConfigScope(LevitScope scope) => scope.put(
+    () => LiveMarksController(
+      evaluationId: evaluationId,
+      evaluations: scope.find<LiveEvaluationsController>(),
+      academicYear: scope.find<AcademicYearController>(),
+      teacherContext: scope.find<TeacherContextController>(),
+      schoolClient: scope.find<SchoolClientFactory>(),
+      outboxStore: scope.find<TeacherOutboxStore>(),
+      outboxContext: () => teacherOutboxContextForSession(
+        session: scope.find<AppSessionController>(),
+        academicYearId: scope
+            .find<AcademicYearController>()
+            .selectedYearId
+            .value,
+      ),
+    ),
+  );
+  @override
+  Widget buildView(BuildContext context, LiveMarksController controller) {
+    return GradebookMarksView(
+      controller: controller,
+      header: header,
+      action: action,
+    );
+  }
+}
+
+String markValue(LiveMarkRow row) => row.designation == 'absent'
+    ? 'Absent'
+    : row.designation == 'exempt'
+    ? systemL10n().marksExempt
+    : row.mentionCode ??
+          (row.score == null
+              ? systemL10n().gradebookMissing
+              : formatGradeNumber(row.score));
+String proposalValue(LiveMarksController c, Map row) =>
+    row['designation'] == 'absent'
+    ? 'Absent'
+    : row['designation'] == 'exempt'
+    ? systemL10n().marksExempt
+    : row['mentionId'] != null
+    ? c.mentionLabel(row['mentionId'] as String)
+    : formatGradeNumber(row['score'] as num?);
+
+/// Restore the displayed selection while an unsaved-edit prompt is pending.
+class _GradebookPicker extends StatefulWidget {
+  const _GradebookPicker({
+    super.key,
+    required this.initialValue,
+    required this.isExpanded,
+    required this.decoration,
+    required this.items,
+    required this.onChanged,
+  });
+  final String? initialValue;
+  final bool isExpanded;
+  final InputDecoration decoration;
+  final List<DropdownMenuItem<String>> items;
+  final ValueChanged<String?> onChanged;
+  @override
+  State<_GradebookPicker> createState() => _GradebookPickerState();
+}
+
+class _GradebookPickerState extends State<_GradebookPicker> {
+  final field = GlobalKey<FormFieldState<String>>();
+  @override
+  Widget build(BuildContext context) => DropdownButtonFormField<String>(
+    key: field,
+    initialValue: widget.initialValue,
+    isExpanded: widget.isExpanded,
+    decoration: widget.decoration,
+    items: widget.items,
+    onChanged: (value) {
+      if (value == widget.initialValue) return;
+      field.currentState?.didChange(widget.initialValue);
+      widget.onChanged(value);
+    },
+  );
+}

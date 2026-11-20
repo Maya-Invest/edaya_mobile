@@ -1,0 +1,660 @@
+{
+  "guardian_v2": {
+    "features": [
+      {
+        "id": "guardian-v2.workspace",
+        "routes": [
+          "/children"
+        ],
+        "actions": [
+          {
+            "id": "guardian-v2.workspace.home.action",
+            "scenarios": [
+              "guardian-v2.workspace.home"
+            ]
+          },
+          {
+            "id": "guardian-v2.workspace.menu.action",
+            "scenarios": [
+              "guardian-v2.workspace.menu"
+            ]
+          },
+          {
+            "id": "guardian-v2.workspace.children.action",
+            "scenarios": [
+              "guardian-v2.workspace.children"
+            ]
+          },
+          {
+            "id": "guardian-v2.results.drilldown.action",
+            "scenarios": [
+              "guardian-v2.results.drilldown"
+            ]
+          },
+          {
+            "id": "guardian-v2.results.archive.action",
+            "scenarios": [
+              "guardian-v2.results.archive"
+            ]
+          },
+          {
+            "id": "guardian-v2.coverage.routes.action",
+            "scenarios": [
+              "guardian-v2.coverage.routes"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "guardian-v2.authentication",
+        "routes": [
+          "/login",
+          "/waiting",
+          "/invite/:token",
+          "/profiles"
+        ],
+        "actions": [
+          {
+            "id": "guardian-v2.authentication.email",
+            "scenarios": [
+              "guardian-v2.auth.email"
+            ]
+          },
+          {
+            "id": "guardian-v2.authentication.phone",
+            "scenarios": [
+              "guardian-v2.auth.sms-switch",
+              "guardian-v2.auth.whatsapp"
+            ]
+          },
+          {
+            "id": "guardian-v2.authentication.invitation",
+            "scenarios": [
+              "guardian-v2.invitation.accept"
+            ]
+          },
+          {
+            "id": "guardian-v2.authentication.profile-selection",
+            "scenarios": [
+              "guardian-v2.profiles.select"
+            ]
+          },
+          {
+            "id": "guardian-v2.authentication.session",
+            "scenarios": [
+              "guardian-v2.auth.restore-stale"
+            ]
+          },
+          {
+            "id": "guardian-v2.authentication.test-otp",
+            "scenarios": [
+              "guardian-v2.auth.email",
+              "guardian-v2.auth.whatsapp",
+              "guardian-v2.auth.sms-switch"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "guardian-v2.home",
+        "routes": [
+          "/home"
+        ],
+        "actions": [
+          {
+            "id": "guardian-v2.home.bootstrap",
+            "scenarios": [
+              "guardian-v2.workspace.home"
+            ]
+          },
+          {
+            "id": "guardian-v2.home.switch-child",
+            "scenarios": [
+              "guardian-v2.context-sheet-switches-active-linked-student",
+              "guardian-v2.multi-child-guardian-switches-linked-student"
+            ]
+          },
+          {
+            "id": "guardian-v2.home.isolation",
+            "scenarios": [
+              "guardian-v2.child.isolation"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "guardian-v2.calendar",
+        "routes": [
+          "/calendar",
+          "/calendar/attendance",
+          "/attendance",
+          "/calendar/events",
+          "/session/:id"
+        ],
+        "actions": [
+          {
+            "id": "guardian-v2.calendar.calendar",
+            "scenarios": [
+              "guardian-v2.calendarpage-shows-week-controls-and-seeded-sessions"
+            ]
+          },
+          {
+            "id": "guardian-v2.calendar.detail",
+            "scenarios": [
+              "guardian-v2.session-row-opens-session-detail-page"
+            ]
+          },
+          {
+            "id": "guardian-v2.calendar.attendance",
+            "scenarios": [
+              "guardian-v2.calendar.history"
+            ]
+          },
+          {
+            "id": "guardian-v2.calendar.events",
+            "scenarios": [
+              "guardian-v2.calendar.events"
+            ]
+          },
+          {
+            "id": "guardian-v2.calendar.history-pagination",
+            "scenarios": [
+              "guardian-v2.calendar.history"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "guardian-v2.academics",
+        "routes": [
+          "/scolarite",
+          "/scolarite/notes",
+          "/scolarite/bulletins",
+          "/scolarite/programme",
+          "/scolarite/cahier",
+          "/scolarite/progress",
+          "/scolarite/subject/:subject",
+          "/scolarite/subject/:subject/cahier",
+          "/scolarite/period/:periodId/subject/:subject",
+          "/grade/:id",
+          "/report-card/:id",
+          "/scolarite/progress/:subjectId",
+          "/scolarite/progress/:subjectId/cahier"
+        ],
+        "actions": [
+          {
+            "id": "guardian-v2.academics.grades",
+            "scenarios": [
+              "guardian-v2.grade-detail-page-shows-assessed-title-from-live-api",
+              "guardian-v2.grades.subject"
+            ]
+          },
+          {
+            "id": "guardian-v2.academics.report-cards",
+            "scenarios": [
+              "guardian-v2.report-card.detail"
+            ]
+          },
+          {
+            "id": "guardian-v2.academics.progress",
+            "scenarios": [
+              "guardian-v2.progress.detail"
+            ]
+          },
+          {
+            "id": "guardian-v2.academics.logbook",
+            "scenarios": [
+              "guardian-v2.logbook.subject"
+            ]
+          },
+          {
+            "id": "guardian-v2.academics.redirects",
+            "scenarios": [
+              "guardian-v2.academics.redirects"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "guardian-v2.finance",
+        "routes": [
+          "/fees",
+          "/fees/fee/:id",
+          "/fee/:id",
+          "/fees/payment/:id",
+          "/payment/:id"
+        ],
+        "actions": [
+          {
+            "id": "guardian-v2.finance.fees",
+            "scenarios": [
+              "guardian-v2.feespage-loads-billed-fees-from-the-live-api",
+              "guardian-v2.fees.detail"
+            ]
+          },
+          {
+            "id": "guardian-v2.finance.payments",
+            "scenarios": [
+              "guardian-v2.payment-detail-page-shows-fee-label-from-live-api"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "guardian-v2.communications",
+        "routes": [
+          "/inbox",
+          "/inbox/message/:id",
+          "/message/:id",
+          "/inbox/avis",
+          "/inbox/avis/:campaignId",
+          "/inbox/conversation/:conversationId"
+        ],
+        "actions": [
+          {
+            "id": "guardian-v2.communications.inbox",
+            "scenarios": [
+              "guardian-v2.inboxpage-lists-guardian-message-deliveries"
+            ]
+          },
+          {
+            "id": "guardian-v2.communications.read",
+            "scenarios": [
+              "guardian-v2.message-detail-page-shows-delivery-title-from-live-api",
+              "guardian-v2.inbox.read"
+            ]
+          },
+          {
+            "id": "guardian-v2.communications.feedback",
+            "scenarios": [
+              "guardian-v2.feedback.submit"
+            ]
+          },
+          {
+            "id": "guardian-v2.communications.conversations",
+            "scenarios": [
+              "guardian-v2.messaging.school"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "guardian-v2.account",
+        "routes": [
+          "/account",
+          "/account/profile",
+          "/child",
+          "/settings"
+        ],
+        "actions": [
+          {
+            "id": "guardian-v2.account.security",
+            "scenarios": [
+              "guardian-v2.account.security",
+              "guardian-v2.auth.totp-recovery"
+            ]
+          },
+          {
+            "id": "guardian-v2.account.documents",
+            "scenarios": [
+              "guardian-v2.child.profile",
+              "guardian-v2.documents.read"
+            ]
+          },
+          {
+            "id": "guardian-v2.account.settings",
+            "scenarios": [
+              "guardian-v2.settings.persist"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "teacher_v2": {
+    "features": [
+      {
+        "id": "teacher-v2.authentication",
+        "routes": [
+          "/login",
+          "/profiles"
+        ],
+        "actions": [
+          {
+            "id": "teacher-v2.authentication.email",
+            "scenarios": [
+              "teacher-v2.auth.email"
+            ]
+          },
+          {
+            "id": "teacher-v2.authentication.profile-selection",
+            "scenarios": [
+              "teacher-v2.profiles.select"
+            ]
+          },
+          {
+            "id": "teacher-v2.authentication.logout",
+            "scenarios": [
+              "teacher-v2.subject.logout",
+              "teacher-v2.homeroom.logout"
+            ]
+          },
+          {
+            "id": "teacher-v2.authentication.session",
+            "scenarios": [
+              "teacher-v2.auth.restore-stale"
+            ]
+          },
+          {
+            "id": "teacher-v2.authentication.phone",
+            "scenarios": [
+              "teacher-v2.auth.whatsapp",
+              "teacher-v2.auth.sms-switch"
+            ]
+          },
+          {
+            "id": "teacher-v2.authentication.test-otp",
+            "scenarios": [
+              "teacher-v2.auth.email",
+              "teacher-v2.auth.whatsapp",
+              "teacher-v2.auth.sms-switch"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "teacher-v2.home",
+        "routes": [
+          "/home",
+          "/home/context",
+          "/home/editor",
+          "/home/student/:classId/:studentId"
+        ],
+        "actions": [
+          {
+            "id": "teacher-v2.home.bootstrap",
+            "scenarios": [
+              "teacher-v2.subject.bootstrap",
+              "teacher-v2.homeroom.bootstrap"
+            ]
+          },
+          {
+            "id": "teacher-v2.navigation.sheets",
+            "scenarios": [
+              "teacher-v2.navigation.sheets"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "teacher-v2.classes",
+        "routes": [
+          "/classes",
+          "/classes/:classId",
+          "/classes/:classId/student/:studentId",
+          "/classes/:classId/attendance",
+          "/classes/:classId/discipline",
+          "/class-roll",
+          "/class-roll/:classId/:studentId",
+          "/progress",
+          "/progress/cahier/:id",
+          "/incidents",
+          "/incidents/new",
+          "/incidents/:classId/:incidentId",
+          "/classes/:classId/context",
+          "/classes/:classId/editor",
+          "/classes/:classId/attendance/context",
+          "/classes/:classId/attendance/editor",
+          "/classes/:classId/discipline/context",
+          "/classes/:classId/discipline/editor",
+          "/class-roll/context",
+          "/class-roll/editor",
+          "/progress/context",
+          "/progress/editor",
+          "/incidents/context",
+          "/incidents/editor"
+        ],
+        "actions": [
+          {
+            "id": "teacher-v2.classes.roster",
+            "scenarios": [
+              "teacher-v2.subject.roster",
+              "teacher-v2.homeroom.roster"
+            ]
+          },
+          {
+            "id": "teacher-v2.classes.list",
+            "scenarios": [
+              "teacher-v2.classes.list"
+            ]
+          },
+          {
+            "id": "teacher-v2.classes.recorded-logbook",
+            "scenarios": [
+              "teacher-v2.logbook.open-recorded"
+            ]
+          },
+          {
+            "id": "teacher-v2.classes.daily-attendance",
+            "scenarios": [
+              "teacher-v2.daily-attendance.submit"
+            ]
+          },
+          {
+            "id": "teacher-v2.classes.discipline",
+            "scenarios": [
+              "teacher-v2.discipline.correction"
+            ]
+          },
+          {
+            "id": "teacher-v2.classes.register-incident",
+            "scenarios": [
+              "teacher-v2.discipline.register"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "teacher-v2.calendar",
+        "routes": [
+          "/calendar",
+          "/session/:id",
+          "/session/:id/attendance",
+          "/session/:id/logbook",
+          "/calendar/lesson/:id",
+          "/calendar/lesson/:id/attendance",
+          "/calendar/lesson/:id/logbook",
+          "/calendar/context",
+          "/calendar/editor",
+          "/session/:id/context",
+          "/session/:id/editor"
+        ],
+        "actions": [
+          {
+            "id": "teacher-v2.calendar.calendar",
+            "scenarios": [
+              "teacher-v2.calendar.read"
+            ]
+          },
+          {
+            "id": "teacher-v2.calendar.detail",
+            "scenarios": [
+              "teacher-v2.session.detail"
+            ]
+          },
+          {
+            "id": "teacher-v2.calendar.attendance",
+            "scenarios": [
+              "teacher-v2.attendance.save",
+              "teacher-v2.homeroom.attendance-denied"
+            ]
+          },
+          {
+            "id": "teacher-v2.calendar.logbook",
+            "scenarios": [
+              "teacher-v2.logbook.save"
+            ]
+          },
+          {
+            "id": "teacher-v2.calendar.offline-retry",
+            "scenarios": [
+              "teacher-v2.offline.retry"
+            ]
+          },
+          {
+            "id": "teacher-v2.calendar.history",
+            "scenarios": [
+              "teacher-v2.calendar.read"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "teacher-v2.evaluation",
+        "routes": [
+          "/evaluations",
+          "/evaluations/create",
+          "/evaluations/:evaluationId/marks",
+          "/evaluations/context",
+          "/evaluations/editor",
+          "/evaluations/subject-comment/:classId/:periodId/:studentId"
+        ],
+        "actions": [
+          {
+            "id": "teacher-v2.evaluation.create-marks",
+            "scenarios": [
+              "teacher-v2.evaluation.create-marks"
+            ]
+          },
+          {
+            "id": "teacher-v2.evaluation.corrections",
+            "scenarios": [
+              "teacher-v2.marks.correction"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "teacher-v2.report-cards",
+        "routes": [
+          "/evaluations/report-cards/:classId/:periodId",
+          "/evaluations/report-cards/:classId/:periodId/:rosterId",
+          "/report-cards",
+          "/report-cards/:classId/:periodId",
+          "/report-cards/:classId/:periodId/:rosterId",
+          "/report-cards/context",
+          "/report-cards/editor"
+        ],
+        "actions": [
+          {
+            "id": "teacher-v2.report-cards.subject-comment",
+            "scenarios": [
+              "teacher-v2.subject.report-card.comment"
+            ]
+          },
+          {
+            "id": "teacher-v2.report-cards.homeroom-comment",
+            "scenarios": [
+              "teacher-v2.homeroom.report-card.comment"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "teacher-v2.communications",
+        "routes": [
+          "/inbox",
+          "/inbox/message/:id",
+          "/message/:id",
+          "/evaluations/avis",
+          "/evaluations/avis/:feedbackId",
+          "/home/avis/:feedbackId",
+          "/inbox/conversation/:conversationId",
+          "/inbox/new",
+          "/inbox/context",
+          "/inbox/editor",
+          "/evaluations/avis/context",
+          "/evaluations/avis/editor"
+        ],
+        "actions": [
+          {
+            "id": "teacher-v2.communications.inbox",
+            "scenarios": [
+              "teacher-v2.inbox.read"
+            ]
+          },
+          {
+            "id": "teacher-v2.communications.feedback",
+            "scenarios": [
+              "teacher-v2.feedback.read"
+            ]
+          },
+          {
+            "id": "teacher-v2.communications.conversations",
+            "scenarios": [
+              "teacher-v2.messaging.reply"
+            ]
+          },
+          {
+            "id": "teacher-v2.communications.start",
+            "scenarios": [
+              "teacher-v2.messaging.start"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "teacher-v2.account",
+        "routes": [
+          "/account",
+          "/account/profile",
+          "/settings",
+          "/account/settings",
+          "/account/context",
+          "/account/editor"
+        ],
+        "actions": [
+          {
+            "id": "teacher-v2.account.profile",
+            "scenarios": [
+              "teacher-v2.subject.account",
+              "teacher-v2.homeroom.account"
+            ]
+          },
+          {
+            "id": "teacher-v2.account.security",
+            "scenarios": [
+              "teacher-v2.account.security"
+            ]
+          },
+          {
+            "id": "teacher-v2.account.settings",
+            "scenarios": [
+              "teacher-v2.settings.persist"
+            ]
+          },
+          {
+            "id": "teacher-v2.account.signature",
+            "scenarios": [
+              "teacher-v2.account.signature"
+            ]
+          }
+        ]
+      }
+    ],
+    "limits": [
+      {
+        "id": "external.otp-delivery",
+        "reason": "Provider transport is captured locally; real email, Telegram and WhatsApp delivery is external."
+      },
+      {
+        "id": "device.native",
+        "reason": "Push delivery, native document opening, camera and device storage require device/emulator tests."
+      },
+      {
+        "id": "future.support-recovery",
+        "reason": "Support-assisted recovery is not implemented."
+      }
+    ]
+  }
+}

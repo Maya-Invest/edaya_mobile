@@ -1,0 +1,104 @@
+import 'package:flutter/material.dart';
+
+import '../colors.dart';
+import '../spacing.dart';
+import 'status_chip.dart';
+import 'surface_card.dart';
+
+class ListRow extends StatelessWidget {
+  const ListRow({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.leading,
+    this.trailing,
+    this.stackTrailingAtLargeText = false,
+    this.badge,
+    this.badgeTone,
+    this.onTap,
+    this.unread = false,
+    this.selected = false,
+    this.tint,
+  });
+
+  final String title;
+  final String? subtitle;
+  final Widget? leading;
+  final Widget? trailing;
+  final bool stackTrailingAtLargeText;
+  final String? badge;
+  final SemanticTone? badgeTone;
+  final VoidCallback? onTap;
+  final bool unread;
+  final bool selected;
+  final Color? tint;
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveTint =
+        tint ??
+        (selected
+            ? Theme.of(
+                context,
+              ).colorScheme.primaryContainer.withValues(alpha: 0.55)
+            : unread
+            ? Theme.of(
+                context,
+              ).colorScheme.primaryContainer.withValues(alpha: 0.35)
+            : null);
+
+    final stacked =
+        stackTrailingAtLargeText &&
+        MediaQuery.sizeOf(context).width < 600 &&
+        MediaQuery.textScalerOf(context).scale(14) > 20;
+    return SurfaceCard(
+      onTap: onTap,
+      tint: effectiveTint,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (leading != null) ...[
+            leading!,
+            const SizedBox(width: PrototypeSpacing.sm),
+          ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: Theme.of(context).textTheme.titleSmall),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 4),
+                  Text(subtitle!, style: Theme.of(context).textTheme.bodySmall),
+                ],
+                if (stacked && trailing != null) ...[
+                  const SizedBox(height: PrototypeSpacing.xs),
+                  trailing!,
+                ],
+              ],
+            ),
+          ),
+          if (badge != null || (!stacked && trailing != null)) ...[
+            const SizedBox(width: PrototypeSpacing.sm),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (badge != null)
+                  StatusChip(
+                    label: badge!,
+                    tone:
+                        badgeTone ??
+                        (unread ? SemanticTone.info : SemanticTone.neutral),
+                  ),
+                if (!stacked && trailing != null) ...[
+                  if (badge != null)
+                    const SizedBox(height: PrototypeSpacing.xs),
+                  trailing!,
+                ],
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}

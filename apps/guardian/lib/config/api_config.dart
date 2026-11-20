@@ -1,23 +1,14 @@
-/// Default API base URL for local development.
+import 'package:edaya_shared/edaya_shared.dart';
+
+/// API and dev credential configuration for the next guardian app.
 ///
-/// Override at runtime with:
-/// `flutter run --dart-define=API_URL=http://10.0.2.2:9999` (Android emulator)
-///
-/// Flutter web runs in the browser and calls the API directly, so the API must
-/// allow your dev origin via CORS (localhost origins are allowed in development).
+/// Base URL: SharedPreferences override → `--dart-define=API_URL` → app default.
+/// Authentication uses the selected API URL.
 abstract final class ApiConfig {
-  static const baseUrl = String.fromEnvironment(
-    'API_URL',
-    defaultValue: 'http://localhost:9999',
-  );
+  static String get baseUrl => ApiBaseUrlConfig.baseUrl;
 
   static const devGuardianEmail = String.fromEnvironment(
     'DEV_GUARDIAN_EMAIL',
-    defaultValue: 'c.laurent@mail.com',
-  );
-
-  static const devPassword = String.fromEnvironment(
-    'DEV_PASSWORD',
-    defaultValue: 'DevPassword1!',
+    defaultValue: 'm.kone@mail.ci',
   );
 }

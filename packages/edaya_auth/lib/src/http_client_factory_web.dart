@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 
 bool get edayaHttpUsesBrowserCredentials => true;
 
-http.Client createEdayaHttpClient() {
+http.Client createEdayaHttpClient({bool withCredentials = true}) {
   final client = BrowserClient();
-  client.withCredentials = true;
+  client.withCredentials = withCredentials;
   return client;
 }

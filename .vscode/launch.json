@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Teacher v2 · Full review data (iPad)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/teacher",
+      "program": "${workspaceFolder}/apps/teacher/lib/main.dart",
+      "flutterMode": "debug",
+      "toolArgs": [
+        "--dart-define=API_URL=http://127.0.0.1:19998",
+        "--dart-define=DEV_TEACHER_EMAIL=k.diomande@ecole-ci.edaya.dev"
+      ],
+      "preLaunchTask": "Check teacher review API"
+    }
+  ]
+}

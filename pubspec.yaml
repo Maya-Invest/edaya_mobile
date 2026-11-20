@@ -9,9 +9,15 @@ workspace:
   - apps/teacher
   - packages/edaya_api_client
   - packages/edaya_auth
+  - packages/edaya_shared
+  - tooling/integration_tests
+  - tooling/repo
 
 dev_dependencies:
   melos: ^8.0.0
+
+dependency_overrides:
+  cli_util: ^0.5.1
 
 melos:
   command:
@@ -19,14 +25,28 @@ melos:
       runPubGetInParallel: true
   scripts:
     analyze:
-      exec: dart analyze .
-      description: Run static analysis in all packages.
+      exec: dart analyze lib test
+      description: Run static analysis on lib/ and test/ (skips build artifacts).
     test:
-      exec: flutter test
-      description: Run tests in all Flutter apps.
+      exec: flutter test --no-pub --exclude-tags 'integration || staging || design-review'
+      packageFilters:
+        ignore: edaya_repo
+      description: Run unit and widget tests, excluding live APIs and screenshot generation.
     format:
-      exec: dart format .
-      description: Format Dart source in all packages.
-    clean:flutter:
-      exec: flutter clean
-      description: Run flutter clean in all Flutter apps.
+      exec: dart format lib test
+      description: Format Dart source in lib/ and test/ (skips build artifacts).
+    fix:
+      exec: dart run edaya_repo:repo maintenance fix
+      description: Apply automated dart fix suggestions in lib/ and test/.
+    generated:update:
+      run: dart run edaya_repo:repo generate client
+      description: Regenerate edaya_api_client bindings from an OpenAPI document.
+    generated:check:
+      run: dart run edaya_repo:repo check
+      description: Verify the prepared client against its acquired backend commit and checksums.
+    brand:generate:
+      run: dart run edaya_repo:repo generate brand
+      description: Generate local Dart brand tokens from the versioned snapshot.
+    verify:
+      run: dart run edaya_repo:repo ci verify
+      description: Verify prepared clients, brand, workflows, tooling and application tests.

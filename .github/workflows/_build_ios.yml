@@ -1,0 +1,83 @@
+name: _iOS build
+on:
+  workflow_call:
+    inputs:
+      app: {type: string, required: true}
+      target: {type: string, required: true}
+      source_sha: {type: string, required: true}
+      backend_sha: {type: string, required: true}
+      release_mode: {type: boolean, default: false}
+    secrets:
+      IOS_SIGNING_BUNDLE: {required: false}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  ios:
+    name: iOS build
+    runs-on: macos-15
+    environment: ${{ inputs.release_mode && inputs.target || '' }}
+    timeout-minutes: 180
+    env:
+      MOBILE_APP: ${{ inputs.app }}
+      CI: 'true'
+      TARGET: ${{ inputs.target }}
+      CI_SOURCE_SHA: ${{ inputs.source_sha }}
+      CI_BACKEND_SHA: ${{ inputs.backend_sha }}
+      RELEASE_MODE: ${{ inputs.release_mode }}
+      DEVELOPER_DIR: /Applications/Xcode_26.1.1.app/Contents/Developer
+      FASTLANE_SKIP_UPDATE_CHECK: '1'
+      FASTLANE_OPT_OUT_USAGE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        id: setup
+        with:
+          native-app: ${{ inputs.app }}
+          seed-flutter: ${{ inputs.release_mode && inputs.app == 'guardian' }}
+      - name: Identify Xcode build
+        id: xcode
+        run: |
+          build=$(xcodebuild -version | awk '/^Build version/ {print $3}')
+          test -n "$build"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+      # Let Xcode resolve working checkouts from the app pins on every runner.
+      - name: Restore Swift packages
+        id: swift
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            apps/${{ inputs.app }}/build/ios/SourcePackages/repositories
+            apps/${{ inputs.app }}/build/ios/SourcePackages/artifacts
+          key: swiftpm-${{ inputs.app }}-${{ steps.setup.outputs.sdk-key }}-${{ steps.xcode.outputs.build }}-${{ hashFiles(format('apps/{0}/ios/**/Package.resolved', inputs.app), 'pubspec.lock') }}
+      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: tooling/apple
+      - name: Compile iOS app without distribution signing
+        if: ${{ !inputs.release_mode }}
+        env:
+          BUNDLE_GEMFILE: ${{ github.workspace }}/tooling/apple/Gemfile
+        run: bundle exec dart run edaya_repo:repo ci native ios "$TARGET"
+      - name: Export and verify distribution IPA
+        if: inputs.release_mode
+        env:
+          IOS_SIGNING_BUNDLE: ${{ secrets.IOS_SIGNING_BUNDLE }}
+        run: bundle exec fastlane ios build
+        working-directory: tooling/apple
+      - name: Save Swift packages
+        if: (inputs.release_mode || github.event_name == 'pull_request') && steps.swift.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            apps/${{ inputs.app }}/build/ios/SourcePackages/repositories
+            apps/${{ inputs.app }}/build/ios/SourcePackages/artifacts
+          key: ${{ steps.swift.outputs.cache-primary-key }}
+      - uses: ./.github/actions/stage
+        with:
+          stage: ios_${{ inputs.app }}

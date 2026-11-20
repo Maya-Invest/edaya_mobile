@@ -1,0 +1,89 @@
+name: _Preparation
+on:
+  workflow_call:
+    inputs:
+      target: {type: string, required: true}
+      source_ref: {type: string, required: true}
+      backend_ref: {type: string, default: ''}
+      match_backend_branch: {type: boolean, default: false}
+      release_mode: {type: boolean, default: false}
+      store_build: {type: string, default: ''}
+      reservation_attempt: {type: string, default: ''}
+    secrets:
+      BACKEND_CHECKOUT_TOKEN: {required: true}
+    outputs:
+      source_sha:
+        value: ${{ jobs.preparation.outputs.source_sha }}
+      backend_sha:
+        value: ${{ jobs.preparation.outputs.backend_sha }}
+permissions:
+  contents: read
+jobs:
+  preparation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    outputs:
+      source_sha: ${{ steps.revisions.outputs.source_sha }}
+      backend_sha: ${{ steps.revisions.outputs.backend_sha }}
+    env:
+      TARGET: ${{ inputs.target }}
+      RELEASE_MODE: ${{ inputs.release_mode }}
+      EDAYA_STORE_BUILD: ${{ inputs.store_build }}
+    steps:
+      - name: Check store build reservation
+        if: inputs.release_mode && inputs.reservation_attempt != github.run_attempt
+        run: |
+          echo "::error::Re-run all jobs to reserve a store build for this attempt."
+          exit 1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ inputs.source_ref }}
+          persist-credentials: false
+      - uses: ./.github/actions/flutter
+        with:
+          seed: ${{ inputs.release_mode }}
+      - name: Select backend revision
+        id: backend
+        env:
+          BACKEND_REF: ${{ inputs.backend_ref || (inputs.target == 'production' && 'main' || 'staging') }}
+          MATCH_BRANCH: ${{ inputs.match_backend_branch }}
+          BACKEND_CHECKOUT_TOKEN: ${{ secrets.BACKEND_CHECKOUT_TOKEN }}
+        run: dart tooling/repo/bin/backend_ref.dart
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: Maya-Invest/edaya_backend
+          ref: ${{ steps.backend.outputs.ref }}
+          token: ${{ secrets.BACKEND_CHECKOUT_TOKEN }}
+          path: .ci/edaya_backend
+          persist-credentials: false
+      - name: Pin both revisions
+        id: revisions
+        run: |
+          source_sha=$(git rev-parse HEAD)
+          backend_sha=$(git -C .ci/edaya_backend rev-parse HEAD)
+          echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
+          echo "backend_sha=$backend_sha" >> "$GITHUB_OUTPUT"
+          echo "CI_SOURCE_SHA=$source_sha" >> "$GITHUB_ENV"
+          echo "CI_BACKEND_SHA=$backend_sha" >> "$GITHUB_ENV"
+          echo "Mobile \`$source_sha\`, backend \`$backend_sha\`." >> "$GITHUB_STEP_SUMMARY"
+      - id: cache-key
+        run: dart run edaya_repo:repo ci client-key .ci/edaya_backend
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: .cache/clients/
+          key: ${{ runner.os }}-client-${{ steps.cache-key.outputs.client_key }}
+      - name: Prepare and freeze API client
+        run: |
+          dart run edaya_repo:repo generate client "$TARGET" --backend-root .ci/edaya_backend
+          dart pub get --enforce-lockfile
+          dart run edaya_repo:repo ci prepare "$TARGET"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: prepared-${{ github.run_id }}-${{ github.run_attempt }}
+          include-hidden-files: true
+          if-no-files-found: error
+          path: |
+            .release/pubspec.lock
+            .generated/
+            .ci-evidence/prepared.json
+            packages/edaya_api_client/lib/src/generated/

@@ -1,5 +1,3 @@
-# Launch Screen Assets
+# EDAYA launch artwork
 
-You can customize the launch screen with your own desired assets by replacing the image files in this directory.
-
-You can also do it by opening your Flutter project's Xcode project with `open ios/Runner.xcworkspace`, selecting `Runner/Assets.xcassets` in the Project Navigator and dropping in the desired images.
+Generated from the supplied outlined symbol by `dart run edaya_repo:repo generate assets`. Guardian uses the color symbol on white; Teacher uses the white symbol on royal blue. Preserve image dimensions and the existing launch storyboard behavior. See `docs/specs/design-language-spec.md` at the repository root.

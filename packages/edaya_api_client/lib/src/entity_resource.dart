@@ -5,10 +5,42 @@ import 'transport.dart';
 typedef EntityQuery = Map<String, dynamic>;
 
 class EntityResource {
-  EntityResource(this._transport, this.publicName);
+  EntityResource(
+    this._transport,
+    this.publicName, {
+    Map<String, bool> publicOperations = const {},
+  }) : _operations = Map.unmodifiable(publicOperations);
+
+  final Map<String, bool> _operations;
 
   final Transport _transport;
   final String publicName;
+
+  /// Pages with `$limit`/`$offset` until a short page. Throws if the result
+  /// would be silently truncated past [maxRows].
+  Future<List<Map<String, dynamic>>> listAll([
+    EntityQuery? query,
+    int pageSize = 100,
+    int maxRows = 5000,
+  ]) async {
+    final rows = <Map<String, dynamic>>[];
+    var offset = 0;
+    while (true) {
+      final page = await list({
+        ...?query,
+        r'$limit': pageSize,
+        r'$offset': offset,
+      });
+      rows.addAll(page);
+      if (page.length < pageSize) {
+        return rows;
+      }
+      offset += page.length;
+      if (offset >= maxRows) {
+        throw StateError('Entity list for $publicName exceeded $maxRows rows');
+      }
+    }
+  }
 
   Future<List<Map<String, dynamic>>> list([EntityQuery? query]) async {
     final result = await _transport.request<Object?>(
@@ -45,6 +77,7 @@ class EntityResource {
   }
 
   Future<Map<String, dynamic>> save(Map<String, dynamic> entity) async {
+    _requireOperations(['create', 'update']);
     final result = await _transport.request<Object?>(
       'POST',
       _path('save'),
@@ -54,6 +87,7 @@ class EntityResource {
   }
 
   Future<Map<String, dynamic>> delete({required String id}) {
+    _requireOperations(['delete']);
     return _transport.request<Map<String, dynamic>>(
       'POST',
       _path('delete'),
@@ -64,6 +98,7 @@ class EntityResource {
   Future<Map<String, dynamic>> batchSave({
     required List<Map<String, dynamic>> entities,
   }) {
+    _requireOperations(['batchCreate', 'batchUpdate']);
     return _transport.request<Map<String, dynamic>>(
       'POST',
       _path('batch-save'),
@@ -72,11 +107,20 @@ class EntityResource {
   }
 
   Future<Map<String, dynamic>> batchDelete({required List<String> ids}) {
+    _requireOperations(['batchDelete']);
     return _transport.request<Map<String, dynamic>>(
       'POST',
       _path('batch-delete'),
       options: TransportRequestOptions(body: {'ids': ids}),
     );
+  }
+
+  void _requireOperations(List<String> operations) {
+    if (operations.any((operation) => _operations[operation] != true)) {
+      throw StateError(
+        'Generic mutation is unavailable for $publicName; use a domain command',
+      );
+    }
   }
 
   String _path(String action) {

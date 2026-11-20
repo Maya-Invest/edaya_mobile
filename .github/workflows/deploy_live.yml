@@ -1,0 +1,119 @@
+name: Deploy live
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+  deployments: write
+concurrency:
+  group: mobile-store-release
+  queue: max
+jobs:
+  qualification:
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      actions: read
+      deployments: write
+    uses: ./.github/workflows/_qualify_release.yml
+    with:
+      target: production
+    secrets:
+      BACKEND_CHECKOUT_TOKEN: ${{ secrets.BACKEND_CHECKOUT_TOKEN }}
+      ANDROID_SIGNING_BUNDLE: ${{ secrets.ANDROID_SIGNING_BUNDLE }}
+      IOS_SIGNING_BUNDLE: ${{ secrets.IOS_SIGNING_BUNDLE }}
+
+  google_play:
+    name: Google Play production review
+    needs: qualification
+    uses: ./.github/workflows/_publish_play.yml
+    with:
+      target: production
+      backend_sha: ${{ needs.qualification.outputs.backend_sha }}
+    secrets:
+      GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+
+  app_store_upload:
+    name: Upload for App Review / ${{ matrix.app }}
+    needs: qualification
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [guardian, teacher]
+    runs-on: macos-15
+    environment: production
+    timeout-minutes: 180
+    env:
+      TARGET: production
+      MOBILE_APP: ${{ matrix.app }}
+      CI_SOURCE_SHA: ${{ github.sha }}
+      CI_BACKEND_SHA: ${{ needs.qualification.outputs.backend_sha }}
+      RELEASE_MODE: 'true'
+      DEVELOPER_DIR: /Applications/Xcode_26.1.1.app/Contents/Developer
+      FASTLANE_SKIP_UPDATE_CHECK: '1'
+      FASTLANE_OPT_OUT_USAGE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/upload-ios
+        with:
+          api-key: ${{ secrets.APP_STORE_CONNECT_API_KEY_JSON }}
+      - name: Check processed build is eligible for App Review
+        working-directory: tooling/apple
+        env:
+          APP_STORE_CONNECT_API_KEY_JSON: ${{ secrets.APP_STORE_CONNECT_API_KEY_JSON }}
+        run: bundle exec fastlane ios check_review
+
+  app_review:
+    name: Submit to App Review / ${{ matrix.app }}
+    needs: app_store_upload
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [guardian, teacher]
+    runs-on: macos-15
+    environment: production
+    timeout-minutes: 180
+    env:
+      TARGET: production
+      MOBILE_APP: ${{ matrix.app }}
+      FASTLANE_SKIP_UPDATE_CHECK: '1'
+      FASTLANE_OPT_OUT_USAGE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: prepared-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: qualified-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .ci-evidence/
+      - name: Restore signed manifest and processed upload receipt
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: receipts-ios-${{ matrix.app }}-upload-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .release/${{ matrix.app }}/
+      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: tooling/apple
+      - name: Submit processed build for manual release
+        working-directory: tooling/apple
+        env:
+          APP_STORE_CONNECT_API_KEY_JSON: ${{ secrets.APP_STORE_CONNECT_API_KEY_JSON }}
+        run: bundle exec fastlane ios submit
+      - name: Retain App Review receipt
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: receipts-ios-${{ matrix.app }}-submit-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .release/${{ matrix.app }}/apple-submission.json
+          include-hidden-files: true
+          if-no-files-found: warn

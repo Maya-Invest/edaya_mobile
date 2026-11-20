@@ -1,17 +1,11 @@
-# edaya_guardian
+# Guardian v2
 
-A new Flutter project.
+Child-first family workspace aligned with Teacher v2. See [the normative workspace specification](../../docs/specs/guardian-v2-workspace-spec.md).
 
-## Getting Started
+Run from this directory with `flutter run --dart-define=API_URL=http://127.0.0.1:19998`. The API must include `get-guardian-period-results`; regenerate the workspace API client after backend changes. Android uses `ca.mayainvest.edaya.guardian`, shares Guardian’s app identity, and replaces its installed build. Android package names cannot contain hyphens. iOS uses `ca.maya-invest.edaya.guardian` under Maya Investissement Group Inc. (`SQFU4GGCX2`), with its own Firebase iOS registration.
 
-This project is a starting point for a Flutter application.
+Run `flutter test test --exclude-tags integration` for controller and layout checks. Run the registered `guardian_v2` integration suite against an isolated seeded backend. The layout matrix covers Home/results/subject navigation in FR/EN, light/dark, phone/tablet and 100%/200% text.
 
-A few resources to get you started if this is your first Flutter project:
+## Apple push notifications
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+The iOS target includes the push entitlement and background modes. Complete the [Apple/Firebase account setup and device validation](../../docs/reference/apple-push-notifications.md) to enable delivery.

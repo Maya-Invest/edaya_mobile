@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:839288643279:android:50120e7d55f88830ea61ba",
+        "mobilesdk_app_id": "1:839288643279:android:fcc6ab5c25b16c6aea61ba",
         "android_client_info": {
-          "package_name": "com.edaya.edaya_guardian"
+          "package_name": "ca.mayainvest.edaya.guardian"
         }
       },
       "oauth_client": [],

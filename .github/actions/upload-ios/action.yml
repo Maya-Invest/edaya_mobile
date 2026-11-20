@@ -1,0 +1,35 @@
+name: Upload qualified IPA
+description: Verify the IPA, upload it to App Store Connect and record the processed build.
+inputs:
+  api-key:
+    description: App Store Connect API key JSON.
+    required: true
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/restore-publication
+      with:
+        platform: ios
+    - name: Verify qualified IPA and signing manifest
+      shell: bash
+      run: dart run edaya_repo:repo ci verify-publication ios "$TARGET"
+    - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199
+      with:
+        ruby-version: '3.3'
+        bundler-cache: true
+        working-directory: tooling/apple
+    - name: Upload IPA and wait for processing
+      shell: bash
+      working-directory: tooling/apple
+      env:
+        APP_STORE_CONNECT_API_KEY_JSON: ${{ inputs.api-key }}
+      run: bundle exec fastlane ios upload_beta
+    - name: Retain processed build receipt and signed manifest
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      with:
+        name: receipts-ios-${{ env.MOBILE_APP }}-upload-${{ github.run_id }}-${{ github.run_attempt }}
+        path: |
+          .release/${{ env.MOBILE_APP }}/apple-testflight.json
+          .release/${{ env.MOBILE_APP }}/apple-build.json
+        include-hidden-files: true
+        if-no-files-found: error

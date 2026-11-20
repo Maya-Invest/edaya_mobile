@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.edaya.edayaGuardian</string>
+	<string>ca.maya-invest.edaya.guardian</string>
 	<key>PROJECT_ID</key>
 	<string>edayaplus</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:839288643279:ios:906514199fb5dd5eea61ba</string>
+	<string>1:839288643279:ios:041e327d9cdaafbeea61ba</string>
 </dict>
 </plist>
