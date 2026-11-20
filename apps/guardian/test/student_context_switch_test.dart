@@ -11,9 +11,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class _Session implements AppSessionController {
   @override
-  final user = LxVar<AuthUser?>(null);
+  final user = LxVar<AuthUser?>(
+    AuthUser(id: 'account', email: 'guardian@example.test'),
+  );
   @override
-  final grants = LxVar<api.EffectiveGrantsResponse?>(null);
+  final grants = LxVar<api.EffectiveGrantsResponse?>(
+    const api.EffectiveGrantsResponse(
+      kind: 'guardian',
+      actorId: 'guardian',
+      schoolId: 'school',
+      assuranceLevel: 'standard',
+      grants: [],
+    ),
+  );
   @override
   bool get isAuthenticated => true;
   @override
@@ -27,69 +37,65 @@ class _Session implements AppSessionController {
 }
 
 class _Transport implements api.Transport {
-  final slow = Completer<List<Map<String, dynamic>>>();
+  final slow = Completer<void>();
   bool failClass = false;
   bool failYears = false;
+  int reads = 0;
   @override
   Future<T> request<T>(
     String method,
     String path, {
     api.TransportRequestOptions? options,
   }) async {
-    final body = options?.body as Map? ?? {};
-    if (path.endsWith('/academic-years/list')) {
-      if (failYears) throw api.ApiError(503, path);
-      return <Map<String, dynamic>>[
-            {'id': 'current', 'startDate': '2026-01-01', 'status': 'published'},
-            {'id': 'old', 'startDate': '2025-01-01', 'status': 'archived'},
-          ]
-          as T;
+    if (method != 'GET' || !path.endsWith('/guardian/child-choices')) {
+      throw StateError(path);
     }
-    if (path.endsWith('/enrollments/list')) {
-      if (body['studentId'] == 'slow' && body['academicYearId'] == null)
-        return await slow.future as T;
-      if (body['studentId'] == 'empty') return <Map<String, dynamic>>[] as T;
-      return [
+    if (++reads == 1) await slow.future;
+    if (failYears || failClass) throw api.ApiError(failYears ? 503 : 403, path);
+    return {
+          'guardianId': 'guardian',
+          'school': {
+            'id': 'school',
+            'name': 'School',
+            'timeZone': 'Africa/Abidjan',
+          },
+          'children': [
+            for (final id in ['slow', 'fast', 'empty'])
+              {
+                'id': id,
+                'firstName': 'Child',
+                'lastName': id,
+                'schoolId': 'school',
+              },
+          ],
+          'years': [
+            {
+              'id': 'current',
+              'schoolId': 'school',
+              'startDate': '2026-01-01',
+              'status': 'published',
+            },
+            {
+              'id': 'old',
+              'schoolId': 'school',
+              'startDate': '2025-01-01',
+              'status': 'archived',
+            },
+          ],
+          'enrollments': [
+            for (final child in ['fast', 'slow'])
+              for (final year in ['current', 'old'])
                 {
-                  'studentId': body['studentId'],
-                  'academicYearId': 'old',
+                  'studentId': child,
+                  'academicYearId': year,
                   'classGroupId': 'class',
-                  'status': 'closed',
-                  'enrollmentIndex': 1,
+                  'classLabel': 'Class',
+                  'enrollmentIndex': year == 'current' ? 2 : 1,
+                  'status': year == 'current' ? 'active' : 'closed',
                 },
-                if (body['academicYearId'] == null ||
-                    body['academicYearId'] == 'current')
-                  {
-                    'studentId': body['studentId'],
-                    'academicYearId': 'current',
-                    'classGroupId': 'class',
-                    'status': 'active',
-                    'enrollmentIndex': 2,
-                  },
-              ]
-              .where(
-                (r) =>
-                    body['academicYearId'] == null ||
-                    r['academicYearId'] == body['academicYearId'],
-              )
-              .toList()
-          as T;
-    }
-    if (path.contains('/students/'))
-      return {
-            'id': path.split('/').last,
-            'firstName': 'Child',
-            'lastName': 'Name',
-            'schoolId': 'school',
-          }
-          as T;
-    if (path.contains('/class-groups/')) {
-      if (failClass) throw api.ApiError(403, path);
-      return {'id': 'class', 'name': 'Class'} as T;
-    }
-    if (path.contains('/schools/'))
-      return {'id': 'school', 'name': 'School'} as T;
-    throw StateError(path);
+          ],
+        }
+        as T;
   }
 }
 
@@ -130,9 +136,9 @@ void main() {
       expect(pupil.activeStudentId, 'fast');
       expect(pupil.activeYearId, 'old');
       expect(pupil.isEnrolled.value, true);
-      transport.slow.complete([
-        {'studentId': 'slow', 'academicYearId': 'current'},
-      ]);
+      expect(transport.reads, 2);
+      expect(pupil.schoolTimeZone.value, 'Africa/Abidjan');
+      transport.slow.complete();
       await slow;
       expect(pupil.activeStudentId, 'fast');
       expect(pupil.activeYearId, 'old');

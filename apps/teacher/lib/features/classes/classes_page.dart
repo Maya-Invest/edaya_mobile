@@ -285,6 +285,7 @@ class _LiveClassRosterPage extends LScopedView<LiveRosterController> {
     scope.put(
       () => LiveClassWorkspaceController(
         classGroupId: classId,
+        recordedOnly: false,
         teacherContext: scope.find<TeacherContextController>(),
         schoolClient: scope.find<SchoolClientFactory>(),
       ),
@@ -471,8 +472,8 @@ class _LiveClassLogbookTab extends LView<LiveClassWorkspaceController> {
     LiveClassWorkspaceController controller,
   ) {
     return LWatch(() {
-      controller.logbookEntries.value;
-      controller.errorMessage.value;
+      final pageError = controller.logbookPageError.value;
+      final loadingMore = controller.loadingMore.value;
       final entries = controller.logbookEntries.value;
       if (entries.isEmpty) {
         return EmptyState(
@@ -482,9 +483,16 @@ class _LiveClassLogbookTab extends LView<LiveClassWorkspaceController> {
       }
       return ListView.separated(
         padding: const EdgeInsets.all(PrototypeSpacing.md),
-        itemCount: entries.length,
+        itemCount: entries.length + (controller.nextLogbookCursor.value == null ? 0 : 1),
         separatorBuilder: (_, _) => const SizedBox(height: PrototypeSpacing.xs),
         itemBuilder: (context, i) {
+          if (i == entries.length) {
+            return Column(children: [
+              if (pageError.isNotEmpty) Text(pageError),
+              TextButton(onPressed: loadingMore ? null : controller.loadMoreLogbook,
+                child: Text(pageError.isEmpty ? context.tr.showMore : context.tr.retry)),
+            ]);
+          }
           final entry = entries[i];
           return ListRow(
             title: entry.displayLabel,

@@ -4,8 +4,6 @@ import 'package:edaya_shared/edaya_shared.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 import 'package:timezone/timezone.dart' as tz;
 import '../calendar/models/calendar_session.dart';
-import '../fees/models/student_charge_line.dart';
-import '../scolarite/academic_data.dart';
 
 List<CalendarSession> homeSessionPreview(
   Iterable<CalendarSession> sessions,
@@ -36,24 +34,43 @@ class DashboardController extends LevitController {
     required this.studentId,
     required this.yearId,
     required this.schoolId,
-    this.guardianSubjectId,
+    this.timeZone = 'UTC',
     this.classGroupId,
   });
   final SchoolClient client;
-  final String studentId, yearId, schoolId;
-  final String? guardianSubjectId, classGroupId;
+  final String studentId, yearId, schoolId, timeZone;
+  final String? classGroupId;
   final sessions = LxVar<List<CalendarSession>?>(null);
   final attendance = LxVar<Map<String, String>>({});
   final highlights = LxVar<Map<String, Object?>>({});
   final errors = LxVar<Set<String>>({});
   final now = LxVar<DateTime>(SchoolClock.now());
-  tz.Location location = tz.UTC;
-  Timer? _poll, _boundary;
+  late final tz.Location location = _location(timeZone);
+  static const _sections = {
+    'attendance',
+    'results',
+    'fees',
+    'progress',
+    'inbox',
+    'surveys',
+    'child',
+  };
+  Timer? _boundary;
   bool _visible = false;
   int _generation = 0;
+  Completer<void>? _cancel;
   Future<void>? _pending;
+  static tz.Location _location(String zone) {
+    try {
+      return tz.getLocation(zone);
+    } on Object {
+      return tz.UTC;
+    }
+  }
+
   List<CalendarSession> get preview =>
       homeSessionPreview(sessions.value ?? [], now.value);
+
   @override
   void onInit() {
     super.onInit();
@@ -64,263 +81,158 @@ class DashboardController extends LevitController {
     autoDispose(now);
   }
 
-  void setVisible(bool value) {
-    if (value == _visible) return;
-    _visible = value;
-    _poll?.cancel();
+  void setVisible(bool visible) {
+    if (visible == _visible) return;
+    _visible = visible;
+    _cancelRead();
+    if (visible) unawaited(refresh());
+  }
+
+  void _cancelRead() {
+    _generation++;
+    final old = _cancel;
+    if (old != null && !old.isCompleted) old.complete();
+    _cancel = null;
+    _pending = null;
     _boundary?.cancel();
-    if (value) {
-      unawaited(refresh());
-      _poll = Timer.periodic(
-        const Duration(minutes: 1),
-        (_) => unawaited(refresh()),
-      );
-    }
   }
 
   Future<void> refresh() {
     if (!_visible || isClosed) return Future.value();
-    return _pending ??= _load().whenComplete(() => _pending = null);
-  }
-
-  Future<void> _load() async {
+    if (_pending != null) return _pending!;
     final generation = ++_generation;
-    final failed = <String>{};
-    bool revoked = false;
-    final next = <String, Object?>{};
-    Future<T?> read<T>(String key, Future<T> Function() load) async {
-      try {
-        return await load().timeout(const Duration(seconds: 30));
-      } catch (e) {
-        failed.add(key);
-        if (e is ApiError && (e.status == 401 || e.status == 403)) {
-          revoked = true;
-          if (!isClosed && generation == _generation) {
-            sessions(null);
-            attendance({});
-            highlights({});
-          }
-        }
-        return null;
-      }
-    }
-
-    final school = await read('school', () => client.schools.get(schoolId));
-    try {
-      location = tz.getLocation(school?['timeZone'] as String? ?? 'UTC');
-    } catch (_) {
-      location = tz.UTC;
-    }
+    final cancel = Completer<void>();
+    _cancel = cancel;
     final clock = tz.TZDateTime.from(SchoolClock.now(), location);
-    if (isClosed || generation != _generation) return;
-    if (now.value.year != clock.year ||
-        now.value.month != clock.month ||
-        now.value.day != clock.day) {
+    final previous = now.value;
+    if (previous.year != clock.year ||
+        previous.month != clock.month ||
+        previous.day != clock.day) {
       sessions(null);
       attendance({});
     }
     now(clock);
-    String date(DateTime d) =>
-        '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-    final occurrences = await read(
-      'sessions',
-      () => fetchStudentTimetableOccurrences(
-        client,
-        studentId,
-        range: PlanningDateRange(startDate: date(clock), endDate: date(clock)),
-      ),
-    );
-    if (isClosed || generation != _generation) return;
-    if (occurrences != null) {
-      sessions(
-        occurrences
-            .map(
-              (o) => CalendarSession(
-                id: o.id,
-                title: o.title,
-                kind: o.kind,
-                startsAt: tz.TZDateTime.from(o.startsAt, location),
-                endsAt: tz.TZDateTime.from(o.endsAt, location),
-                classSubjectId: o.classSubjectId,
-                subjectLabel: o.subjectLabel,
-                status: o.status,
-              ),
-            )
-            .toList(),
-      );
+    final day =
+        '${clock.year.toString().padLeft(4, '0')}-${clock.month.toString().padLeft(2, '0')}-${clock.day.toString().padLeft(2, '0')}';
+    bool current() => !isClosed && _visible && generation == _generation;
+    Future<void> schedule() async {
+      try {
+        final events = await fetchStudentTimetableOccurrences(
+          client,
+          studentId,
+          range: PlanningDateRange(startDate: day, endDate: day),
+        ).timeout(const Duration(seconds: 30));
+        if (!current()) return;
+        sessions(
+          events
+              .map(
+                (o) => CalendarSession(
+                  id: o.id,
+                  title: o.title,
+                  kind: o.kind,
+                  startsAt: tz.TZDateTime.from(o.startsAt, location),
+                  endsAt: tz.TZDateTime.from(o.endsAt, location),
+                  classSubjectId: o.classSubjectId,
+                  subjectLabel: o.subjectLabel,
+                  status: o.status,
+                ),
+              )
+              .toList(),
+        );
+        errors({...errors.value}..remove('sessions'));
+        // Keep the existing midnight timer if this result arrived the next day.
+        final arrived = tz.TZDateTime.from(SchoolClock.now(), location);
+        if (arrived.year == clock.year &&
+            arrived.month == clock.month &&
+            arrived.day == clock.day) {
+          _scheduleBoundary();
+        }
+      } on Object {
+        if (!current()) return;
+        sessions(null);
+        errors({...errors.value, 'sessions'});
+      }
     }
-    final records = await read(
-      'attendance',
-      () => client.attendance.listAll({'studentId': studentId}),
-    );
-    if (records != null) {
-      final map = <String, String>{};
-      for (final r in records) {
-        final id =
-            r['lessonSessionId'] ?? r['activitySessionId'] ?? r['assessmentId'];
-        if (id is String && r['status'] is String) {
-          map[id] = r['status'] as String;
+
+    Future<void> cards() async {
+      try {
+        final result = await client
+            .getGuardianHighlights({
+              'studentId': studentId,
+              'academicYearId': yearId,
+              'day': day,
+              if (classGroupId != null) 'classGroupId': classGroupId,
+            }, abortTrigger: cancel.future)
+            .timeout(const Duration(seconds: 30));
+        if (!current()) return;
+        final values = Map<String, Object?>.from(result['cards'] as Map);
+        if (values['dueDate'] is String) {
+          values['dueDate'] = DateTime.parse(values['dueDate'] as String);
+        }
+        highlights(values);
+        attendance(Map<String, String>.from(result['attendance'] as Map));
+        errors({
+          ...errors.value.difference(_sections),
+          ...(result['unavailable'] as List).cast<String>(),
+        });
+      } on Object catch (error) {
+        if (!current()) return;
+        attendance({});
+        highlights({});
+        errors({...errors.value, ..._sections});
+        if (error is ApiError && (error.status == 401 || error.status == 403)) {
+          sessions(null);
+          errors({...errors.value, 'sessions'});
+          _cancelRead();
         }
       }
-      if (!isClosed && generation == _generation) attendance(map);
-      next['absent'] = records.where((r) => r['status'] == 'absent').length;
-      next['late'] = records.where((r) => r['status'] == 'late').length;
     }
-    await Future.wait([
-      read('fees', () async {
-        final rows = await client.studentCharges.listAll({
-          'studentId': studentId,
-          'academicYearId': yearId,
+
+    _scheduleBoundary();
+    return _pending = Future.wait([schedule(), cards()])
+        .then<void>((_) {})
+        .whenComplete(() {
+          if (current()) _pending = null;
         });
-        final charges = rows
-            .where((r) => r['status'] != 'cancelled')
-            .map(StudentChargeLine.fromJson)
-            .toList();
-        next['overdue'] = charges
-            .where(
-              (r) =>
-                  r.status == ChargeStatus.overdue ||
-                  (r.remainingObligation > 0 &&
-                      r.dueDate != null &&
-                      r.dueDate!.isBefore(clock)),
-            )
-            .length;
-        final upcoming =
-            charges
-                .where((r) => r.remainingObligation > 0 && r.dueDate != null)
-                .toList()
-              ..sort((a, b) => a.dueDate!.compareTo(b.dueDate!));
-        next['dueDate'] = upcoming.firstOrNull?.dueDate;
-        next['balance'] = charges.fold<int>(
-          0,
-          (sum, r) => sum + r.remainingObligation,
-        );
-      }),
-      read('results', () async {
-        final rows = await client.results.listAll({
-          'studentId': studentId,
-          'status': 'published',
-        });
-        next['reports'] = rows.length;
-        if (rows.isEmpty) {
-          final marks = await client.assessmentResults.listAll({
-            'studentId': studentId,
-          });
-          next['marks'] = marks.length;
-        }
-      }),
-      read('inbox', () async {
-        if (guardianSubjectId == null) return;
-        final rows = await client.messageDeliveries.listAll({
-          'subjectId': guardianSubjectId,
-        });
-        next['unread'] = rows.where((r) => r['status'] != 'read').length;
-      }),
-      read('child', () async {
-        final rows = await client.studentPhotoSubmissions.listAll({
-          'studentId': studentId,
-        });
-        rows.sort((a, b) => '${b['createdAt']}'.compareTo('${a['createdAt']}'));
-        next['photo'] = rows.firstOrNull?['status'];
-        final documents = await listDocumentIssuances(
-          client,
-          studentId: studentId,
-          academicYearId: yearId,
-        );
-        next['documents'] = documents
-            .where(
-              (d) =>
-                  isLeftoverFamilyPaper(d.templateKey) &&
-                  (d.isDownloadable || d.isPending),
-            )
-            .length;
-      }),
-      read('progress', () async {
-        if (classGroupId == null) return;
-        final options = await fetchClassSubjectOptions(
-          client: client,
-          studentId: studentId,
-          classGroupId: classGroupId!,
-          classLabel: '',
-          subjectFallback: '—',
-        );
-        final overviews = await Future.wait(
-          options.map(
-            (o) => fetchCurriculumProgressOverview(
-              client: client,
-              classSubjectId: o.id,
-              matterFallback: '—',
-            ),
-          ),
-        );
-        next['progress'] = overviews.isEmpty
-            ? null
-            : (overviews.fold<double>(
-                        0,
-                        (sum, o) => sum + o.classSubjectCompletedPercentage,
-                      ) /
-                      overviews.length)
-                  .round();
-      }),
-      read('surveys', () async {
-        final rows = await listGuardianFamilyFeedbackCampaigns(client);
-        next['surveys'] = rows
-            .where((r) => r.studentId == studentId && r.slotState == 'open')
-            .length;
-      }),
-    ]);
-    if (isClosed || generation != _generation) return;
-    if (revoked) {
-      sessions(null);
-      attendance({});
-      highlights({});
-      errors({
-        'sessions',
-        'attendance',
-        'results',
-        'fees',
-        'progress',
-        'inbox',
-        'surveys',
-        'child',
-      });
-      return;
-    }
-    highlights({...highlights.value, ...next});
-    errors(failed);
-    now(tz.TZDateTime.from(SchoolClock.now(), location));
-    _schedule();
   }
 
-  void _schedule() {
+  void _scheduleBoundary() {
     _boundary?.cancel();
     if (!_visible || isClosed) return;
     final clock = tz.TZDateTime.from(SchoolClock.now(), location);
-    var at = tz.TZDateTime(location, clock.year, clock.month, clock.day + 1);
-    for (final s in sessions.value ?? <CalendarSession>[]) {
-      for (final t in [s.startsAt, s.endsAt]) {
-        if (t.isAfter(clock) && t.isBefore(at)) {
-          at = tz.TZDateTime.from(t, location);
+    final midnight = tz.TZDateTime(
+      location,
+      clock.year,
+      clock.month,
+      clock.day + 1,
+    );
+    var next = midnight;
+    for (final event in sessions.value ?? <CalendarSession>[]) {
+      for (final boundary in [event.startsAt, event.endsAt]) {
+        if (boundary.isAfter(clock) && boundary.isBefore(next)) {
+          next = tz.TZDateTime.from(boundary, location);
         }
       }
     }
     _boundary = Timer(
-      at.difference(clock) + const Duration(milliseconds: 20),
+      next.difference(clock) + const Duration(milliseconds: 20),
       () {
-        if (isClosed) return;
-        now(tz.TZDateTime.from(SchoolClock.now(), location));
-        unawaited(refresh());
-        _schedule();
+        if (!_visible || isClosed) return;
+        if (!SchoolClock.now().isBefore(midnight)) {
+          _cancelRead();
+          unawaited(refresh());
+        } else {
+          now(tz.TZDateTime.from(SchoolClock.now(), location));
+          _scheduleBoundary();
+        }
       },
     );
   }
 
   @override
   void onClose() {
-    _generation++;
     _visible = false;
-    _poll?.cancel();
-    _boundary?.cancel();
+    _cancelRead();
     super.onClose();
   }
 }

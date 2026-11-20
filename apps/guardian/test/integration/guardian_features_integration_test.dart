@@ -473,13 +473,28 @@ Future<void> main() async {
           'Feedback fixture ${campaign['classGroupId']}/$studentId failed: HTTP ${error.status} ${error.body}',
         );
       }
+      final scoped = await listGuardianFamilyFeedbackCampaigns(
+        session.schoolClient,
+        studentId: studentId,
+      );
+      expect(scoped.map((row) => row.campaignId), contains(id));
+      expect(scoped.every((row) => row.studentId == studentId), isTrue);
       expect(questionnaire.isOpen, isTrue);
       expect(questionnaire.instrument?.items, isNotEmpty);
       await pumpGuardianRoute(tester, harness, location: '/inbox/avis/$id');
-      await pumpUntilFound(
-        tester,
-        find.byType(GuardianFamilyFeedbackQuestionnairePage),
-      );
+      try {
+        await pumpUntilFound(
+          tester,
+          find.byType(GuardianFamilyFeedbackQuestionnairePage),
+        );
+      } catch (error) {
+        final context = harness.scope.find<StudentContextController>();
+        fail(
+          'Questionnaire did not open at ${harness.router.routeInformationProvider.value.uri.path}. '
+          'Selected pupil: ${context.activeStudentId != null}, loading: ${context.isLoading.value}, '
+          'has context error: ${context.errorMessage.value.isNotEmpty}. $error',
+        );
+      }
       final feedbackController = tester
           .element(
             find

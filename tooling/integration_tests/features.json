@@ -429,6 +429,12 @@
             ]
           },
           {
+            "id": "teacher-v2.classes.recorded-logbook",
+            "scenarios": [
+              "teacher-v2.logbook.open-recorded"
+            ]
+          },
+          {
             "id": "teacher-v2.classes.daily-attendance",
             "scenarios": [
               "teacher-v2.daily-attendance.submit"

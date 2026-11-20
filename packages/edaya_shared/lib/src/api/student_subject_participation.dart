@@ -30,13 +30,21 @@ class StudentSubjectParticipation {
       .where((row) => includes(row['id'] as String?, at ?? SchoolClock.now()))
       .toList();
 
+  /// Fetches the authorized pupil’s participation, optionally within one archived or current year.
   static Future<StudentSubjectParticipation> load(
     SchoolClient client,
-    String studentId,
-  ) async {
+    String studentId, {
+    String? academicYearId,
+  }) async {
     final data = await client.getStudentSubjectEnrollments({
       'studentId': studentId,
+      if (academicYearId != null) 'academicYearId': academicYearId,
     });
+    if (data.containsKey('studentId') && data['studentId'] != studentId) {
+      throw const FormatException(
+        'Enrollment response belongs to another pupil',
+      );
+    }
     return StudentSubjectParticipation(
       (data['enrollments'] as List).cast<Map<String, dynamic>>(),
       (data['offerings'] as List).cast<Map<String, dynamic>>(),

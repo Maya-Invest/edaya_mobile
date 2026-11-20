@@ -42,7 +42,6 @@ class _LiveChildProfilePage extends LScopedView<ChildProfileController> {
   ChildProfileController onConfigScope(LevitScope scope) {
     return scope.put(
       () => ChildProfileController(
-        session: scope.find<AppSessionController>(),
         schoolClient: scope.find<SchoolClientFactory>(),
         studentContext: scope.find<StudentContextController>(),
         academicYear: scope.find<AcademicYearController>(),
@@ -82,10 +81,10 @@ class _ChildProfileBody extends StatelessWidget {
     if (student == null) {
       return const SizedBox.shrink();
     }
-    final pending = controller.pending.value;
-    final rejected = controller.latestRejected.value;
-    final proposedUrl = controller.isSubmitter && pending != null
-        ? profilePhotoContentPath(pending['attachmentId'] as String)
+    final decision = controller.decision.value;
+    final own = controller.ownSubmission;
+    final proposedUrl = own != null
+        ? profilePhotoContentPath(own['attachmentId'] as String)
         : null;
     final papers = controller.leftoverPapers.value;
 
@@ -111,7 +110,15 @@ class _ChildProfileBody extends StatelessWidget {
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 12),
-        if (pending != null) ...[
+        if (controller.photoError.value.isNotEmpty) ...[
+          Text(controller.photoError.value),
+          TextButton(
+            onPressed: controller.retryPhoto,
+            child: Text(context.tr.retry),
+          ),
+        ] else if (decision == null)
+          const LinearProgressIndicator()
+        else if (decision['status'] == 'pending') ...[
           if (proposedUrl != null)
             PersonAvatar(
               initials: student.initials,
@@ -122,7 +129,7 @@ class _ChildProfileBody extends StatelessWidget {
             Text(context.tr.childProfilePendingIndicator),
           const SizedBox(height: 12),
           Text(context.tr.childProfilePending),
-          if (controller.isSubmitter) ...[
+          if (own != null) ...[
             const SizedBox(height: 12),
             OutlinedButton(
               onPressed: controller.isSaving.value
@@ -131,13 +138,11 @@ class _ChildProfileBody extends StatelessWidget {
               child: Text(context.tr.childProfileWithdraw),
             ),
           ],
-        ] else if (rejected != null &&
-            rejected['submitterGuardianId'] == controller.guardianId) ...[
+        ] else if (decision['status'] == 'rejected') ...[
           Text(
             context.tr.childProfileRejected(
-              (rejected['rejectionReason'] as String?)?.trim().isNotEmpty ==
-                      true
-                  ? rejected['rejectionReason'] as String
+              (decision['reason'] as String?)?.trim().isNotEmpty == true
+                  ? decision['reason'] as String
                   : context.tr.childProfileRejectedNoReason,
             ),
           ),
@@ -169,7 +174,9 @@ class _ChildProfileBody extends StatelessWidget {
         const SizedBox(height: PrototypeSpacing.xl),
         SectionHeader(title: context.tr.documents),
         const SizedBox(height: PrototypeSpacing.sm),
-        if (papers.isEmpty)
+        if (papers.isEmpty &&
+            !controller.papersLoading.value &&
+            controller.papersError.value.isEmpty)
           Text(
             words(
               context,
@@ -192,15 +199,30 @@ class _ChildProfileBody extends StatelessWidget {
             ),
             const SizedBox(height: PrototypeSpacing.xs),
           ],
+        if (controller.papersLoading.value)
+          const LinearProgressIndicator()
+        else if (controller.papersError.value.isNotEmpty) ...[
+          Text(controller.papersError.value),
+          TextButton(
+            onPressed: controller.loadMorePapers,
+            child: Text(context.tr.retry),
+          ),
+        ] else if (controller.nextCursor.value != null)
+          TextButton(
+            onPressed: controller.loadMorePapers,
+            child: Text(context.tr.showMore),
+          ),
       ],
     );
   }
 
   Future<void> _pickAndSubmit(BuildContext context) async {
+    final scope = controller.selection;
+    if (scope == null) return;
     final jpeg = await pickAndCropProfilePhoto(context);
     if (jpeg == null || !context.mounted) {
       return;
     }
-    await controller.submitPortrait(jpeg);
+    await controller.submitPortrait(jpeg, expectedSelection: scope);
   }
 }

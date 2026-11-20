@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 enum TeacherOutboxKind { attendance, logbook, mark, comment, correction }
 
 enum TeacherOutboxState {
@@ -200,10 +202,38 @@ TeacherOutboxEntry stampTeacherOutboxContext(
   return entry.copyWith(context: context);
 }
 
+bool sameTeacherOutboxVersion(
+  TeacherOutboxEntry actual,
+  TeacherOutboxEntry expected,
+) {
+  return actual.id == expected.id &&
+      actual.idempotencyKey == expected.idempotencyKey &&
+      actual.state == expected.state &&
+      actual.updatedAt.millisecondsSinceEpoch ==
+          expected.updatedAt.millisecondsSinceEpoch &&
+      actual.attemptCount == expected.attemptCount &&
+      teacherOutboxEntryMatchesContext(actual, expected.context) &&
+      jsonEncode(actual.payload) == jsonEncode(expected.payload);
+}
+
 abstract class TeacherOutboxStore {
   Future<void> enqueue(TeacherOutboxEntry entry);
 
   Future<List<TeacherOutboxEntry>> listPending();
+
+  Future<List<TeacherOutboxEntry>> listConflicts();
+
+  Future<TeacherOutboxEntry?> findEntry(String id);
+
+  /// Recover interrupted writes when opening the queue for replay.
+  Future<void> prepareReplay();
+
+  /// Complete or claim this exact revision in its original profile.
+  /// A null replacement acknowledges and removes the command.
+  Future<bool> replaceIfCurrent(
+    TeacherOutboxEntry expected,
+    TeacherOutboxEntry? replacement,
+  );
 
   Future<void> upsert(TeacherOutboxEntry entry);
 

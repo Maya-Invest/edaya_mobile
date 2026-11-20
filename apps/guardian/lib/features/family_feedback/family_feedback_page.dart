@@ -22,17 +22,23 @@ class GuardianFamilyFeedbackController extends LevitController
   final campaigns = LxVar<List<GuardianFamilyFeedbackCampaign>>(const []);
   final errorMessage = LxVar('');
 
+  GuardianPupilSelection? _selection;
+  Future<void>? _pending;
+  int _generation = 0;
+
   @override
   void onInit() {
     super.onInit();
     autoDispose(campaigns);
     autoDispose(errorMessage);
-    autoDispose(
-      _studentContext.activeStudent.stream.listen((_) {
-        unawaited(loadCampaigns());
-      }),
-    );
-    unawaited(loadCampaigns());
+    for (final changes in [
+      _studentContext.activeStudent.stream,
+      _studentContext.isLoading.stream,
+      _studentContext.linkedStudentsResolved.stream,
+    ]) {
+      autoDispose(changes.listen((_) => unawaited(_loadSelection())));
+    }
+    unawaited(_loadSelection());
   }
 
   DataStatus get dataStatus {
@@ -50,24 +56,38 @@ class GuardianFamilyFeedbackController extends LevitController
 
   String emptyMessage(BuildContext context) => context.tr.familyFeedbackEmpty;
 
-  Future<void> loadCampaigns() async {
+  Future<void> loadCampaigns() => _loadSelection(refresh: true);
+
+  Future<void> _loadSelection({bool refresh = false}) {
+    final selection = _studentContext.verifiedSelection;
+    final changed = _selection != selection;
+    if (!changed && (!refresh || _pending != null)) {
+      return _pending ?? Future.value();
+    }
+    final generation = ++_generation;
+    _selection = selection;
+    _pending = null;
     errorMessage('');
-    await runTask(() async {
-      try {
-        final items = await listGuardianFamilyFeedbackCampaigns(
-          _schoolClient(),
-        );
-        final studentId = _studentContext.activeStudentId;
-        campaigns(
-          studentId == null
-              ? items
-              : items.where((item) => item.studentId == studentId).toList(),
-        );
-      } catch (error) {
-        errorMessage(error.toString());
-        campaigns(const []);
-      }
-    });
+    if (changed) campaigns(const []);
+    if (selection == null) return Future.value();
+    bool current() =>
+        !isClosed &&
+        generation == _generation &&
+        selection == _studentContext.verifiedSelection;
+    return _pending =
+        runTask(() async {
+          try {
+            final items = await listGuardianFamilyFeedbackCampaigns(
+              _schoolClient(),
+              studentId: selection.studentId,
+            );
+            if (current()) campaigns(items);
+          } on Object catch (error) {
+            if (current()) errorMessage(error.toString());
+          }
+        }).whenComplete(() {
+          if (generation == _generation) _pending = null;
+        });
   }
 }
 

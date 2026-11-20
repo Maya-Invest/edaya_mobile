@@ -1,5 +1,4 @@
 import '../teaching/teaching_models.dart';
-import '../../design/workspace_layout.dart';
 import '../evaluations/evaluations_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -69,9 +68,11 @@ class _Progress extends LScopedView<LiveClassWorkspaceController> {
   );
   @override
   Widget buildView(BuildContext context, LiveClassWorkspaceController c) {
-    final entries = c.logbookEntries.value
-        .where((entry) => entry.hasContent || entry.matterSnapshots.isNotEmpty)
-        .toList();
+    final entries = c.logbookEntries.value;
+    final emptyLogbook = entries.isEmpty && c.logbookReady.value;
+    final hasMore = c.nextLogbookCursor.value != null;
+    final loadingMore = c.loadingMore.value;
+    final pageError = c.logbookPageError.value;
     return Column(
       children: [
         if (c.isBusy.value) const LinearProgressIndicator(),
@@ -116,24 +117,34 @@ class _Progress extends LScopedView<LiveClassWorkspaceController> {
                     ),
                 ],
               ),
-              ListView(
+              ListView.builder(
                 key: PageStorageKey(('logbook', id)),
                 padding: const EdgeInsets.all(16),
-                children: [
-                  if (entries.isEmpty && !c.isBusy.value)
-                    ListTile(contentPadding: EdgeInsets.zero, title: Text(context.tr.noCompletedLogbook)),
-                  for (final l in entries)
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(l.displayLabel),
-                      subtitle: Text(
-                        '${formatDate(l.startsAt)} · ${context.tr.logbookCompleted}',
+                itemCount: emptyLogbook ? 1 : entries.length + (hasMore ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (emptyLogbook) {
+                    return ListTile(contentPadding: EdgeInsets.zero, title: Text(context.tr.noCompletedLogbook));
+                  }
+                  if (index == entries.length) {
+                    return Column(children: [
+                      if (pageError.isNotEmpty) Text(pageError),
+                      TextButton(
+                        onPressed: loadingMore ? null : c.loadMoreLogbook,
+                        child: Text(pageError.isEmpty ? context.tr.showMore : context.tr.retry),
                       ),
-                      onTap: () => context.push(
-                        '/session/${l.lessonSessionId}?tab=logbook',
-                      ),
-                    ),
-                ],
+                    ]);
+                  }
+                  final entry = entries[index];
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(entry.displayLabel),
+                    subtitle: Text('${formatDate(entry.startsAt)} · ${context.tr.logbookCompleted}'),
+                    onTap: () async {
+                      await context.push('/session/${entry.lessonSessionId}?tab=logbook');
+                      if (!c.isClosed) await c.loadTeachingData();
+                    },
+                  );
+                },
               ),
             ],
           ),
@@ -238,7 +249,6 @@ class IncidentGroup extends LScopedView<TeacherDisciplineController> {
     () => TeacherDisciplineController(
       classId: id,
       client: scope.find<SchoolClientFactory>(),
-      teacherId: scope.find<TeacherContextController>().teacherId.value,
       outbox: scope.find<TeacherOutboxStore>(),
     ),
   );
@@ -247,48 +257,6 @@ class IncidentGroup extends LScopedView<TeacherDisciplineController> {
     BuildContext context,
     TeacherDisciplineController controller,
   ) {
-    return Column(
-      children: [
-        if (controller.busy.value) const LinearProgressIndicator(),
-        if (controller.message.value.isNotEmpty) Text(controller.message.value),
-        if (controller.incidents.value.isEmpty && !controller.busy.value)
-          ListTile(title: Text(context.tr.noIncidents)),
-        if (controller.incidents.value.isNotEmpty)
-          ComparisonHeading([context.tr.incident, 'Date', context.tr.status]),
-        for (final row in controller.incidents.value)
-          LayoutBuilder(
-            builder: (context, box) {
-              Future<void> open() async {
-                await context.push('/incidents/$id/${row['id']}');
-                if (context.mounted) await controller.load();
-              }
-
-              final date = DateTime.tryParse('${row['date']}');
-              final status = switch (row['status']) {
-                'resolved' => context.tr.messagingResolved,
-                'cancelled' => context.tr.feeStatusCancelled,
-                'open' when (row['eligibility'] as Map?)?['locked'] == true =>
-                  context.tr.workflowIncidentTakenOver,
-                'open' => context.tr.familyFeedbackSlotOpen,
-                _ => '—',
-              };
-              return useComparisonRows(context, box.maxWidth)
-                  ? ComparisonRow(
-                      cells: [
-                        row['title'] as String,
-                        date == null ? '—' : formatDate(date),
-                        status,
-                      ],
-                      onTap: open,
-                    )
-                  : ListTile(
-                      title: Text(row['title'] as String),
-                      subtitle: Text(row['description'] as String? ?? ''),
-                      onTap: open,
-                    );
-            },
-          ),
-      ],
-    );
+    return teacherIncidentRows(context, controller);
   }
 }

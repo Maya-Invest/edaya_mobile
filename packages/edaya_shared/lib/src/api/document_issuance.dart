@@ -215,12 +215,18 @@ Future<DocumentIssuanceRecord> requestDocumentIssuance(
   return DocumentIssuanceRecord.fromJson(unwrapIssuance(result));
 }
 
-Future<void> openGrantedDocument(api.SchoolClient client, String id) async {
+Future<void> openGrantedDocument(
+  api.SchoolClient client,
+  String id, {
+  bool Function()? canOpen,
+}) async {
   if (client is DemoSchoolClient) {
     final doc = await client.getDocumentIssuance({'id': id});
+    if (canOpen?.call() == false) return;
     return showDemoDocument(doc['asset'] as String, doc['title'] as String);
   }
   final grant = await client.runQuery('grant-document-download', {'id': id});
+  if (canOpen?.call() == false) return;
   final url = grant['downloadUrl'] as String?;
   if (url == null || url.isEmpty) {
     throw StateError('Document download URL was empty');
@@ -254,7 +260,26 @@ Future<DocumentJobResult> downloadReadyIssuance(
   String? templateKey,
   String? studentId,
   String? academicYearId,
+  String? readyIssuanceId,
+  bool Function()? canOpen,
 }) async {
+  if (readyIssuanceId != null) {
+    try {
+      await openGrantedDocument(client, readyIssuanceId, canOpen: canOpen);
+      return canOpen?.call() == false
+          ? const DocumentJobResult.missing()
+          : const DocumentJobResult.opened();
+    } on api.ApiError catch (error) {
+      // An issuance can be replaced or withdrawn between rendering the row and tapping it.
+      final unavailable = switch ((error.status, error.body)) {
+        (403 || 404, _) ||
+        (409, {'code': 'DOCUMENT_DOWNLOAD_FORBIDDEN'}) => true,
+        _ => false,
+      };
+      if (!unavailable) rethrow;
+    }
+  }
+  if (canOpen?.call() == false) return const DocumentJobResult.missing();
   final items = await listDocumentIssuances(
     client,
     studentId: studentId,
@@ -262,9 +287,11 @@ Future<DocumentJobResult> downloadReadyIssuance(
     templateKey: templateKey,
     sourceId: sourceId,
   );
+  if (canOpen?.call() == false) return const DocumentJobResult.missing();
   final ready = items.where((item) => item.isDownloadable).toList();
   if (ready.isNotEmpty) {
-    await openGrantedDocument(client, ready.first.id);
+    await openGrantedDocument(client, ready.first.id, canOpen: canOpen);
+    if (canOpen?.call() == false) return const DocumentJobResult.missing();
     return const DocumentJobResult.opened();
   }
   if (items.any((item) => item.isPending)) {

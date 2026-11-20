@@ -221,7 +221,11 @@ class ReportCardRosterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (prototypeIsLive(context)) {
-      return _LiveReportCardRosterPage(classId: classId, periodId: periodId);
+      return _LiveReportCardRosterPage(
+        key: ValueKey((classId, periodId)),
+        classId: classId,
+        periodId: periodId,
+      );
     }
     return _MockReportCardRosterPage(classId: classId, periodId: periodId);
   }
@@ -300,6 +304,7 @@ class ReportCardCommentPage extends StatelessWidget {
   Widget build(BuildContext context) {
     if (prototypeIsLive(context)) {
       return _LiveReportCardCommentPage(
+        key: ValueKey((classId, periodId, rosterId, subjectId)),
         classId: classId,
         periodId: periodId,
         studentId: rosterId,
@@ -1024,6 +1029,7 @@ class _EvaluationCreateFormState extends State<_EvaluationCreateForm> {
 class _LiveReportCardRosterPage
     extends LScopedView<LiveReportCardRosterController> {
   const _LiveReportCardRosterPage({
+    super.key,
     required this.classId,
     required this.periodId,
   });
@@ -1050,16 +1056,31 @@ class _LiveReportCardRosterPage
     LiveReportCardRosterController controller,
   ) {
     return LWatch(() {
-      controller.students.value;
-      controller.errorMessage.value;
-      return controller.students.value.isEmpty
-          ? EmptyState(
-              title: context.tr.noStudents,
-              message: controller.errorMessage.value,
-            )
+      final rows = controller.students.value;
+      final loading = controller.loading.value;
+      final error = controller.errorMessage.value;
+      final more = controller.nextCursor.value != null;
+      if (rows.isEmpty && loading)
+        return const Center(child: CircularProgressIndicator());
+      if (rows.isEmpty && error.isNotEmpty) {
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(error),
+              TextButton(
+                onPressed: controller.load,
+                child: Text(context.tr.retry),
+              ),
+            ],
+          ),
+        );
+      }
+      return rows.isEmpty
+          ? EmptyState(title: context.tr.noStudents)
           : ListView.separated(
               padding: const EdgeInsets.all(PrototypeSpacing.md),
-              itemCount: controller.students.value.length + 1,
+              itemCount: rows.length + 1 + (more || error.isNotEmpty ? 1 : 0),
               separatorBuilder: (_, _) =>
                   const SizedBox(height: PrototypeSpacing.xs),
               itemBuilder: (context, i) {
@@ -1071,10 +1092,31 @@ class _LiveReportCardRosterPage
                     context.tr.generalComment,
                   ]);
                 }
-                final row = controller.students.value[i - 1];
-                void open() => context.push(
-                  '/report-cards/$classId/$periodId/${row.studentId}',
-                );
+                if (i > rows.length) {
+                  return Column(
+                    children: [
+                      if (error.isNotEmpty) Text(error),
+                      TextButton(
+                        onPressed: loading
+                            ? null
+                            : () => controller.load(more: more),
+                        child: Text(
+                          error.isNotEmpty
+                              ? context.tr.retry
+                              : context.tr.showMore,
+                        ),
+                      ),
+                    ],
+                  );
+                }
+                final row = rows[i - 1];
+                Future<void> open() async {
+                  await context.push(
+                    '/report-cards/$classId/$periodId/${row.studentId}',
+                  );
+                  if (!controller.isClosed) await controller.load();
+                }
+
                 final grade = GradeValue(row.averageLabel, {
                   'grading': row.grading,
                   'rank': row.rank,
@@ -1121,6 +1163,7 @@ class _LiveReportCardRosterPage
 class _LiveReportCardCommentPage
     extends LScopedView<LiveReportCardCommentController> {
   const _LiveReportCardCommentPage({
+    super.key,
     required this.classId,
     required this.periodId,
     required this.studentId,

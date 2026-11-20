@@ -3,16 +3,6 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:edaya_shared/edaya_shared.dart';
 import 'teaching_models.dart';
 
-DateTime? _parseDateTime(dynamic value) {
-  if (value == null) {
-    return null;
-  }
-  if (value is DateTime) {
-    return value;
-  }
-  return DateTime.tryParse(value.toString());
-}
-
 List<TeachingClassSubjectOption> buildTeachingClassSubjectOptions({
   required List<Map<String, dynamic>> classSubjectRows,
   required Map<String, String> subjectNameById,
@@ -81,61 +71,6 @@ TeachingProgressOverview buildTeachingProgressOverview({
   );
 }
 
-List<TeachingLogEntry> buildTeachingLogEntries({
-  required List<Map<String, dynamic>> lessonSessions,
-  required List<Map<String, dynamic>> progressRows,
-  required List<Map<String, dynamic>> matterLinks,
-  required List<Map<String, dynamic>> subjectMatters,
-  required String classLabel,
-  required String subjectLabel,
-  required String matterFallback,
-}) {
-  final matterNameByLinkId = <String, String>{};
-  final matterNameBySubjectMatterId = {
-    for (final matter in subjectMatters)
-      matter['id'] as String: matter['name'] as String? ?? matterFallback,
-  };
-  for (final link in matterLinks) {
-    final linkId = link['id'] as String;
-    final subjectMatterId = link['subjectMatterId'] as String;
-    matterNameByLinkId[linkId] =
-        matterNameBySubjectMatterId[subjectMatterId] ?? matterFallback;
-  }
-
-  final progressBySessionId = <String, List<Map<String, dynamic>>>{};
-  for (final row in progressRows) {
-    final sessionId = row['lessonSessionId'] as String;
-    progressBySessionId.putIfAbsent(sessionId, () => []).add(row);
-  }
-
-  final entries = lessonSessions.map((session) {
-    final sessionId = session['id'] as String;
-    final snapshots = (progressBySessionId[sessionId] ?? const []).map((row) {
-      final linkId = row['classSubjectMatterId'] as String;
-      return TeachingLogMatterSnapshot(
-        matterName: matterNameByLinkId[linkId] ?? matterFallback,
-        completed: row['completed'] as bool?,
-        notes: row['notes'] as String?,
-      );
-    }).toList();
-
-    return TeachingLogEntry(
-      lessonSessionId: sessionId,
-      classGroupId: session['classGroupId'] as String,
-      classSubjectId: session['classSubjectId'] as String,
-      displayLabel: session['displayLabel'] as String? ?? subjectLabel,
-      subjectLabel: subjectLabel,
-      classLabel: classLabel,
-      startsAt: _parseDateTime(session['startsAt']) ?? DateTime.now(),
-      endsAt: _parseDateTime(session['endsAt']) ?? DateTime.now(),
-      sessionNote: session['sessionNote'] as String?,
-      matterSnapshots: snapshots,
-    );
-  }).toList()..sort((left, right) => right.startsAt.compareTo(left.startsAt));
-
-  return entries;
-}
-
 Future<List<TeachingClassSubjectOption>> fetchAllTeachingClassSubjectOptions({
   required api.SchoolClient client,
   required Map<String, String> classLabelById,
@@ -178,35 +113,11 @@ Future<List<TeachingClassSubjectOption>> fetchTeachingSubjectsForClass({
   required Map<String, String> classLabelById,
   required String subjectFallback,
 }) async {
-  final rows = <Map<String, dynamic>>[];
-  final seenIds = <String>{};
-
-  if (isHomeroomClass) {
-    final homeroomRows = await client.classSubjects.listAll(
-      classGroupScope(classGroupId),
-    );
-    for (final row in homeroomRows) {
-      final id = row['id'] as String;
-      if (seenIds.add(id)) {
-        rows.add(row);
-      }
-    }
-  }
-
-  if (taughtClassSubjectIds.isNotEmpty) {
-    final taughtRows = await client.classSubjects.listAll(
-      entitiesByIds(taughtClassSubjectIds.toList()),
-    );
-    for (final row in taughtRows) {
-      if (row['classGroupId'] != classGroupId) {
-        continue;
-      }
-      final id = row['id'] as String;
-      if (seenIds.add(id)) {
-        rows.add(row);
-      }
-    }
-  }
+  if (!isHomeroomClass && taughtClassSubjectIds.isEmpty) return const [];
+  final rows = await client.classSubjects.listAll({
+    ...classGroupScope(classGroupId),
+    if (!isHomeroomClass) ...entitiesByIds(taughtClassSubjectIds.toList()),
+  });
 
   if (rows.isEmpty) {
     return const [];
@@ -233,69 +144,77 @@ Future<List<TeachingClassSubjectOption>> fetchTeachingSubjectsForClass({
   );
 }
 
+typedef TeachingChapterCatalog = ({
+  List<Map<String, dynamic>> links,
+  List<Map<String, dynamic>> definitions,
+});
+
+Future<TeachingChapterCatalog> fetchTeachingChapterCatalog(
+  api.SchoolClient client,
+  String classSubjectId,
+) async {
+  final matterLinks = await client.classSubjectMatters.listAll({
+    'classSubjectId': classSubjectId,
+  });
+  final subjectMatterIds = matterLinks
+      .map((row) => row['subjectMatterId'] as String?)
+      .whereType<String>()
+      .toList();
+  final subjectMatters = subjectMatterIds.isEmpty
+      ? <Map<String, dynamic>>[]
+      : await client.subjectMatters.listAll(entitiesByIds(subjectMatterIds));
+
+  return (links: matterLinks, definitions: subjectMatters);
+}
+
 Future<TeachingProgressOverview> fetchTeachingProgressOverview({
   required api.SchoolClient client,
   required String classSubjectId,
   required String matterFallback,
 }) async {
-  final classSubject = await client.classSubjects.get(classSubjectId);
-  final matterLinks = await client.classSubjectMatters.listAll({
-    'classSubjectId': classSubjectId,
-  });
-  final subjectMatterIds = matterLinks
-      .map((row) => row['subjectMatterId'] as String?)
-      .whereType<String>()
-      .toList();
-  final subjectMatters = subjectMatterIds.isEmpty
-      ? <Map<String, dynamic>>[]
-      : await client.subjectMatters.listAll(entitiesByIds(subjectMatterIds));
+  late final Map<String, dynamic> classSubject;
+  late final TeachingChapterCatalog catalog;
+  await Future.wait<void>([
+    client.classSubjects.get(classSubjectId).then<void>((row) {
+      classSubject = row;
+    }),
+    fetchTeachingChapterCatalog(client, classSubjectId).then<void>((rows) {
+      catalog = rows;
+    }),
+  ], eagerError: true);
 
   return buildTeachingProgressOverview(
     classSubject: classSubject,
-    matterLinks: matterLinks,
-    subjectMatters: subjectMatters,
+    matterLinks: catalog.links,
+    subjectMatters: catalog.definitions,
     matterFallback: matterFallback,
   );
 }
 
-Future<List<TeachingLogEntry>> fetchTeachingLogEntries({
+Future<({List<TeachingLogEntry> items, String? nextCursor})>
+fetchTeachingLogPage({
   required api.SchoolClient client,
-  required String classGroupId,
-  required String classSubjectId,
-  required String classLabel,
-  required String subjectLabel,
-  required String matterFallback,
+  required TeachingClassSubjectOption option,
+  required bool recordedOnly,
+  required Future<void> abort,
+  String? cursor,
 }) async {
-  final lessonSessions = await client.lessonSessions.listAll({
-    'classGroupId': classGroupId,
-    'classSubjectId': classSubjectId,
-  });
-  if (lessonSessions.isEmpty) {
-    return const [];
-  }
-
-  final sessionIds = lessonSessions.map((row) => row['id'] as String).toList();
-  final matterLinks = await client.classSubjectMatters.listAll({
-    'classSubjectId': classSubjectId,
-  });
-  final subjectMatterIds = matterLinks
-      .map((row) => row['subjectMatterId'] as String?)
-      .whereType<String>()
-      .toList();
-  final subjectMatters = subjectMatterIds.isEmpty
-      ? <Map<String, dynamic>>[]
-      : await client.subjectMatters.listAll(entitiesByIds(subjectMatterIds));
-  final progressRows = await client.classSubjectProgress.listAll(
-    progressForLessonSessions(sessionIds),
-  );
-
-  return buildTeachingLogEntries(
-    lessonSessions: lessonSessions,
-    progressRows: progressRows,
-    matterLinks: matterLinks,
-    subjectMatters: subjectMatters,
-    classLabel: classLabel,
-    subjectLabel: subjectLabel,
-    matterFallback: matterFallback,
+  final page = await client.getTeacherLogbook({
+    'classGroupId': option.classGroupId,
+    'classSubjectId': option.id,
+    'view': recordedOnly ? 'recorded' : 'all',
+    if (cursor != null) 'cursor': cursor,
+  }, abortTrigger: abort);
+  return (
+    items: [
+      for (final row in (page['items'] as List).cast<Map>())
+        TeachingLogEntry(
+          lessonSessionId: row['id'] as String,
+          displayLabel: row['displayLabel'] as String,
+          startsAt: DateTime.parse(row['startsAt'] as String),
+          hasContent: row['recorded'] as bool,
+        ),
+    ],
+    nextCursor: page['nextCursor'] as String?,
   );
 }

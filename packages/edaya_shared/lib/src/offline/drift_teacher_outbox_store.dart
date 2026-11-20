@@ -36,8 +36,9 @@ class DriftTeacherOutboxStore extends LevitScopeDisposable
 
   @override
   Future<void> enqueue(TeacherOutboxEntry entry) async {
+    final stamped = stampTeacherOutboxContext(entry, _context);
     await _ensureReady();
-    await _upsertEntry(stampTeacherOutboxContext(entry, _context));
+    await _upsertEntry(stamped);
   }
 
   Future<void> _upsertEntry(TeacherOutboxEntry entry) async {
@@ -62,30 +63,101 @@ class DriftTeacherOutboxStore extends LevitScopeDisposable
         .insert(_toCompanion(entry));
   }
 
+  Expression<bool> _scope(
+    $TeacherOutboxRowsTable row,
+    TeacherOutboxContext? context,
+  ) {
+    if (context == null) {
+      return row.origin.isNull() |
+          row.subjectId.isNull() |
+          row.actorKind.isNull() |
+          row.actorId.isNull() |
+          row.schoolId.isNull();
+    }
+    return row.origin.equals(context.origin) &
+        row.subjectId.equals(context.subjectId) &
+        row.actorKind.equals(context.actorKind) &
+        row.actorId.equals(context.actorId) &
+        row.schoolId.equals(context.schoolId) &
+        (context.academicYearId == null
+            ? row.academicYearId.isNull()
+            : row.academicYearId.equals(context.academicYearId!));
+  }
+
   @override
-  Future<List<TeacherOutboxEntry>> listPending() async {
+  Future<List<TeacherOutboxEntry>> listPending() => _entries(
+    TeacherOutboxState.values.where(
+      (state) => state != TeacherOutboxState.synced,
+    ),
+  );
+
+  @override
+  Future<List<TeacherOutboxEntry>> listConflicts() =>
+      _entries([TeacherOutboxState.conflict, TeacherOutboxState.rejected]);
+
+  Future<List<TeacherOutboxEntry>> _entries(
+    Iterable<TeacherOutboxState> states,
+  ) async {
+    final context = _context;
     await _ensureReady();
-    await _recoverSyncing();
     final rows =
         await (_database.select(_database.teacherOutboxRows)
               ..where(
-                (row) => row.state.isIn([
-                  TeacherOutboxState.pending.name,
-                  TeacherOutboxState.savedLocally.name,
-                  TeacherOutboxState.failed.name,
-                  TeacherOutboxState.conflict.name,
-                  TeacherOutboxState.rejected.name,
-                ]),
+                (row) =>
+                    _scope(row, context) &
+                    row.state.isIn(states.map((s) => s.name)),
               )
-              ..orderBy([(row) => OrderingTerm.asc(row.createdAt)]))
+              ..orderBy([
+                (row) => OrderingTerm.asc(row.createdAt),
+                (row) => OrderingTerm.asc(row.id),
+              ]))
             .get();
-    return rows
-        .map(_fromRow)
-        .where((entry) => teacherOutboxEntryMatchesContext(entry, _context))
-        .toList();
+    return rows.map(_fromRow).toList();
   }
 
+  @override
+  Future<TeacherOutboxEntry?> findEntry(String id) async {
+    final context = _context;
+    await _ensureReady();
+    final row =
+        await (_database.select(_database.teacherOutboxRows)
+              ..where((row) => row.id.equals(id) & _scope(row, context)))
+            .getSingleOrNull();
+    return row == null ? null : _fromRow(row);
+  }
+
+  @override
+  Future<bool> replaceIfCurrent(
+    TeacherOutboxEntry expected,
+    TeacherOutboxEntry? replacement,
+  ) async {
+    await _ensureReady();
+    Expression<bool> matches($TeacherOutboxRowsTable row) =>
+        row.id.equals(expected.id) &
+        row.idempotencyKey.equals(expected.idempotencyKey) &
+        row.state.equals(expected.state.name) &
+        row.updatedAt.equals(expected.updatedAt.millisecondsSinceEpoch) &
+        row.attemptCount.equals(expected.attemptCount) &
+        row.payloadJson.equals(jsonEncode(expected.payload)) &
+        _scope(row, expected.context);
+    if (replacement == null) {
+      return await (_database.delete(
+            _database.teacherOutboxRows,
+          )..where(matches)).go() ==
+          1;
+    }
+    return await (_database.update(
+          _database.teacherOutboxRows,
+        )..where(matches)).write(_toCompanion(replacement)) ==
+        1;
+  }
+
+  Future<void>? _recovery;
+  @override
+  Future<void> prepareReplay() => _recovery ??= _recoverSyncing();
+
   Future<void> _recoverSyncing() async {
+    await _ensureReady();
     await (_database.update(
       _database.teacherOutboxRows,
     )..where((row) => row.state.equals(TeacherOutboxState.syncing.name))).write(
@@ -124,13 +196,9 @@ class DriftTeacherOutboxStore extends LevitScopeDisposable
       return;
     }
     await _ensureReady();
-    final rows = await _database.select(_database.teacherOutboxRows).get();
-    for (final row in rows) {
-      final entry = _fromRow(row);
-      if (teacherOutboxEntryMatchesContext(entry, context)) {
-        await remove(entry.id);
-      }
-    }
+    await (_database.delete(
+      _database.teacherOutboxRows,
+    )..where((row) => _scope(row, context))).go();
   }
 
   @override
@@ -141,8 +209,26 @@ class DriftTeacherOutboxStore extends LevitScopeDisposable
 
   @override
   Future<TeacherOutboxSummary> summary() async {
-    final pending = await listPending();
-    return TeacherOutboxSummary.fromEntries(pending);
+    final context = _context;
+    await _ensureReady();
+    final table = _database.teacherOutboxRows;
+    final count = table.id.count();
+    final oldest = table.createdAt.min();
+    final result =
+        await (_database.selectOnly(table)
+              ..addColumns([count, oldest])
+              ..where(
+                _scope(table, context) &
+                    table.state.equals(TeacherOutboxState.synced.name).not(),
+              ))
+            .getSingle();
+    final at = result.read(oldest);
+    return TeacherOutboxSummary(
+      pendingCount: result.read(count) ?? 0,
+      oldestPendingAt: at == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(at),
+    );
   }
 
   Future<void> _migrateFromSharedPrefsIfNeeded() async {
@@ -152,7 +238,7 @@ class DriftTeacherOutboxStore extends LevitScopeDisposable
     }
 
     final legacyStore = SharedPrefsTeacherOutboxStore();
-    final legacyEntries = await legacyStore.listPending();
+    final legacyEntries = await legacyStore.readMigrationEntries();
     await _database.transaction(() async {
       for (final entry in legacyEntries) {
         await _insertEntry(entry);

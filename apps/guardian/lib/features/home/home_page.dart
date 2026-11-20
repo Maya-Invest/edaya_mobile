@@ -39,7 +39,15 @@ class HomePage extends StatelessWidget {
       );
     }
     return _LiveDashboard(
-      key: ValueKey((id, yearId, student.activeStudent.value?.schoolId)),
+      key: ValueKey((
+        id,
+        yearId,
+        student.activeStudent.value?.schoolId,
+        student.classGroupId.value,
+        student.schoolTimeZone.value,
+        context.levit.find<AppSessionController>().grants.value?.actorId,
+        context.levit.find<AppSessionController>().user.value?.id,
+      )),
       id: id,
       year: yearId,
       school: student.activeStudent.value!.schoolId,
@@ -62,7 +70,7 @@ class _LiveDashboard extends LScopedView<DashboardController> {
       studentId: id,
       yearId: year,
       schoolId: school,
-      guardianSubjectId: scope.find<AppSessionController>().user.value?.id,
+      timeZone: scope.find<StudentContextController>().schoolTimeZone.value,
       classGroupId: scope.find<StudentContextController>().classGroupId.value,
     ),
   );
@@ -220,10 +228,7 @@ class _DashboardState extends State<_Dashboard> with WidgetsBindingObserver {
       final large = MediaQuery.textScalerOf(context).scale(14) > 21;
       Widget heading(String label) => Semantics(
         header: true,
-        child: Text(
-          label,
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
+        child: Text(label, style: Theme.of(context).textTheme.titleLarge),
       );
       final day = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -259,8 +264,10 @@ class _DashboardState extends State<_Dashboard> with WidgetsBindingObserver {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: SurfaceCard(
-                onTap: () =>
-                    context.push('/session/${Uri.encodeComponent(s.id)}'),
+                onTap: () => context.push(
+                  '/session/${Uri.encodeComponent(s.id)}',
+                  extra: s.kind,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -296,7 +303,9 @@ class _DashboardState extends State<_Dashboard> with WidgetsBindingObserver {
       Widget group(bool academic) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          heading(academic ? context.tr.academics : context.tr.guardianSchoolLife),
+          heading(
+            academic ? context.tr.academics : context.tr.guardianSchoolLife,
+          ),
           const SizedBox(height: 12),
           LayoutBuilder(
             builder: (context, grid) {

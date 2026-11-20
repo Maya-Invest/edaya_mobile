@@ -4,7 +4,6 @@ import 'package:edaya_api_client/edaya_api_client.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
-import '../../live/entity_queries.dart';
 import '../../live/runtime.dart';
 import '../context/academic_year_controller.dart';
 import '../context/teacher_context_controller.dart';
@@ -137,34 +136,22 @@ class LiveReportCardsController extends LevitController
         final client = _schoolClient();
         final summaries = <ReportCardClassSummary>[];
         for (final assigned in classes) {
-          final results = await client.results.list({
+          final response = await client.getClassReportRoster({
             'classGroupId': assigned.id,
             'periodId': periodId,
+            'view': 'summary',
           });
           if (stale()) return;
-          final generated = results.where(reportCardIsGenerated);
-          final withComments = generated.where(
-            (row) => _responsibilities(
-              _teacherContext,
-              row,
-              assigned.id,
-            ).every((f) => f.initialComment.trim().isNotEmpty),
-          );
+          final totals = response['totals'] as Map;
           summaries.add(
             ReportCardClassSummary(
               classGroupId: assigned.id,
               classLabel: assigned.label,
               periodId: periodId,
               periodLabel: periodLabel,
-              generatedCount: generated.length,
-              commentFilledCount: withComments.length,
-              remainingFields: generated
-                  .expand(
-                    (row) =>
-                        _responsibilities(_teacherContext, row, assigned.id),
-                  )
-                  .where((field) => field.initialComment.trim().isEmpty)
-                  .length,
+              generatedCount: totals['generatedCount'] as int,
+              commentFilledCount: totals['commentFilledCount'] as int,
+              remainingFields: totals['remainingFields'] as int,
             ),
           );
         }
@@ -198,74 +185,98 @@ class LiveReportCardRosterController extends LevitController
   final students = LxVar<List<ReportCardStudentRow>>(const []);
   final errorMessage = LxVar('');
 
+  final nextCursor = LxVar<String?>(null);
+  final loading = LxVar(false);
+  Completer<void>? _abort;
+
   @override
   void onInit() {
     super.onInit();
     autoDispose(students);
     autoDispose(errorMessage);
+    autoDispose(loading);
+    autoDispose(nextCursor);
+    for (final stream in [
+      _academicYear.selectedYearId.stream,
+      teacherContext.assignments.stream,
+    ]) {
+      autoDispose(
+        stream.listen((_) {
+          students(const []);
+          nextCursor(null);
+          unawaited(load());
+        }),
+      );
+    }
     unawaited(load());
   }
 
-  Future<void> load() async {
+  @override
+  void onClose() {
+    _abort?.complete();
+    _abort = null;
+    super.onClose();
+  }
+
+  Future<void> load({bool more = false}) async {
+    if (isClosed || (more && (loading.value || nextCursor.value == null)))
+      return;
+    _abort?.complete();
+    final abort = _abort = Completer<void>();
+    bool current() => identical(_abort, abort) && !isClosed;
+    loading(true);
     errorMessage('');
-    await runTask(() async {
-      try {
-        final client = _schoolClient();
-        final enrollmentRows = await client.enrollments.list(
-          activeEnrollmentsForClass(
-            classGroupId,
-            academicYearId: _academicYear.selectedYearId.value,
-          ),
-        );
-        final studentIds = enrollmentRows
-            .map((row) => row['studentId'] as String?)
-            .whereType<String>()
-            .toList();
-        final studentRows = studentIds.isEmpty
-            ? <Map<String, dynamic>>[]
-            : await client.students.list(entitiesByIds(studentIds));
-        final resultRows = await client.results.list({
+    try {
+      final client = _schoolClient();
+      final previousCount = students.value.length;
+      final rows = <String, ReportCardStudentRow>{
+        if (more)
+          for (final row in students.value) row.studentId: row,
+      };
+      var cursor = more ? nextCursor.value : null;
+      do {
+        final response = await client.getClassReportRoster({
           'classGroupId': classGroupId,
           'periodId': periodId,
-        });
-        final resultByStudent = <String, Map<String, dynamic>>{};
-        for (final row in resultRows) {
-          final studentId = row['studentId'] as String?;
-          if (studentId == null || !reportCardIsGenerated(row)) {
-            continue;
-          }
-          resultByStudent[studentId] = row;
-        }
-        final roster = studentRows.map((row) {
-          final studentId = row['id'] as String;
-          final firstName = row['firstName'] as String? ?? '';
-          final lastName = row['lastName'] as String? ?? '';
-          final fullName = '$firstName $lastName'.trim();
-          final displayName = fullName.isEmpty ? studentId : fullName;
-          final result = resultByStudent[studentId];
-          return ReportCardStudentRow(
-            studentId: studentId,
-            studentName: displayName,
-            studentInitials: personInitials(displayName),
-            photoUrl: row['photoUrl'] as String?,
-            reportCardId: result?['id'] as String?,
-            status: result?['status'] as String?,
-            overallAverage: (result?['overallAverage'] as num?)?.toDouble(),
-            grading: (result?['grading'] as Map?)?.cast<String, dynamic>(),
-            aggregateLabel: result?['aggregateLabel'] as String?,
-            classSize: (result?['classSize'] as num?)?.toInt(),
-            rank: (result?['rank'] as num?)?.toInt(),
-            hasComment: (result?['teacherComment'] as String? ?? '')
-                .trim()
-                .isNotEmpty,
+          'cursor': ?cursor,
+        }, abortTrigger: abort.future);
+        if (!current()) return;
+        for (final pupil in (response['items'] as List).cast<Map>()) {
+          final id = pupil['studentId'] as String;
+          final name = pupil['studentName'] as String;
+          final report = pupil['report'] as Map?;
+          rows[id] = ReportCardStudentRow(
+            studentId: id,
+            studentName: name,
+            studentInitials: personInitials(name),
+            photoUrl: pupil['photoUrl'] as String?,
+            reportCardId: report?['id'] as String?,
+            status: report?['status'] as String?,
+            overallAverage: (report?['overallAverage'] as num?)?.toDouble(),
+            grading: (report?['grading'] as Map?)?.cast<String, dynamic>(),
+            aggregateLabel: report?['aggregateLabel'] as String?,
+            classSize: report?['classSize'] as int?,
+            rank: report?['rank'] as int?,
+            hasComment: report?['hasComment'] == true,
           );
-        }).toList()..sort((a, b) => a.studentName.compareTo(b.studentName));
-        students(roster);
-      } on Object catch (error) {
-        errorMessage(systemL10n().couldNotLoadReportCardRoster('$error'));
+        }
+        cursor = response['nextCursor'] as String?;
+      } while (!more && cursor != null && rows.length < previousCount);
+      students(rows.values.toList());
+      nextCursor(cursor);
+    } on Object catch (error) {
+      if (!current()) return;
+      if (error is ApiError && [400, 401, 403, 404].contains(error.status)) {
         students(const []);
+        nextCursor(null);
       }
-    });
+      errorMessage(systemL10n().couldNotLoadReportCardRoster('$error'));
+    } finally {
+      if (current()) {
+        _abort = null;
+        loading(false);
+      }
+    }
   }
 }
 
@@ -318,7 +329,12 @@ class LiveReportCardCommentController extends LevitController
     unawaited(load());
   }
 
+  int _readGeneration = 0;
+
   Future<void> load() async {
+    if (isClosed) return;
+    final generation = ++_readGeneration;
+    bool current() => !isClosed && generation == _readGeneration;
     errorMessage('');
     await runTask(() async {
       try {
@@ -328,20 +344,13 @@ class LiveReportCardCommentController extends LevitController
           'periodId': periodId,
           'studentId': studentId,
         });
+        if (!current()) return;
         final result = results.where(reportCardIsGenerated).firstOrNull;
         if (result == null) {
           errorMessage(systemL10n().reportCardNotFound);
           fields(const []);
           return;
         }
-        _resultRow = result;
-        final pupil = await client.students.get(studentId);
-        if (isClosed) return;
-        studentName(
-          '${pupil['firstName'] ?? ''} ${pupil['lastName'] ?? ''}'.trim(),
-        );
-        correctionRequired(result['status'] == 'published');
-        isReadOnly(false);
         final homeroomClassGroupIds = _teacherContext.assignments.value
             .where((assignment) => assignment.isHomeroom)
             .map((assignment) => assignment.classGroupId)
@@ -363,25 +372,36 @@ class LiveReportCardCommentController extends LevitController
                       : subjectId == null || f.classSubjectId == subjectId,
                 )
                 .toList();
-        _eligibility = null;
-        if (correctionRequired.value) {
-          _eligibility = await client.runQuery('get-teacher-workflow-state', {
-            'proposal': {
-              'workflow': 'report_comments',
-              'targetId': result['id'],
-              'sections': [
-                for (final field in editableFields)
-                  if (!field.isHomeroom)
-                    {
-                      'sectionId': field.sectionId,
-                      'comment': field.initialComment,
-                    },
-              ],
-              if (editableFields.any((f) => f.isHomeroom))
-                'teacherComment': result['teacherComment'],
-            },
-          });
-        }
+        final published = result['status'] == 'published';
+        final (pupil, eligibility) = await (
+          client.students.get(studentId),
+          published
+              ? client.runQuery('get-teacher-workflow-state', {
+                  'proposal': {
+                    'workflow': 'report_comments',
+                    'targetId': result['id'],
+                    'sections': [
+                      for (final field in editableFields)
+                        if (!field.isHomeroom)
+                          {
+                            'sectionId': field.sectionId,
+                            'comment': field.initialComment,
+                          },
+                    ],
+                    if (editableFields.any((f) => f.isHomeroom))
+                      'teacherComment': result['teacherComment'],
+                  },
+                })
+              : Future<Map<String, dynamic>?>.value(null),
+        ).wait;
+        if (!current()) return;
+        _resultRow = result;
+        _eligibility = eligibility;
+        studentName(
+          '${pupil['firstName'] ?? ''} ${pupil['lastName'] ?? ''}'.trim(),
+        );
+        correctionRequired(published);
+        isReadOnly(false);
         final official = publishedFields;
         final proposals = activeProposals;
         final initial = [
@@ -404,9 +424,12 @@ class LiveReportCardCommentController extends LevitController
         );
         fields(initial);
         if (!isReadOnly.value) {
-          await _restoreDraft(initial, result['id'] as String);
+          await _restoreDraft(initial, result['id'] as String, current);
         }
       } on Object catch (error) {
+        if (!current()) return;
+        _resultRow = null;
+        _eligibility = null;
         errorMessage(systemL10n().couldNotLoadReportCardComments('$error'));
         fields(const []);
       }
@@ -502,13 +525,15 @@ class LiveReportCardCommentController extends LevitController
   Future<void> _restoreDraft(
     List<ReportCardCommentField> editableFields,
     String resultId,
+    bool Function() current,
   ) async {
     final draft = await ReportCardCommentDraftStorage.load(
       prefix: schoolStoragePrefix(_schoolClient()),
       resultId: resultId,
       studentId: _draftOwner,
     );
-    if (draft == null ||
+    if (!current() ||
+        draft == null ||
         draft.baseVersion != (_resultRow?['version'] as num?)?.toInt()) {
       return;
     }

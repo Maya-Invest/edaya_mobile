@@ -43,6 +43,22 @@ import 'support/integration_test_lifecycle.dart';
 import 'support/live_api_test_binding.dart';
 import 'support/teacher_live_widget_test_harness.dart';
 
+class _RegisterTransport extends SwitchableTransport {
+  final statusClasses = <String?>[];
+  int detailReads = 0;
+
+  @override
+  Future<StreamedResponse> send(BaseRequest request) {
+    if (request.method == 'GET' &&
+        request.url.path.endsWith('/daily-attendance-status')) {
+      statusClasses.add(request.url.queryParameters['classGroupId']);
+    }
+    if (request.url.path.endsWith('/get-teacher-attendance-call'))
+      detailReads++;
+    return super.send(request);
+  }
+}
+
 class _TimetableTransport extends SwitchableTransport {
   Completer<void>? holdNext;
   final held = Completer<void>();
@@ -564,8 +580,26 @@ Future<void> main() async {
   testWidgets(
     '[teacher-v2.daily-attendance.submit] homeroom daily call stays private until Finish',
     (tester) async {
+      const homeroom = TeacherPortalProfile.homeroomTeacher;
+      final session = await PortalSession.signIn(
+        config: baseline.config.withTeacherEmail(homeroom.email),
+        actorKind: 'teacher',
+        academicYearId: homeroom.academicYearId,
+      );
+      final transport = _RegisterTransport();
+      addTearDown(transport.close);
+      final auth = AuthClient(
+        baseUrl: session.config.authUrl,
+        client: transport,
+      )..restoreRenewalCredential(session.authClient.renewalCredential!);
       harness = await TeacherLiveWidgetTestHarness.create(
-        profile: TeacherPortalProfile.homeroomTeacher,
+        profile: homeroom,
+        authenticatedSession: PortalSession(
+          config: session.config,
+          authClient: auth,
+          schoolClient: session.schoolClient,
+          actorKind: 'teacher',
+        ),
       );
       final teacherId = harness.context.grants.actorId;
       final original = await owner.schoolClient.classGroups.get('ci-6b');
@@ -600,8 +634,20 @@ Future<void> main() async {
         'classGroupId': classId,
         'createdAt': '2026-09-01T00:00:00.000Z',
       });
-      await mount(tester, '/classes/$classId/attendance');
+      await mount(tester, '/home');
+      await until(tester, find.byKey(const ValueKey('home-profile')));
+      final context = harness.scope.find<TeacherContextController>();
+      await context.selectClass(classId);
+      expect(context.activeAssignment?.classGroupId, classId);
+      await until(tester, find.text('Faire l’appel du jour'));
+      expect(
+        transport.statusClasses.where((id) => id == classId),
+        hasLength(1),
+      );
+      expect(transport.detailReads, 0);
+      await tapPageAction(tester, 'Faire l’appel du jour');
       await until(tester, find.byType(AttendanceStatusPicker));
+      expect(transport.detailReads, greaterThan(0));
       final controller = findController<DailyAttendanceController>(
         tester,
         find.byType(DailyAttendancePage),
@@ -658,6 +704,14 @@ Future<void> main() async {
       expect((reopened['records'] as List).single['status'], 'present');
       await gone(tester, BottomSheet);
       expect(find.byType(DailyAttendancePage), findsOneWidget);
+      final detailReads = transport.detailReads;
+      harness.scope.find<GoRouter>().pop();
+      await until(tester, find.text('Consulter l’appel du jour'));
+      expect(
+        transport.statusClasses.where((id) => id == classId),
+        hasLength(2),
+      );
+      expect(transport.detailReads, detailReads);
     },
   );
 
@@ -753,16 +807,22 @@ Future<void> main() async {
       }
       await mount(tester, '/classes/${profile.primaryClassGroupId}/discipline');
       await until(tester, find.byType(TeacherDisciplinePage));
+      final list = findController<TeacherDisciplineController>(
+        tester, find.byType(TeacherDisciplinePage),
+      );
+      await persisted(tester, () async => list.busy.value, (busy) => !busy);
+      final summary = list.incidents.value.firstWhere((row) => row['id'] == id);
+      expect(summary['locked'], false);
+      expect(summary.containsKey('eligibility'), false);
+      final link = find.text(id).hitTestable().first;
+      await until(tester, link);
+      await tester.tap(link);
+      await until(tester, find.text('Original facts').hitTestable());
       final controller = findController<TeacherDisciplineController>(
-        tester,
-        find.byType(TeacherDisciplinePage),
+        tester, find.byType(TeacherDisciplinePage).last,
       );
-      await persisted(
-        tester,
-        () async => controller.busy.value,
-        (busy) => !busy,
-      );
-      expect(controller.teacherId, teacherId);
+      expect(controller.incidentId, id);
+      await persisted(tester, () async => controller.busy.value, (busy) => !busy);
       expect(controller.message.value, isEmpty);
       var incident = controller.incidents.value.firstWhere(
         (row) => row['id'] == id,
@@ -823,7 +883,7 @@ Future<void> main() async {
             ),
         true,
       );
-      expect(find.byType(TeacherDisciplinePage), findsOneWidget);
+      expect(find.byType(TeacherDisciplinePage).last, findsOneWidget);
     },
   );
 
@@ -1744,6 +1804,11 @@ Future<void> main() async {
       expect(result.eligibleSlotCount, greaterThan(0));
       expect(result.completedSlotCount, 0);
       expect(result.overallSuppressed, isTrue);
+      final summaries = await listTeacherFeedbackSummaries(
+        baseline.schoolClient,
+      );
+      final summary = summaries.singleWhere((row) => row.campaignId == id);
+      expect(summary.questions, isEmpty);
       await mount(tester, '/evaluations/avis/$id');
       await until(tester, find.text('0/${result.eligibleSlotCount} réponses'));
       await until(

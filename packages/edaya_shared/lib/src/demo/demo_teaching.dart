@@ -27,6 +27,91 @@ extension DemoTeaching on DemoSchool {
         if (mark['studentId'] == student)
           {...assessment, ...mark, 'grading': mark['calculation']},
   ];
+  Row teacherIncidents(Row input, {required bool detail}) {
+    final group = input['classGroupId'];
+    if (!teacher ||
+        matching('teacher-assignments', {
+          'teacherId': actor,
+          'academicYearId': year,
+          'classGroupId': group,
+          'status': 'active',
+        }).isEmpty)
+      throw ApiError(403, 'Class unavailable');
+    final incidents =
+        matching('incidents', {'classGroupId': group, 'reporterId': actor})
+          ..sort((a, b) {
+            final order = '${b['date']}'.compareTo('${a['date']}');
+            return order != 0 ? order : '${b['id']}'.compareTo('${a['id']}');
+          });
+    Row summary(Row row) => {
+      for (final key in [
+        'id',
+        'title',
+        'description',
+        'date',
+        'kind',
+        'status',
+      ])
+        key: row[key],
+      'locked': row['status'] == 'closed',
+    };
+    if (detail) {
+      final row = incidents
+          .where((r) => r['id'] == input['incidentId'])
+          .firstOrNull;
+      if (row == null) throw ApiError(403, 'Incident unavailable');
+      return {
+        'incident': summary(row),
+        'eligibility': teachingQuery('get-teacher-workflow-state', {
+          'proposal': {'workflow': 'discipline', 'targetId': row['id']},
+        }),
+      };
+    }
+    final cursor = input['cursor'];
+    final offset = cursor == null
+        ? 0
+        : incidents.indexWhere(
+                (r) => jsonEncode([year, group, r['id']]) == cursor,
+              ) +
+              1;
+    if (cursor != null && offset == 0)
+      throw ApiError(400, 'Invalid incident cursor');
+    final items = incidents.skip(offset).take(30).map(summary).toList();
+    return {
+      'items': items,
+      'nextCursor': offset + items.length < incidents.length
+          ? jsonEncode([year, group, items.last['id']])
+          : null,
+    };
+  }
+
+  Row dailyAttendanceStatus(Row input) {
+    final group = input['classGroupId'];
+    final day = input['date'];
+    if (!teacher ||
+        matching('teacher-assignments', {
+          'teacherId': actor,
+          'academicYearId': year,
+          'kind': 'homeroom',
+          'status': 'active',
+          'classGroupId': group,
+        }).isEmpty ||
+        one('class-groups', group)['attendanceMode'] != 'daily') {
+      throw ApiError(403, 'Daily register unavailable');
+    }
+    final saved = matching('calls', {'id': '$group/$day'}).firstOrNull;
+    return {
+      'submitted':
+          saved?['submitted'] ??
+          rows('attendance').any(
+            (record) =>
+                record['classGroupId'] == group &&
+                record['date'] == day &&
+                record['scope'] == 'daily',
+          ),
+    };
+  }
+
   Row attendanceCall(Row anchor) {
     final lesson = anchor['lessonSessionId'];
     final group =

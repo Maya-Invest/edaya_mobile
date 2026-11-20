@@ -18,8 +18,14 @@ class SubjectGradesPage extends LScopedView<PeriodResultsController> {
   final String periodId, subject;
   final String? expandedMark;
   @override
-  PeriodResultsController onConfigScope(LevitScope scope) =>
-      scope.put(() => periodResultsFor(scope, periodId));
+  PeriodResultsController onConfigScope(LevitScope scope) => scope.put(
+    () => periodResultsFor(
+      scope,
+      periodId,
+      subjectId: subject,
+      focusMarkId: expandedMark,
+    ),
+  );
   @override
   Widget buildView(BuildContext context, PeriodResultsController controller) {
     if (controller.loading.value) {
@@ -70,7 +76,7 @@ class SubjectGradesPage extends LScopedView<PeriodResultsController> {
               ),
               const SizedBox(height: 4),
               Text(
-                '${controller.periods.value.where((p) => p['id'] == periodId).firstOrNull?['name'] ?? ''}',
+                '${controller.result.value?['periodName'] ?? controller.periods.value.where((p) => p['id'] == periodId).firstOrNull?['name'] ?? ''}',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 8),
@@ -154,6 +160,17 @@ class SubjectGradesPage extends LScopedView<PeriodResultsController> {
           ),
           const SizedBox(height: 8),
         ],
+        if (controller.result.value?['nextCursor'] != null)
+          TextButton(
+            onPressed: controller.loadingMore.value
+                ? null
+                : controller.loadMore,
+            child: Text(
+              controller.pageFailed.value
+                  ? words(context, 'Réessayer', 'Retry')
+                  : words(context, 'Afficher plus de notes', 'Load more marks'),
+            ),
+          ),
       ],
     );
   }

@@ -55,6 +55,31 @@ void main() {
     },
   );
 
+  test('an incident redirect belongs to the exact opened class and record', () {
+    final location = Uri.parse('/incidents/c/i');
+    const route = '/core/teacher/incidents/detail';
+    expect(
+      recordOwnerForRead(location, '$route?classGroupId=c&incidentId=i', {}),
+      '/incidents',
+    );
+    expect(
+      recordOwnerForRead(
+        location,
+        '$route?classGroupId=other&incidentId=i',
+        {},
+      ),
+      isNull,
+    );
+    expect(
+      recordOwnerForRead(
+        location,
+        '$route?classGroupId=c&incidentId=other',
+        {},
+      ),
+      isNull,
+    );
+  });
+
   test('a late denial cannot redirect a different page', () async {
     var current = Uri.parse('/evaluations/assessment/marks');
     final owners = <String>[];

@@ -85,6 +85,105 @@ void main() {
         placements.map((e) => e['academicYearId']).toSet(),
         containsAll(['demo-2025', 'demo-2026']),
       );
+      final choices = await client.getGuardianChildChoices({});
+      expect(choices['school']['timeZone'], 'Africa/Abidjan');
+      expect(
+        (choices['children'] as List).map((row) => row['id']),
+        unorderedEquals(scope.studentIds),
+      );
+      final year = 'demo-2026';
+      final occurrenceInput = {
+        'studentId': 'demo-amina',
+        'academicYearId': year,
+        'occurrenceId': 'demo-math-a-lesson-0',
+        'kind': 'assessment',
+      };
+      final event = (await client.getGuardianOccurrenceDetail(
+        occurrenceInput,
+      ))['occurrence'];
+      expect(event['kind'], 'lesson');
+      expect(
+        event['logbook']['chapters'].first['name'],
+        'Fractions et proportions',
+      );
+      expect(
+        (await client.getGuardianOccurrenceDetail({
+          ...occurrenceInput,
+          'studentId': 'demo-youssef',
+        }))['occurrence'],
+        isNull,
+      );
+      expect(
+        (await client.getGuardianOccurrenceDetail({
+          ...occurrenceInput,
+          'academicYearId': 'demo-2025',
+        }))['occurrence'],
+        isNull,
+      );
+      final pupil = {'studentId': 'demo-amina', 'academicYearId': year};
+      final balance = await client.getGuardianFeesSummary(pupil);
+      expect(balance['expected'], 50000);
+      expect(balance['paid'], 30000);
+      expect(balance['outstanding'], 20000);
+      final page = await client.getGuardianSettlements({...pupil, 'limit': 1});
+      expect(page['accountId'], balance['accountId']);
+      expect(page['charges'].single['settlementCount'], 1);
+      expect(page['payments'].single['chargeLabels'], [
+        'Scolarité du trimestre',
+      ]);
+      expect(page['nextPaymentCursor'], isNull);
+      final archivedFees = await client.getGuardianSettlements({
+        ...pupil,
+        'academicYearId': 'demo-2025',
+      });
+      expect(archivedFees['accountId'], isNull);
+      expect(archivedFees['payments'], isEmpty);
+      await expectLater(
+        client.getGuardianSettlements({...pupil, 'cursor': 'invalid'}),
+        throwsA(isA<ApiError>()),
+      );
+      final paymentInput = {
+        'studentId': 'demo-amina',
+        'academicYearId': year,
+        'paymentId': 'demo-amina-receipt',
+      };
+      final receiptDetail = (await client.getGuardianPaymentDetail(
+        paymentInput,
+      ))['payment'];
+      expect(receiptDetail['amount'], 30000);
+      expect(receiptDetail['chargeLabels'], ['Scolarité du trimestre']);
+      expect(
+        (await client.getGuardianPaymentDetail({
+          ...paymentInput,
+          'studentId': 'demo-youssef',
+        }))['payment'],
+        isNull,
+      );
+      expect(
+        (await client.getGuardianPaymentDetail({
+          ...paymentInput,
+          'academicYearId': 'demo-2025',
+        }))['payment'],
+        isNull,
+      );
+      final group = placements.firstWhere(
+        (p) => p['academicYearId'] == year,
+      )['classGroupId'];
+      final selected = {
+        'academicYearId': year,
+        'day': '2026-11-10',
+        'studentId': 'demo-amina',
+        'classGroupId': group,
+      };
+      final highlights = await client.getGuardianHighlights(selected);
+      expect(highlights['unavailable'], isEmpty);
+      expect(highlights['cards']['balance'], 20000);
+      expect(highlights['cards']['surveys'], 1);
+      expect(highlights['attendance'], isA<Map>());
+      await expectLater(
+        client.getGuardianHighlights({...selected, 'studentId': 'demo-fatou'}),
+        throwsA(isA<ApiError>()),
+      );
       final sessions = await client.runQuery('get-student-session-history', {
         'studentId': 'demo-amina',
         'academicYearId': 'demo-2026',
@@ -173,6 +272,21 @@ void main() {
       };
       final submission = await client.submitStudentPhoto(cmd);
       expect((await client.submitStudentPhoto(cmd))['id'], submission['id']);
+      final photoProfile = await client.getGuardianChildPhoto(pupil);
+      expect(photoProfile['student']['id'], pupil['studentId']);
+      expect(photoProfile['decision']['ownSubmission']['id'], submission['id']);
+      final familyPapers = await client.getGuardianPapers(pupil);
+      expect(
+        (familyPapers['items'] as List).every(
+          (row) => isLeftoverFamilyPaper(row['templateKey'] as String),
+        ),
+        isTrue,
+      );
+      await expectLater(
+        client.getGuardianPapers({...pupil, 'academicYearId': 'different'}),
+        throwsA(isA<ApiError>()),
+      );
+
       await expectLater(
         store.auth.httpClient.get(Uri.https('example.com', '/')),
         throwsStateError,
@@ -206,6 +320,35 @@ void main() {
       expect(await store.readMedia(photo.attachmentId), isNull);
     },
   );
+
+  test('teacher Home daily status follows the selected register', () async {
+    store = await DemoStore.start(DemoRole.teacher);
+    final client = createEdayaSchoolClient(store.auth);
+    const query = {'classGroupId': 'demo-class-b', 'date': '2026-10-01'};
+    final anchor = {'kind': 'daily', ...query};
+    expect(await client.getTeacherDailyAttendanceStatus(query), {
+      'submitted': false,
+    });
+    final register = await client.getTeacherAttendanceCall({'anchor': anchor});
+    await client.submitTeacherAttendance({
+      'anchor': anchor,
+      'expectedVersion': register['version'],
+      'entries': [
+        for (final student in register['students'])
+          {'studentId': student['id'], 'status': 'present'},
+      ],
+    });
+    expect(await client.getTeacherDailyAttendanceStatus(query), {
+      'submitted': true,
+    });
+    await expectLater(
+      client.getTeacherDailyAttendanceStatus({
+        ...query,
+        'classGroupId': 'demo-class-a',
+      }),
+      throwsA(isA<ApiError>().having((error) => error.status, 'status', 403)),
+    );
+  });
 
   test(
     'teacher commits attendance and marks, and keeps a correction pending',

@@ -32,6 +32,7 @@ api.SchoolClient createEdayaSchoolClient(
   final transport = api.HttpTransport(
     baseUrl: ApiBaseUrlConfig.apiBaseUrl,
     client: authClient.businessHttpClient,
+    directoryCache: authClient.directoryCache,
     getAccessToken: ({required Uri resource}) async {
       if (!canIssueSchoolAccessToken(authClient)) {
         return null;

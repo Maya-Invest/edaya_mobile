@@ -6,13 +6,20 @@ import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
 import 'period_results_controller.dart';
 
-PeriodResultsController periodResultsFor(LevitScope scope, String? period) {
+PeriodResultsController periodResultsFor(
+  LevitScope scope,
+  String? period, {
+  String? subjectId,
+  String? focusMarkId,
+}) {
   if (scope.find<PrototypeRuntime>().live) {
     return PeriodResultsController(
       client: scope.find<SchoolClientFactory>()(),
       studentId: scope.find<StudentContextController>().activeStudentId!,
       yearId: scope.find<AcademicYearController>().selectedYearId.value!,
       initialPeriod: period,
+      subjectId: subjectId,
+      focusMarkId: focusMarkId,
     );
   }
   final store = scope.find<MockStore>();

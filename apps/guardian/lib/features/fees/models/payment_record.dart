@@ -100,10 +100,14 @@ String paymentAllocationLabel(
       labels.add(label);
     }
   }
+  return paymentDisplayLabel(payment['kind'], labels);
+}
+
+String paymentDisplayLabel(Object? kind, Iterable<String> labels) {
   if (labels.isNotEmpty) {
     return labels.join(', ');
   }
-  return payment['kind'] == 'disbursement'
+  return kind == 'disbursement'
       ? systemL10n().paymentKindDisbursement
       : systemL10n().paymentKindReceipt;
 }

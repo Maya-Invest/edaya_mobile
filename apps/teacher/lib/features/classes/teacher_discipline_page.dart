@@ -7,19 +7,25 @@ import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 import '../../design/components/components.dart';
 import '../../design/spacing.dart';
+import '../../app/formatters.dart';
 import '../../live/entity_queries.dart';
-import '../context/teacher_context_controller.dart';
 
 class TeacherDisciplineController extends LevitController {
   TeacherDisciplineController({
     required this.classId,
     required this.client,
-    required this.teacherId,
+    this.incidentId,
+    this.editFacts = false,
     required this.outbox,
   });
   final String classId;
   final SchoolClientFactory client;
-  final String? teacherId;
+  final String? incidentId;
+  final bool editFacts;
+  final nextCursor = LxVar<String?>(null);
+  final readFailed = LxVar(false);
+  bool failedContinuation = false;
+  Completer<void>? _abort;
   final TeacherOutboxStore outbox;
   final incidents = LxVar<List<Map<String, dynamic>>>([]);
   final students = LxVar<List<Map<String, dynamic>>>([]);
@@ -28,6 +34,8 @@ class TeacherDisciplineController extends LevitController {
   @override
   void onInit() {
     super.onInit();
+    autoDispose(nextCursor);
+    autoDispose(readFailed);
     autoDispose(incidents);
     autoDispose(students);
     autoDispose(message);
@@ -35,64 +43,107 @@ class TeacherDisciplineController extends LevitController {
     unawaited(load());
   }
 
-  Future<void> load() async {
+  @override
+  void onClose() {
+    _abort?.complete();
+    _abort = null;
+    super.onClose();
+  }
+
+  Future<void> load({bool more = false}) async {
+    if (isClosed || (more && (busy.value || nextCursor.value == null))) return;
+    _abort?.complete();
+    final abort = _abort = Completer<void>();
+    bool current() => identical(_abort, abort) && !isClosed;
     busy(true);
+    if (readFailed.value) message('');
+    readFailed(false);
     try {
       final api = client();
-      final enrollments = await api.enrollments.list(
-        activeEnrollmentsForClass(classId),
-      );
-      final ids = enrollments.map((e) => e['studentId'] as String).toList();
-      students(ids.isEmpty ? [] : await api.students.list(entitiesByIds(ids)));
-      final result = <Map<String, dynamic>>[];
-      final namedStudents = {
-        for (final student in students.value) student['id'] as String: student,
-      };
-      final authored = (await api.incidents.listAll({
-        'classGroupId': classId,
-      })).where((incident) => incident['reporterId'] == teacherId).toList();
-      final states = await Future.wait(
-        authored.map(
-          (incident) => api.runQuery('get-teacher-workflow-state', {
-            'proposal': {
-              'workflow': 'discipline',
-              'targetId': incident['id'],
-              'title': incident['title'],
-              'description': incident['description'],
-              'kind': incident['kind'],
-              // The state query returns the canonical, including historical, participants.
-              'studentIds': <String>[],
-            },
-          }),
-        ),
-      );
-      for (var index = 0; index < authored.length; index++) {
-        final incident = authored[index];
-        final eligibility = states[index];
-        for (final student
-            in ((eligibility['context'] as Map)['students'] as List)
-                .cast<Map>()) {
-          namedStudents.putIfAbsent(
-            student['id'] as String,
-            () => {
+      final id = incidentId;
+      if (id != null) {
+        final data = await api.getTeacherIncidentDetail({
+          'classGroupId': classId,
+          'incidentId': id,
+        }, abortTrigger: abort.future);
+        if (!current()) return;
+        final incident = data['incident'] as Map<String, dynamic>;
+        if (incident['id'] != id)
+          throw const FormatException('Unexpected incident');
+        final eligibility = data['eligibility'] as Map<String, dynamic>;
+        final historical = ((eligibility['context'] as Map)['students'] as List)
+            .cast<Map>();
+        final names = <String, Map<String, dynamic>>{
+          for (final student in historical)
+            student['id'] as String: {
               'id': student['id'],
               'firstName': student['name'],
               'lastName': '',
             },
+        };
+        if (editFacts) {
+          final placements = await api.enrollments.listAll(
+            activeEnrollmentsForClass(classId),
           );
+          if (!current()) return;
+          final ids = placements
+              .map((row) => row['studentId'] as String)
+              .toSet()
+              .toList();
+          for (var start = 0; start < ids.length; start += 100) {
+            final rows = await api.students.list({
+              ...entitiesByIds(ids.skip(start).take(100).toList()),
+              r'$limit': 100,
+            });
+            if (!current()) return;
+            for (final row in rows) {
+              names[row['id'] as String] = row;
+            }
+          }
         }
-        result.add({
-          ...incident,
-          'proposal': eligibility['official'],
-          'eligibility': eligibility,
-        });
+        students(names.values.toList());
+        incidents([
+          {
+            ...incident,
+            'proposal': eligibility['official'],
+            'eligibility': eligibility,
+          },
+        ]);
+      } else {
+        final previousCount = incidents.value.length;
+        final rows = more ? [...incidents.value] : <Map<String, dynamic>>[];
+        var cursor = more ? nextCursor.value : null;
+        do {
+          final data = await api.getTeacherIncidents({
+            'classGroupId': classId,
+            'cursor': ?cursor,
+          }, abortTrigger: abort.future);
+          if (!current()) return;
+          rows.addAll((data['items'] as List).cast<Map<String, dynamic>>());
+          cursor = data['nextCursor'] as String?;
+        } while (!more && cursor != null && rows.length < previousCount);
+        incidents({for (final row in rows) row['id']: row}.values.toList());
+        nextCursor(cursor);
       }
-      students(namedStudents.values.toList());
-      incidents(result);
     } on Object catch (error) {
+      if (!current()) return;
+      if (error is ApiError && [401, 403, 404].contains(error.status)) {
+        incidents([]);
+        students([]);
+        nextCursor(null);
+      }
+      if (more && error is ApiError && error.status == 400) {
+        incidents([]);
+        nextCursor(null);
+      }
+      failedContinuation = more;
+      readFailed(true);
       message('$error');
     } finally {
-      busy(false);
+      if (current()) {
+        _abort = null;
+        busy(false);
+      }
     }
   }
 
@@ -137,6 +188,7 @@ class TeacherDisciplineController extends LevitController {
     busy(true);
     try {
       await client().runCommand(command, body);
+      if (isClosed) return true;
       message(
         correction
             ? systemL10n().workflowCorrectionPending
@@ -144,8 +196,7 @@ class TeacherDisciplineController extends LevitController {
       );
     } on Object catch (error) {
       if (!isRetryableTeacherWriteFailure(error)) {
-        message('$error');
-        busy(false);
+        if (!isClosed) message('$error');
         return false;
       }
       await outbox.enqueue(
@@ -157,9 +208,9 @@ class TeacherDisciplineController extends LevitController {
           lastError: '$error',
         ),
       );
-      message(systemL10n().attendanceSavedLocally);
+      if (!isClosed) message(systemL10n().attendanceSavedLocally);
     } finally {
-      busy(false);
+      if (!isClosed) busy(false);
     }
     await load();
     return true;
@@ -180,7 +231,8 @@ class TeacherDisciplinePage extends LScopedView<TeacherDisciplineController> {
     () => TeacherDisciplineController(
       classId: classId,
       client: scope.find<SchoolClientFactory>(),
-      teacherId: scope.find<TeacherContextController>().teacherId.value,
+      incidentId: incidentId,
+      editFacts: mode == 'facts',
       outbox: scope.find<TeacherOutboxStore>(),
     ),
   );
@@ -189,6 +241,13 @@ class TeacherDisciplinePage extends LScopedView<TeacherDisciplineController> {
     BuildContext context,
     TeacherDisciplineController controller,
   ) {
+    if (incidentId == null) {
+      return PrototypeDetailScaffold(
+        title: context.tr.workflowDiscipline,
+        fallbackRoute: '/classes/$classId',
+        body: ListView(children: [teacherIncidentRows(context, controller)]),
+      );
+    }
     final rows = controller.incidents.value.where(
       (r) => incidentId == null || r['id'] == incidentId,
     );
@@ -211,6 +270,11 @@ class TeacherDisciplinePage extends LScopedView<TeacherDisciplineController> {
           if (controller.busy.value) const LinearProgressIndicator(),
           if (controller.message.value.isNotEmpty)
             Text(controller.message.value),
+          if (controller.readFailed.value && !controller.busy.value)
+            TextButton(
+              onPressed: controller.load,
+              child: Text(context.tr.retry),
+            ),
           for (final incident in rows) ...[
             SurfaceCard(
               child: WorkspaceColumns(
@@ -284,6 +348,73 @@ class TeacherDisciplinePage extends LScopedView<TeacherDisciplineController> {
       context.replace(path);
     }
   }
+}
+
+Widget teacherIncidentRows(
+  BuildContext context,
+  TeacherDisciplineController controller,
+) {
+  return Column(
+    children: [
+      if (controller.busy.value) const LinearProgressIndicator(),
+      if (controller.message.value.isNotEmpty) Text(controller.message.value),
+      if (controller.incidents.value.isEmpty &&
+          !controller.busy.value &&
+          !controller.readFailed.value)
+        ListTile(title: Text(context.tr.noIncidents)),
+      if (controller.incidents.value.isNotEmpty)
+        ComparisonHeading([context.tr.incident, 'Date', context.tr.status]),
+      for (final row in controller.incidents.value)
+        LayoutBuilder(
+          builder: (context, box) {
+            Future<void> open() async {
+              await context.push(
+                '/incidents/${Uri.encodeComponent(controller.classId)}/${Uri.encodeComponent(row['id'] as String)}',
+              );
+              if (context.mounted) await controller.load();
+            }
+
+            final date = DateTime.tryParse('${row['date']}');
+            final status = switch (row['status']) {
+              'resolved' => context.tr.messagingResolved,
+              'cancelled' => context.tr.feeStatusCancelled,
+              'open' when row['locked'] == true =>
+                context.tr.workflowIncidentTakenOver,
+              'open' => context.tr.familyFeedbackSlotOpen,
+              _ => '—',
+            };
+            return useComparisonRows(context, box.maxWidth)
+                ? ComparisonRow(
+                    cells: [
+                      row['title'] as String,
+                      date == null ? '—' : formatDate(date),
+                      status,
+                    ],
+                    onTap: open,
+                  )
+                : ListTile(
+                    title: Text(row['title'] as String),
+                    subtitle: Text(row['description'] as String? ?? ''),
+                    onTap: open,
+                  );
+          },
+        ),
+      if (!controller.busy.value &&
+          (controller.readFailed.value || controller.nextCursor.value != null))
+        TextButton(
+          onPressed: () => controller.load(
+            more:
+                controller.nextCursor.value != null &&
+                (!controller.readFailed.value || controller.failedContinuation),
+          ),
+          child: Text(
+            controller.readFailed.value
+                ? context.tr.retry
+                : context.tr.showMore,
+          ),
+        ),
+    ],
+  );
 }
 
 class _IncidentFactsForm extends StatefulWidget {

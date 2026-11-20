@@ -82,6 +82,31 @@ void main() {
     await store.upsert(entry.copyWith(state: TeacherOutboxState.syncing));
     final reopened = DriftTeacherOutboxStore(database);
     expect(await reopened.pendingCount(), 1);
+    expect(
+      (await reopened.findEntry(entry.id))?.state,
+      TeacherOutboxState.syncing,
+    );
+    await reopened.prepareReplay();
+    expect(
+      (await reopened.findEntry(entry.id))?.state,
+      TeacherOutboxState.pending,
+    );
+    final pending = (await reopened.findEntry(entry.id))!;
+    final claim = pending.copyWith(state: TeacherOutboxState.syncing);
+    expect(await reopened.replaceIfCurrent(pending, claim), isTrue);
+    await reopened.prepareReplay();
+    expect((await reopened.summary()).pendingCount, 1);
+    expect(await reopened.listConflicts(), isEmpty);
+    expect(
+      (await reopened.findEntry(entry.id))?.state,
+      TeacherOutboxState.syncing,
+    );
+    await reopened.upsert(entry.copyWith(state: TeacherOutboxState.failed));
+    expect(await reopened.replaceIfCurrent(claim, null), isFalse);
+    expect(
+      (await reopened.findEntry(entry.id))?.state,
+      TeacherOutboxState.failed,
+    );
   });
 
   test('generic report-card saves are rejected without a command', () async {

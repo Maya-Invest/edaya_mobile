@@ -122,6 +122,11 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
       autoDispose(subscription.listen((_) => unawaited(load())));
     }
 
+    autoDispose(
+      _studentContext.isLoading.stream.listen((loading) {
+        if (!loading) unawaited(_loadCampaigns());
+      }),
+    );
     unawaited(load());
   }
 
@@ -225,16 +230,28 @@ class HomeController extends LevitController with LevitReactiveTasksMixin {
     }
   }
 
+  int _campaignGeneration = 0;
+
   Future<void> _loadCampaigns() async {
-    try {
-      final items = await listGuardianFamilyFeedbackCampaigns(_schoolClient());
-      final studentId = _studentContext.activeStudentId;
-      final scoped = studentId == null
-          ? items
-          : items.where((item) => item.studentId == studentId).toList();
-      openCampaigns(scoped.where((item) => item.slotState == 'open').toList());
-    } on Object {
+    final generation = ++_campaignGeneration;
+    final selection = _studentContext.verifiedSelection;
+    if (selection == null) {
       openCampaigns(const []);
+      return;
+    }
+    bool current() =>
+        !isClosed &&
+        generation == _campaignGeneration &&
+        selection == _studentContext.verifiedSelection;
+    try {
+      final items = await listGuardianFamilyFeedbackCampaigns(
+        _schoolClient(),
+        studentId: selection.studentId,
+      );
+      if (current())
+        openCampaigns(items.where((item) => item.slotState == 'open').toList());
+    } on Object {
+      if (current()) openCampaigns(const []);
     }
   }
 

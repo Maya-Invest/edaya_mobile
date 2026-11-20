@@ -207,6 +207,7 @@ class _ReportDownload extends LScopedView<ReportCardController> {
   ReportCardController onConfigScope(LevitScope scope) => scope.put(
     () => ReportCardController(
       reportCardId: reportId,
+      downloadOnly: true,
       schoolClient: scope.find<SchoolClientFactory>(),
     ),
   );

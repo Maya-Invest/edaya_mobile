@@ -31,6 +31,8 @@ Results has a period selector and uses the global pupil/school/year context. Exp
 
 Legacy report and mark URLs resolve to this workspace using the same authorized child/year checks. Inaccessible links show an unavailable state. Fees and Agenda use this same context; legacy year URLs pass through enrollment-authorized context selection. Switching context from a record returns to its feature root.
 
+Fees shows the outstanding balance as soon as the verified pupil and enrollment year's finance summary arrives. Expected and paid amounts, progress and overdue count appear when the charge totals are available. History has its own loading and retry state. Changing the active family or year clears the preceding figures. An authorization denial clears displayed financial data.
+
 ## Presentation and verification
 
 Use EDAYA semantic surfaces, one child-context card, consistent spacing and clear empty/loading/error states. Phone cards use two columns; large text uses one; wide screens arrange Home’s sessions and menu side by side. Content is bounded on tablets, with sheets capped at 640 logical pixels. Text must wrap at 200%, controls retain accessible targets, and the new shell/results copy is localized in French and English. Existing feature-local language behavior is retained.

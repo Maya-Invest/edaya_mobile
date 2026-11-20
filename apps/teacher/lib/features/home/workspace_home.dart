@@ -2,6 +2,8 @@ import '../../design/workspace_layout.dart';
 import '../../design/components/surface_card.dart';
 import '../../design/spacing.dart';
 import 'dart:async';
+import 'package:edaya_api_client/edaya_api_client.dart'
+    show GeneratedSchoolClientQueries;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -69,12 +71,9 @@ class _WorkspaceHomeState extends State<WorkspaceHome>
     final api = factory();
     final result = <({String id, String label, bool done})>[];
     for (final c in classes) {
-      final call = await api.runQuery('get-teacher-attendance-call', {
-        'anchor': {
-          'kind': 'daily',
-          'classGroupId': c.id,
-          'date': DateTime.utc(day.year, day.month, day.day).toIso8601String(),
-        },
+      final call = await api.getTeacherDailyAttendanceStatus({
+        'classGroupId': c.id,
+        'date': day.toIso8601String().substring(0, 10),
       });
       result.add((id: c.id, label: c.label, done: call['submitted'] == true));
     }

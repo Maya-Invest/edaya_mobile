@@ -22,11 +22,14 @@ List<CurriculumClassSubjectOption> buildClassSubjectOptions({
   return classSubjectRows.map((row) {
     final subjectId = row['subjectId'] as String?;
     return CurriculumClassSubjectOption(
+      offering: row,
       id: row['id'] as String,
       classGroupId: row['classGroupId'] as String,
       subjectName: subjectId == null
           ? subjectFallback
-          : subjectNameById[subjectId] ?? subjectFallback,
+          : row['name'] as String? ??
+                subjectNameById[subjectId] ??
+                subjectFallback,
       classLabel: classLabel,
     );
   }).toList()..sort((left, right) => left.label.compareTo(right.label));
@@ -67,15 +70,8 @@ CurriculumProgressOverview buildCurriculumProgressOverview({
         return left.name.compareTo(right.name);
       });
 
-  return CurriculumProgressOverview(
-    chapterCount:
-        (classSubject['chapterCount'] as num?)?.toInt() ?? matters.length,
-    ongoingChapterCount:
-        (classSubject['ongoingChapterCount'] as num?)?.toInt() ?? 0,
-    completedChapterCount:
-        (classSubject['completedChapterCount'] as num?)?.toInt() ?? 0,
-    classSubjectCompletedPercentage:
-        (classSubject['completedPercentage'] as num?)?.toInt() ?? 0,
+  return CurriculumProgressOverview.fromOffering(
+    classSubject,
     matters: matters,
   );
 }
@@ -140,38 +136,60 @@ List<CurriculumLogEntry> buildCurriculumLogEntries({
 
 Future<List<CurriculumClassSubjectOption>> fetchClassSubjectOptions({
   required api.SchoolClient client,
-  required String studentId,
+  required StudentSubjectParticipation participation,
   required String classGroupId,
   required String classLabel,
   required String subjectFallback,
+  String? offeringId,
+  bool includeProgress = false,
 }) async {
-  final participation = await StudentSubjectParticipation.load(
-    client,
-    studentId,
-  );
   final classSubjectRows = participation
       .currentSubjects()
-      .where((row) => row['classGroupId'] == classGroupId)
+      .where(
+        (row) =>
+            row['classGroupId'] == classGroupId &&
+            (offeringId == null || row['id'] == offeringId),
+      )
       .toList();
   if (classSubjectRows.isEmpty) {
     return const [];
   }
 
   final subjectIds = classSubjectRows
+      .where((row) => row['name'] == null)
       .map((row) => row['subjectId'] as String?)
       .whereType<String>()
       .toSet()
       .toList();
+  final missing = {
+    if (includeProgress)
+      for (final row in classSubjectRows)
+        if (row['completedPercentage'] == null) row['id'] as String,
+  };
   final subjectRows = subjectIds.isEmpty
       ? <Map<String, dynamic>>[]
-      : await client.subjects.list(entitiesByIds(subjectIds));
+      : await client.subjects.listAll(entitiesByIds(subjectIds));
+  final olderOfferings = missing.isEmpty
+      ? <Map<String, dynamic>>[]
+      : await client.classSubjects.listAll(entitiesByIds(missing.toList()));
+  final byId = {for (final row in olderOfferings) row['id']: row};
   final subjectNameById = {
     for (final subject in subjectRows)
       subject['id'] as String: subject['name'] as String? ?? subjectFallback,
   };
 
   return buildClassSubjectOptions(
-    classSubjectRows: classSubjectRows,
+    classSubjectRows: [
+      for (final row in classSubjectRows)
+        if (!missing.contains(row['id']))
+          row
+        else if (byId[row['id']] case final legacy?)
+          {
+            ...legacy,
+            ...row,
+            'completedPercentage': legacy['completedPercentage'],
+          },
+    ],
     subjectNameById: subjectNameById,
     classLabel: classLabel,
     subjectFallback: subjectFallback,
@@ -180,10 +198,10 @@ Future<List<CurriculumClassSubjectOption>> fetchClassSubjectOptions({
 
 Future<CurriculumProgressOverview> fetchCurriculumProgressOverview({
   required api.SchoolClient client,
-  required String classSubjectId,
+  required Map<String, dynamic> classSubject,
   required String matterFallback,
 }) async {
-  final classSubject = await client.classSubjects.get(classSubjectId);
+  final classSubjectId = classSubject['id'] as String;
   final matterLinks = await client.classSubjectMatters.listAll({
     'classSubjectId': classSubjectId,
   });
@@ -204,7 +222,7 @@ Future<CurriculumProgressOverview> fetchCurriculumProgressOverview({
 }
 
 Future<List<CurriculumLogEntry>> fetchCurriculumLogEntries({
-  required String studentId,
+  required StudentSubjectParticipation participation,
   required api.SchoolClient client,
   required String classGroupId,
   required String classSubjectId,
@@ -212,10 +230,6 @@ Future<List<CurriculumLogEntry>> fetchCurriculumLogEntries({
   required String subjectLabel,
   required String matterFallback,
 }) async {
-  final participation = await StudentSubjectParticipation.load(
-    client,
-    studentId,
-  );
   final sessions = await client.lessonSessions.listAll({
     'classGroupId': classGroupId,
     'classSubjectId': classSubjectId,

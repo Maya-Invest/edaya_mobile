@@ -68,44 +68,16 @@ class TeachingProgressOverview {
   final List<TeachingMatterProgress> matters;
 }
 
-class TeachingLogMatterSnapshot {
-  const TeachingLogMatterSnapshot({
-    required this.matterName,
-    required this.completed,
-    this.notes,
-  });
-
-  final String matterName;
-  final bool? completed;
-  final String? notes;
-}
-
 class TeachingLogEntry {
   const TeachingLogEntry({
     required this.lessonSessionId,
-    required this.classGroupId,
-    required this.classSubjectId,
     required this.displayLabel,
-    required this.subjectLabel,
-    required this.classLabel,
     required this.startsAt,
-    required this.endsAt,
-    this.sessionNote,
-    this.matterSnapshots = const [],
+    required this.hasContent,
   });
 
   final String lessonSessionId;
-  final String classGroupId;
-  final String classSubjectId;
   final String displayLabel;
-  final String subjectLabel;
-  final String classLabel;
   final DateTime startsAt;
-  final DateTime endsAt;
-  final String? sessionNote;
-  final List<TeachingLogMatterSnapshot> matterSnapshots;
-
-  bool get hasContent =>
-      (sessionNote != null && sessionNote!.trim().isNotEmpty) ||
-      matterSnapshots.isNotEmpty;
+  final bool hasContent;
 }
