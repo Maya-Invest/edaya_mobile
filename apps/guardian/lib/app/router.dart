@@ -63,11 +63,9 @@ GoRouter createRouter({
       await prepareGuardianContext(
         auth: context.levit.find<AuthClient>(),
         session: liveSession,
-        year: liveAcademicYear,
         student: liveStudentContext,
       );
     } else {
-      await liveAcademicYear.loadYears();
       await liveStudentContext.initializeFromSession();
     }
     if (context != null && context.mounted) {
@@ -105,8 +103,9 @@ GoRouter createRouter({
       if (demo &&
           (incoming != null ||
               state.matchedLocation.startsWith('/invite/') ||
-              state.matchedLocation == '/waiting'))
+              state.matchedLocation == '/waiting')) {
         return guardianHomeRoute;
+      }
       if (incoming != null) {
         livePending.remember(incoming.token);
       } else {
@@ -209,8 +208,10 @@ GoRouter createRouter({
           ),
           guardianRoute(
             path: '/session/:id',
-            builder: (context, state) =>
-                SessionDetailPage(sessionId: state.pathParameters['id']!),
+            builder: (context, state) => SessionDetailPage(
+              sessionId: state.pathParameters['id']!,
+              kindHint: state.extra is String ? state.extra as String : null,
+            ),
           ),
           guardianRoute(
             path: '/scolarite',
@@ -331,30 +332,27 @@ GoRouter createRouter({
                     builder: (context, state) {
                       final campaignId = state.pathParameters['campaignId']!;
                       final extra = state.extra;
-                      String? studentId;
-                      if (extra is GuardianFamilyFeedbackCampaign) {
-                        studentId = extra.studentId;
-                      } else {
-                        try {
-                          studentId = context.levit
-                              .find<StudentContextController>()
-                              .activeStudentId;
-                        } on Object {
-                          studentId = null;
+                      return LWatch(() {
+                        final studentId =
+                            extra is GuardianFamilyFeedbackCampaign
+                            ? extra.studentId
+                            : context.levit
+                                  .find<StudentContextController>()
+                                  .activeStudentId;
+                        if (studentId == null || studentId.isEmpty) {
+                          return RouteErrorPage(
+                            message: context.tr.studentNotFoundForThisSurvey,
+                          );
                         }
-                      }
-                      if (studentId == null || studentId.isEmpty) {
-                        return RouteErrorPage(
-                          message: context.tr.studentNotFoundForThisSurvey,
+                        return GuardianFamilyFeedbackQuestionnairePage(
+                          key: ValueKey((campaignId, studentId)),
+                          questionnaireArgs:
+                              GuardianFamilyFeedbackQuestionnaireArgs(
+                                campaignId: campaignId,
+                                studentId: studentId,
+                              ),
                         );
-                      }
-                      return GuardianFamilyFeedbackQuestionnairePage(
-                        questionnaireArgs:
-                            GuardianFamilyFeedbackQuestionnaireArgs(
-                              campaignId: campaignId,
-                              studentId: studentId,
-                            ),
-                      );
+                      });
                     },
                   ),
                 ],

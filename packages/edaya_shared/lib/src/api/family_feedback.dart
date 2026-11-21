@@ -267,16 +267,39 @@ class TeacherFamilyFeedbackResult {
   final String? themes;
 }
 
+/// Loads one pupil's visible campaigns, or the guardian's family list when no pupil is selected.
 Future<List<GuardianFamilyFeedbackCampaign>>
-listGuardianFamilyFeedbackCampaigns(api.SchoolClient client) async {
-  final result = await client.requestRoute<dynamic>(
+listGuardianFamilyFeedbackCampaigns(
+  api.SchoolClient client, {
+  String? studentId,
+}) async {
+  Future<dynamic> familyList() => client.requestRoute<dynamic>(
     'POST',
     '/core/queries/list-guardian-family-feedback-campaigns',
     body: const <String, dynamic>{},
   );
-  return unwrapFamilyFeedbackList(
-    result,
-  ).map(GuardianFamilyFeedbackCampaign.fromJson).toList();
+  final result = studentId == null
+      ? await familyList()
+      : await _readFeedbackList(
+          () => client.getGuardianFeedbackCampaigns({'studentId': studentId}),
+          familyList,
+        );
+  return unwrapFamilyFeedbackList(result)
+      .where((row) => studentId == null || row['studentId'] == studentId)
+      .map(GuardianFamilyFeedbackCampaign.fromJson)
+      .toList();
+}
+
+Future<dynamic> _readFeedbackList(
+  Future<dynamic> Function() read,
+  Future<dynamic> Function() legacy,
+) async {
+  try {
+    return await read();
+  } on api.ApiError catch (error) {
+    if (error.status != 404 && error.status != 405) rethrow;
+    return legacy();
+  }
 }
 
 Future<GuardianFamilyFeedbackQuestionnaire>
@@ -311,6 +334,7 @@ Future<void> submitFamilyFeedbackResponse(
   });
 }
 
+/// Reads the full published results on the original REST contract.
 Future<List<TeacherFamilyFeedbackResult>> listTeacherFamilyFeedbackResults(
   api.SchoolClient client,
 ) async {
@@ -322,6 +346,36 @@ Future<List<TeacherFamilyFeedbackResult>> listTeacherFamilyFeedbackResults(
   return unwrapFamilyFeedbackList(
     result,
   ).map(TeacherFamilyFeedbackResult.fromJson).toList();
+}
+
+/// Reads display summaries for a teacher's list. Question distributions load when opening a campaign.
+Future<List<TeacherFamilyFeedbackResult>> listTeacherFeedbackSummaries(
+  api.SchoolClient client, {
+  String? classGroupId,
+  String? classSubjectId,
+}) async {
+  final result = await _readFeedbackList(
+    () => client.getTeacherFeedbackSummaries({
+      if (classGroupId != null) 'classGroupId': classGroupId,
+      if (classSubjectId != null) 'classSubjectId': classSubjectId,
+    }),
+    () => client.requestRoute<dynamic>(
+      'POST',
+      '/core/queries/list-teacher-family-feedback-results',
+      body: const <String, dynamic>{},
+    ),
+  );
+  return unwrapFamilyFeedbackList(result)
+      .where(
+        (row) =>
+            row['classGroupId'] == null ||
+            ((classGroupId == null || row['classGroupId'] == classGroupId) &&
+                (classSubjectId == null ||
+                    row['classSubjectId'] == null ||
+                    row['classSubjectId'] == classSubjectId)),
+      )
+      .map(TeacherFamilyFeedbackResult.fromJson)
+      .toList();
 }
 
 Future<TeacherFamilyFeedbackResult> getTeacherFamilyFeedbackResult(

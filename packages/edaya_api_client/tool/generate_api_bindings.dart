@@ -192,7 +192,8 @@ Map<String, dynamic> _extractBindings(Map<String, dynamic> openApi) {
 
   final paths = openApi['paths'];
   if (paths is Map<String, dynamic>) {
-    for (final pathItem in paths.values) {
+    for (final path in paths.entries) {
+      final pathItem = path.value;
       if (pathItem is! Map<String, dynamic>) {
         continue;
       }
@@ -235,6 +236,7 @@ Map<String, dynamic> _extractBindings(Map<String, dynamic> openApi) {
         if (kind == 'query') {
           final key = _readString(operation, queryKeyExtension);
           bindings['queries'][key] = {
+            if (method == 'get') 'getPath': path.key,
             'publicName': _readString(operation, queryPublicNameExtension),
             'requestSchemaName': _readString(operation, requestSchemaExtension),
             'responseSchemaName': _readString(
@@ -525,11 +527,17 @@ String _generateSurfaceDart(Map<String, dynamic> bindings) {
       .join('\n\n');
 
   final queryMethods = queries.entries
-      .map(
-        (entry) =>
-            '''  Future<Map<String, dynamic>> ${entry.key}(Map<String, dynamic> payload) =>
-      runQuery(${_dartString(entry.value)}, payload);''',
-      )
+      .map((entry) {
+        final getPath = bindings['queries'][entry.key]['getPath'];
+        final call = getPath is String
+            ? 'runGetQuery(${_dartString(getPath)}, payload, abortTrigger: abortTrigger)'
+            : 'runQuery(${_dartString(entry.value)}, payload)';
+        final options = getPath is String
+            ? ', {Future<void>? abortTrigger}'
+            : '';
+        return '''  Future<Map<String, dynamic>> ${entry.key}(Map<String, dynamic> payload$options) =>
+      $call;''';
+      })
       .join('\n\n');
 
   final publicMethods = publicRoutes.entries

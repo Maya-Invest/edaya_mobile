@@ -38,7 +38,7 @@ class _LiveInboxPage extends LView<LiveInboxController> {
     return LWatch(() {
       controller.deliveries.value;
       controller.errorMessage.value;
-      controller.isBusy.value;
+      controller.loadingNotices.value;
       return _ThreadGroups(inbox: controller);
     });
   }
@@ -52,6 +52,7 @@ class _ThreadGroups extends LScopedView<ConversationController> {
     () => ConversationController(
       session: scope.find<AppSessionController>(),
       client: scope.find<SchoolClientFactory>(),
+      visible: false,
     ),
   );
   @override
@@ -106,118 +107,135 @@ class _ThreadGroups extends LScopedView<ConversationController> {
       );
     }
 
-    return LWatch(
-      () => WorkspaceTabs(
-        values: const ['conversations', 'notifications'],
-        labels: [
-          context.tr.messagingConversations,
-          context.tr.workspaceNotifications,
-        ],
-        children: [
-          FeatureActionPanel(
-            actions: [
-              FeatureAction(
-                context.tr.newConversation,
-                Icons.edit_outlined,
-                () => context.push('/inbox/new'),
+    return ConversationActivity(
+      controller: threads,
+      child: LWatch(
+        () => WorkspaceTabs(
+          values: const ['conversations', 'notifications'],
+          labels: [
+            context.tr.messagingConversations,
+            context.tr.workspaceNotifications,
+          ],
+          children: [
+            FeatureActionPanel(
+              actions: [
+                FeatureAction(
+                  context.tr.newConversation,
+                  Icons.edit_outlined,
+                  () => context.push('/inbox/new'),
+                ),
+              ],
+              child: RefreshIndicator(
+                onRefresh: threads.refresh,
+                child: ListView(
+                  key: const PageStorageKey('teacher-conversations'),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    if (threads.busy.value) const LinearProgressIndicator(),
+                    if (threads.error.value.isNotEmpty)
+                      Text(threads.error.value),
+
+                    if (!phoneActions(context))
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          onPressed: () => context.push('/inbox/new'),
+                          icon: const Icon(Icons.edit_outlined),
+                          label: Text(context.tr.newConversation),
+                        ),
+                      ),
+                    ClassSections(
+                      builder: (c) => LWatch(() {
+                        final rows = threads.rows.value.where(
+                          (r) => group(r) == c.id,
+                        );
+                        return Column(
+                          children: [
+                            if (rows.isEmpty)
+                              ListTile(title: Text(context.tr.messagingEmpty)),
+                            for (final row in rows) thread(row),
+                          ],
+                        );
+                      }),
+                    ),
+                    if (tc.activeAssignment == null) ...[
+                      if (threads.rows.value.any((r) => group(r) == null))
+                        ExpansionTile(
+                          title: Text(context.tr.noClassSpecified),
+                          children: [
+                            for (final row in threads.rows.value.where(
+                              (r) => group(r) == null,
+                            ))
+                              thread(row),
+                          ],
+                        ),
+                    ],
+                    if (threads.rows.value.length < threads.total.value)
+                      TextButton(
+                        onPressed: () => threads.refresh(more: true),
+                        child: Text(context.tr.showMore),
+                      ),
+                  ],
+                ),
               ),
-            ],
-            child: RefreshIndicator(
-              onRefresh: threads.refresh,
+            ),
+            RefreshIndicator(
+              onRefresh: inbox.loadInbox,
               child: ListView(
-                key: const PageStorageKey('teacher-conversations'),
+                key: const PageStorageKey('teacher-notifications'),
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(16),
                 children: [
-                  if (threads.busy.value) const LinearProgressIndicator(),
-                  if (threads.error.value.isNotEmpty) Text(threads.error.value),
+                  if (inbox.loadingNotices.value)
+                    const LinearProgressIndicator(),
+                  if (inbox.errorMessage.value.isNotEmpty)
+                    Text(inbox.errorMessage.value),
 
-                  if (!phoneActions(context))
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: TextButton.icon(
-                        onPressed: () => context.push('/inbox/new'),
-                        icon: const Icon(Icons.edit_outlined),
-                        label: Text(context.tr.newConversation),
+                  for (final m in inbox.deliveries.value.where(
+                    (m) => m.eventKey != 'conversation.message',
+                  ))
+                    ListTile(
+                      leading: Icon(
+                        m.isUnread
+                            ? Icons.mark_email_unread_outlined
+                            : Icons.notifications_outlined,
                       ),
+                      title: Text(
+                        m.title,
+                        style: TextStyle(
+                          fontWeight: m.isUnread ? FontWeight.bold : null,
+                        ),
+                      ),
+                      subtitle: Text(
+                        m.body,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      trailing: date(m.sortDate),
+                      onTap: () async {
+                        await context.push(inboxMessagePath(m.id));
+                        if (context.mounted) await inbox.refreshNotice(m.id);
+                      },
                     ),
-                  ClassSections(
-                    builder: (c) => LWatch(() {
-                      final rows = threads.rows.value.where(
-                        (r) => group(r) == c.id,
-                      );
-                      return Column(
-                        children: [
-                          if (rows.isEmpty)
-                            ListTile(title: Text(context.tr.messagingEmpty)),
-                          for (final row in rows) thread(row),
-                        ],
-                      );
-                    }),
-                  ),
-                  if (tc.activeAssignment == null) ...[
-                    if (threads.rows.value.any((r) => group(r) == null))
-                      ExpansionTile(
-                        title: Text(context.tr.noClassSpecified),
-                        children: [
-                          for (final row in threads.rows.value.where(
-                            (r) => group(r) == null,
-                          ))
-                            thread(row),
-                        ],
-                      ),
-                  ],
-                  if (threads.rows.value.length < threads.total.value)
+                  if (inbox.hasMore.value)
                     TextButton(
-                      onPressed: () => threads.refresh(more: true),
-                      child: Text(context.tr.showMore),
+                      onPressed: inbox.loadingMore.value
+                          ? null
+                          : inbox.loadMore,
+                      child: Text(context.tr.messagingLoadMore),
                     ),
+                  if (!inbox.loadingNotices.value &&
+                      inbox.errorMessage.value.isEmpty &&
+                      !inbox.deliveries.value.any(
+                        (m) => m.eventKey != 'conversation.message',
+                      ))
+                    ListTile(title: Text(context.tr.noSchoolNotices)),
                 ],
               ),
             ),
-          ),
-          RefreshIndicator(
-            onRefresh: inbox.loadInbox,
-            child: ListView(
-              key: const PageStorageKey('teacher-notifications'),
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              children: [
-                if (inbox.isBusy.value) const LinearProgressIndicator(),
-                if (inbox.errorMessage.value.isNotEmpty)
-                  Text(inbox.errorMessage.value),
-
-                for (final m in inbox.deliveries.value.where(
-                  (m) => m.eventKey != 'conversation.message',
-                ))
-                  ListTile(
-                    leading: Icon(
-                      m.isUnread
-                          ? Icons.mark_email_unread_outlined
-                          : Icons.notifications_outlined,
-                    ),
-                    title: Text(
-                      m.title,
-                      style: TextStyle(
-                        fontWeight: m.isUnread ? FontWeight.bold : null,
-                      ),
-                    ),
-                    subtitle: Text(
-                      m.body,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: date(m.sortDate),
-                    onTap: () => context.push(inboxMessagePath(m.id)),
-                  ),
-                if (!inbox.deliveries.value.any(
-                  (m) => m.eventKey != 'conversation.message',
-                ))
-                  ListTile(title: Text(context.tr.noSchoolNotices)),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

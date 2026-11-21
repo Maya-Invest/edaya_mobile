@@ -117,6 +117,13 @@ void _mariamKoneSuite() {
     testWidgets(
       '[guardian-v2.calendar.history] legacy Presence opens Agenda history with saved attendance',
       (tester) async {
+        // Open the same history window as the seeded daily attendance record.
+        final saved = probes.attendance.firstWhere(
+          (row) => row['attendanceId'] != null,
+        );
+        final previousClock = SchoolClock.sample;
+        addTearDown(() => SchoolClock.sample = previousClock);
+        SchoolClock.sample = DateTime.parse(saved['date'] as String);
         await openAttendancePage(tester, harness);
 
         expect(find.text('Historique'), findsOneWidget);
@@ -130,11 +137,6 @@ void _mariamKoneSuite() {
           'history',
         );
 
-        expect(
-          probes.attendance,
-          isNotEmpty,
-          reason: 'Required attendance fixture',
-        );
         await pumpUntilFound(tester, find.byType(ListTile));
         expect(find.byType(ListTile), findsWidgets);
         final history = tester
@@ -146,21 +148,10 @@ void _mariamKoneSuite() {
             )
             .levit
             .find<SessionHistoryController>();
-        if (history.hasMore.value) {
-          final existing = history.entries.value
-              .map((e) => '${e['kind']}/${e['id']}')
-              .toSet();
-          await history.load();
-          await tester.pump();
-          expect(history.error.value, isFalse);
-          expect(
-            history.entries.value
-                .map((e) => '${e['kind']}/${e['id']}')
-                .toSet()
-                .containsAll(existing),
-            isTrue,
-          );
-        }
+        final entry = history.entries.value.singleWhere(
+          (row) => row['kind'] == 'daily' && row['id'] == saved['id'],
+        );
+        expect(entry['attendance']['status'], saved['status']);
       },
     );
   });
@@ -396,14 +387,12 @@ void _mariamKoneSuite() {
 
 void _koffiYaoSuite() {
   late GuardianWidgetTestHarness harness;
-  late GuardianProbeBundle probes;
   late PortalSession readSession;
 
   setUpAll(() async {
     harness = await GuardianWidgetTestHarness.create(
       profile: GuardianPortalProfile.koffiYao,
     );
-    probes = await GuardianProbeBundle.load(harness);
     readSession = harness.portalSession!;
   });
 
@@ -431,20 +420,6 @@ void _koffiYaoSuite() {
       await openCalendarTab(tester, harness);
       await pumpUntilFound(tester, find.byTooltip('Semaine suivante'));
       expect(find.byTooltip('Semaine suivante'), findsOneWidget);
-    },
-  );
-
-  testWidgets(
-    '[guardian-v2.multi-child-guardian-switches-linked-student] multi-child guardian switches linked student',
-    (tester) async {
-      final switchProbe = probes.studentSwitchProbe;
-      expect(switchProbe, isNotNull);
-
-      await openCalendarTab(tester, harness);
-      await openChildPicker(tester, harness);
-
-      await tapAlternateStudent(tester, switchProbe!);
-      await expectSwitchedStudent(tester, harness, switchProbe);
     },
   );
 

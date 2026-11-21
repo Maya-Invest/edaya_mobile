@@ -78,6 +78,15 @@ class AcademicYearController extends LevitController
   }
 
   int _loadGeneration = 0;
+  void applyGuardianChoices(List<Map<String, dynamic>> rows, String? selected) {
+    ++_loadGeneration;
+    final sorted = _sortYears(rows);
+    years(sorted);
+    _indexYearsBySchool(sorted);
+    errorMessage('');
+    selectedYearId(selected);
+  }
+
   Future<bool> loadYears() async {
     final generation = ++_loadGeneration;
     final school = _session.schoolIdHeader;

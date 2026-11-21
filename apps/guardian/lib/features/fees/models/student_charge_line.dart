@@ -63,11 +63,7 @@ class StudentChargeLine {
     Map<String, dynamic> json, {
     int settlementCount = 0,
   }) {
-    final expected = json['expectedAmount'];
-    final embeddedCurrency = expected is Map ? expected['currency'] : null;
-    final currency = requireFinanceCurrency(
-      json['currency'] ?? embeddedCurrency,
-    );
+    final currency = currencyFromJson(json);
     final installmentRows = json['installments'];
     return StudentChargeLine(
       id: json['id'] as String,
@@ -90,6 +86,13 @@ class StudentChargeLine {
                 .toList()
           : const [],
       settlementCount: settlementCount,
+    );
+  }
+
+  static String currencyFromJson(Map<String, dynamic> json) {
+    final expected = json['expectedAmount'];
+    return requireFinanceCurrency(
+      json['currency'] ?? (expected is Map ? expected['currency'] : null),
     );
   }
 

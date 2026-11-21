@@ -39,7 +39,8 @@ class LiveHomeController extends LevitController {
       _evaluations.evaluations.stream,
       _familyFeedback.results.stream,
       _reportCards.classSummaries.stream,
-      _inbox.deliveries.stream,
+      _inbox.noticeUnreadChanges,
+      _inbox.conversationUnread.stream,
     ]) {
       autoDispose(subscription.listen((_) => tick.value++));
     }

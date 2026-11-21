@@ -11,8 +11,9 @@ String suiteEvidencePath(String suite) =>
 Map<String, dynamic> evaluate(
   Iterable<String> lines,
   int exitCode,
-  List<String> required,
-) {
+  List<String> required, {
+  bool onlyRegistered = false,
+}) {
   final tests = <int, String>{}, outcomes = <int, Map<String, dynamic>>{};
   final errors = <String>[], completed = <bool>[];
   List<String>? routes;
@@ -51,20 +52,25 @@ Map<String, dynamic> evaluate(
         }
     }
   }
-  final scenarios = tests.entries.map((entry) {
-    final outcome = outcomes[entry.key];
-    return <String, dynamic>{
-      'id': RegExp(r'\[([a-z0-9][a-z0-9.-]+)\]').firstMatch(entry.value)?[1],
-      'name': entry.value,
-      'status': outcome == null
-          ? 'blocked'
-          : outcome['skipped'] == true
-          ? 'skipped'
-          : outcome['result'] == 'success'
-          ? 'passed'
-          : 'failed',
-    };
-  }).toList();
+  final scenarios = tests.entries
+      .map((entry) {
+        final outcome = outcomes[entry.key];
+        return <String, dynamic>{
+          'id': RegExp(
+            r'\[([a-z0-9][a-z0-9.-]+)\]',
+          ).firstMatch(entry.value)?[1],
+          'name': entry.value,
+          'status': outcome == null
+              ? 'blocked'
+              : outcome['skipped'] == true
+              ? 'skipped'
+              : outcome['result'] == 'success'
+              ? 'passed'
+              : 'failed',
+        };
+      })
+      .where((row) => !onlyRegistered || required.contains(row['id']))
+      .toList();
   final ids = scenarios.map((row) => row['id']).toList();
   final problems = <String>[
     if (exitCode != 0) 'child process exited $exitCode',
@@ -148,8 +154,10 @@ String sourceFingerprint() {
     }
   }
   for (final path in [
+    'pubspec.yaml',
     'pubspec.lock',
     '.generated/client.json',
+    'tooling/flutter_integration/route_inventory.dart',
     'tooling/integration_tests/features.json',
     'tooling/integration_tests/scenarios.json',
   ]) {
@@ -164,6 +172,54 @@ String sourceFingerprint() {
       ),
     ),
   );
+}
+
+const widgetEvidencePath = '.ci-evidence/widget-contracts.json';
+
+Future<void> runUnitTests() async {
+  final evidence = File(p.join(root, widgetEvidencePath));
+  if (evidence.existsSync()) evidence.deleteSync();
+  final fingerprint = sourceFingerprint();
+  final contracts = jsonFile(
+    p.join(root, 'tooling/integration_tests/features.json'),
+  );
+  final registry = jsonFile(
+    p.join(root, 'tooling/integration_tests/scenarios.json'),
+  );
+  final logs = {
+    for (final app in applicationPaths.entries)
+      '${app.key}_v2': File(p.join(root, app.value, 'build/unit-events.jsonl')),
+  };
+  for (final file in logs.values) {
+    if (file.existsSync()) file.deleteSync();
+  }
+  await run(['dart', 'run', 'melos', 'run', 'test']);
+  final results = <String, dynamic>{};
+  for (final entry in logs.entries) {
+    final suite = entry.key;
+    final contract = contracts[suite] as Map<String, dynamic>;
+    final unitIds = (contract['widgetScenarios'] as List).cast<String>();
+    final liveIds = (registry[suite] as List).cast<String>();
+    final report = evaluate(
+      entry.value.readAsLinesSync(),
+      0,
+      unitIds,
+      onlyRegistered: true,
+    );
+    final routes = (report['routes'] as List?)?.cast<String>();
+    final problems = [
+      ...(report['problems'] as List).cast<String>(),
+      ...featureProblems(contract, [...liveIds, ...unitIds], routes),
+      if (unitIds.toSet().length != unitIds.length ||
+          unitIds.any(liveIds.contains))
+        'duplicate scenario ownership',
+    ];
+    if (problems.isNotEmpty) throw StateError('$suite: ${problems.join(', ')}');
+    results[suite] = {'scenarios': unitIds, 'routes': routes};
+  }
+  if (fingerprint != sourceFingerprint())
+    throw StateError('Source changed during unit tests');
+  writeJson(evidence.path, {'fingerprint': fingerprint, 'apps': results});
 }
 
 Future<void> integration({String? suite, bool validateOnly = false}) async {
@@ -187,9 +243,6 @@ Future<void> integration({String? suite, bool validateOnly = false}) async {
       allIds.any((id) => !RegExp(r'^[a-z0-9][a-z0-9.-]+$').hasMatch(id))) {
     throw StateError('Invalid integration scenario registry');
   }
-  final features = jsonFile(
-    p.join(root, 'tooling/integration_tests/features.json'),
-  );
   final directory = Directory(p.join(root, '.integration-results'))
     ..createSync(recursive: true);
   final summaries = <String, dynamic>{};
@@ -297,15 +350,6 @@ Future<void> integration({String? suite, bool validateOnly = false}) async {
         saved['fingerprint'] != fingerprint ||
         fingerprint != sourceFingerprint()) {
       problems.add('missing, incomplete, or stale execution metadata');
-    }
-    if (features.containsKey(name)) {
-      problems.addAll(
-        featureProblems(
-          features[name] as Map<String, dynamic>,
-          (registry[name] as List).cast<String>(),
-          (report['routes'] as List?)?.cast<String>(),
-        ),
-      );
     }
     report['ok'] = problems.isEmpty;
     summaries[name] = report;

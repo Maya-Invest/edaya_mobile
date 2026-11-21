@@ -70,9 +70,23 @@ class SharedPrefsTeacherOutboxStore implements TeacherOutboxStore {
   }
 
   @override
+  Future<TeacherOutboxEntry?> findEntry(String id) async =>
+      (await listPending()).where((entry) => entry.id == id).firstOrNull;
+
+  @override
+  Future<List<TeacherOutboxEntry>> listConflicts() async =>
+      (await listPending())
+          .where(
+            (entry) =>
+                entry.state == TeacherOutboxState.conflict ||
+                entry.state == TeacherOutboxState.rejected,
+          )
+          .toList();
+
+  @override
   Future<List<TeacherOutboxEntry>> listPending() async {
-    final recovered = await _recoverSyncing();
-    return recovered
+    final entries = await _readAll();
+    return entries
         .where(
           (entry) =>
               entry.state != TeacherOutboxState.synced &&
@@ -82,7 +96,36 @@ class SharedPrefsTeacherOutboxStore implements TeacherOutboxStore {
       ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
   }
 
-  Future<List<TeacherOutboxEntry>> _recoverSyncing() async {
+  /// Migration copies all unsynced profiles before clearing legacy storage.
+  Future<List<TeacherOutboxEntry>> readMigrationEntries() async =>
+      (await _readAll())
+          .where((entry) => entry.state != TeacherOutboxState.synced)
+          .toList();
+
+  @override
+  Future<bool> replaceIfCurrent(
+    TeacherOutboxEntry expected,
+    TeacherOutboxEntry? replacement,
+  ) async {
+    final entries = await _readAll();
+    final at = entries.indexWhere(
+      (row) => sameTeacherOutboxVersion(row, expected),
+    );
+    if (at < 0) return false;
+    if (replacement == null) {
+      entries.removeAt(at);
+    } else {
+      entries[at] = replacement;
+    }
+    await _writeAll(entries);
+    return true;
+  }
+
+  Future<void>? _recovery;
+  @override
+  Future<void> prepareReplay() => _recovery ??= _recoverSyncing();
+
+  Future<void> _recoverSyncing() async {
     final entries = await _readAll();
     var changed = false;
     final recovered = entries.map((entry) {
@@ -98,7 +141,6 @@ class SharedPrefsTeacherOutboxStore implements TeacherOutboxStore {
     if (changed) {
       await _writeAll(recovered);
     }
-    return recovered;
   }
 
   Future<void> _writeAll(List<TeacherOutboxEntry> entries) async {

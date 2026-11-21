@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'api_error.dart';
+import 'conditional_read_cache.dart';
 import 'entity_envelope.dart';
 import 'transport.dart';
 
@@ -14,14 +15,16 @@ class HttpTransport implements Transport {
   HttpTransport({
     required this.baseUrl,
     this.client,
+    ConditionalReadCache? directoryCache,
     this.getAcademicYearId,
     this.getActorKind,
     this.getActorId,
     this.getSchoolId,
     this.getAccessToken,
     this.invalidateAccessToken,
-  });
+  }) : directoryCache = directoryCache ?? ConditionalReadCache();
 
+  final ConditionalReadCache directoryCache;
   final String baseUrl;
   final http.Client? client;
   final String? Function()? getAcademicYearId;
@@ -76,23 +79,45 @@ class HttpTransport implements Transport {
       headers['Authorization'] = 'Bearer $token';
     }
 
-    var response = await _client.send(
-      http.Request(method, uri)
-        ..headers.addAll(headers)
-        ..body = options?.body == null ? '' : jsonEncode(options!.body),
-    );
-
-    if (response.statusCode == 401 && token != null) {
-      invalidateAccessToken?.call(resource: resource, token: token);
-      if (method == 'GET' || method == 'HEAD') {
-        await response.stream.drain<void>();
-        headers['Authorization'] =
-            'Bearer ${await getAccessToken!(resource: resource)}';
-        response = await _client.send(
-          http.Request(method, uri)..headers.addAll(headers),
-        );
+    Future<http.StreamedResponse> send(String? etag) async {
+      Future<http.StreamedResponse> attempt() {
+        final request = http.AbortableRequest(
+          method,
+          uri,
+          abortTrigger: options?.abortTrigger,
+        )..headers.addAll(headers);
+        if (etag != null) request.headers['If-None-Match'] = etag;
+        if (options?.body != null) request.body = jsonEncode(options!.body);
+        return _client.send(request);
       }
+
+      final response = await attempt();
+      if (response.statusCode == 401 && token != null) {
+        invalidateAccessToken?.call(resource: resource, token: token);
+        if (method == 'GET' || method == 'HEAD') {
+          await response.stream.drain<void>();
+          headers['Authorization'] =
+              'Bearer ${await getAccessToken!(resource: resource)}';
+          return attempt();
+        }
+      }
+      return response;
     }
+
+    final response = method == 'GET' && uri.path == '/core/directory/students'
+        ? await directoryCache.read(
+            uri,
+            jsonEncode([
+              uri.origin,
+              actorKind,
+              actorId,
+              schoolId,
+              yearId,
+              headers['Accept-Language'],
+            ]),
+            send,
+          )
+        : await send(null);
     return _parseResponse<T>(path, response);
   }
 

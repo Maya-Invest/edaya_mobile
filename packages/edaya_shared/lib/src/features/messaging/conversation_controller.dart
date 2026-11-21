@@ -18,6 +18,7 @@ class ConversationController extends LevitController {
     required this.session,
     required this.client,
     this.conversationId,
+    this.visible = true,
   });
   final AppSessionController session;
   final SchoolClientFactory client;
@@ -29,8 +30,10 @@ class ConversationController extends LevitController {
   final sending = LxVar(false);
   final unreadCount = LxVar(0);
   final total = LxVar(0);
+  final hasMoreRows = LxVar(false);
+  int _nextOffset = 0;
   final identity = LxVar('');
-  bool visible = true;
+  bool visible;
   bool foreground = true;
   bool _closed = false;
   int _generation = 0;
@@ -52,6 +55,7 @@ class ConversationController extends LevitController {
     autoDispose(sending);
     autoDispose(unreadCount);
     autoDispose(total);
+    autoDispose(hasMoreRows);
     autoDispose(identity);
     identity(sessionKey);
     void changed() {
@@ -63,11 +67,13 @@ class ConversationController extends LevitController {
         detail(null);
         unreadCount(0);
         total(0);
+        hasMoreRows(false);
+        _nextOffset = 0;
         error('');
         identity(sessionKey);
         _retryDigest = null;
         _retryId = null;
-        unawaited(refresh());
+        if (visible && foreground) unawaited(refresh());
       }
     }
 
@@ -81,7 +87,18 @@ class ConversationController extends LevitController {
     _timer = Timer.periodic(const Duration(seconds: 15), (_) {
       if (visible && foreground) unawaited(refresh());
     });
-    unawaited(refresh());
+    if (visible && foreground) unawaited(refresh());
+  }
+
+  void setActivity({required bool visible, required bool foreground}) {
+    final wasActive = this.visible && this.foreground;
+    this.visible = visible;
+    this.foreground = foreground;
+    if (!wasActive && visible && foreground) {
+      scheduleMicrotask(() {
+        if (!_closed && this.visible && this.foreground) unawaited(refresh());
+      });
+    }
   }
 
   @override
@@ -93,7 +110,7 @@ class ConversationController extends LevitController {
   }
 
   Future<void> refresh({bool more = false}) async {
-    if (_closed || session.grants.value == null || (busy.value && !more)) {
+    if (_closed || session.grants.value == null || busy.value) {
       return;
     }
     final key = sessionKey;
@@ -102,18 +119,7 @@ class ConversationController extends LevitController {
     try {
       final id = conversationId;
       if (id == null) {
-        final response = await client().runQuery('list-conversations', {
-          'offset': more ? rows.value.length : 0,
-          'limit': more ? 25 : min(100, max(25, rows.value.length)),
-        });
-        if (_closed || key != sessionKey || generation != _generation) return;
-        final items = (response['items'] as List)
-            .cast<Map>()
-            .map((m) => Map<String, dynamic>.from(m))
-            .toList();
-        rows(more ? [...rows.value, ...items] : items);
-        unreadCount((response['unreadCount'] as num).toInt());
-        total((response['total'] as num).toInt());
+        await _loadList(more, key, generation);
       } else {
         final existingMessages = detail.value?['messages'] as List?;
         final before =
@@ -147,12 +153,16 @@ class ConversationController extends LevitController {
         }
         detail(response);
         final messages = response['messages'] as List;
-        if (messages.isNotEmpty) {
+        if (!more &&
+            visible &&
+            foreground &&
+            messages.isNotEmpty &&
+            (response['conversation'] as Map)['unread'] == true) {
           await client().runCommand('mark-conversation-read', {
             'conversationId': id,
             'throughSequence': (messages.last as Map)['sequence'],
           });
-          if ((response['conversation'] as Map)['unread'] == true) {
+          if (!_closed && key == sessionKey && generation == _generation) {
             conversationCountsChanged.add(null);
           }
         }
@@ -166,11 +176,45 @@ class ConversationController extends LevitController {
           rows(const []);
           detail(null);
           unreadCount(0);
+          total(0);
+          hasMoreRows(false);
+          _nextOffset = 0;
         }
       }
     } finally {
       if (!_closed && generation == _generation) busy(false);
     }
+  }
+
+  Future<void> _loadList(bool more, String key, int generation) async {
+    final items = <String, Map<String, dynamic>>{
+      if (more)
+        for (final row in rows.value) row['id'] as String: row,
+    };
+    var offset = more ? _nextOffset : 0;
+    final target = more ? offset + 25 : max(25, _nextOffset);
+    late int found, unread;
+    late bool hasMore;
+    do {
+      final response = await client().runQuery('list-conversations', {
+        'offset': offset,
+        'limit': min(100, target - offset),
+      });
+      if (_closed || key != sessionKey || generation != _generation) return;
+      final page = (response['items'] as List).cast<Map>();
+      for (final row in page) {
+        items[row['id'] as String] = Map<String, dynamic>.from(row);
+      }
+      offset += page.length;
+      found = (response['total'] as num).toInt();
+      unread = (response['unreadCount'] as num).toInt();
+      hasMore = page.isNotEmpty && offset < found;
+    } while (hasMore && offset < target);
+    _nextOffset = offset;
+    rows(items.values.toList());
+    total(found);
+    unreadCount(unread);
+    hasMoreRows(hasMore);
   }
 
   Future<Map<String, dynamic>> recipients(String? studentId) => client()

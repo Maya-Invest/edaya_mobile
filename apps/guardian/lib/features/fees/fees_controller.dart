@@ -4,11 +4,9 @@ import 'package:edaya_api_client/edaya_api_client.dart' as api;
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
-import '../../common/utils/entity_filters.dart';
 import '../context/academic_year_controller.dart';
 import '../context/student_context_controller.dart';
 import 'models/payment_record.dart';
-import 'models/money_amount.dart';
 import 'models/student_charge_line.dart';
 
 class FeesController extends LevitController with LevitReactiveTasksMixin {
@@ -29,6 +27,20 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
   final summary = LxVar<FeesSummary?>(null);
   final errorMessage = LxVar('');
 
+  final chargeTotals = LxVar<({int expected, int paid, int overdue})?>(null);
+  final historyStatus = LxVar(DataStatus.loading);
+  final nextChargeCursor = LxVar<String?>(null);
+  final nextPaymentCursor = LxVar<String?>(null);
+  final loadingCharges = LxVar(false);
+  final loadingPayments = LxVar(false);
+  final chargePageError = LxVar('');
+  final paymentPageError = LxVar('');
+  String? _accountId;
+  Completer<void>? _abort;
+  GuardianPupilSelection? _selection;
+  int _generation = 0;
+  Future<void>? _pending;
+
   @override
   void onInit() {
     super.onInit();
@@ -36,166 +48,281 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
     autoDispose(payments);
     autoDispose(summary);
     autoDispose(errorMessage);
+    autoDispose(chargeTotals);
+    autoDispose(historyStatus);
+    autoDispose(nextChargeCursor);
+    autoDispose(nextPaymentCursor);
+    autoDispose(loadingCharges);
+    autoDispose(loadingPayments);
+    autoDispose(chargePageError);
+    autoDispose(paymentPageError);
 
-    for (final subscription in [
-      _studentContext.classGroupId.stream,
+    for (final stream in [
       _studentContext.activeStudent.stream,
-      _studentContext.isEnrolled.stream,
       _academicYear.selectedYearId.stream,
+      _studentContext.isLoading.stream,
     ]) {
-      autoDispose(subscription.listen((_) => unawaited(loadFeesData())));
+      autoDispose(stream.listen((_) => unawaited(_select())));
     }
-    autoDispose(
-      _studentContext.isLoading.stream.listen((loading) {
-        if (!loading) {
-          unawaited(loadFeesData());
-        }
-      }),
-    );
-
-    unawaited(loadFeesData());
+    unawaited(_select());
   }
 
   DataStatus get dataStatus {
-    if (isBusy.value &&
-        charges.value.isEmpty &&
-        payments.value.isEmpty &&
-        summary.value == null) {
-      return DataStatus.loading;
+    final selection = _studentContext.verifiedSelection;
+    if (selection == null) {
+      return _studentContext.isLoading.value
+          ? DataStatus.loading
+          : DataStatus.empty;
     }
-    if (errorMessage.value.isNotEmpty &&
-        charges.value.isEmpty &&
-        payments.value.isEmpty &&
-        summary.value == null) {
-      return DataStatus.error;
-    }
-    if (_studentContext.activeStudent.value == null) {
-      return DataStatus.empty;
-    }
-    return DataStatus.ready;
+    if (_selection != selection) return DataStatus.loading;
+    if (summary.value != null) return DataStatus.ready;
+    return errorMessage.value.isEmpty ? DataStatus.loading : DataStatus.error;
   }
 
   String get emptyMessage {
     final l10n = systemL10n();
-    if (_studentContext.activeStudent.value == null) {
-      return l10n.selectStudentToViewFees;
-    }
-    if (charges.value.isEmpty && payments.value.isEmpty) {
-      return l10n.noFeesOrPaymentsForYear;
-    }
-    return l10n.nothingToShowYet;
+    return _studentContext.activeStudent.value == null
+        ? l10n.selectStudentToViewFees
+        : l10n.noFeesOrPaymentsForYear;
   }
 
-  Future<void> loadFeesData() async {
-    final studentId = _studentContext.activeStudentId;
-    final yearId = _academicYear.selectedYearId.value;
+  Future<void> loadFeesData() => _select(refresh: true);
 
-    if (studentId == null || yearId == null) {
-      charges(const []);
-      payments(const []);
-      summary(null);
-      errorMessage('');
-      return;
+  Future<void> _select({bool refresh = false}) {
+    if (isClosed) return Future.value();
+    final selection = _studentContext.verifiedSelection;
+    final changed = selection != _selection;
+    final loading = _pending != null && historyStatus.value != DataStatus.error;
+    if (!changed && (!refresh || loading)) {
+      return _pending ?? Future.value();
+    }
+    final generation = ++_generation;
+    _selection = selection;
+    _pending = null;
+    _cancelReads();
+    _clear();
+    errorMessage('');
+    historyStatus(DataStatus.loading);
+    if (selection == null) return Future.value();
+    _abort = Completer<void>();
+    return _pending = runTask(() => _read(selection, generation)).whenComplete(
+      () {
+        if (_generation == generation) _pending = null;
+      },
+    );
+  }
+
+  void _clear() {
+    summary(null);
+    chargeTotals(null);
+    charges(const []);
+    payments(const []);
+    nextChargeCursor(null);
+    nextPaymentCursor(null);
+    paymentPageError('');
+    chargePageError('');
+    loadingPayments(false);
+    loadingCharges(false);
+    _accountId = null;
+  }
+
+  void _cancelReads() {
+    _abort?.complete();
+    _abort = null;
+  }
+
+  @override
+  void onClose() {
+    _cancelReads();
+    super.onClose();
+  }
+
+  bool _current(GuardianPupilSelection selection, int generation) =>
+      !isClosed &&
+      generation == _generation &&
+      selection == _studentContext.verifiedSelection;
+
+  Map<String, dynamic> _scope(GuardianPupilSelection selection) => {
+    'studentId': selection.studentId,
+    'academicYearId': selection.academicYearId,
+  };
+
+  void _verifyScope(
+    Map<String, dynamic> data,
+    GuardianPupilSelection selection,
+  ) {
+    if (data['studentId'] != selection.studentId ||
+        data['academicYearId'] != selection.academicYearId) {
+      throw const FormatException('Unexpected settlement pupil or year');
+    }
+  }
+
+  bool _denied(Object error) =>
+      error is api.ApiError && (error.status == 401 || error.status == 403);
+
+  void _report(Object error) {
+    if (_denied(error)) {
+      ++_generation;
+      _pending = null;
+      _cancelReads();
+      _clear();
+    }
+    errorMessage(systemL10n().couldNotLoadFees(error.toString()));
+    historyStatus(DataStatus.error);
+  }
+
+  Future<void> _read(GuardianPupilSelection selection, int generation) async {
+    final abort = _abort!.future;
+    final query = _scope(selection);
+    Future<void> readBalance() async {
+      try {
+        final data = await _schoolClient().getGuardianFeesSummary(
+          query,
+          abortTrigger: abort,
+        );
+        if (!_current(selection, generation)) return;
+        _verifyScope(data, selection);
+        final balance = FeesSummary.fromJson(data);
+        _accountId = data['accountId'] as String?;
+        chargeTotals((
+          expected: data['expected'] as int,
+          paid: data['paid'] as int,
+          overdue: data['overdueCount'] as int,
+        ));
+        summary(balance);
+      } on Object catch (error) {
+        if (_current(selection, generation)) _report(error);
+      }
     }
 
-    errorMessage('');
-    await runTask(() async {
-      try {
-        final client = _schoolClient();
-        final financeQuery = {'studentId': studentId, 'academicYearId': yearId};
-        final results = await Future.wait([
-          client.getStudentFinanceSummary(financeQuery),
-          client.studentCharges.listAll(
-            studentChargesForStudent(
-              studentId: studentId,
-              academicYearId: yearId,
-            ),
-          ),
-        ]);
-        final financeSummary = results[0] as Map<String, dynamic>;
-        final chargeRows = (results[1] as List<Map<String, dynamic>>)
-            .where((row) => row['status'] != 'cancelled')
-            .toList();
+    final balance = readBalance();
+    try {
+      final page = await _schoolClient().getGuardianSettlements(
+        query,
+        abortTrigger: abort,
+      );
+      await balance;
+      if (_current(selection, generation) && summary.value != null) {
+        _applyPage(page, selection);
+        historyStatus(DataStatus.ready);
+      }
+    } on Object catch (error) {
+      if (_current(selection, generation)) _report(error);
+    }
+    await balance;
+  }
 
-        final accountId = financeSummary['accountId'] as String?;
-        Map<String, dynamic> history = const {};
-        if (accountId != null && accountId.isNotEmpty) {
-          history = await client.getPaymentSettlementHistory({
-            'accountId': accountId,
-          });
-        }
-
-        final allocationRows =
-            (history['allocations'] as List?)?.whereType<Map>().toList() ??
-            const [];
-        final paymentRows = ((history['payments'] as List?) ?? const [])
-            .whereType<Map>()
-            .map((row) => Map<String, dynamic>.from(row))
-            .toList();
-        final parsedCharges = chargeRows.map((row) {
-          final id = row['id'] as String;
-          return StudentChargeLine.fromJson(
+  void _applyPage(
+    Map<String, dynamic> page,
+    GuardianPupilSelection selection, {
+    bool? chargeSection,
+  }) {
+    _verifyScope(page, selection);
+    final currency = summary.value!.currency;
+    if (page['accountId'] != _accountId || page['currency'] != currency) {
+      throw const FormatException('Unexpected settlement account or currency');
+    }
+    final lines = (page['charges'] as List).cast<Map<String, dynamic>>().map((
+      row,
+    ) {
+      if (StudentChargeLine.currencyFromJson(row) != currency) {
+        throw const FormatException('Unexpected charge currency');
+      }
+      return StudentChargeLine.fromJson(
+        row,
+        settlementCount: row['settlementCount'] as int,
+      );
+    }).toList();
+    final records = (page['payments'] as List)
+        .cast<Map<String, dynamic>>()
+        .map(
+          (row) => PaymentRecord.fromJson(
             row,
-            settlementCount: _settleCountForCharge(id, allocationRows),
-          );
-        }).toList()..sort(_compareCharges);
-
-        final chargeLabelById = {
-          for (final charge in parsedCharges) charge.id: charge.label,
-        };
-        final currency = requireFinanceCurrency(financeSummary['currency']);
-        if (parsedCharges.any((charge) => charge.currency != currency)) {
-          throw const FormatException(
-            'Charge currency does not match the school currency',
-          );
-        }
-        final parsedPayments = paymentRows.map((json) {
-          return PaymentRecord.fromJson(
-            json,
-            feeLabel: paymentAllocationLabel(
-              json,
-              chargeLabelById,
-              allocationRows,
+            feeLabel: paymentDisplayLabel(
+              row['kind'],
+              (row['chargeLabels'] as List).cast<String>(),
             ),
             currency: currency,
-          );
-        }).toList()..sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
-
-        charges(parsedCharges);
-        payments(parsedPayments);
-        summary(FeesSummary.fromJson(financeSummary));
-      } on api.ApiError catch (error) {
-        errorMessage(systemL10n().couldNotLoadFees(error.toString()));
-        charges(const []);
-        payments(const []);
-        summary(null);
-      } on Object catch (error) {
-        errorMessage(systemL10n().couldNotLoadFees(error.toString()));
-        charges(const []);
-        payments(const []);
-        summary(null);
+          ),
+        )
+        .toList();
+    if (chargeSection != false) {
+      final next = page['nextChargeCursor'] as String?;
+      if (next != null && next == nextChargeCursor.value) {
+        throw const FormatException('Charge cursor did not advance');
       }
-    });
+      charges(
+        {
+          for (final line in [...charges.value, ...lines]) line.id: line,
+        }.values.toList(),
+      );
+      nextChargeCursor(next);
+    }
+    if (chargeSection != true) {
+      final next = page['nextPaymentCursor'] as String?;
+      if (next != null && next == nextPaymentCursor.value) {
+        throw const FormatException('Payment cursor did not advance');
+      }
+      payments(
+        {
+          for (final record in [...payments.value, ...records])
+            record.id: record,
+        }.values.toList(),
+      );
+      nextPaymentCursor(next);
+    }
   }
 
-  int get overdueCount =>
-      charges.value.where((line) => line.status == ChargeStatus.overdue).length;
+  Future<void> loadMoreCharges() => _loadMore(true);
+  Future<void> loadMorePayments() => _loadMore(false);
 
-  int get totalExpected =>
-      charges.value.fold<int>(0, (sum, line) => sum + line.expectedAmount);
+  Future<void> _loadMore(bool chargeSection) async {
+    final selection = _selection;
+    final generation = _generation;
+    final busy = chargeSection ? loadingCharges : loadingPayments;
+    final errorText = chargeSection ? chargePageError : paymentPageError;
+    final cursor = (chargeSection ? nextChargeCursor : nextPaymentCursor).value;
+    if (selection == null ||
+        !_current(selection, generation) ||
+        cursor == null ||
+        busy.value) {
+      return;
+    }
+    busy(true);
+    errorText('');
+    try {
+      final page = await _schoolClient().getGuardianSettlements({
+        ..._scope(selection),
+        'cursor': cursor,
+      }, abortTrigger: _abort!.future);
+      if (_current(selection, generation)) {
+        _applyPage(page, selection, chargeSection: chargeSection);
+      }
+    } on Object catch (error) {
+      if (!_current(selection, generation)) return;
+      if (_denied(error)) {
+        _report(error);
+      } else {
+        errorText(systemL10n().couldNotLoadFees(error.toString()));
+      }
+    } finally {
+      if (_current(selection, generation)) busy(false);
+    }
+  }
 
-  int get totalPaid =>
-      charges.value.fold<int>(0, (sum, line) => sum + line.allocatedAmount);
-
-  int get totalBalance =>
-      summary.value?.outstanding ??
-      charges.value.fold<int>(0, (sum, line) => sum + line.remainingObligation);
+  int get overdueCount => chargeTotals.value?.overdue ?? 0;
+  int get totalExpected => chargeTotals.value?.expected ?? 0;
+  int get totalPaid => chargeTotals.value?.paid ?? 0;
+  int get totalBalance => summary.value?.outstanding ?? 0;
 
   Future<DocumentJobResult> downloadStatement({required String? schoolId}) {
-    final studentId = _studentContext.activeStudentId;
-    final yearId = _academicYear.selectedYearId.value;
+    final selection = _studentContext.verifiedSelection;
+    final studentId = selection?.studentId;
+    final yearId = selection?.academicYearId;
     final currency = summary.value?.currency;
-    if (schoolId == null ||
+    if (selection != _selection ||
+        schoolId != selection?.schoolId ||
+        schoolId == null ||
         studentId == null ||
         yearId == null ||
         currency == null) {
@@ -213,35 +340,6 @@ class FeesController extends LevitController with LevitReactiveTasksMixin {
       studentId: studentId,
       academicYearId: yearId,
     );
-  }
-
-  int _settleCountForCharge(String chargeId, List<Map> allocations) {
-    return allocations
-        .where(
-          (row) =>
-              row['chargeId'] == chargeId &&
-              (row['kind'] == null || row['kind'] == 'settle'),
-        )
-        .length;
-  }
-
-  int _compareCharges(StudentChargeLine a, StudentChargeLine b) {
-    final aDate = a.dueDate;
-    final bDate = b.dueDate;
-    if (aDate == null && bDate == null) {
-      return a.label.compareTo(b.label);
-    }
-    if (aDate == null) {
-      return 1;
-    }
-    if (bDate == null) {
-      return -1;
-    }
-    final byDate = aDate.compareTo(bDate);
-    if (byDate != 0) {
-      return byDate;
-    }
-    return a.id.compareTo(b.id);
   }
 }
 

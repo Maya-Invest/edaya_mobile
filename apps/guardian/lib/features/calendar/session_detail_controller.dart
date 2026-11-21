@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
-import 'package:edaya_api_client/edaya_api_client.dart' show SchoolClient;
 import 'package:edaya_shared/edaya_shared.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import '../context/student_context_controller.dart';
+import '../context/academic_year_controller.dart';
 import 'models/attendance_record.dart';
 import 'models/calendar_session.dart';
 import 'models/logbook_entry.dart';
@@ -15,20 +15,27 @@ class SessionDetailController extends LevitController
     with LevitReactiveTasksMixin {
   SessionDetailController({
     required this.sessionId,
+    this.kindHint,
+    required this.academicYear,
     required StudentContextController studentContext,
     required SchoolClientFactory schoolClient,
   }) : _studentContext = studentContext,
        _schoolClient = schoolClient;
 
   int _loadGeneration = 0;
+  final AcademicYearController academicYear;
+  GuardianPupilSelection? _selection;
+  Completer<void>? _abort;
 
   @override
   void onClose() {
     _loadGeneration++;
+    _abort?.complete();
     super.onClose();
   }
 
   final String sessionId;
+  final String? kindHint;
   final StudentContextController _studentContext;
   final SchoolClientFactory _schoolClient;
 
@@ -58,20 +65,31 @@ class SessionDetailController extends LevitController
     autoDispose(assessmentCoefficient);
     autoDispose(activityNotes);
     autoDispose(errorMessage);
-    autoDispose(
-      _studentContext.activeStudent.stream.listen(
-        (_) => unawaited(loadDetails()),
-      ),
-    );
-    unawaited(loadDetails());
+    for (final stream in [
+      _studentContext.activeStudent.stream,
+      _studentContext.isLoading.stream,
+      academicYear.selectedYearId.stream,
+    ]) {
+      autoDispose(stream.listen((_) => unawaited(_onSelection())));
+    }
+    unawaited(_onSelection());
+  }
+
+  Future<void> _onSelection() async {
+    if (_selection != _studentContext.verifiedSelection) await loadDetails();
   }
 
   Future<void> loadDetails() async {
+    if (isClosed) return;
+    final selection = _studentContext.verifiedSelection;
+    _selection = selection;
+    _abort?.complete();
+    _abort = null;
     final generation = ++_loadGeneration;
-    final studentId = _studentContext.activeStudentId;
     bool isCurrent() =>
+        !isClosed &&
         generation == _loadGeneration &&
-        studentId == _studentContext.activeStudentId;
+        selection == _studentContext.verifiedSelection;
     session(null);
     attendance(null);
     logbook(null);
@@ -83,277 +101,78 @@ class SessionDetailController extends LevitController
     assessmentCoefficient(null);
     activityNotes(null);
     errorMessage('');
-    if (studentId == null) return;
+    if (selection == null) return;
+    final abort = _abort = Completer<void>();
     await runTask(() async {
       try {
-        final client = _schoolClient();
-        final resolved = await _resolveSession(client);
-
+        final data = await _schoolClient().getGuardianOccurrenceDetail({
+          'studentId': selection.studentId,
+          'academicYearId': selection.academicYearId,
+          'occurrenceId': sessionId,
+          if (const {'lesson', 'assessment', 'activity'}.contains(kindHint))
+            'kind': kindHint,
+        }, abortTrigger: abort.future);
         if (!isCurrent()) return;
-        if (resolved == null) {
+        final row = data['occurrence'] as Map<String, dynamic>?;
+        if (row == null) {
           errorMessage(systemL10n().sessionNotFound);
           return;
         }
-
-        if (resolved.classSubjectId != null) {
-          // The student query preserves saved occurrences and isolates siblings.
-          final at = resolved.startsAt.toUtc();
-          final past = !resolved.endsAt.isAfter(SchoolClock.now());
-          final timetable = past && _studentContext.activeYearId != null
-              ? await client.runQuery('get-student-session-history', {
-                  'studentId': studentId,
-                  'academicYearId': _studentContext.activeYearId,
-                  'startDate': at
-                      .subtract(const Duration(days: 1))
-                      .toIso8601String()
-                      .substring(0, 10),
-                  'endDate': at
-                      .add(const Duration(days: 1))
-                      .toIso8601String()
-                      .substring(0, 10),
-                })
-              : await client.getStudentTimetable({
-                  'studentId': studentId,
-                  'startDate': at
-                      .subtract(const Duration(days: 1))
-                      .toIso8601String(),
-                  'endDate': at.add(const Duration(days: 1)).toIso8601String(),
-                });
-          if (!isCurrent()) return;
-          if (!((timetable['entries'] ?? timetable['events']) as List).any(
-            (event) => event['id'] == resolved.id,
-          )) {
-            session(null);
-            errorMessage(
-              systemL10n().couldNotLoadSessionDetails(
-                'Subject participation required',
-              ),
-            );
-            return;
-          }
+        if (row['id'] != sessionId) {
+          throw const FormatException('Unexpected calendar occurrence');
         }
-        session(resolved);
-        {
-          final attendanceRows = await client.attendance.list({
-            ...attendanceForOccurrence(
-              kind: resolved.kind,
-              occurrenceId: resolved.id,
+        final resolved = CalendarSession(
+          id: sessionId,
+          kind: row['kind'] as String,
+          title: row['title'] as String,
+          startsAt: parseApiDateTime(row['startsAt'])!,
+          endsAt: parseApiDateTime(row['endsAt'])!,
+          classSubjectId: row['classSubjectId'] as String?,
+          subjectLabel: row['subjectLabel'] as String?,
+          status: row['status'] as String?,
+        );
+        final record = row['attendance'] as Map<String, dynamic>?;
+        final note = row['logbook'] as Map<String, dynamic>?;
+        final assessment = row['assessment'] as Map<String, dynamic>?;
+        if (record != null) attendance(AttendanceRecord.fromJson(record));
+        if (note != null) {
+          logbook(
+            LogbookEntry(
+              id: sessionId,
+              chapter: resolved.title,
+              date: resolved.startsAt,
+              content: note['content'] as String,
+              chapters: [
+                for (final chapter
+                    in (note['chapters'] as List).cast<Map<String, dynamic>>())
+                  (
+                    name:
+                        chapter['name'] as String? ??
+                        systemL10n().chapterFallback,
+                    completed: chapter['completed'] as bool?,
+                    notes: chapter['notes'] as String?,
+                  ),
+              ],
             ),
-            'studentId': studentId,
-          });
-          if (!isCurrent()) return;
-          attendance(
-            attendanceRows.isEmpty
-                ? null
-                : AttendanceRecord.fromJson(attendanceRows.first),
           );
         }
-
-        final entry = await _loadLogbook(client, resolved);
-        if (!isCurrent()) return;
-        logbook(entry);
-
-        if (resolved.kind == 'assessment') {
-          await _loadAssessmentExtras(client, resolved, studentId, isCurrent);
-        } else if (resolved.kind == 'activity') {
-          await _loadActivityExtras(client, resolved, isCurrent);
+        if (assessment != null) {
+          assessmentTitle(resolved.title);
+          assessmentDescription(assessment['description'] as String? ?? '');
+          assessmentInstructions('');
+          assessmentMaxScore((assessment['maxScore'] as num).toDouble());
+          assessmentCoefficient((assessment['coefficient'] as num).toDouble());
+          assessmentMark(assessment['mark'] as Map<String, dynamic>?);
         }
+        activityNotes(row['activityNotes'] as String?);
+        session(resolved);
       } on Object catch (error) {
         if (!isCurrent()) return;
         errorMessage(systemL10n().couldNotLoadSessionDetails(error.toString()));
+      } finally {
+        if (identical(_abort, abort)) _abort = null;
       }
     }, id: 'load-session-details:$generation');
-  }
-
-  Future<CalendarSession?> _resolveSession(SchoolClient client) async {
-    try {
-      final lesson = await client.lessonSessions.get(sessionId);
-      return CalendarSession(
-        id: lesson['id'] as String,
-        title:
-            lesson['displayLabel'] as String? ??
-            lesson['title'] as String? ??
-            systemL10n().timetableSessionKindLesson,
-        kind: 'lesson',
-        startsAt: parseApiDateTime(lesson['startsAt']) ?? DateTime.now(),
-        endsAt: parseApiDateTime(lesson['endsAt']) ?? DateTime.now(),
-        classSubjectId: lesson['classSubjectId'] as String?,
-        subjectLabel: lesson['displayLabel'] as String?,
-        status: lesson['status'] as String?,
-      );
-    } on api.ApiError catch (error) {
-      if (error.status != 404 && error.status != 403) rethrow;
-    }
-
-    try {
-      final activity = await client.activitySessions.get(sessionId);
-      return CalendarSession(
-        id: activity['id'] as String,
-        title:
-            activity['displayLabel'] as String? ??
-            activity['title'] as String? ??
-            systemL10n().timetableSessionKindActivity,
-        kind: 'activity',
-        startsAt: parseApiDateTime(activity['startsAt']) ?? DateTime.now(),
-        endsAt: parseApiDateTime(activity['endsAt']) ?? DateTime.now(),
-        status: activity['status'] as String?,
-      );
-    } on api.ApiError catch (error) {
-      if (error.status != 404 && error.status != 403) rethrow;
-    }
-
-    try {
-      final assessment = await client.assessments.get(sessionId);
-      var startsAt = parseApiDateTime(
-        assessment['dueAt'] ?? assessment['startsAt'],
-      );
-      final lessonId = assessment['lessonSessionId'] as String?;
-      if (startsAt == null && lessonId != null) {
-        final lesson = await client.lessonSessions.get(lessonId);
-        startsAt = parseApiDateTime(lesson['startsAt']);
-      }
-      if (startsAt == null) return null;
-      return CalendarSession(
-        id: assessment['id'] as String,
-        title:
-            assessment['title'] as String? ??
-            systemL10n().timetableSessionKindAssessment,
-        kind: 'assessment',
-        startsAt: startsAt,
-        endsAt: startsAt.add(const Duration(hours: 1)),
-        classSubjectId: assessment['classSubjectId'] as String?,
-        status: assessment['status'] as String?,
-      );
-    } on api.ApiError catch (error) {
-      if (error.status != 404 && error.status != 403) rethrow;
-    }
-
-    return null;
-  }
-
-  Future<void> _loadAssessmentExtras(
-    SchoolClient client,
-    CalendarSession resolved,
-    String studentId,
-    bool Function() isCurrent,
-  ) async {
-    try {
-      final assessment = await client.assessments.get(resolved.id);
-      if (!isCurrent()) return;
-      assessmentTitle(assessment['title'] as String?);
-      assessmentDescription(assessment['description'] as String? ?? '');
-      assessmentInstructions(assessment['instructions'] as String? ?? '');
-      assessmentMaxScore((assessment['maxScore'] as num?)?.toDouble());
-      assessmentCoefficient((assessment['coefficient'] as num?)?.toDouble());
-
-      Map<String, dynamic>? mark;
-      try {
-        final response = await client.runQuery(
-          'get-guardian-assessment-result',
-          {'studentId': studentId, 'assessmentId': resolved.id},
-        );
-        mark = (response['mark'] as Map?)?.cast<String, dynamic>();
-      } on api.ApiError catch (error) {
-        if (error.status != 404) rethrow;
-        final results = await client.assessmentResults.list({
-          'studentId': studentId,
-          'assessmentId': resolved.id,
-        });
-        if (results.isNotEmpty)
-          mark = {...results.first, 'maxScore': assessment['maxScore']};
-      }
-      if (isCurrent()) assessmentMark(mark);
-    } on Object {
-      // Optional enrichment — leave fields null.
-    }
-  }
-
-  Future<void> _loadActivityExtras(
-    SchoolClient client,
-    CalendarSession resolved,
-    bool Function() isCurrent,
-  ) async {
-    try {
-      final activity = await client.activitySessions.get(resolved.id);
-      if (!isCurrent()) return;
-      activityNotes(activity['notes'] as String?);
-    } on Object {
-      // Optional.
-    }
-  }
-
-  Future<LogbookEntry?> _loadLogbook(
-    SchoolClient client,
-    CalendarSession resolved,
-  ) async {
-    if (resolved.kind != 'lesson' || resolved.classSubjectId == null) {
-      if (resolved.kind == 'activity') {
-        final notes = activityNotes.value;
-        if (notes == null || notes.isEmpty) return null;
-        return LogbookEntry(
-          id: resolved.id,
-          chapter: resolved.title,
-          content: notes,
-          objectives: const [],
-          progress: 0,
-          date: resolved.startsAt,
-        );
-      }
-      return null;
-    }
-
-    final progressRows = await client.classSubjectProgress.listAll(
-      progressForLessonSessions([resolved.id]),
-    );
-
-    Map<String, dynamic>? lessonSession;
-    try {
-      lessonSession = await client.lessonSessions.get(resolved.id);
-    } on api.ApiError catch (error) {
-      if (error.status != 404 && error.status != 403) rethrow;
-    }
-
-    final sessionNote = lessonSession?['sessionNote'] as String?;
-    final primaryProgress = progressRows.isEmpty ? null : progressRows.first;
-    if (sessionNote == null && primaryProgress == null) {
-      return null;
-    }
-
-    final chapters = <({String name, bool? completed, String? notes})>[];
-    if (progressRows.isNotEmpty) {
-      final links = await client.classSubjectMatters.listAll({
-        'classSubjectId': resolved.classSubjectId,
-      });
-      final ids = links
-          .map((row) => row['subjectMatterId'] as String)
-          .toSet()
-          .toList();
-      final definitions = ids.isEmpty
-          ? <Map<String, dynamic>>[]
-          : await client.subjectMatters.listAll(entitiesByIds(ids));
-      final names = {
-        for (final row in definitions) row['id']: row['name'] as String,
-      };
-      final byLink = {
-        for (final row in links) row['id']: names[row['subjectMatterId']],
-      };
-      for (final row in progressRows) {
-        chapters.add((
-          name:
-              byLink[row['classSubjectMatterId']] ??
-              systemL10n().chapterFallback,
-          completed: row['completed'] as bool?,
-          notes: row['notes'] as String?,
-        ));
-      }
-    }
-    return LogbookEntry(
-      id: resolved.id,
-      chapter: resolved.title,
-      chapters: chapters,
-      content: decodeStructuredSessionNote(sessionNote).guardianText,
-      date: resolved.startsAt,
-    );
   }
 }
 
@@ -424,7 +243,7 @@ class AttendanceListController extends LevitController
 typedef AttendanceController = AttendanceListController;
 
 Future<String> _resolveOccurrenceTitle(
-  SchoolClient client, {
+  api.SchoolClient client, {
   required String occurrenceId,
   required String kind,
 }) async {

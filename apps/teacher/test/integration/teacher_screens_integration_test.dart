@@ -85,6 +85,53 @@ Future<void> main() async {
         },
       );
 
+      if (profile.kind == TeacherPortalKind.subject) {
+        testWidgets(
+          '[teacher-v2.logbook.open-recorded] recorded logbook opens the lesson and returns to the recorded list',
+          (tester) async {
+            final page = await harness.portalSession.schoolClient
+                .getTeacherLogbook({
+                  'classGroupId': profile.primaryClassGroupId,
+                  'classSubjectId': profile.expectedClassSubjectIds.first,
+                  'view': 'recorded',
+                });
+            final rows = (page['items'] as List).cast<Map>();
+            expect(
+              rows,
+              isNotEmpty,
+              reason: 'The seeded offering has a recorded lesson.',
+            );
+            final first = rows.first;
+            await mount(tester, '/progress');
+            final tab = find.widgetWithText(Tab, 'Cahier de texte');
+            await until(tester, tab);
+            await tester.tap(tab);
+            final tile = find.widgetWithText(
+              ListTile,
+              first['displayLabel'] as String,
+            );
+            await until(tester, tile);
+            await tester.tap(tile.first);
+            final router = harness.scope.find<GoRouter>();
+            await tester.pump();
+            expect(
+              router.routeInformationProvider.value.uri.path,
+              '/session/${first['id']}',
+            );
+            expect(
+              router.routeInformationProvider.value.uri.queryParameters['tab'],
+              'logbook',
+            );
+            await until(tester, find.text('Appel'));
+            final back = find.byTooltip('Retour');
+            await until(tester, back);
+            await tester.tap(back);
+            await until(tester, tile);
+            expect(router.routeInformationProvider.value.uri.path, '/progress');
+          },
+        );
+      }
+
       testWidgets(
         '[teacher-v2.${profile.kind.name}.roster] opens a real assigned class and student',
         (tester) async {

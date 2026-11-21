@@ -1,3 +1,5 @@
+import 'package:edaya_shared/src/features/settings/app_settings_models.dart'
+    show ThemePreference;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,6 +17,34 @@ import '../integration/support/design_review_capture.dart';
 import '../integration/support/design_review_environment.dart';
 
 void main() {
+  testWidgets('[guardian-v2.settings.persist] saves the theme from settings', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    await AppSettingsController.preload();
+    final h = PrototypeWidgetTestHarness()..bootstrap(authenticated: true);
+    await pumpPrototypeRoute(tester, h, location: '/settings');
+    await tester.tap(find.text('Ouvrir les paramètres complets'));
+    await tester.pumpAndSettle();
+    final dark = find.byWidgetPredicate(
+      (widget) =>
+          widget is RadioListTile<ThemePreference> &&
+          widget.value == ThemePreference.dark,
+    );
+    await tester.tap(dark);
+    await tester.pumpAndSettle();
+    expect((await AppSettingsStorage.load()).theme, ThemePreference.dark);
+    Navigator.of(tester.element(dark)).pop();
+    await tester.pumpAndSettle();
+    expect(dark, findsNothing);
+    await tester.tap(find.text('Ouvrir les paramètres complets'));
+    await tester.pumpAndSettle();
+    expect(dark, findsOneWidget);
+    expect(
+      h.scope.find<AppSettingsController>().theme.value,
+      ThemePreference.dark,
+    );
+  });
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});
     ApiBaseUrlConfig.configure(appDefaultUrl: 'http://localhost:19998');
@@ -127,13 +157,23 @@ void main() {
     });
     await pumpPrototypeRoute(tester, h, location: '/home');
     for (final d in destinations) {
-      h.router.go(d.path);
+      final label = find
+          .descendant(of: find.byType(HomePage), matching: find.text(d.fr))
+          .first;
+      await tester.ensureVisible(label);
+      await tester.tap(label);
       await tester.pumpAndSettle();
+      expect(h.router.state.uri.path, d.path, reason: d.fr);
       expect(tester.takeException(), isNull, reason: d.path);
       expect(find.byType(BackButton), findsOneWidget);
+      h.router.go('/home');
+      await tester.pumpAndSettle();
     }
-    h.router.go('/home');
-    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byType(ChildContextCard),
+      -350,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.byType(ChildContextCard));
     await tester.pumpAndSettle();
     expect(find.byTooltip('Fermer'), findsOneWidget);

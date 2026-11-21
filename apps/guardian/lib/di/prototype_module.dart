@@ -18,7 +18,6 @@ Future<void> initializeGuardianAuthenticatedContext(LevitScope scope) async {
   await prepareGuardianContext(
     auth: scope.find<AuthClient>(),
     session: scope.find<AppSessionController>(),
-    year: scope.find<AcademicYearController>(),
     student: scope.find<StudentContextController>(),
   );
 }

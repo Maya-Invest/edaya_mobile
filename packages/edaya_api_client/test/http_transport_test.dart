@@ -43,6 +43,45 @@ void main() {
     expect(attempts, 2);
   });
 
+  test(
+    'private GETs revalidate for each actor and drop stale bytes on denial',
+    () async {
+      var actor = 'a', round = 0;
+      final validators = <String?>[];
+      final transport = HttpTransport(
+        baseUrl: 'https://school.example.test',
+        getActorKind: () => 'staff',
+        getActorId: () => actor,
+        getSchoolId: () => 'school',
+        client: MockClient((request) async {
+          validators.add(request.headers['if-none-match']);
+          switch (++round) {
+            case 2:
+              return http.Response('', 304);
+            case 3:
+              return http.Response('denied', 403);
+            default:
+              return http.Response(
+                jsonEncode({'actor': actor}),
+                200,
+                headers: {'etag': '"$actor"'},
+              );
+          }
+        }),
+      );
+      Future<Map<String, dynamic>> read() =>
+          transport.request('GET', '/core/directory/students');
+      final first = await read();
+      first['actor'] = 'local';
+      expect((await read())['actor'], 'a');
+      await expectLater(read(), throwsA(isA<ApiError>()));
+      expect((await read())['actor'], 'a');
+      actor = 'b';
+      expect((await read())['actor'], 'b');
+      expect(validators, [null, '"a"', '"a"', null, null]);
+    },
+  );
+
   test('does not retry a denied write', () async {
     var attempts = 0;
     final transport = HttpTransport(

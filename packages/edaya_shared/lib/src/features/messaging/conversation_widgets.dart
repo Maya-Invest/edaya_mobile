@@ -36,6 +36,8 @@ class MessagingInbox extends LScopedView<ConversationController> {
     required this.notices,
     required this.onNotice,
     this.onRefreshNotices,
+    this.onMoreNotices,
+    this.loadingMoreNotices = false,
     this.noticesBusy = false,
     this.noticesError = '',
     this.guardian = false,
@@ -43,7 +45,8 @@ class MessagingInbox extends LScopedView<ConversationController> {
     this.studentName,
   });
   final List<MessagingNotice> notices;
-  final bool noticesBusy;
+  final bool noticesBusy, loadingMoreNotices;
+  final Future<void> Function()? onMoreNotices;
   final String noticesError;
   final void Function(String id) onNotice;
   final Future<void> Function()? onRefreshNotices;
@@ -54,14 +57,11 @@ class MessagingInbox extends LScopedView<ConversationController> {
     () => ConversationController(
       session: scope.find<AppSessionController>(),
       client: scope.find<SchoolClientFactory>(),
+      visible: false,
     ),
   );
   @override
   Widget buildView(BuildContext context, ConversationController controller) {
-    controller.visible =
-        TickerMode.valuesOf(context).enabled &&
-        GoRouterState.of(context).uri.path == '/inbox' &&
-        GoRouterState.of(context).uri.queryParameters['tab'] != 'notifications';
     final combined =
         <({DateTime at, Map<String, dynamic>? row, MessagingNotice? notice})>[
           for (final row in controller.rows.value)
@@ -88,7 +88,7 @@ class MessagingInbox extends LScopedView<ConversationController> {
       }
     }
 
-    return _MessagingLifecycle(
+    return ConversationActivity(
       controller: controller,
       child: WorkspaceTabs(
         values: const ['conversations', 'notifications'],
@@ -188,8 +188,7 @@ class MessagingInbox extends LScopedView<ConversationController> {
                               },
                             ),
                           ),
-                        if (controller.rows.value.length <
-                            controller.total.value)
+                        if (controller.hasMoreRows.value)
                           TextButton(
                             onPressed: () => controller.refresh(more: true),
                             child: Text(context.tr.messagingLoadMore),
@@ -212,12 +211,7 @@ class MessagingInbox extends LScopedView<ConversationController> {
                   Text(context.tr.messagingUnavailable),
                 if (!noticesBusy && noticesError.isEmpty && notices.isEmpty)
                   Text(context.tr.messagingEmpty),
-                for (final notice
-                    in [...notices]..sort(
-                      (a, b) => (b.at ?? DateTime(1970)).compareTo(
-                        a.at ?? DateTime(1970),
-                      ),
-                    ))
+                for (final notice in notices)
                   Card(
                     child: ListTile(
                       leading: Icon(
@@ -239,6 +233,11 @@ class MessagingInbox extends LScopedView<ConversationController> {
                       onTap: () => onNotice(notice.id),
                     ),
                   ),
+                if (onMoreNotices != null)
+                  TextButton(
+                    onPressed: loadingMoreNotices ? null : onMoreNotices,
+                    child: Text(context.tr.messagingLoadMore),
+                  ),
               ],
             ),
           ),
@@ -256,19 +255,16 @@ class ConversationPage extends LScopedView<ConversationController> {
     () => ConversationController(
       session: scope.find<AppSessionController>(),
       client: scope.find<SchoolClientFactory>(),
+      visible: false,
       conversationId: conversationId,
     ),
   );
   @override
   Widget buildView(BuildContext context, ConversationController controller) {
-    controller.visible =
-        TickerMode.valuesOf(context).enabled &&
-        GoRouterState.of(context).uri.path ==
-            '/inbox/conversation/$conversationId';
     final data = controller.detail.value;
     final row = data?['conversation'] as Map?;
     final messages = data?['messages'] as List? ?? const [];
-    return _MessagingLifecycle(
+    return ConversationActivity(
       controller: controller,
       child: Scaffold(
         appBar: AppBar(
@@ -646,36 +642,73 @@ class _ComposeMessageState extends State<_ComposeMessage> {
   }
 }
 
-class _MessagingLifecycle extends StatefulWidget {
-  const _MessagingLifecycle({required this.controller, required this.child});
+/// Refreshes conversations while their route and tab are visible in the foreground.
+class ConversationActivity extends StatefulWidget {
+  const ConversationActivity({
+    super.key,
+    required this.controller,
+    required this.child,
+  });
   final ConversationController controller;
   final Widget child;
   @override
-  State<_MessagingLifecycle> createState() => _MessagingLifecycleState();
+  State<ConversationActivity> createState() => _ConversationActivityState();
 }
 
-class _MessagingLifecycleState extends State<_MessagingLifecycle>
+class _ConversationActivityState extends State<ConversationActivity>
     with WidgetsBindingObserver {
+  bool routeVisible = false;
+  bool foreground = true;
+
   @override
   void initState() {
     super.initState();
+    final state = WidgetsBinding.instance.lifecycleState;
+    foreground = state == null || state == AppLifecycleState.resumed;
     WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    widget.controller.foreground = state == AppLifecycleState.resumed;
-    if (widget.controller.foreground && widget.controller.visible) {
-      unawaited(widget.controller.refresh());
+    foreground = state == AppLifecycleState.resumed;
+    widget.controller.setActivity(
+      visible: routeVisible,
+      foreground: foreground,
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant ConversationActivity oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller != oldWidget.controller) {
+      oldWidget.controller.setActivity(visible: false, foreground: foreground);
     }
   }
 
   @override
   void dispose() {
+    widget.controller.setActivity(visible: false, foreground: foreground);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) {
+    final uri = GoRouterState.of(context).uri;
+    final id = widget.controller.conversationId;
+    routeVisible =
+        TickerMode.valuesOf(context).enabled &&
+        (id == null
+            ? uri.path == '/inbox' &&
+                  uri.queryParameters['tab'] != 'notifications'
+            : uri.pathSegments.length == 3 &&
+                  uri.pathSegments[0] == 'inbox' &&
+                  uri.pathSegments[1] == 'conversation' &&
+                  uri.pathSegments[2] == id);
+    widget.controller.setActivity(
+      visible: routeVisible,
+      foreground: foreground,
+    );
+    return widget.child;
+  }
 }

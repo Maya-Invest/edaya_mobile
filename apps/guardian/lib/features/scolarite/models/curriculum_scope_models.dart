@@ -4,11 +4,13 @@ class CurriculumClassSubjectOption {
     required this.classGroupId,
     required this.subjectName,
     required this.classLabel,
+    required this.offering,
   });
 
   final String id;
   final String classGroupId;
   final String subjectName;
+  final Map<String, dynamic> offering;
   final String classLabel;
 
   String get label => '$classLabel · $subjectName';
@@ -54,6 +56,18 @@ class CurriculumProgressOverview {
     this.ongoingChapterCount = 0,
     required this.matters,
   });
+
+  factory CurriculumProgressOverview.fromOffering(
+    Map<String, dynamic> row, {
+    List<CurriculumMatterProgress> matters = const [],
+  }) => CurriculumProgressOverview(
+    chapterCount: (row['chapterCount'] as num?)?.toInt() ?? matters.length,
+    ongoingChapterCount: (row['ongoingChapterCount'] as num?)?.toInt() ?? 0,
+    completedChapterCount: (row['completedChapterCount'] as num?)?.toInt() ?? 0,
+    classSubjectCompletedPercentage:
+        (row['completedPercentage'] as num?)?.toInt() ?? 0,
+    matters: matters,
+  );
 
   final int classSubjectCompletedPercentage;
   final int chapterCount, completedChapterCount, ongoingChapterCount;

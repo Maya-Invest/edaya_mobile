@@ -176,7 +176,10 @@ class SettingsPage extends LScopedView<SettingsController> {
   @override
   SettingsController onConfigScope(LevitScope scope) {
     try {
-      unawaited(scope.find<TeacherOutboxController>().refreshSummary());
+      final outbox = scope.find<TeacherOutboxController>();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!outbox.isClosed) outbox.refreshBadge();
+      });
     } on Object {
       // Mock previews do not install the live outbox.
     }

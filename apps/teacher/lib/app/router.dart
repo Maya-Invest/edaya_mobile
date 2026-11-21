@@ -157,7 +157,7 @@ GoRouter createRouter({
           workspaceRoute(
             path: '/classes/:classId/discipline',
             builder: (_, s) =>
-                TeacherDisciplinePage(classId: s.pathParameters['classId']!),
+                TeacherDisciplinePage(key: ValueKey(s.uri.path), classId: s.pathParameters['classId']!),
           ),
           workspaceRoute(
             path: '/incidents',
@@ -173,6 +173,7 @@ GoRouter createRouter({
                 ':classId/:incidentId',
                 (context) => context.tr.incident,
                 (s) => TeacherDisciplinePage(
+                  key: ValueKey(s.uri.toString()),
                   classId: s.pathParameters['classId']!,
                   incidentId: s.pathParameters['incidentId']!,
                   mode: s.uri.queryParameters['mode'],
@@ -215,7 +216,9 @@ GoRouter createRouter({
           ),
           workspaceRoute(
             path: '/evaluations/avis',
-            builder: (_, _) => const FamilyFeedbackListPage(),
+            builder: (_, state) => FamilyFeedbackListPage(
+              listVisible: state.uri.path == '/evaluations/avis',
+            ),
             routes: [
               record(
                 ':feedbackId',

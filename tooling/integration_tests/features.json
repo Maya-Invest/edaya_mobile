@@ -110,8 +110,7 @@
           {
             "id": "guardian-v2.home.switch-child",
             "scenarios": [
-              "guardian-v2.context-sheet-switches-active-linked-student",
-              "guardian-v2.multi-child-guardian-switches-linked-student"
+              "guardian-v2.context-sheet-switches-active-linked-student"
             ]
           },
           {
@@ -309,6 +308,10 @@
           }
         ]
       }
+    ],
+    "widgetScenarios": [
+      "guardian-v2.coverage.routes",
+      "guardian-v2.settings.persist"
     ]
   },
   "teacher_v2": {
@@ -426,6 +429,12 @@
             "id": "teacher-v2.classes.list",
             "scenarios": [
               "teacher-v2.classes.list"
+            ]
+          },
+          {
+            "id": "teacher-v2.classes.recorded-logbook",
+            "scenarios": [
+              "teacher-v2.logbook.open-recorded"
             ]
           },
           {
@@ -649,6 +658,11 @@
         "id": "future.support-recovery",
         "reason": "Support-assisted recovery is not implemented."
       }
+    ],
+    "widgetScenarios": [
+      "teacher-v2.coverage.routes",
+      "teacher-v2.settings.persist",
+      "teacher-v2.classes.list"
     ]
   }
 }

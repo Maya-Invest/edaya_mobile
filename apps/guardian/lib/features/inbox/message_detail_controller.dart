@@ -30,7 +30,9 @@ class MessageDetailController extends LevitController
     autoDispose(delivery);
     autoDispose(isMarkingRead);
     autoDispose(errorMessage);
-    if (initialDelivery != null && initialDelivery!.id == messageId) {
+    if (initialDelivery != null &&
+        initialDelivery!.id == messageId &&
+        !initialDelivery!.isPreview) {
       delivery(initialDelivery);
     }
     unawaited(loadAndMarkRead());

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:edaya_auth/edaya_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -124,7 +123,7 @@ class _PersonAvatarState extends State<PersonAvatar> {
           response = await fetch();
         }
         if (response.statusCode != 200) throw StateError('Image unavailable');
-        image = MemoryImage(Uint8List.fromList(response.bodyBytes));
+        image = MemoryImage(response.bodyBytes);
       } else {
         image = NetworkImage(uri.toString());
       }

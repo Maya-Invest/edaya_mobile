@@ -132,7 +132,7 @@ Future<void> execute(List<String> args) async {
       return;
     }
     if (name == 'unit') {
-      await run(['dart', 'run', 'melos', 'run', 'test']);
+      await runUnitTests();
       return;
     }
     if (name == 'integration') {

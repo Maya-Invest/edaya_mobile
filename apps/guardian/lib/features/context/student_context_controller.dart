@@ -1,13 +1,22 @@
 import 'dart:async';
 
-import 'package:edaya_api_client/edaya_api_client.dart' as api;
+import 'package:edaya_api_client/edaya_api_client.dart';
 import 'package:levit_flutter/levit_flutter.dart';
 
 import 'package:edaya_shared/edaya_shared.dart';
 import '../auth/session_storage.dart';
 import '../my_students/linked_student.dart';
 import 'academic_year_controller.dart';
+import 'guardian_choices.dart';
 import 'pupil_enrollment_years.dart';
+
+typedef GuardianPupilSelection = ({
+  String accountId,
+  String schoolId,
+  String guardianId,
+  String studentId,
+  String academicYearId,
+});
 
 class StudentContextController extends LevitController
     with LevitReactiveTasksMixin {
@@ -20,13 +29,12 @@ class StudentContextController extends LevitController
   }) : _sessionStorage = sessionStorage,
        _session = session,
        _academicYear = academicYear,
-       _schoolClient = schoolClient,
        _catalogClient = catalogClient ?? schoolClient;
 
   final SessionStorage _sessionStorage;
   final AppSessionController _session;
   final AcademicYearController _academicYear;
-  final SchoolClientFactory _schoolClient, _catalogClient;
+  final SchoolClientFactory _catalogClient;
   final enrollmentYears = LxVar<List<Map<String, dynamic>>>(const []);
 
   final linkedStudentIds = LxVar<List<String>>(const []);
@@ -34,27 +42,61 @@ class StudentContextController extends LevitController
   final activeStudent = LxVar<LinkedStudent?>(null);
   final classGroupId = LxVar<String?>(null);
   final classLabel = LxVar<String?>(null);
+  final schoolTimeZone = LxVar<String>('UTC');
   final schoolName = LxVar<String?>(null);
   final isEnrolled = LxVar(false);
   final isLoading = LxVar(false);
   final errorMessage = LxVar('');
 
-  int _reloadGeneration = 0;
-  int _initializeGeneration = 0;
+  int _generation = 0;
   bool _switching = false;
-  int _selectionGeneration = 0;
+  String? _appliedYear;
+  (String?, String?, String?, String?)? _resolvedScope;
+  (String?, String?, String?, String?) get _scope => (
+    _session.user.value?.id,
+    _session.schoolIdHeader,
+    _session.actorIdHeader,
+    _session.grants.value?.kind,
+  );
 
   void beginSwitch() {
-    _selectionGeneration++;
+    _generation++;
     _switching = true;
-    _initializeGeneration++;
-    _clearContext();
+    _resolvedScope = null;
+    linkedStudentIds(const []);
     linkedStudentsResolved(false);
+    _clearContext();
   }
 
   String? get activeYearId => _academicYear.selectedYearId.value;
 
   String? get activeStudentId => activeStudent.value?.id;
+
+  /// The published pupil/year only while its verified session still matches.
+  GuardianPupilSelection? get verifiedSelection {
+    final scope = _scope;
+    final (accountId, schoolId, guardianId, kind) = scope;
+    final studentId = activeStudentId;
+    final yearId = activeYearId;
+    if (_switching ||
+        scope != _resolvedScope ||
+        kind != 'guardian' ||
+        accountId == null ||
+        schoolId == null ||
+        guardianId == null ||
+        studentId == null ||
+        yearId == null ||
+        yearId != _appliedYear) {
+      return null;
+    }
+    return (
+      accountId: accountId,
+      schoolId: schoolId,
+      guardianId: guardianId,
+      studentId: studentId,
+      academicYearId: yearId,
+    );
+  }
 
   bool get hasLinkedStudents => linkedStudentIds.value.isNotEmpty;
 
@@ -68,325 +110,171 @@ class StudentContextController extends LevitController
     autoDispose(classGroupId);
     autoDispose(classLabel);
     autoDispose(schoolName);
+    autoDispose(schoolTimeZone);
     autoDispose(isEnrolled);
     autoDispose(isLoading);
     autoDispose(errorMessage);
 
     autoDispose(
-      _academicYear.selectedYearId.stream.listen((_) {
-        if (!_switching) unawaited(reloadContext());
-      }),
-    );
-    autoDispose(
-      _session.grants.stream.listen((grants) {
-        if (grants == null || grants.kind != 'guardian') {
-          linkedStudentIds(const []);
-          // A new sign-in must resolve its relationships before routing to
-          // the no-children page, including after a second-factor sign-in.
-          linkedStudentsResolved(false);
-          _clearContext();
+      _academicYear.selectedYearId.stream.listen((id) {
+        if (!_switching && id != _appliedYear && activeStudentId != null) {
+          unawaited(reloadContext());
         }
       }),
     );
+    void invalidateScope() {
+      if (_resolvedScope != null && _resolvedScope != _scope) beginSwitch();
+    }
+
+    autoDispose(_session.grants.stream.listen((_) => invalidateScope()));
+    autoDispose(_session.user.stream.listen((_) => invalidateScope()));
   }
 
   Future<void> initializeFromSession({
     String? preferredStudentId,
     String? preferredYearId,
-  }) async {
-    final initialization = ++_initializeGeneration;
-    final account = _session.user.value?.id;
-    final school = _session.schoolIdHeader;
-    final actor = _session.actorIdHeader;
-    bool valid() =>
-        !isClosed &&
-        initialization == _initializeGeneration &&
-        account == _session.user.value?.id &&
-        school == _session.schoolIdHeader &&
-        actor == _session.actorIdHeader;
-    if (!_session.isAuthenticated) {
-      linkedStudentIds(const []);
-      linkedStudentsResolved(true);
-      return;
-    }
-
-    final grants = _session.grants.value;
-    if (grants == null || grants.kind != 'guardian') {
-      linkedStudentIds(const []);
-      linkedStudentsResolved(true);
-      return;
-    }
-
-    final scopedStudentIds = await loadGuardianLinkedStudentIds(
-      _schoolClient(),
-      grants.actorId,
-    );
-    if (!valid()) return;
-    linkedStudentIds(scopedStudentIds);
-    if (scopedStudentIds.isEmpty) {
-      await _sessionStorage.writeActiveStudentId(null);
-      _clearContext();
-      _switching = false;
-      linkedStudentsResolved(true);
-      return;
-    }
-
-    final persistedId =
-        preferredStudentId ?? await _sessionStorage.readActiveStudentId();
-    if (!valid()) return;
-    await selectStudent(
-      persistedId != null && scopedStudentIds.contains(persistedId)
-          ? persistedId
-          : scopedStudentIds.first,
-      yearId: preferredYearId,
-    );
-    if (!valid()) return;
-    _switching = false;
-    linkedStudentsResolved(true);
-  }
+    GuardianChoices? choices,
+  }) => _resolve(
+    studentId: preferredStudentId,
+    yearId: preferredYearId,
+    choices: choices,
+  );
 
   Future<void> selectStudent(String studentId, {String? yearId}) async {
     if (!linkedStudentIds.value.contains(studentId)) return;
-    final selection = ++_selectionGeneration;
-    _switching = true;
-    _clearContext();
-    isLoading(true);
-    final generation = _reloadGeneration;
-    final school = _session.schoolIdHeader;
-    final actor = _session.actorIdHeader;
-    try {
-      if (_academicYear.years.value.isEmpty &&
-          !await _academicYear.loadYears()) {
-        if (!isClosed && generation == _reloadGeneration) {
-          errorMessage(_academicYear.errorMessage.value);
-          isLoading(false);
-        }
-        return;
-      }
-      final catalog = _catalogClient();
-      final placements = await catalog.enrollments.listAll({
-        'studentId': studentId,
-      });
-      if (isClosed ||
-          generation != _reloadGeneration ||
-          school != _session.schoolIdHeader ||
-          actor != _session.actorIdHeader)
-        return;
-      final available = pupilEnrollmentYears(
-        _academicYear.years.value,
-        placements,
-        studentId,
-      );
-      if (placements.isNotEmpty && available.isEmpty) {
-        throw StateError(systemL10n().noAcademicYearsAvailable);
-      }
-      if (yearId != null && !available.any((y) => y['id'] == yearId)) {
-        throw StateError('School year unavailable');
-      }
-      enrollmentYears(available);
-      _academicYear.selectedYearId(yearId ?? defaultPupilYear(available));
-      _academicYear.errorMessage('');
-      await _sessionStorage.writeActiveStudentId(studentId);
-      if (isClosed || generation != _reloadGeneration) return;
-      await reloadContext();
-    } catch (error) {
-      if (!isClosed && generation == _reloadGeneration) {
-        errorMessage(systemL10n().couldNotLoadStudentContext(error.toString()));
-        isLoading(false);
-      }
-      rethrow;
-    } finally {
-      if (!isClosed && selection == _selectionGeneration) _switching = false;
-    }
+    await _resolve(studentId: studentId, yearId: yearId);
   }
 
   Future<void> selectEnrollmentYear(String yearId) async {
     final id = activeStudentId;
-    if (id == null) return;
-    await selectStudent(id, yearId: yearId);
+    if (id != null) await selectStudent(id, yearId: yearId);
   }
 
+  Future<void> reloadContext() =>
+      _resolve(studentId: activeStudentId, yearId: activeYearId);
+
   Future<void> clearStudent() async {
-    await _sessionStorage.writeActiveStudentId(null);
+    ++_generation;
     _clearContext();
+    _switching = false;
+    await _sessionStorage.writeActiveStudentId(null);
+  }
+
+  Future<void> _resolve({
+    String? studentId,
+    String? yearId,
+    GuardianChoices? choices,
+  }) async {
+    final generation = ++_generation;
+    final scope = _scope;
+    bool current() => !isClosed && _generation == generation && _scope == scope;
+    _switching = true;
+    _clearContext();
+    _resolvedScope = scope;
+    if (!_session.isAuthenticated ||
+        _session.grants.value?.kind != 'guardian') {
+      linkedStudentIds(const []);
+      linkedStudentsResolved(true);
+      _switching = false;
+      return;
+    }
+    isLoading(true);
+    try {
+      final result =
+          choices ??
+          GuardianChoices.fromJson(
+            await _catalogClient().getGuardianChildChoices({}),
+            accountId: scope.$1,
+          );
+      if (!current()) return;
+      if (result.accountId != scope.$1 ||
+          result.schoolId != scope.$2 ||
+          result.guardianId != scope.$3) {
+        throw StateError('Guardian profile changed');
+      }
+      final children = result.children;
+      final ids = [for (final child in children) child.id]..sort();
+      linkedStudentIds(ids);
+      linkedStudentsResolved(true);
+      final stored = studentId ?? await _sessionStorage.readActiveStudentId();
+      if (!current()) return;
+      final child =
+          children.where((entry) => entry.id == stored).firstOrNull ??
+          (studentId == null && ids.isNotEmpty
+              ? children.firstWhere((child) => child.id == ids.first)
+              : null);
+      if (child == null) {
+        _academicYear.applyGuardianChoices(result.years, null);
+        await _sessionStorage.writeActiveStudentId(null);
+        if (studentId != null) throw StateError('Child unavailable');
+        return;
+      }
+      final placements = result.enrollments.where(
+        (e) => e['studentId'] == child.id,
+      );
+      final available = pupilEnrollmentYears(
+        result.years,
+        placements,
+        child.id,
+      );
+      if (placements.isNotEmpty && available.isEmpty) {
+        throw StateError(systemL10n().noAcademicYearsAvailable);
+      }
+      bool eligible(String? id) =>
+          id != null && available.any((y) => y['id'] == id);
+      if (yearId != null && !eligible(yearId)) {
+        throw StateError('School year unavailable');
+      }
+      String? savedYear;
+      if (yearId == null && _academicYear.archive) {
+        savedYear =
+            _academicYear.initialYearId ??
+            await _sessionStorage.readAcademicYearIdForSchool(result.schoolId);
+      }
+      if (!current()) return;
+      final selected =
+          yearId ??
+          (eligible(savedYear) ? savedYear : defaultPupilYear(available));
+      final inYear =
+          placements.where((e) => e['academicYearId'] == selected).toList()
+            ..sort(
+              (a, b) => (b['enrollmentIndex'] as int).compareTo(
+                a['enrollmentIndex'] as int,
+              ),
+            );
+      final placement = inYear.firstOrNull;
+      await _sessionStorage.writeActiveStudentId(child.id);
+      if (!current()) return;
+      _appliedYear = selected;
+      _academicYear.applyGuardianChoices(result.years, selected);
+      enrollmentYears(available);
+      classGroupId(placement?['classGroupId'] as String?);
+      classLabel(placement?['classLabel'] as String?);
+      isEnrolled(placement != null);
+      schoolName(result.schoolName);
+      schoolTimeZone(result.timeZone);
+      activeStudent(child);
+    } catch (error) {
+      if (!current()) return;
+      errorMessage(systemL10n().couldNotLoadStudentContext(error.toString()));
+      if (error is StateError) rethrow;
+    } finally {
+      if (current()) {
+        _switching = false;
+        isLoading(false);
+      }
+    }
   }
 
   void _clearContext() {
-    _reloadGeneration++;
     activeStudent(null);
     enrollmentYears(const []);
     classGroupId(null);
     classLabel(null);
     schoolName(null);
+    schoolTimeZone('UTC');
     isEnrolled(false);
     errorMessage('');
     isLoading(false);
-  }
-
-  Future<void> reloadContext() {
-    final generation = ++_reloadGeneration;
-    return _reloadContext(generation);
-  }
-
-  Future<void> _reloadContext(int generation) async {
-    final studentId = await _sessionStorage.readActiveStudentId();
-    if (generation != _reloadGeneration) {
-      return;
-    }
-    if (studentId == null) {
-      _clearContext();
-      return;
-    }
-
-    errorMessage('');
-
-    await runTask(() async {
-      if (generation != _reloadGeneration) {
-        return;
-      }
-      isLoading(true);
-      try {
-        final schoolClient = _schoolClient();
-        final studentJson = await schoolClient.students.get(studentId);
-        if (generation != _reloadGeneration) {
-          return;
-        }
-        final student = LinkedStudent.fromJson(studentJson);
-        if (student.id != studentId) {
-          return;
-        }
-        final resolvedSchoolName = await _loadSchoolName(
-          schoolClient,
-          student.schoolId,
-        );
-        if (generation != _reloadGeneration) {
-          return;
-        }
-        await _academicYear.applyStoredYearForSchool(student.schoolId);
-        if (generation != _reloadGeneration) {
-          return;
-        }
-        final resolvedYearId = _academicYear.selectedYearId.value;
-
-        if (resolvedYearId == null) {
-          classGroupId(null);
-          classLabel(null);
-          isEnrolled(false);
-          schoolName(resolvedSchoolName);
-          activeStudent(student);
-          return;
-        }
-
-        await _loadEnrollment(
-          schoolClient: schoolClient,
-          studentId: studentId,
-          yearId: resolvedYearId,
-          generation: generation,
-        );
-        if (isClosed ||
-            generation != _reloadGeneration ||
-            errorMessage.value.isNotEmpty)
-          return;
-        schoolName(resolvedSchoolName);
-        activeStudent(student);
-      } on api.ApiError catch (error) {
-        if (generation != _reloadGeneration) {
-          return;
-        }
-        errorMessage(systemL10n().couldNotLoadStudentContext(error.toString()));
-        activeStudent(null);
-        classGroupId(null);
-        classLabel(null);
-        schoolName(null);
-        isEnrolled(false);
-      } on Object catch (error) {
-        if (generation != _reloadGeneration) {
-          return;
-        }
-        errorMessage(systemL10n().couldNotLoadStudentContext(error.toString()));
-        activeStudent(null);
-        classGroupId(null);
-        classLabel(null);
-        schoolName(null);
-        isEnrolled(false);
-      } finally {
-        if (generation == _reloadGeneration) {
-          isLoading(false);
-        }
-      }
-    });
-  }
-
-  Future<void> _loadEnrollment({
-    required api.SchoolClient schoolClient,
-    required String studentId,
-    required String yearId,
-    required int generation,
-  }) async {
-    try {
-      final enrollments = await schoolClient.enrollments.listAll({
-        'studentId': studentId,
-        'academicYearId': yearId,
-      });
-
-      if (generation != _reloadGeneration || isClosed) return;
-      if (enrollments.isEmpty) {
-        classGroupId(null);
-        classLabel(null);
-        isEnrolled(false);
-        return;
-      }
-
-      enrollments.sort(
-        (a, b) => ((b['enrollmentIndex'] as num?) ?? 0).compareTo(
-          (a['enrollmentIndex'] as num?) ?? 0,
-        ),
-      );
-      final enrollment = enrollments.first;
-      final enrollmentClassGroupId = enrollment['classGroupId'] as String?;
-      if (enrollmentClassGroupId == null) {
-        classGroupId(null);
-        classLabel(null);
-        isEnrolled(false);
-        return;
-      }
-
-      classGroupId(enrollmentClassGroupId);
-      final classGroup = await schoolClient.classGroups.get(
-        enrollmentClassGroupId,
-      );
-      if (generation != _reloadGeneration || isClosed) return;
-      final className = classGroup['name'] as String? ?? enrollmentClassGroupId;
-      final level = classGroup['level'] as String?;
-      classLabel(level == null ? className : '$className · $level');
-      isEnrolled(true);
-    } on api.ApiError catch (error) {
-      if (isClosed || generation != _reloadGeneration) return;
-      errorMessage(systemL10n().couldNotLoadEnrollment(error.toString()));
-      classGroupId(null);
-      classLabel(null);
-      isEnrolled(false);
-    } on Object catch (error) {
-      if (isClosed || generation != _reloadGeneration) return;
-      errorMessage(systemL10n().couldNotLoadEnrollment(error.toString()));
-      classGroupId(null);
-      classLabel(null);
-      isEnrolled(false);
-    }
-  }
-
-  Future<String?> _loadSchoolName(
-    api.SchoolClient schoolClient,
-    String schoolId,
-  ) async {
-    if (schoolId.isEmpty) return _session.schoolIdHeader;
-    try {
-      final row = await schoolClient.schools.get(schoolId);
-      final name = row['name'] as String?;
-      if (name != null && name.trim().isNotEmpty) return name;
-    } on Object {
-      // Fall back to the school id when the directory name is not readable.
-    }
-    return schoolId;
   }
 }

@@ -222,22 +222,22 @@ class _LiveFeesPage extends LScopedView<FeesController> {
     }
     if (controller.dataStatus == DataStatus.error) {
       return AdaptiveContent(
-        child: EmptyState(title: controller.errorMessage.value),
+        child: EmptyState(
+          title: controller.errorMessage.value,
+          actionLabel: context.tr.retry,
+          onAction: controller.loadFeesData,
+        ),
       );
     }
     if (controller.dataStatus == DataStatus.empty) {
       return AdaptiveContent(child: EmptyState(title: controller.emptyMessage));
     }
 
-    final summary = controller.summary.value;
+    final totals = controller.chargeTotals.value;
     final progress = controller.totalExpected == 0
         ? 0.0
         : (controller.totalPaid / controller.totalExpected).clamp(0.0, 1.0);
-    final currency =
-        summary?.currency ??
-        (controller.charges.value.isNotEmpty
-            ? controller.charges.value.first.currency
-            : 'XOF');
+    final currency = controller.summary.value!.currency;
     final schoolId = context.levit.find<AppSessionController>().schoolIdHeader;
 
     final phone = phoneActions(context);
@@ -247,11 +247,12 @@ class _LiveFeesPage extends LScopedView<FeesController> {
       icon: Icons.download_outlined,
       run: () => controller.downloadStatement(schoolId: schoolId),
     );
-    return Column(
+    final content = Column(
       children: [
         Expanded(
           child: AdaptiveContent(
             child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(PrototypeSpacing.md),
               children: [
                 SectionHeader(title: context.tr.summary),
@@ -261,22 +262,24 @@ class _LiveFeesPage extends LScopedView<FeesController> {
                     children: [
                       _FeeSummaryMetrics(
                         metrics: [
-                          SummaryMetric(
-                            label: context.tr.expected,
-                            value: formatMoney(
-                              controller.totalExpected,
-                              currency,
-                              context.tr.localeName,
+                          if (totals != null)
+                            SummaryMetric(
+                              label: context.tr.expected,
+                              value: formatMoney(
+                                controller.totalExpected,
+                                currency,
+                                context.tr.localeName,
+                              ),
                             ),
-                          ),
-                          SummaryMetric(
-                            label: context.tr.feeStatusPaid,
-                            value: formatMoney(
-                              controller.totalPaid,
-                              currency,
-                              context.tr.localeName,
+                          if (totals != null)
+                            SummaryMetric(
+                              label: context.tr.feeStatusPaid,
+                              value: formatMoney(
+                                controller.totalPaid,
+                                currency,
+                                context.tr.localeName,
+                              ),
                             ),
-                          ),
                           SummaryMetric(
                             label: context.tr.balance,
                             value: formatMoney(
@@ -287,15 +290,20 @@ class _LiveFeesPage extends LScopedView<FeesController> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: PrototypeSpacing.sm),
-                      PrototypeProgressBar(value: progress),
-                      const SizedBox(height: PrototypeSpacing.xs),
-                      Text(
-                        context.tr.paidLabel((progress * 100).round()),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      if (totals != null) ...[
+                        const SizedBox(height: PrototypeSpacing.sm),
+                        PrototypeProgressBar(value: progress),
+                        const SizedBox(height: PrototypeSpacing.xs),
+                        Text(
+                          context.tr.paidLabel((progress * 100).round()),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
-                      ),
+                      ],
                       if (controller.overdueCount > 0) ...[
                         const SizedBox(height: PrototypeSpacing.sm),
                         Row(
@@ -328,81 +336,116 @@ class _LiveFeesPage extends LScopedView<FeesController> {
                   ),
                 ),
                 const SizedBox(height: PrototypeSpacing.xl),
-                SectionHeader(title: context.tr.feeLinesSection),
-                for (final fee in controller.charges.value) ...[
-                  ListRow(
-                    stackTrailingAtLargeText: true,
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: fee.status == ChargeStatus.overdue
-                            ? Theme.of(context).colorScheme.errorContainer
-                            : Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(10),
+                if (controller.historyStatus.value != DataStatus.ready)
+                  DataState(
+                    status: controller.historyStatus.value,
+                    errorMessage: controller.errorMessage.value,
+                    onRetry: controller.loadFeesData,
+                    child: const SizedBox.shrink(),
+                  )
+                else ...[
+                  SectionHeader(title: context.tr.feeLinesSection),
+                  for (final fee in controller.charges.value) ...[
+                    ListRow(
+                      stackTrailingAtLargeText: true,
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: fee.status == ChargeStatus.overdue
+                              ? Theme.of(context).colorScheme.errorContainer
+                              : Theme.of(context).colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          Icons.receipt_long_outlined,
+                          size: 20,
+                          color: fee.status == ChargeStatus.overdue
+                              ? Theme.of(context).colorScheme.error
+                              : Theme.of(context).colorScheme.primary,
+                        ),
                       ),
-                      child: Icon(
-                        Icons.receipt_long_outlined,
-                        size: 20,
-                        color: fee.status == ChargeStatus.overdue
+                      title: fee.label,
+                      subtitle:
+                          '${context.tr.dueDate(fee.dueDate != null ? context.formatShortDate(fee.dueDate!) : '—')} · ${context.tr.paymentCount(fee.settlementCount)}',
+                      selected: selectedFeeId == fee.id,
+                      trailing: FeeAmountTrailing(
+                        amount: formatMoney(
+                          fee.remainingObligation,
+                          fee.currency,
+                          context.tr.localeName,
+                        ),
+                        label: formatChargeStatus(context.tr, fee.status),
+                        labelColor: fee.status == ChargeStatus.overdue
                             ? Theme.of(context).colorScheme.error
-                            : Theme.of(context).colorScheme.primary,
+                            : null,
+                        showChevron: true,
+                      ),
+                      onTap: () => context.push(
+                        Uri(
+                          path: '/fees/fee/${fee.id}',
+                          queryParameters: GoRouterState.of(
+                            context,
+                          ).uri.queryParameters,
+                        ).toString(),
                       ),
                     ),
-                    title: fee.label,
-                    subtitle:
-                        '${context.tr.dueDate(fee.dueDate != null ? context.formatShortDate(fee.dueDate!) : '—')} · ${context.tr.paymentCount(fee.settlementCount)}',
-                    selected: selectedFeeId == fee.id,
-                    trailing: FeeAmountTrailing(
-                      amount: formatMoney(
-                        fee.remainingObligation,
-                        fee.currency,
-                        context.tr.localeName,
+                    const SizedBox(height: PrototypeSpacing.xs),
+                  ],
+                  if (controller.chargePageError.value.isNotEmpty)
+                    Text(controller.chargePageError.value),
+                  if (controller.nextChargeCursor.value != null)
+                    TextButton(
+                      onPressed: controller.loadingCharges.value
+                          ? null
+                          : controller.loadMoreCharges,
+                      child: Text(
+                        controller.chargePageError.value.isEmpty
+                            ? context.tr.showMore
+                            : context.tr.retry,
                       ),
-                      label: formatChargeStatus(context.tr, fee.status),
-                      labelColor: fee.status == ChargeStatus.overdue
-                          ? Theme.of(context).colorScheme.error
-                          : null,
-                      showChevron: true,
                     ),
-                    onTap: () => context.push(
-                      Uri(
-                        path: '/fees/fee/${fee.id}',
-                        queryParameters: GoRouterState.of(
-                          context,
-                        ).uri.queryParameters,
-                      ).toString(),
-                    ),
-                  ),
-                  const SizedBox(height: PrototypeSpacing.xs),
-                ],
-                const SizedBox(height: PrototypeSpacing.xl),
-                SectionHeader(title: context.tr.paymentsSection),
-                for (final payment in controller.payments.value) ...[
-                  ListRow(
-                    stackTrailingAtLargeText: true,
-                    title: formatPaymentMethod(context.tr, payment.method),
-                    subtitle:
-                        '${payment.feeLabel} · ${context.formatShortDate(payment.paymentDate)}',
-                    selected: selectedPaymentId == payment.id,
-                    trailing: FeeAmountTrailing(
-                      amount: formatMoney(
-                        payment.amount,
-                        payment.currency,
-                        context.tr.localeName,
+                  const SizedBox(height: PrototypeSpacing.xl),
+                  SectionHeader(title: context.tr.paymentsSection),
+                  for (final payment in controller.payments.value) ...[
+                    ListRow(
+                      stackTrailingAtLargeText: true,
+                      title: formatPaymentMethod(context.tr, payment.method),
+                      subtitle:
+                          '${payment.feeLabel} · ${context.formatShortDate(payment.paymentDate)}',
+                      selected: selectedPaymentId == payment.id,
+                      trailing: FeeAmountTrailing(
+                        amount: formatMoney(
+                          payment.amount,
+                          payment.currency,
+                          context.tr.localeName,
+                        ),
+                        label: formatPaymentKind(context.tr, payment.kind),
+                        showChevron: true,
                       ),
-                      label: formatPaymentKind(context.tr, payment.kind),
-                      showChevron: true,
+                      onTap: () => context.push(
+                        Uri(
+                          path: '/fees/payment/${payment.id}',
+                          queryParameters: GoRouterState.of(
+                            context,
+                          ).uri.queryParameters,
+                        ).toString(),
+                      ),
                     ),
-                    onTap: () => context.push(
-                      Uri(
-                        path: '/fees/payment/${payment.id}',
-                        queryParameters: GoRouterState.of(
-                          context,
-                        ).uri.queryParameters,
-                      ).toString(),
+                    const SizedBox(height: PrototypeSpacing.xs),
+                  ],
+                  if (controller.paymentPageError.value.isNotEmpty)
+                    Text(controller.paymentPageError.value),
+                  if (controller.nextPaymentCursor.value != null)
+                    TextButton(
+                      onPressed: controller.loadingPayments.value
+                          ? null
+                          : controller.loadMorePayments,
+                      child: Text(
+                        controller.paymentPageError.value.isEmpty
+                            ? context.tr.showMore
+                            : context.tr.retry,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: PrototypeSpacing.xs),
                 ],
               ],
             ),
@@ -411,6 +454,7 @@ class _LiveFeesPage extends LScopedView<FeesController> {
         if (phone && path == '/fees') statement,
       ],
     );
+    return RefreshIndicator(onRefresh: controller.loadFeesData, child: content);
   }
 }
 
