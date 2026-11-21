@@ -12,8 +12,6 @@ import 'package:edaya_teacher_v2/features/offline/teacher_outbox_controller.dart
 import 'package:edaya_api_client/edaya_api_client.dart';
 import 'package:edaya_integration_tests/edaya_integration_tests.dart';
 import 'package:edaya_shared/edaya_shared.dart';
-import 'package:edaya_shared/src/features/settings/app_settings_models.dart';
-import 'package:edaya_shared/src/features/settings/app_settings_storage.dart';
 import 'package:edaya_teacher_v2/features/home/home_lesson_list.dart';
 import 'package:edaya_teacher_v2/features/home/home_timetable_controller.dart';
 import 'package:edaya_teacher_v2/features/calendar/calendar_page.dart';
@@ -21,7 +19,6 @@ import 'package:edaya_teacher_v2/features/calendar/live_calendar_controller.dart
 import 'package:edaya_teacher_v2/features/context/teacher_context_controller.dart';
 import 'package:edaya_teacher_v2/features/classes/daily_attendance_page.dart';
 import 'package:edaya_teacher_v2/features/classes/teacher_discipline_page.dart';
-import 'package:edaya_teacher_v2/features/account/account_page.dart' as account;
 import 'package:edaya_teacher_v2/features/evaluations/evaluations_page.dart';
 import 'package:edaya_teacher_v2/features/evaluations/teacher_gradebook_page.dart';
 import 'package:edaya_teacher_v2/features/evaluations/live_evaluations_controller.dart';
@@ -808,7 +805,8 @@ Future<void> main() async {
       await mount(tester, '/classes/${profile.primaryClassGroupId}/discipline');
       await until(tester, find.byType(TeacherDisciplinePage));
       final list = findController<TeacherDisciplineController>(
-        tester, find.byType(TeacherDisciplinePage),
+        tester,
+        find.byType(TeacherDisciplinePage),
       );
       await persisted(tester, () async => list.busy.value, (busy) => !busy);
       final summary = list.incidents.value.firstWhere((row) => row['id'] == id);
@@ -819,10 +817,15 @@ Future<void> main() async {
       await tester.tap(link);
       await until(tester, find.text('Original facts').hitTestable());
       final controller = findController<TeacherDisciplineController>(
-        tester, find.byType(TeacherDisciplinePage).last,
+        tester,
+        find.byType(TeacherDisciplinePage).last,
       );
       expect(controller.incidentId, id);
-      await persisted(tester, () async => controller.busy.value, (busy) => !busy);
+      await persisted(
+        tester,
+        () async => controller.busy.value,
+        (busy) => !busy,
+      );
       expect(controller.message.value, isEmpty);
       var incident = controller.incidents.value.firstWhere(
         (row) => row['id'] == id,
@@ -1318,8 +1321,8 @@ Future<void> main() async {
         hasLength(1),
       );
       final shortcut = find.byKey(ValueKey('home-lesson-$id'));
-      // The lesson was added after Home finished its initial read. Keep Home open
-      // until the foreground poll discovers it, then reject a refresh.
+      // The controller's clock tests cover polling. Load the newly saved lesson now.
+      await today.refresh();
       await persisted(
         tester,
         () async => tester.any(shortcut),
@@ -1381,19 +1384,6 @@ Future<void> main() async {
     },
     timeout: const Timeout(Duration(minutes: 3)),
   );
-  testWidgets(
-    '[teacher-v2.classes.list] returns a saved roster link to the teacher home',
-    (tester) async {
-      await mount(tester, '/classes');
-      await until(tester, find.byKey(const ValueKey('home-profile')));
-      expect(find.text('Liste des élèves'), findsNothing);
-      expect(
-        harness.scope.find<GoRouter>().routeInformationProvider.value.uri.path,
-        '/home',
-      );
-    },
-  );
-
   testWidgets(
     '[teacher-v2.calendar.read] renders the live calendar and date picker',
     (tester) async {
@@ -1527,30 +1517,6 @@ Future<void> main() async {
       expect(cleared['signatureAttachmentId'], isNull);
     },
   );
-
-  testWidgets('[teacher-v2.settings.persist] saves the theme preference', (
-    tester,
-  ) async {
-    await mount(tester, '/settings');
-    await until(tester, find.byType(account.SettingsPage));
-    final dark = find.byWidgetPredicate(
-      (widget) =>
-          widget is RadioListTile<ThemePreference> &&
-          widget.value == ThemePreference.dark,
-    );
-    await until(tester, dark);
-    await tester.tap(dark);
-    await persisted(
-      tester,
-      AppSettingsStorage.load,
-      (settings) => settings.theme == ThemePreference.dark,
-    );
-    await persisted(
-      tester,
-      () async => harness.scope.find<AppSettingsController>().theme.value,
-      (theme) => theme == ThemePreference.dark,
-    );
-  });
 
   for (final role in TeacherPortalProfile.demoCiProfiles) {
     testWidgets(

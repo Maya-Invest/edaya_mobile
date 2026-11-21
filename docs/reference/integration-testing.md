@@ -26,7 +26,7 @@ The session file must have mode `0600` and contain sessions for the smoke suite'
 
 ### Integration coverage
 
-Feature/action contracts are in `tooling/integration_tests/features.json`; stable executable IDs are in `scenarios.json`. Route inventory tests walk the real registered GoRouter trees. Non-route actions and overlays must be registered explicitly. Update contract and assertions in the same feature PR. Reviewers verify behavioral meaning; an opened screen cannot prove a saved mutation.
+Feature/action contracts are in `tooling/integration_tests/features.json`; live scenario IDs are in `scenarios.json`. The unit job runs the named `widgetScenarios`, walks both production GoRouter trees, and compares them with the feature registry. It seals the observed routes and successful widget cases in `.ci-evidence/widget-contracts.json` for the same source fingerprint. Non-route actions and overlays must be registered explicitly. Update contract and assertions in the same feature PR. Reviewers verify behavioral meaning; an opened screen cannot prove a saved mutation.
 
 The gate rejects empty discovery, duplicate IDs, missing or removed scenarios, unmapped routes, fixture failures, blocked tests, unexpected skips, machine-reported errors even with exit zero, incomplete streams and stale source fingerprints. Edit first, then rerun the complete suites. `dart run edaya_repo:repo test tooling` verifies these failure modes.
 

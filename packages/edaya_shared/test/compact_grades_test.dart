@@ -58,6 +58,26 @@ void main() {
       );
     }
   });
+  testWidgets('GradeValue separates the mention label from its code', (
+    tester,
+  ) async {
+    Future<void> show(String value, Map grading) => tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: GradeValue(value, {'grading': grading}, showRank: false),
+        ),
+      ),
+    );
+    await show('16 / 20 · A', {
+      'mention': {'label': 'Excellent', 'code': 'A'},
+    });
+    expect(find.text('16 / 20'), findsOneWidget);
+    expect(find.text('Excellent'), findsOneWidget);
+    expect(find.text('16 / 20 · A'), findsNothing);
+    await show('16 / 20', {});
+    expect(find.text('16 / 20'), findsOneWidget);
+    expect(find.text('Excellent'), findsNothing);
+  });
   testWidgets(
     'numeric, unavailable and mention grades keep their official meaning',
     (tester) async {
