@@ -1,6 +1,13 @@
+import 'package:edaya_shared/src/features/settings/app_settings_models.dart'
+    show ThemePreference;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:edaya_teacher_v2/app/workspace_navigation.dart';
 import 'package:edaya_shared/edaya_shared.dart'
-    show PersonAvatar, AppLocalizationsContext;
+    show
+        PersonAvatar,
+        AppLocalizationsContext,
+        AppSettingsStorage,
+        AppSettingsController;
 import 'package:edaya_teacher_v2/mock/mock_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,6 +17,41 @@ import '../integration/support/prototype_widget_test_harness.dart';
 import '../integration/support/pump_prototype_page.dart';
 
 void main() {
+  testWidgets('[teacher-v2.settings.persist] saves the theme from settings', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    await AppSettingsController.preload();
+    final h = PrototypeWidgetTestHarness()..bootstrap(authenticated: true);
+    await pumpPrototypeApp(tester, h);
+    h.router.go('/settings');
+    await tester.pumpAndSettle();
+
+    final dark = find.byWidgetPredicate(
+      (widget) =>
+          widget is RadioListTile<ThemePreference> &&
+          widget.value == ThemePreference.dark,
+    );
+    await tester.tap(dark);
+    await tester.pumpAndSettle();
+    expect((await AppSettingsStorage.load()).theme, ThemePreference.dark);
+
+    expect(
+      h.scope.find<AppSettingsController>().theme.value,
+      ThemePreference.dark,
+    );
+  });
+  testWidgets('[teacher-v2.classes.list] opens the saved roster link on Home', (
+    tester,
+  ) async {
+    final h = PrototypeWidgetTestHarness()..bootstrap(authenticated: true);
+    await pumpPrototypeApp(tester, h);
+    h.router.go('/classes');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-profile')), findsOneWidget);
+    expect(find.text('Liste des élèves'), findsNothing);
+    expect(h.router.state.uri.path, '/home');
+  });
   testWidgets('Home passes a teacher portrait to the shared avatar', (
     tester,
   ) async {

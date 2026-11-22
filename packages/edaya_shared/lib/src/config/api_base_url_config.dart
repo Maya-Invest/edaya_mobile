@@ -1,12 +1,13 @@
 import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, kIsWeb, kReleaseMode, TargetPlatform;
+    show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/l10n_lookup.dart';
+import 'developer_settings_config.dart';
 
 /// Resolves the unified API origin for all mobile requests.
 ///
-/// Store builds always use their compiled API origin. Developer builds may
+/// Production builds always use their compiled API origin. Testing builds may
 /// override it with a saved preference. Authentication uses the same origin.
 abstract final class ApiBaseUrlConfig {
   ApiBaseUrlConfig._();
@@ -70,7 +71,7 @@ abstract final class ApiBaseUrlConfig {
 
   /// Loads any persisted override before dependency injection starts.
   static Future<void> load() async {
-    if (kReleaseMode) {
+    if (DeveloperSettingsConfig.production) {
       _resolved = _coerceUrlForPlatform(defaultUrl);
       _hasOverride = false;
       return;
@@ -91,16 +92,19 @@ abstract final class ApiBaseUrlConfig {
     _hasOverride = false;
   }
 
-  /// Persists an override. Returns `true` when the URL changed.
-  static Future<bool> saveOverride(String rawUrl) async {
-    if (kReleaseMode) return false;
+  /// Persists an override, or resets to the build default for a null URL.
+  static Future<bool> saveOverride(String? rawUrl) async {
+    if (DeveloperSettingsConfig.production) return false;
+    if (rawUrl == null) return clearOverride();
     final normalized = _coerceUrlForPlatform(_normalizeUrl(rawUrl));
     if (normalized == _resolved) {
       return false;
     }
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_prefKey, normalized);
+    if (!await prefs.setString(_prefKey, normalized)) {
+      throw StateError('Could not persist the API URL');
+    }
     _resolved = normalized;
     _hasOverride = true;
     return true;
@@ -108,10 +112,14 @@ abstract final class ApiBaseUrlConfig {
 
   /// Clears the persisted override and reverts to the compile-time URL.
   static Future<bool> clearOverride() async {
+    if (DeveloperSettingsConfig.production) return false;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_prefKey);
-    final changed = _resolved != defaultUrl || _hasOverride;
-    _resolved = _coerceUrlForPlatform(defaultUrl);
+    if (!await prefs.remove(_prefKey)) {
+      throw StateError('Could not reset the API URL');
+    }
+    final fallback = _coerceUrlForPlatform(defaultUrl);
+    final changed = _resolved != fallback;
+    _resolved = fallback;
     _hasOverride = false;
     return changed;
   }

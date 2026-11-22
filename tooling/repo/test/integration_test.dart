@@ -84,6 +84,39 @@ void main() {
     expect(evaluate(events(), 0, [])['ok'], isFalse);
   });
   test(
+    'widget evidence permits ordinary unit tests and requires every owned case',
+    () {
+      final mixed = [
+        ...events().take(2),
+        jsonEncode({
+          'type': 'testStart',
+          'test': {'id': 2, 'name': 'ordinary widget', 'line': 17},
+        }),
+        jsonEncode({
+          'type': 'testDone',
+          'testID': 2,
+          'result': 'success',
+          'skipped': false,
+        }),
+        events().last,
+      ];
+      expect(evaluate(mixed, 0, required, onlyRegistered: true)['ok'], isTrue);
+      expect(
+        evaluate(mixed, 0, ['missing.widget'], onlyRegistered: true)['ok'],
+        isFalse,
+      );
+      expect(
+        evaluate(
+          events(skipped: true),
+          0,
+          required,
+          onlyRegistered: true,
+        )['ok'],
+        isFalse,
+      );
+    },
+  );
+  test(
     'rejects runner errors',
     () => expect(
       evaluate(

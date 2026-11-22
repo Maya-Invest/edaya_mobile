@@ -144,6 +144,12 @@ module AppleRelease
     raise "Invalid #{name} JSON; contents omitted"
   end
 
+  def self.flutter_defines(evidence)
+    ["--dart-define=API_URL=#{evidence.fetch('apiUrl')}",
+     "--dart-define=PRODUCTION=#{evidence.fetch('environment') == 'production'}",
+     '--dart-define=TEST_OTP_ACCESS=false']
+  end
+
   def self.build(context)
     raise 'Signed Apple builds run only on GitHub-hosted macOS runners' unless ENV['GITHUB_ACTIONS'] == 'true' && RUBY_PLATFORM.include?('darwin')
     require 'xcodeproj'
@@ -213,7 +219,7 @@ module AppleRelease
         })
         FileUtils.rm_rf(File.join(app_root, 'build/ios/ipa'))
         success = system('flutter', 'build', 'ipa', '--release', '--no-pub', "--build-number=#{number}",
-          "--dart-define=API_URL=#{evidence.fetch('apiUrl')}", '--dart-define=TEST_OTP_ACCESS=false',
+          *flutter_defines(evidence),
           "--export-options-plist=#{options}", chdir: app_root)
         raise "#{app} IPA build failed" unless success
         ipas = Dir.glob(File.join(app_root, 'build/ios/ipa/*.ipa'))

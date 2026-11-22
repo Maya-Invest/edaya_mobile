@@ -27,6 +27,96 @@ extension DemoTeaching on DemoSchool {
         if (mark['studentId'] == student)
           {...assessment, ...mark, 'grading': mark['calculation']},
   ];
+  Row teacherLogbook(Row input) {
+    final offering = {
+      'schoolId': DemoSchool.school,
+      'academicYearId': year,
+      'classGroupId': input['classGroupId'],
+      'classSubjectId': input['classSubjectId'],
+    };
+    if (!teacher ||
+        matching('teacher-assignments', {
+          ...offering,
+          'teacherId': actor,
+          'kind': 'subject',
+          'status': 'active',
+        }).isEmpty) {
+      throw ApiError(403, 'Class subject unavailable');
+    }
+    final view = input['view'];
+    if (view != 'recorded' && view != 'all') {
+      throw ApiError(400, 'Invalid logbook view');
+    }
+
+    final scope = [
+      DemoSchool.school,
+      actor,
+      year,
+      offering['classGroupId'],
+      offering['classSubjectId'],
+      view,
+    ];
+    Row? boundary;
+    if (input['cursor'] case final String cursor) {
+      try {
+        final parts = jsonDecode(cursor);
+        if (parts is! List ||
+            parts.length != scope.length + 2 ||
+            !scope.indexed.every((entry) => parts[entry.$1] == entry.$2) ||
+            parts[6] is! String ||
+            DateTime.tryParse(parts[6] as String) == null ||
+            parts[7] is! String) {
+          throw const FormatException();
+        }
+        boundary = {'startsAt': parts[6], 'id': parts[7]};
+      } on FormatException {
+        throw ApiError(400, 'Invalid logbook cursor');
+      }
+    }
+    int newestFirst(Row a, Row b) {
+      final order = DateTime.parse(
+        b['startsAt'],
+      ).compareTo(DateTime.parse(a['startsAt']));
+      return order != 0 ? order : (b['id'] as String).compareTo(a['id']);
+    }
+
+    final chapters = matching('class-subject-matters', {
+      'classSubjectId': offering['classSubjectId'],
+    }).map((chapter) => chapter['id']).toSet();
+    final lessonsWithProgress = {
+      for (final row in rows('class-subject-progress'))
+        if (chapters.contains(row['classSubjectMatterId']))
+          row['lessonSessionId'],
+    };
+    final lessons = matching('lesson-sessions', offering)..sort(newestFirst);
+    final items = <Row>[];
+    const pageSize = 30;
+    for (final lesson in lessons) {
+      if (boundary != null && newestFirst(lesson, boundary) <= 0) continue;
+      final recorded =
+          (lesson['sessionNote'] as String? ?? '').trim().isNotEmpty ||
+          lessonsWithProgress.contains(lesson['id']);
+      if (view == 'recorded' && !recorded) continue;
+      if (items.length == pageSize) {
+        return {
+          'items': items,
+          'nextCursor': jsonEncode([
+            ...scope,
+            items.last['startsAt'],
+            items.last['id'],
+          ]),
+        };
+      }
+      items.add({
+        'id': lesson['id'],
+        'displayLabel': lesson['displayLabel'],
+        'startsAt': lesson['startsAt'],
+        'recorded': recorded,
+      });
+    }
+    return {'items': items, 'nextCursor': null};
+  }
+
   Row teacherIncidents(Row input, {required bool detail}) {
     final group = input['classGroupId'];
     if (!teacher ||

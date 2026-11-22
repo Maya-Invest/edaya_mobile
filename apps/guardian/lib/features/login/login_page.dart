@@ -40,6 +40,7 @@ class _LiveLoginPage extends LScopedView<LoginController> {
         authClient: scope.find<AuthClient>(),
         session: scope.find<AppSessionController>(),
         invitationToken: () => scope.find<PendingInvitationStore>().token,
+        clearInvitation: scope.find<PendingInvitationStore>().clear,
         defaultEmail: defaultEmail,
         onSignInSuccess: onSignInSuccess,
       ),
@@ -48,7 +49,9 @@ class _LiveLoginPage extends LScopedView<LoginController> {
 
   @override
   Widget buildView(BuildContext context, LoginController controller) {
-    return _LoginChrome(child: PasswordlessLoginForm(controller: controller));
+    return _LoginChrome(
+      child: PasswordlessLoginForm(controller: controller, showApiSwitcher: true),
+    );
   }
 }
 

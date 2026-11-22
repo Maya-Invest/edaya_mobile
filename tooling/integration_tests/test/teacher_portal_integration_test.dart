@@ -166,14 +166,12 @@ void _teacherPortalSuite(TeacherPortalProfile profile) {
         },
       );
 
-      test(
-        '[api.teacher.${profile.kind.name}.class-subjects-resolve-for-subject-assignments] class subjects resolve for subject assignments',
-        () {
-          if (profile.kind == TeacherPortalKind.subject) {
-            expect(context.classSubjects, isNotEmpty);
-          }
-        },
-      );
+      if (profile.kind == TeacherPortalKind.subject) {
+        test(
+          '[api.teacher.subject.class-subjects-resolve-for-subject-assignments] class subjects resolve for subject assignments',
+          () => expect(context.classSubjects, isNotEmpty),
+        );
+      }
     });
 
     group('calendar / planning', () {

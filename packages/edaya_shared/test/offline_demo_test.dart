@@ -321,6 +321,96 @@ void main() {
     },
   );
 
+  test('teacher Progress reads the selected demo class logbook', () async {
+    store = await DemoStore.start(DemoRole.teacher);
+    final client = createEdayaSchoolClient(store.auth);
+    const selection = {
+      'classGroupId': 'demo-class-b',
+      'classSubjectId': 'demo-math-b',
+      'view': 'recorded',
+    };
+    final recorded = await client.getTeacherLogbook(selection);
+    expect(recorded['items'], [
+      {
+        'id': 'demo-math-b-lesson-0',
+        'displayLabel': 'Fractions et proportions',
+        'startsAt': '2026-11-09T09:00:00.000Z',
+        'recorded': true,
+      },
+    ]);
+    expect(recorded['nextCursor'], isNull);
+    final all = await client.getTeacherLogbook({...selection, 'view': 'all'});
+    expect(
+      [for (final lesson in all['items']) (lesson['id'], lesson['recorded'])],
+      [
+        ('demo-math-b-lesson-3', false),
+        ('demo-math-b-lesson-2', false),
+        ('demo-math-b-lesson-1', false),
+        ('demo-math-b-lesson-0', true),
+      ],
+    );
+
+    await client.saveTeacherLogbook({
+      'requestId': 'record-demo-lesson',
+      'expectedVersion': 0,
+      'proposal': {
+        'workflow': 'logbook',
+        'targetId': 'demo-math-b-lesson-1',
+        'sessionNote': '',
+        'progress': [
+          {'matterId': 'demo-math-b-chapter', 'completed': false},
+        ],
+      },
+    });
+    final refreshed = await client.getTeacherLogbook(selection);
+    expect(
+      [for (final lesson in refreshed['items']) lesson['id']],
+      ['demo-math-b-lesson-1', 'demo-math-b-lesson-0'],
+    );
+    await expectLater(
+      client.getTeacherLogbook({...selection, 'classSubjectId': 'demo-math-a'}),
+      throwsA(isA<ApiError>().having((e) => e.status, 'status', 403)),
+    );
+  });
+
+  test(
+    'demo logbook continues after tied dates within the same view',
+    () async {
+      store = await DemoStore.start(DemoRole.teacher);
+      final client = createEdayaSchoolClient(store.auth);
+      const selection = {
+        'classGroupId': 'demo-class-b',
+        'classSubjectId': 'demo-math-b',
+        'view': 'recorded',
+      };
+      final lesson = await client.lessonSessions.get('demo-math-b-lesson-0');
+      for (var i = 0; i < 30; i++) {
+        await client.lessonSessions.save({
+          ...lesson,
+          'id': 'copy-${i.toString().padLeft(2, '0')}',
+        });
+      }
+      final first = await client.getTeacherLogbook(selection);
+      expect(first['items'], hasLength(30));
+      expect(first['items'].last['id'], 'copy-01');
+      final cursor = first['nextCursor'] as String;
+      final next = await client.getTeacherLogbook({
+        ...selection,
+        'cursor': cursor,
+      });
+      expect(next['items'].single['id'], 'copy-00');
+      expect(next['nextCursor'], isNull);
+      await expectLater(
+        client.getTeacherLogbook({
+          ...selection,
+          'view': 'all',
+          'cursor': cursor,
+        }),
+        throwsA(isA<ApiError>().having((e) => e.status, 'status', 400)),
+      );
+    },
+  );
+
   test('teacher Home daily status follows the selected register', () async {
     store = await DemoStore.start(DemoRole.teacher);
     final client = createEdayaSchoolClient(store.auth);

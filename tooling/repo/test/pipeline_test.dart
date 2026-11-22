@@ -14,6 +14,18 @@ YamlMap workflow(String name) =>
         as YamlMap;
 
 void main() {
+  test('staging and public Flutter builds select the correct API and lock', () {
+    expect(releaseDartDefines('staging'), [
+      '--dart-define=API_URL=https://staging.api.edayaplus.com',
+      '--dart-define=PRODUCTION=false',
+      '--dart-define=TEST_OTP_ACCESS=false',
+    ]);
+    expect(releaseDartDefines('production'), [
+      '--dart-define=API_URL=https://api.edayaplus.com',
+      '--dart-define=PRODUCTION=true',
+      '--dart-define=TEST_OTP_ACCESS=false',
+    ]);
+  });
   test(
     'match exact backend branches and fall back only to an existing dev',
     () {

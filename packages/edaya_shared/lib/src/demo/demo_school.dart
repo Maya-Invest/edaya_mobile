@@ -163,6 +163,9 @@ class DemoSchool {
         }
         throw ApiError(404, path);
       case 'teacher':
+        if (method == 'GET' && uri.path == '/core/teacher/logbook') {
+          return teacherLogbook(body);
+        }
         if (method == 'GET' && (uri.path == '/core/teacher/incidents' || uri.path == '/core/teacher/incidents/detail')) {
           return teacherIncidents(body, detail: parts.last == 'detail');
         }

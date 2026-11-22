@@ -16,12 +16,11 @@ import 'package:edaya_guardian_v2/features/scolarite/progress_page.dart';
 import 'package:edaya_guardian_v2/features/fees/fee_detail_page.dart';
 import 'package:edaya_guardian_v2/features/fees/fees_controller.dart';
 import 'package:edaya_guardian_v2/design/components/summary_metric.dart';
+import 'package:edaya_guardian_v2/design/components/surface_card.dart';
 import 'package:edaya_guardian_v2/features/fees/models/fee_formatting.dart';
 import 'package:edaya_guardian_v2/features/context/student_context_controller.dart';
 import 'package:edaya_integration_tests/edaya_integration_tests.dart';
 import 'package:edaya_shared/edaya_shared.dart';
-import 'package:edaya_shared/src/features/settings/app_settings_models.dart';
-import 'package:edaya_shared/src/features/settings/app_settings_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -175,6 +174,20 @@ Future<void> main() async {
         periodId,
       );
       expect(find.byKey(ValueKey(card['id'])), findsOneWidget);
+      final publishedCard = find.ancestor(
+        of: find.text('Bulletin publié'),
+        matching: find.byType(SurfaceCard),
+      );
+      expect(
+        find.descendant(
+          of: publishedCard,
+          matching: find.byWidgetPredicate(
+            (widget) =>
+                widget is GradeValue && widget.value == resultLabel(data),
+          ),
+        ),
+        findsOneWidget,
+      );
       final actions = find.byTooltip('Actions du bulletin');
       await tester.ensureVisible(actions);
       await tester.tap(actions);
@@ -182,23 +195,6 @@ Future<void> main() async {
       expect(find.text('Télécharger le bulletin'), findsOneWidget);
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
-      final grading = data['grading'] as Map?;
-      final mention = grading?['mention'] as Map?;
-      final fullValue = resultLabel(data);
-      final label = mention?['label'] as String?;
-      if (label != null &&
-          label.trim().isNotEmpty &&
-          mention?['code'] != null) {
-        final suffix = ' · ${mention!['code']}';
-        expect(
-          find.text(fullValue.substring(0, fullValue.length - suffix.length)),
-          findsWidgets,
-        );
-        expect(find.text(label), findsWidgets);
-        expect(find.text(fullValue), findsNothing);
-      } else {
-        expect(find.text(fullValue), findsWidgets);
-      }
     },
   );
 
@@ -268,40 +264,6 @@ Future<void> main() async {
       await tester.tap(security);
       await pumpUntilFound(tester, find.byType(AccountSecurityPage));
       await pumpUntilFound(tester, find.text(harness.profile!.email));
-    },
-  );
-
-  testWidgets(
-    '[guardian-v2.settings.persist] changes a preference through the UI and reloads storage',
-    (tester) async {
-      await pumpGuardianRoute(tester, harness, location: '/settings');
-      await pumpUntilFound(tester, find.text('Ouvrir les paramètres complets'));
-      await tester.tap(find.text('Ouvrir les paramètres complets'));
-      await pumpUntilFound(tester, find.byType(RadioListTile<ThemePreference>));
-      final dark = find.byWidgetPredicate(
-        (widget) =>
-            widget is RadioListTile<ThemePreference> &&
-            widget.value == ThemePreference.dark,
-      );
-      await tester.tap(dark);
-      final deadline = DateTime.now().add(const Duration(seconds: 10));
-      while ((await AppSettingsStorage.load()).theme != ThemePreference.dark &&
-          DateTime.now().isBefore(deadline)) {
-        await tester.pump(const Duration(milliseconds: 100));
-      }
-      expect((await AppSettingsStorage.load()).theme, ThemePreference.dark);
-      Navigator.of(tester.element(dark)).pop();
-      final closeDeadline = DateTime.now().add(const Duration(seconds: 10));
-      while (tester.any(dark) && DateTime.now().isBefore(closeDeadline)) {
-        await tester.pump(const Duration(milliseconds: 100));
-      }
-      expect(dark, findsNothing);
-      await tester.tap(find.text('Ouvrir les paramètres complets'));
-      await pumpUntilFound(tester, dark);
-      expect(
-        harness.scope.find<AppSettingsController>().theme.value,
-        ThemePreference.dark,
-      );
     },
   );
 

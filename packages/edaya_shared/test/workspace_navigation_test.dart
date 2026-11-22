@@ -42,12 +42,15 @@ void main() {
       expect(reads.last['startDate'], '2025-01-01');
       expect(reads.last['endDate'], '2025-01-15');
       responses.last.complete({
-        'entries': [],
+        'entries': [
+          {'id': 'older', 'kind': 'daily', 'startsAt': '2025-01-12'},
+        ],
         'startDate': '2025-01-01',
         'hasMore': false,
       });
       await older;
       await c.load();
+      expect(c.entries.value.map((row) => row['id']), ['new', 'older']);
       expect(reads, hasLength(3));
       expect(c.hasMore.value, isFalse);
     },

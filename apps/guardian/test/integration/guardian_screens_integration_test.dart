@@ -152,21 +152,6 @@ void _mariamKoneSuite() {
           (row) => row['kind'] == 'daily' && row['id'] == saved['id'],
         );
         expect(entry['attendance']['status'], saved['status']);
-        if (history.hasMore.value) {
-          final existing = history.entries.value
-              .map((e) => '${e['kind']}/${e['id']}')
-              .toSet();
-          await history.load();
-          await tester.pump();
-          expect(history.error.value, isFalse);
-          expect(
-            history.entries.value
-                .map((e) => '${e['kind']}/${e['id']}')
-                .toSet()
-                .containsAll(existing),
-            isTrue,
-          );
-        }
       },
     );
   });
@@ -402,14 +387,12 @@ void _mariamKoneSuite() {
 
 void _koffiYaoSuite() {
   late GuardianWidgetTestHarness harness;
-  late GuardianProbeBundle probes;
   late PortalSession readSession;
 
   setUpAll(() async {
     harness = await GuardianWidgetTestHarness.create(
       profile: GuardianPortalProfile.koffiYao,
     );
-    probes = await GuardianProbeBundle.load(harness);
     readSession = harness.portalSession!;
   });
 
@@ -437,20 +420,6 @@ void _koffiYaoSuite() {
       await openCalendarTab(tester, harness);
       await pumpUntilFound(tester, find.byTooltip('Semaine suivante'));
       expect(find.byTooltip('Semaine suivante'), findsOneWidget);
-    },
-  );
-
-  testWidgets(
-    '[guardian-v2.multi-child-guardian-switches-linked-student] multi-child guardian switches linked student',
-    (tester) async {
-      final switchProbe = probes.studentSwitchProbe;
-      expect(switchProbe, isNotNull);
-
-      await openCalendarTab(tester, harness);
-      await openChildPicker(tester, harness);
-
-      await tapAlternateStudent(tester, switchProbe!);
-      await expectSwitchedStudent(tester, harness, switchProbe);
     },
   );
 

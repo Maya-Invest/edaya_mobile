@@ -87,7 +87,7 @@ Future<void> main() async {
 
       if (profile.kind == TeacherPortalKind.subject) {
         testWidgets(
-          '[teacher-v2.logbook.open-recorded] recorded logbook opens a lesson and refreshes on return',
+          '[teacher-v2.logbook.open-recorded] recorded logbook opens the lesson and returns to the recorded list',
           (tester) async {
             final page = await harness.portalSession.schoolClient
                 .getTeacherLogbook({
