@@ -55,6 +55,10 @@
         ],
         "actions": [
           {
+            "id": "guardian-v2.authentication.api-switcher",
+            "scenarios": ["guardian-v2.auth.api-switcher"]
+          },
+          {
             "id": "guardian-v2.authentication.email",
             "scenarios": [
               "guardian-v2.auth.email"
@@ -310,6 +314,7 @@
       }
     ],
     "widgetScenarios": [
+      "guardian-v2.auth.api-switcher",
       "guardian-v2.coverage.routes",
       "guardian-v2.settings.persist"
     ]
@@ -323,6 +328,10 @@
           "/profiles"
         ],
         "actions": [
+          {
+            "id": "teacher-v2.authentication.api-switcher",
+            "scenarios": ["teacher-v2.auth.api-switcher"]
+          },
           {
             "id": "teacher-v2.authentication.email",
             "scenarios": [
@@ -660,6 +669,7 @@
       }
     ],
     "widgetScenarios": [
+      "teacher-v2.auth.api-switcher",
       "teacher-v2.coverage.routes",
       "teacher-v2.settings.persist",
       "teacher-v2.classes.list"

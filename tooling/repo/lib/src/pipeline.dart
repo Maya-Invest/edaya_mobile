@@ -251,8 +251,7 @@ Future<void> validationBuild(String platform, String target) async {
       platform == 'ios' ? 'ios' : 'apk',
       '--release',
       if (platform == 'ios') ...['--no-pub', '--no-codesign'],
-      '--dart-define=API_URL=$api',
-      '--dart-define=TEST_OTP_ACCESS=false',
+      ...releaseDartDefines(target),
     ], cwd: cwd);
     final file = platform == 'ios'
         ? 'build/ios/iphoneos/Runner.app/Runner'

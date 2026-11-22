@@ -40,6 +40,23 @@ void main() {
     );
     final client = EdayaRootScope.find<SchoolClientFactory>()();
     expect(client, isA<DemoSchoolClient>());
+    await workspace.selectAssignment('demo-math-b');
+    expect(workspace.activeAssignment?.classSubjectId, 'demo-math-b');
+    EdayaRootScope.find<GoRouter>().go('/progress');
+    final chapter = find.text('Fractions et proportions');
+    await waitFor(tester, () => tester.any(chapter));
+    final tr = tester.element(chapter).tr;
+    expect(find.textContaining('50%'), findsOneWidget);
+    await tester.tap(find.widgetWithText(Tab, tr.logbook));
+    final recordedLesson = find.textContaining(tr.logbookCompleted);
+    await waitFor(tester, () => tester.any(recordedLesson));
+    expect(find.text(tr.retry), findsNothing);
+    await tester.tap(recordedLesson);
+    await tester.pumpAndSettle();
+    expect(
+      EdayaRootScope.find<GoRouter>().routeInformationProvider.value.uri.path,
+      '/session/demo-math-b-lesson-0',
+    );
     final profile = await client.runCommand('update-teacher-self-profile', {
       'phone': '+2250102030405',
     });

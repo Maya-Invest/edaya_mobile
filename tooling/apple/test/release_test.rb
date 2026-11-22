@@ -7,6 +7,14 @@ require 'spaceship'
 require_relative '../release'
 
 class AppleReleaseTest < Minitest::Test
+  def test_staging_and_public_build_flags
+    { 'staging' => false, 'production' => true }.each do |target, production|
+      url = production ? 'https://api.edayaplus.com' : 'https://staging.api.edayaplus.com'
+      assert_equal ["--dart-define=API_URL=#{url}", "--dart-define=PRODUCTION=#{production}", '--dart-define=TEST_OTP_ACCESS=false'],
+        AppleRelease.flutter_defines({ 'environment' => target, 'apiUrl' => url })
+    end
+  end
+
   def test_fastlane_loads_the_ios_release_lanes
     output, status = Open3.capture2e(
       { 'FASTLANE_SKIP_UPDATE_CHECK' => '1', 'FASTLANE_OPT_OUT_USAGE' => '1', 'FASTLANE_DISABLE_COLORS' => '1' },

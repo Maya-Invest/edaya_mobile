@@ -279,8 +279,7 @@ Future<void> androidBuild(String target) async {
       final common = [
         '--release',
         if (versionCode != null) '--build-number=$versionCode',
-        '--dart-define=API_URL=$api',
-        '--dart-define=TEST_OTP_ACCESS=false',
+        ...releaseDartDefines(target),
       ];
       await run(['flutter', 'build', 'apk', ...common], cwd: cwd);
       final apk = p.join(cwd, 'build/app/outputs/flutter-apk/app-release.apk');

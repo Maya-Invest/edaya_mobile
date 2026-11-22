@@ -1,5 +1,7 @@
 # Shared mobile package
 
+Use `PasswordlessLoginForm(showApiSwitcher: true, ...)` on the live signed-out screen. The compact picker delegates changes to `LoginController.changeApiUrl`, which resets authentication and refreshes the selected API's terms and capabilities. Pass an app-specific `clearInvitation` callback when the app retains invitation tokens. `PRODUCTION=true` disables runtime API overrides at the configuration layer and hides the picker.
+
 `lib/src` contains the current Guardian/Teacher app shell, authentication and selected-profile access, shared API helpers, controllers, widgets and localization. `lib/edaya_shared.dart` exposes the supported shared API; `test` contains isolated unit and widget checks.
 
 `RecipientInboxController` owns the signed-in Guardian or Teacher’s paged notices and unread totals. `loadMore()` continues the current recipient’s cursor. A notice preview is expanded through the existing delivery detail read. `ConversationActivity` connects the conversation controller to route, tab and app visibility so visible conversations refresh on return.

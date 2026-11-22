@@ -22,7 +22,7 @@ SEED_AUTH_SESSIONS_FILE=/absolute/path/to/private-sessions.json \
 dart run edaya_repo:repo maintenance smoke
 ```
 
-The session file must have mode `0600` and contain sessions for the smoke suite's seeded teacher and guardian accounts. Leave `EDAYA_TEST_OTP_FILE` and `EDAYA_TEST_CLOCK_FILE` unset and `TEST_OTP_ACCESS` unset or `false`. Sanitized results are written under `$RELEASE_ROOT/release/mobile-staging-smoke` (the repository parent is the default release root).
+The session file must have mode `0600` and contain sessions for the smoke suite's seeded teacher and guardian accounts. Leave `EDAYA_TEST_OTP_FILE` and `EDAYA_TEST_CLOCK_FILE` unset and `TEST_OTP_ACCESS` unset or `false`. The runner writes the sanitized result to `.ci-evidence/staging-smoke/summary.json` in the mobile repository.
 
 ### Integration coverage
 

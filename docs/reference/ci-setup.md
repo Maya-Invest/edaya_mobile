@@ -36,7 +36,7 @@ Production qualification requires the integration fixture command in backend `ma
 | `APP_STORE_CONNECT_API_KEY_JSON` | Team key for both apps. Configured. Production review requires App Manager access. |
 | `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | Full Google service-account key for both apps. Still required as of November 14, 2026. |
 
-Repository secrets apply to both release jobs. Where environment secrets are available, configure testing credentials in `staging` and public-release credentials in `production`. Restrict production to `main` where supported. With a shared Play account, grant it both testing and production release permissions. The optional repository variable `PLAY_VERSION_CODE_BASE` defaults to `1000000` and must be consistent across branches. Store builds ignore saved developer endpoint overrides. [Actions secrets](https://github.com/Maya-Invest/edaya_mobile/settings/secrets/actions)
+Repository secrets apply to both release jobs. Where environment secrets are available, configure testing credentials in `staging` and public-release credentials in `production`. Restrict production to `main` where supported. With a shared Play account, grant it both testing and production release permissions. The optional repository variable `PLAY_VERSION_CODE_BASE` defaults to `1000000` and must be consistent across branches. Staging artifacts set `PRODUCTION=false` to enable API switching at login. Public store builds set `PRODUCTION=true` and ignore saved endpoint overrides. [Actions secrets](https://github.com/Maya-Invest/edaya_mobile/settings/secrets/actions)
 
 ### Store build counter
 

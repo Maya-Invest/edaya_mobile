@@ -39,6 +39,12 @@ String releaseApiUrl(String target) => switch (target) {
   _ => throw ArgumentError('Expected staging or production'),
 };
 
+List<String> releaseDartDefines(String target) => [
+  '--dart-define=API_URL=${releaseApiUrl(target)}',
+  '--dart-define=PRODUCTION=${target == 'production'}',
+  '--dart-define=TEST_OTP_ACCESS=false',
+];
+
 String backendBranch(String target) => switch (target) {
   'main' || 'production' => 'main',
   'staging' => 'staging',
