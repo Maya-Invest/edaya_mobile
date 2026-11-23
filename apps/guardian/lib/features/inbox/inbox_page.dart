@@ -161,14 +161,16 @@ class _LiveInboxPage extends LScopedView<InboxController> {
         GoRouterState.of(context).pathParameters['id'] ??
         GoRouterState.of(context).pathParameters['campaignId'];
 
-    if (showingAvis && controller.dataStatus == DataStatus.loading) {
+    if (showingAvis &&
+        controller.campaignsLoading.value &&
+        controller.campaigns.value.isEmpty) {
       return const AdaptiveContent(
         child: Center(child: CircularProgressIndicator()),
       );
     }
-    if (showingAvis && controller.dataStatus == DataStatus.error) {
+    if (showingAvis && controller.campaignsError.value.isNotEmpty) {
       return AdaptiveContent(
-        child: EmptyState(title: controller.errorMessage.value),
+        child: EmptyState(title: controller.campaignsError.value),
       );
     }
 
@@ -213,7 +215,9 @@ class _MessageList extends StatelessWidget {
       return MessagingInbox(
         guardian: true,
         onRefreshNotices: controller.loadInbox,
-        noticesBusy: controller.isBusy.value,
+        noticesBusy: controller.loadingNotices.value,
+        onMoreNotices: controller.hasMore.value ? controller.loadMore : null,
+        loadingMoreNotices: controller.loadingMore.value,
         noticesError: controller.errorMessage.value,
         studentId: student?.id,
         studentName: student?.fullName,
@@ -232,7 +236,7 @@ class _MessageList extends StatelessWidget {
         onNotice: (id) async {
           await context.push(inboxMessagePath(id));
           if (context.mounted && !controller.isClosed) {
-            await controller.loadInbox();
+            await controller.refreshNotice(id);
           }
         },
       );

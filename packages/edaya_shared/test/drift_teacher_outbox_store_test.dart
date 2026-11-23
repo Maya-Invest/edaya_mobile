@@ -78,4 +78,72 @@ void main() {
       await database.close();
     },
   );
+  test(
+    'migration and late acknowledgements preserve profile and year boundaries',
+    () async {
+      final legacy = SharedPrefsTeacherOutboxStore();
+      TeacherOutboxContext profile(String actor, String? year) =>
+          TeacherOutboxContext(
+            origin: 'https://school.invalid',
+            subjectId: actor,
+            actorKind: 'teacher',
+            actorId: actor,
+            schoolId: 's',
+            academicYearId: year,
+          );
+      final a = profile('a', null),
+          b = profile('a', 'year'),
+          c = profile('b', null);
+      final now = DateTime(2026, 1, 1);
+      for (final (id, context) in [
+        ('legacy', null),
+        ('a', a),
+        ('year', b),
+        ('other', c),
+      ]) {
+        legacy.bindContext(context);
+        await legacy.enqueue(
+          TeacherOutboxEntry(
+            id: id,
+            kind: TeacherOutboxKind.mark,
+            idempotencyKey: id,
+            payload: {'value': id},
+            state: id == 'year'
+                ? TeacherOutboxState.conflict
+                : TeacherOutboxState.pending,
+            attemptCount: 0,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+      }
+      final db = TeacherOutboxDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final store = DriftTeacherOutboxStore(db);
+      for (final (id, context) in [
+        ('legacy', null),
+        ('a', a),
+        ('year', b),
+        ('other', c),
+      ]) {
+        store.bindContext(context);
+        expect((await store.listPending()).map((e) => e.id), [id]);
+        expect((await store.summary()).pendingCount, 1);
+        expect(
+          (await store.listConflicts()).map((e) => e.id),
+          id == 'year' ? ['year'] : isEmpty,
+        );
+      }
+      store.bindContext(a);
+      final before = (await store.findEntry('a'))!;
+      final claim = before.copyWith(state: TeacherOutboxState.syncing);
+      expect(await store.replaceIfCurrent(before, claim), isTrue);
+      store.bindContext(c);
+      expect(await store.findEntry('a'), isNull);
+      expect(await store.replaceIfCurrent(claim, null), isTrue);
+      expect((await store.listPending()).single.id, 'other');
+      store.bindContext(a);
+      expect(await store.pendingCount(), 0);
+    },
+  );
 }

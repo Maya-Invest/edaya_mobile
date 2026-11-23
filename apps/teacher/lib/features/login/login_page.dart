@@ -110,6 +110,7 @@ class _LiveLoginPage extends LScopedView<LoginController> {
       child: PasswordlessLoginForm(
         controller: controller,
         teacherQuickLogin: true,
+        showApiSwitcher: true,
       ),
     );
   }

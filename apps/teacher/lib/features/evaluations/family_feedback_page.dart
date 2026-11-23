@@ -1,7 +1,6 @@
 import '../../design/workspace_layout.dart';
 import 'package:edaya_shared/edaya_shared.dart';
 import '../context/teacher_context_controller.dart';
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -15,11 +14,22 @@ import '../../mock/mock_store.dart';
 import '../context/store_bound_controller.dart';
 import 'family_feedback_controller.dart';
 
-class FamilyFeedbackListPage extends StatelessWidget {
-  const FamilyFeedbackListPage({super.key});
+class FamilyFeedbackListPage extends StatefulWidget {
+  const FamilyFeedbackListPage({super.key, this.listVisible = true});
+
+  final bool listVisible;
+
+  @override
+  State<FamilyFeedbackListPage> createState() => _FamilyFeedbackListState();
+}
+
+class _FamilyFeedbackListState extends State<FamilyFeedbackListPage> {
+  bool _hasOpened = false;
 
   @override
   Widget build(BuildContext context) {
+    if (widget.listVisible) _hasOpened = true;
+    if (!_hasOpened) return const SizedBox.shrink();
     if (prototypeIsLive(context)) {
       return const _LiveFamilyFeedbackListPage();
     }
@@ -41,6 +51,7 @@ class FamilyFeedbackDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     if (prototypeIsLive(context)) {
       return _LiveFamilyFeedbackDetailPage(
+        key: ValueKey(feedbackId),
         feedbackId: feedbackId,
         fromHome: fromHome,
       );
@@ -130,8 +141,18 @@ class _MockFamilyFeedbackDetailPage extends LScopedView<StoreBoundController> {
   }
 }
 
-class _LiveFamilyFeedbackListPage extends LView<LiveFamilyFeedbackController> {
+class _LiveFamilyFeedbackListPage
+    extends LScopedView<LiveFamilyFeedbackController> {
   const _LiveFamilyFeedbackListPage();
+
+  @override
+  LiveFamilyFeedbackController onConfigScope(LevitScope scope) => scope.put(
+    () => LiveFamilyFeedbackController(
+      session: scope.find<AppSessionController>(),
+      schoolClient: scope.find<SchoolClientFactory>(),
+      teacherContext: scope.find<TeacherContextController>(),
+    ),
+  );
 
   @override
   Widget buildView(
@@ -191,8 +212,10 @@ class _LiveFamilyFeedbackListPage extends LView<LiveFamilyFeedbackController> {
   }
 }
 
-class _LiveFamilyFeedbackDetailPage extends LScopedView<_FeedbackDetailLoader> {
+class _LiveFamilyFeedbackDetailPage
+    extends LScopedView<LiveFamilyFeedbackController> {
   const _LiveFamilyFeedbackDetailPage({
+    super.key,
     required this.feedbackId,
     required this.fromHome,
   });
@@ -201,22 +224,21 @@ class _LiveFamilyFeedbackDetailPage extends LScopedView<_FeedbackDetailLoader> {
   final bool fromHome;
 
   @override
-  _FeedbackDetailLoader onConfigScope(LevitScope scope) {
-    return scope.put(
-      () => _FeedbackDetailLoader(
-        feedbackId: feedbackId,
-        controller: scope.find<LiveFamilyFeedbackController>(),
-      ),
-    );
-  }
+  LiveFamilyFeedbackController onConfigScope(LevitScope scope) => scope.put(
+    () => LiveFamilyFeedbackController(
+      session: scope.find<AppSessionController>(),
+      schoolClient: scope.find<SchoolClientFactory>(),
+      feedbackId: feedbackId,
+    ),
+  );
 
   @override
-  Widget buildView(BuildContext context, _FeedbackDetailLoader loader) {
+  Widget buildView(
+    BuildContext context,
+    LiveFamilyFeedbackController controller,
+  ) {
     return LWatch(() {
-      loader.controller.results.value;
-      loader.controller.errorMessage.value;
-      loader.tick.value;
-      final item = loader.controller.resultById(feedbackId);
+      final item = controller.resultById(feedbackId);
       final embedded = ModalRoute.of(context) is ModalBottomSheetRoute;
       return PrototypeDetailScaffold(
         fallbackRoute: fromHome ? '/home' : '/evaluations/avis',
@@ -225,9 +247,9 @@ class _LiveFamilyFeedbackDetailPage extends LScopedView<_FeedbackDetailLoader> {
         body: item == null
             ? EmptyState(
                 title: context.tr.feedback,
-                message: loader.controller.errorMessage.value.isEmpty
+                message: controller.errorMessage.value.isEmpty
                     ? context.tr.loading
-                    : loader.controller.errorMessage.value,
+                    : controller.errorMessage.value,
               )
             : ListView(
                 padding: const EdgeInsets.all(PrototypeSpacing.md),
@@ -303,25 +325,5 @@ class _LiveFamilyFeedbackDetailPage extends LScopedView<_FeedbackDetailLoader> {
               ),
       );
     });
-  }
-}
-
-class _FeedbackDetailLoader extends LevitController {
-  _FeedbackDetailLoader({required this.feedbackId, required this.controller});
-
-  final String feedbackId;
-  final LiveFamilyFeedbackController controller;
-  final tick = LxVar(0);
-
-  @override
-  void onInit() {
-    super.onInit();
-    autoDispose(tick);
-    unawaited(_load());
-  }
-
-  Future<void> _load() async {
-    await controller.loadDetail(feedbackId);
-    tick.value++;
   }
 }

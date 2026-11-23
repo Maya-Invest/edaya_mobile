@@ -49,7 +49,11 @@ api.EffectiveGrantsResponse profile(String id, String school) =>
       assuranceLevel: 'verified',
       grants: const [],
     );
-Map<String, dynamic> thread({bool reply = true, int version = 1}) => {
+Map<String, dynamic> thread({
+  bool reply = true,
+  int version = 1,
+  bool unread = true,
+}) => {
   'conversation': {
     'id': 'thread',
     'schoolName': 'Oak School',
@@ -59,13 +63,13 @@ Map<String, dynamic> thread({bool reply = true, int version = 1}) => {
     'subject': 'Homework',
     'destination': 'teacher',
     'version': version,
-    'unread': true,
+    'unread': unread,
     'allowedActions': {'reply': reply},
   },
   'messages': [
     {
       'id': 'm1',
-      'sequence': 1,
+      'sequence': version,
       'authorKind': 'guardian',
       'authorId': 'g1',
       'authorName': 'Sam Parent',
@@ -79,6 +83,10 @@ Map<String, dynamic> thread({bool reply = true, int version = 1}) => {
 class Transport implements api.Transport {
   final commands = <Map<String, dynamic>>[];
   bool failSend = false, canReply = true;
+  bool unread = true, failReceipt = false;
+  int sequence = 1;
+  final listRequests = <(int, int)>[];
+  final listIds = <String>[];
   Completer<Map<String, dynamic>>? pending;
   int reads = 0;
   @override
@@ -89,7 +97,9 @@ class Transport implements api.Transport {
   }) async {
     if (path.endsWith('get-conversation')) {
       reads++;
-      return (pending == null ? thread(reply: canReply) : await pending!.future)
+      return (pending == null
+              ? thread(reply: canReply, version: sequence, unread: unread)
+              : await pending!.future)
           as T;
     }
     if (path.endsWith('list-conversation-recipients')) {
@@ -101,10 +111,24 @@ class Transport implements api.Transport {
           as T;
     }
     if (path.endsWith('list-conversations')) {
-      return {'items': [], 'total': 0, 'unreadCount': 0} as T;
+      final input = options!.body as Map;
+      final offset = input['offset'] as int, limit = input['limit'] as int;
+      listRequests.add((offset, limit));
+      return {
+            'items': listIds
+                .skip(offset)
+                .take(limit)
+                .map((id) => {'id': id})
+                .toList(),
+            'total': listIds.length,
+            'unreadCount': 0,
+          }
+          as T;
     }
     if (path.endsWith('mark-conversation-read')) {
       commands.add(Map<String, dynamic>.from(options!.body as Map));
+      if (failReceipt) throw api.ApiError(503, {'error': 'offline'});
+      unread = false;
       return {'success': true} as T;
     }
     if (path.endsWith('reply-conversation') ||
@@ -124,6 +148,117 @@ Future<void> flush() async {
 }
 
 void main() {
+  test(
+    'a hidden thread does not mark a late response read and refreshes on return',
+    () async {
+      final transport = Transport();
+      final pending = Completer<Map<String, dynamic>>();
+      transport.pending = pending;
+      final controller = ConversationController(
+        session: Session(),
+        client: () => api.createSchoolClient(transport),
+        conversationId: 'thread',
+        visible: false,
+      );
+      controller.onInit();
+      addTearDown(controller.onClose);
+      await flush();
+      expect(transport.reads, 0);
+      controller.setActivity(visible: true, foreground: true);
+      await flush();
+      expect(transport.reads, 1);
+      controller.setActivity(visible: true, foreground: false);
+      pending.complete(thread());
+      await flush();
+      expect(transport.commands, isEmpty);
+      transport.pending = null;
+      controller.setActivity(visible: true, foreground: true);
+      controller.setActivity(visible: true, foreground: true);
+      await flush();
+      expect(transport.reads, 2);
+      expect(transport.commands.single['throughSequence'], 1);
+    },
+  );
+
+  test(
+    'refresh retains five loaded pages and removes a revoked thread',
+    () async {
+      final transport = Transport()
+        ..listIds.addAll(List.generate(130, (i) => '$i'));
+      final controller = ConversationController(
+        session: Session(),
+        client: () => api.createSchoolClient(transport),
+      );
+      controller.onInit();
+      addTearDown(controller.onClose);
+      await flush();
+      for (var page = 1; page < 5; page++) {
+        await controller.refresh(more: true);
+      }
+      expect(controller.rows.value, hasLength(125));
+      transport.listRequests.clear();
+      transport.listIds.remove('67');
+      await controller.refresh();
+      expect(
+        [
+          controller.rows.value.length,
+          controller.rows.value.last['id'],
+          transport.listRequests,
+        ],
+        [
+          125,
+          '125',
+          [(0, 100), (100, 25)],
+        ],
+      );
+      expect(controller.rows.value.where((row) => row['id'] == '67'), isEmpty);
+      await controller.refresh(more: true);
+      expect(controller.rows.value, hasLength(129));
+      expect(controller.rows.value.last['id'], '129');
+    },
+  );
+  test(
+    'read receipt writes follow the authorized unread state through polling and retry',
+    () async {
+      final session = Session(), transport = Transport();
+      final controller = ConversationController(
+        session: session,
+        client: () => api.createSchoolClient(transport),
+        conversationId: 'thread',
+      );
+      controller.onInit();
+      addTearDown(controller.onClose);
+      await flush();
+      for (var poll = 0; poll < 5; poll++) {
+        await controller.refresh();
+      }
+      final afterIdle = transport.commands.length;
+      transport.sequence = 2; // Another device has already read this message.
+      await controller.refresh();
+      final afterOtherDevice = transport.commands.length;
+      transport.sequence = 3;
+      transport.unread = true;
+      transport.failReceipt = true;
+      await controller.refresh();
+      expect(controller.error.value, isNotEmpty);
+      transport.failReceipt = false;
+      await controller.refresh();
+      await controller.refresh();
+      expect(controller.error.value, isEmpty);
+      expect(
+        [
+          afterIdle,
+          afterOtherDevice,
+          transport.commands.map((c) => c['throughSequence']).toList(),
+        ],
+        [
+          1,
+          1,
+          [1, 3, 3],
+        ],
+      );
+    },
+  );
   test(
     'failed sends retain retry identifiers; changing destination creates a new identifier',
     () async {

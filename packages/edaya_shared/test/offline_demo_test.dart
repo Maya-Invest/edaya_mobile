@@ -76,6 +76,13 @@ void main() {
       store = await DemoStore.start(DemoRole.guardian);
       final client = createEdayaSchoolClient(store.auth);
       final scope = (await client.effectiveGrants()).guardianScope!;
+      await expectLater(
+        client.getClassReportRoster({
+          'classGroupId': 'demo-class-b',
+          'periodId': 'demo-t1',
+        }),
+        throwsA(isA<ApiError>().having((e) => e.status, 'status', 403)),
+      );
       expect(scope.studentIds, unorderedEquals(['demo-amina', 'demo-youssef']));
       expect(await client.students.listAll(), hasLength(2));
       final placements = await client.enrollments.listAll({
@@ -84,6 +91,105 @@ void main() {
       expect(
         placements.map((e) => e['academicYearId']).toSet(),
         containsAll(['demo-2025', 'demo-2026']),
+      );
+      final choices = await client.getGuardianChildChoices({});
+      expect(choices['school']['timeZone'], 'Africa/Abidjan');
+      expect(
+        (choices['children'] as List).map((row) => row['id']),
+        unorderedEquals(scope.studentIds),
+      );
+      final year = 'demo-2026';
+      final occurrenceInput = {
+        'studentId': 'demo-amina',
+        'academicYearId': year,
+        'occurrenceId': 'demo-math-a-lesson-0',
+        'kind': 'assessment',
+      };
+      final event = (await client.getGuardianOccurrenceDetail(
+        occurrenceInput,
+      ))['occurrence'];
+      expect(event['kind'], 'lesson');
+      expect(
+        event['logbook']['chapters'].first['name'],
+        'Fractions et proportions',
+      );
+      expect(
+        (await client.getGuardianOccurrenceDetail({
+          ...occurrenceInput,
+          'studentId': 'demo-youssef',
+        }))['occurrence'],
+        isNull,
+      );
+      expect(
+        (await client.getGuardianOccurrenceDetail({
+          ...occurrenceInput,
+          'academicYearId': 'demo-2025',
+        }))['occurrence'],
+        isNull,
+      );
+      final pupil = {'studentId': 'demo-amina', 'academicYearId': year};
+      final balance = await client.getGuardianFeesSummary(pupil);
+      expect(balance['expected'], 50000);
+      expect(balance['paid'], 30000);
+      expect(balance['outstanding'], 20000);
+      final page = await client.getGuardianSettlements({...pupil, 'limit': 1});
+      expect(page['accountId'], balance['accountId']);
+      expect(page['charges'].single['settlementCount'], 1);
+      expect(page['payments'].single['chargeLabels'], [
+        'Scolarité du trimestre',
+      ]);
+      expect(page['nextPaymentCursor'], isNull);
+      final archivedFees = await client.getGuardianSettlements({
+        ...pupil,
+        'academicYearId': 'demo-2025',
+      });
+      expect(archivedFees['accountId'], isNull);
+      expect(archivedFees['payments'], isEmpty);
+      await expectLater(
+        client.getGuardianSettlements({...pupil, 'cursor': 'invalid'}),
+        throwsA(isA<ApiError>()),
+      );
+      final paymentInput = {
+        'studentId': 'demo-amina',
+        'academicYearId': year,
+        'paymentId': 'demo-amina-receipt',
+      };
+      final receiptDetail = (await client.getGuardianPaymentDetail(
+        paymentInput,
+      ))['payment'];
+      expect(receiptDetail['amount'], 30000);
+      expect(receiptDetail['chargeLabels'], ['Scolarité du trimestre']);
+      expect(
+        (await client.getGuardianPaymentDetail({
+          ...paymentInput,
+          'studentId': 'demo-youssef',
+        }))['payment'],
+        isNull,
+      );
+      expect(
+        (await client.getGuardianPaymentDetail({
+          ...paymentInput,
+          'academicYearId': 'demo-2025',
+        }))['payment'],
+        isNull,
+      );
+      final group = placements.firstWhere(
+        (p) => p['academicYearId'] == year,
+      )['classGroupId'];
+      final selected = {
+        'academicYearId': year,
+        'day': '2026-11-10',
+        'studentId': 'demo-amina',
+        'classGroupId': group,
+      };
+      final highlights = await client.getGuardianHighlights(selected);
+      expect(highlights['unavailable'], isEmpty);
+      expect(highlights['cards']['balance'], 20000);
+      expect(highlights['cards']['surveys'], 1);
+      expect(highlights['attendance'], isA<Map>());
+      await expectLater(
+        client.getGuardianHighlights({...selected, 'studentId': 'demo-fatou'}),
+        throwsA(isA<ApiError>()),
       );
       final sessions = await client.runQuery('get-student-session-history', {
         'studentId': 'demo-amina',
@@ -173,6 +279,21 @@ void main() {
       };
       final submission = await client.submitStudentPhoto(cmd);
       expect((await client.submitStudentPhoto(cmd))['id'], submission['id']);
+      final photoProfile = await client.getGuardianChildPhoto(pupil);
+      expect(photoProfile['student']['id'], pupil['studentId']);
+      expect(photoProfile['decision']['ownSubmission']['id'], submission['id']);
+      final familyPapers = await client.getGuardianPapers(pupil);
+      expect(
+        (familyPapers['items'] as List).every(
+          (row) => isLeftoverFamilyPaper(row['templateKey'] as String),
+        ),
+        isTrue,
+      );
+      await expectLater(
+        client.getGuardianPapers({...pupil, 'academicYearId': 'different'}),
+        throwsA(isA<ApiError>()),
+      );
+
       await expectLater(
         store.auth.httpClient.get(Uri.https('example.com', '/')),
         throwsStateError,
@@ -206,6 +327,186 @@ void main() {
       expect(await store.readMedia(photo.attachmentId), isNull);
     },
   );
+
+  test(
+    'homeroom report roster reads saved cards and reflects comment edits',
+    () async {
+      store = await DemoStore.start(DemoRole.teacher);
+      final client = createEdayaSchoolClient(store.auth);
+      const selection = {'classGroupId': 'demo-class-b', 'periodId': 'demo-t1'};
+      final page = await client.getClassReportRoster(selection);
+      final pupils = (page['items'] as List).cast<Map>();
+      expect(pupils.map((p) => p['studentName']), ['Inès Yao', 'Youssef Koné']);
+      expect(page['matchedPupils'], 2);
+      expect(page['nextCursor'], isNull);
+      final report = pupils.first['report'] as Map;
+      expect(report['status'], 'draft');
+      expect(report['overallAverage'], 15);
+      expect(report['hasComment'], isTrue);
+      expect(page['totals'], {
+        'generatedCount': 2,
+        'publishedCount': 0,
+        'commentFilledCount': 2,
+        'remainingFields': 0,
+      });
+      final draft = await client.results.get(report['id'] as String);
+      await client.writeHomeroomReportComment({
+        'id': draft['id'],
+        'expectedVersion': draft['version'],
+        'teacherComment': ' ',
+        'requestId': 'demo-clear-comment',
+      });
+      final filtered = await client.getClassReportRoster({
+        ...selection,
+        'q': 'INÈS',
+        'status': 'draft',
+      });
+      expect(filtered['matchedPupils'], 1);
+      expect(filtered['items'].single['report']['hasComment'], isFalse);
+      final summary = await client.getClassReportRoster({
+        ...selection,
+        'view': 'summary',
+      });
+      expect(summary['items'], isEmpty);
+      expect(summary['totals'], filtered['totals']);
+      expect(summary['totals']['remainingFields'], 1);
+      expect(summary['totals']['commentFilledCount'], 1);
+      expect(
+        (await client.getClassReportRoster({
+          ...selection,
+          'classGroupId': 'demo-class-a',
+          'view': 'summary',
+        }))['totals']['generatedCount'],
+        3,
+      );
+      await expectLater(
+        client.getClassReportRoster({
+          ...selection,
+          'periodId': 'demo-archive-t3',
+        }),
+        throwsA(isA<ApiError>().having((e) => e.status, 'status', 403)),
+      );
+    },
+  );
+
+  test('teacher Progress reads the selected demo class logbook', () async {
+    store = await DemoStore.start(DemoRole.teacher);
+    final client = createEdayaSchoolClient(store.auth);
+    const selection = {
+      'classGroupId': 'demo-class-b',
+      'classSubjectId': 'demo-math-b',
+      'view': 'recorded',
+    };
+    final recorded = await client.getTeacherLogbook(selection);
+    expect(recorded['items'], [
+      {
+        'id': 'demo-math-b-lesson-0',
+        'displayLabel': 'Fractions et proportions',
+        'startsAt': '2026-11-09T09:00:00.000Z',
+        'recorded': true,
+      },
+    ]);
+    expect(recorded['nextCursor'], isNull);
+    final all = await client.getTeacherLogbook({...selection, 'view': 'all'});
+    expect(
+      [for (final lesson in all['items']) (lesson['id'], lesson['recorded'])],
+      [
+        ('demo-math-b-lesson-3', false),
+        ('demo-math-b-lesson-2', false),
+        ('demo-math-b-lesson-1', false),
+        ('demo-math-b-lesson-0', true),
+      ],
+    );
+
+    await client.saveTeacherLogbook({
+      'requestId': 'record-demo-lesson',
+      'expectedVersion': 0,
+      'proposal': {
+        'workflow': 'logbook',
+        'targetId': 'demo-math-b-lesson-1',
+        'sessionNote': '',
+        'progress': [
+          {'matterId': 'demo-math-b-chapter', 'completed': false},
+        ],
+      },
+    });
+    final refreshed = await client.getTeacherLogbook(selection);
+    expect(
+      [for (final lesson in refreshed['items']) lesson['id']],
+      ['demo-math-b-lesson-1', 'demo-math-b-lesson-0'],
+    );
+    await expectLater(
+      client.getTeacherLogbook({...selection, 'classSubjectId': 'demo-math-a'}),
+      throwsA(isA<ApiError>().having((e) => e.status, 'status', 403)),
+    );
+  });
+
+  test(
+    'demo logbook continues after tied dates within the same view',
+    () async {
+      store = await DemoStore.start(DemoRole.teacher);
+      final client = createEdayaSchoolClient(store.auth);
+      const selection = {
+        'classGroupId': 'demo-class-b',
+        'classSubjectId': 'demo-math-b',
+        'view': 'recorded',
+      };
+      final lesson = await client.lessonSessions.get('demo-math-b-lesson-0');
+      for (var i = 0; i < 30; i++) {
+        await client.lessonSessions.save({
+          ...lesson,
+          'id': 'copy-${i.toString().padLeft(2, '0')}',
+        });
+      }
+      final first = await client.getTeacherLogbook(selection);
+      expect(first['items'], hasLength(30));
+      expect(first['items'].last['id'], 'copy-01');
+      final cursor = first['nextCursor'] as String;
+      final next = await client.getTeacherLogbook({
+        ...selection,
+        'cursor': cursor,
+      });
+      expect(next['items'].single['id'], 'copy-00');
+      expect(next['nextCursor'], isNull);
+      await expectLater(
+        client.getTeacherLogbook({
+          ...selection,
+          'view': 'all',
+          'cursor': cursor,
+        }),
+        throwsA(isA<ApiError>().having((e) => e.status, 'status', 400)),
+      );
+    },
+  );
+
+  test('teacher Home daily status follows the selected register', () async {
+    store = await DemoStore.start(DemoRole.teacher);
+    final client = createEdayaSchoolClient(store.auth);
+    const query = {'classGroupId': 'demo-class-b', 'date': '2026-10-01'};
+    final anchor = {'kind': 'daily', ...query};
+    expect(await client.getTeacherDailyAttendanceStatus(query), {
+      'submitted': false,
+    });
+    final register = await client.getTeacherAttendanceCall({'anchor': anchor});
+    await client.submitTeacherAttendance({
+      'anchor': anchor,
+      'expectedVersion': register['version'],
+      'entries': [
+        for (final student in register['students'])
+          {'studentId': student['id'], 'status': 'present'},
+      ],
+    });
+    expect(await client.getTeacherDailyAttendanceStatus(query), {
+      'submitted': true,
+    });
+    await expectLater(
+      client.getTeacherDailyAttendanceStatus({
+        ...query,
+        'classGroupId': 'demo-class-a',
+      }),
+      throwsA(isA<ApiError>().having((error) => error.status, 'status', 403)),
+    );
+  });
 
   test(
     'teacher commits attendance and marks, and keeps a correction pending',

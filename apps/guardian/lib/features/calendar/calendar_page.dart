@@ -327,7 +327,10 @@ class _MergedDayList extends StatelessWidget {
               category: _categoryForKind(sessions[i].kind),
             ),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/session/${sessions[i].id}'),
+            onTap: () => context.push(
+              '/session/${Uri.encodeComponent(sessions[i].id)}',
+              extra: sessions[i].kind,
+            ),
           ),
         ],
       ],
@@ -383,7 +386,10 @@ class _DayAgenda extends StatelessWidget {
               category: _categoryForKind(sessions[i].kind),
             ),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/session/${sessions[i].id}'),
+            onTap: () => context.push(
+              '/session/${Uri.encodeComponent(sessions[i].id)}',
+              extra: sessions[i].kind,
+            ),
           ),
         ],
       ],

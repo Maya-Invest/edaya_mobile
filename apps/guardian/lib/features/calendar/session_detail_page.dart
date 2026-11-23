@@ -13,6 +13,7 @@ import '../../mock/mock_mappers.dart';
 import '../../mock/mock_store.dart';
 import '../context/store_bound_controller.dart';
 import '../context/student_context_controller.dart';
+import '../context/academic_year_controller.dart';
 import 'models/logbook_entry.dart';
 import 'session_detail_controller.dart';
 
@@ -25,14 +26,16 @@ HomeDayCategory _categoryForKind(String kind) {
 }
 
 class SessionDetailPage extends StatelessWidget {
-  const SessionDetailPage({super.key, required this.sessionId});
+  const SessionDetailPage({super.key, required this.sessionId, this.kindHint});
+
+  final String? kindHint;
 
   final String sessionId;
 
   @override
   Widget build(BuildContext context) {
     if (prototypeIsLive(context)) {
-      return _LiveSessionDetailPage(sessionId: sessionId);
+      return _LiveSessionDetailPage(sessionId: sessionId, kindHint: kindHint);
     }
     return _MockSessionDetailPage(sessionId: sessionId);
   }
@@ -239,7 +242,9 @@ class _MockActivitySection extends StatelessWidget {
 }
 
 class _LiveSessionDetailPage extends LScopedView<SessionDetailController> {
-  const _LiveSessionDetailPage({required this.sessionId});
+  const _LiveSessionDetailPage({required this.sessionId, this.kindHint});
+
+  final String? kindHint;
 
   final String sessionId;
 
@@ -248,6 +253,8 @@ class _LiveSessionDetailPage extends LScopedView<SessionDetailController> {
     return scope.put(
       () => SessionDetailController(
         sessionId: sessionId,
+        academicYear: scope.find<AcademicYearController>(),
+        kindHint: kindHint,
         studentContext: scope.find<StudentContextController>(),
         schoolClient: scope.find<SchoolClientFactory>(),
       ),

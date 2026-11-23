@@ -44,6 +44,7 @@ class ProgressTopic {
 
 class ProgressController extends LevitController with LevitReactiveTasksMixin {
   ProgressController({
+    this.subjectId,
     required StudentContextController studentContext,
     required AcademicYearController academicYear,
     required SchoolClientFactory schoolClient,
@@ -51,10 +52,21 @@ class ProgressController extends LevitController with LevitReactiveTasksMixin {
        _academicYear = academicYear,
        _schoolClient = schoolClient;
 
+  final String? subjectId;
   final StudentContextController _studentContext;
   final AcademicYearController _academicYear;
   final SchoolClientFactory _schoolClient;
   int _loadGeneration = 0;
+  ({GuardianPupilSelection pupil, String group, String label})? _lastScope;
+  Future<void>? _pending;
+
+  ({GuardianPupilSelection pupil, String group, String label})? get _scope {
+    final pupil = _studentContext.verifiedSelection;
+    final group = _studentContext.classGroupId.value;
+    final label = _studentContext.classLabel.value;
+    if (pupil == null || group == null || label == null) return null;
+    return (pupil: pupil, group: group, label: label);
+  }
 
   @override
   void onClose() {
@@ -80,14 +92,14 @@ class ProgressController extends LevitController with LevitReactiveTasksMixin {
     for (final subscription in [
       _studentContext.classGroupId.stream,
       _studentContext.activeStudent.stream,
-      _studentContext.isEnrolled.stream,
+      _studentContext.isLoading.stream,
       _studentContext.classLabel.stream,
       _academicYear.selectedYearId.stream,
     ]) {
-      autoDispose(subscription.listen((_) => unawaited(load())));
+      autoDispose(subscription.listen((_) => unawaited(_select())));
     }
 
-    unawaited(load());
+    unawaited(_select());
   }
 
   void toggleSubject(String subject) {
@@ -101,97 +113,104 @@ class ProgressController extends LevitController with LevitReactiveTasksMixin {
   List<ProgressTopic> topicsForSubject(String subject) =>
       topicsBySubject.value[subject] ?? const [];
 
-  Future<void> load() async {
+  Future<void> load() => _select(refresh: true);
+
+  Future<void> _select({bool refresh = false}) {
+    if (isClosed) return Future.value();
+    final scope = _scope;
+    if (_lastScope == scope && (!refresh || _pending != null)) {
+      return _pending ?? Future.value();
+    }
+    _lastScope = scope;
     final generation = ++_loadGeneration;
-    final studentId = _studentContext.activeStudentId;
-    final classGroupId = _studentContext.classGroupId.value;
-    final classLabel = _studentContext.classLabel.value;
-    bool isCurrent() =>
-        generation == _loadGeneration &&
-        studentId == _studentContext.activeStudentId &&
-        classGroupId == _studentContext.classGroupId.value &&
-        classLabel == _studentContext.classLabel.value;
-    errorMessage('');
+    _pending = null;
     summaries(const []);
     topicsBySubject(const {});
     overallProgress(0);
-    if (studentId == null || classGroupId == null || classLabel == null) {
-      summaries(const []);
-      topicsBySubject(const {});
-      overallProgress(0);
-      return;
-    }
-
     errorMessage('');
-    await runTask(() async {
-      try {
-        final client = _schoolClient();
-        final options = await fetchClassSubjectOptions(
-          client: client,
-          studentId: studentId,
-          classGroupId: classGroupId,
-          classLabel: classLabel,
-          subjectFallback: systemL10n().subjectFallback,
-        );
+    if (scope == null) return Future.value();
+    bool current() =>
+        !isClosed && generation == _loadGeneration && _scope == scope;
 
-        if (!isCurrent()) return;
-        final nextSummaries = <SubjectProgressSummary>[];
-        final nextTopics = <String, List<ProgressTopic>>{};
-        var progressSum = 0.0;
-
-        for (final option in options) {
-          final overview = await fetchCurriculumProgressOverview(
-            client: client,
-            classSubjectId: option.id,
-            matterFallback: systemL10n().unitFallback,
-          );
-          if (!isCurrent()) return;
-          final pct = overview.classSubjectCompletedPercentage / 100.0;
-          progressSum += pct;
-          final topics = overview.matters
-              .map(
-                (m) => ProgressTopic(
-                  id: m.id,
-                  title: m.name,
-                  progress: m.completedPercentage / 100.0,
-                  inProgress: m.status == CurriculumMatterStatus.inProgress,
-                  status: switch (m.status) {
-                    CurriculumMatterStatus.completed =>
-                      systemL10n().matterStatusCompleted,
-                    CurriculumMatterStatus.inProgress =>
-                      systemL10n().matterStatusInProgress,
-                    CurriculumMatterStatus.notStarted =>
-                      systemL10n().matterStatusNotStarted,
-                  },
+    return _pending =
+        runTask(() async {
+          try {
+            final client = _schoolClient();
+            final pupil = scope.pupil;
+            final selection = await StudentSubjectParticipation.load(
+              client,
+              pupil.studentId,
+              academicYearId: pupil.academicYearId,
+            );
+            if (!current()) return;
+            final words = systemL10n();
+            final options = await fetchClassSubjectOptions(
+              client: client,
+              participation: selection,
+              classGroupId: scope.group,
+              classLabel: scope.label,
+              subjectFallback: words.subjectFallback,
+              offeringId: subjectId,
+              includeProgress: true,
+            );
+            if (!current()) return;
+            final next = <SubjectProgressSummary>[];
+            var sum = 0.0;
+            for (final option in options) {
+              final overview = subjectId == null
+                  ? CurriculumProgressOverview.fromOffering(option.offering)
+                  : await fetchCurriculumProgressOverview(
+                      client: client,
+                      classSubject: option.offering,
+                      matterFallback: words.unitFallback,
+                    );
+              if (!current()) return;
+              final progress = overview.classSubjectCompletedPercentage / 100.0;
+              sum += progress;
+              next.add(
+                SubjectProgressSummary(
+                  subject: option.subjectName,
+                  classSubjectId: option.id,
+                  progress: progress,
+                  topicCount: overview.chapterCount,
+                  status: overview.chapterCount == 0
+                      ? words.logbookEmptyCurriculum
+                      : '${overview.classSubjectCompletedPercentage}% · ${words.logbookChapterCounts(overview.completedChapterCount, overview.chapterCount, overview.ongoingChapterCount)}',
                 ),
-              )
-              .toList();
-          nextTopics[option.id] = topics;
-          nextSummaries.add(
-            SubjectProgressSummary(
-              subject: option.subjectName,
-              classSubjectId: option.id,
-              progress: pct,
-              status: overview.chapterCount == 0
-                  ? systemL10n().logbookEmptyCurriculum
-                  : '${overview.classSubjectCompletedPercentage}% · ${systemL10n().logbookChapterCounts(overview.completedChapterCount, overview.chapterCount, overview.ongoingChapterCount)}',
-              topicCount: overview.chapterCount,
-            ),
-          );
-        }
-
-        summaries(nextSummaries);
-        topicsBySubject(nextTopics);
-        overallProgress(
-          options.isEmpty ? 0 : (progressSum / options.length).clamp(0, 1),
-        );
-      } on Object catch (error) {
-        if (!isCurrent()) return;
-        errorMessage(systemL10n().couldNotLoadAcademicData(error.toString()));
-        summaries(const []);
-        topicsBySubject(const {});
-        overallProgress(0);
-      }
-    });
+              );
+              if (subjectId != null) {
+                topicsBySubject({
+                  option.id: [
+                    for (final m in overview.matters)
+                      ProgressTopic(
+                        id: m.id,
+                        title: m.name,
+                        progress: m.completedPercentage / 100.0,
+                        inProgress:
+                            m.status == CurriculumMatterStatus.inProgress,
+                        status: switch (m.status) {
+                          CurriculumMatterStatus.completed =>
+                            words.matterStatusCompleted,
+                          CurriculumMatterStatus.inProgress =>
+                            words.matterStatusInProgress,
+                          CurriculumMatterStatus.notStarted =>
+                            words.matterStatusNotStarted,
+                        },
+                      ),
+                  ],
+                });
+              }
+            }
+            summaries(next);
+            overallProgress(next.isEmpty ? 0 : (sum / next.length).clamp(0, 1));
+          } catch (error) {
+            if (current())
+              errorMessage(
+                systemL10n().couldNotLoadAcademicData(error.toString()),
+              );
+          }
+        }).whenComplete(() {
+          if (generation == _loadGeneration) _pending = null;
+        });
   }
 }

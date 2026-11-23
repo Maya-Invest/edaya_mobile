@@ -95,7 +95,7 @@ Map<String, String> stageFiles(String stage, String target, bool release) {
       suiteEvidencePath(stage.substring('integration_'.length)),
     ],
     'quality' => ['.ci-evidence/staging-runner/summary.json'],
-    'unit' => <String>[],
+    'unit' => [widgetEvidencePath],
     _ => throw ArgumentError('Unknown qualification stage $stage'),
   };
   return {for (final path in paths) path: fileHash(path)};
@@ -104,6 +104,13 @@ Map<String, String> stageFiles(String stage, String target, bool release) {
 Future<void> recordStage(String stage, String target) async {
   final input = await verifyPrepared(target);
   final recordPath = '.ci-evidence/stages/$stage.json';
+  if (stage == 'unit') {
+    requireEqual(
+      jsonFile(p.join(root, widgetEvidencePath))['fingerprint'],
+      sourceFingerprint(),
+      'widget source fingerprint',
+    );
+  }
   final files = stageFiles(stage, target, input['release'] as bool);
   writeJson(p.join(root, recordPath), {
     'stage': stage,
@@ -244,8 +251,7 @@ Future<void> validationBuild(String platform, String target) async {
       platform == 'ios' ? 'ios' : 'apk',
       '--release',
       if (platform == 'ios') ...['--no-pub', '--no-codesign'],
-      '--dart-define=API_URL=$api',
-      '--dart-define=TEST_OTP_ACCESS=false',
+      ...releaseDartDefines(target),
     ], cwd: cwd);
     final file = platform == 'ios'
         ? 'build/ios/iphoneos/Runner.app/Runner'

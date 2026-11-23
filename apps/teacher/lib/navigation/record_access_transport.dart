@@ -112,6 +112,12 @@ String? recordOwnerForRead(Uri location, String path, Map body) {
         : null;
   }
   if (parts.first == 'incidents' && parts.length == 3) {
+    final uri = Uri.parse(path);
+    if (uri.path.endsWith('/teacher/incidents/detail') &&
+        uri.queryParameters['classGroupId'] == parts[1] &&
+        uri.queryParameters['incidentId'] == parts[2]) {
+      return '/incidents';
+    }
     return path.endsWith('/incidents/list') && body['classGroupId'] == parts[1]
         ? '/incidents'
         : null;

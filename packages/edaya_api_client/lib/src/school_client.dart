@@ -45,6 +45,26 @@ class SchoolClient {
     return rows.map((row) => Map<String, dynamic>.from(row as Map)).toList();
   }
 
+  Future<Map<String, dynamic>> runGetQuery(
+    String path,
+    Map<String, dynamic> payload, {
+    Future<void>? abortTrigger,
+  }) {
+    final keys = payload.keys.where((key) => payload[key] != null).toList()
+      ..sort();
+    final uri = Uri(
+      path: path,
+      queryParameters: keys.isEmpty
+          ? null
+          : {for (final key in keys) key: payload[key].toString()},
+    );
+    return _transport.request<Map<String, dynamic>>(
+      'GET',
+      uri.toString(),
+      options: TransportRequestOptions(abortTrigger: abortTrigger),
+    );
+  }
+
   Future<Map<String, dynamic>> runQuery(
     String publicName,
     Map<String, dynamic> payload,

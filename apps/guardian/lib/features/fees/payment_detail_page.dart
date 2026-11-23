@@ -111,11 +111,8 @@ class _LivePaymentDetailPage extends LScopedView<PaymentDetailController> {
       () => PaymentDetailController(
         paymentId: paymentId,
         schoolClient: scope.find<SchoolClientFactory>(),
-        studentId: scope.find<StudentContextController>().activeStudentId,
-        academicYearId: scope
-            .find<AcademicYearController>()
-            .selectedYearId
-            .value,
+        students: scope.find<StudentContextController>(),
+        year: scope.find<AcademicYearController>(),
       ),
     );
   }

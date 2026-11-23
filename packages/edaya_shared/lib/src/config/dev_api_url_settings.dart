@@ -6,7 +6,17 @@ import 'developer_settings_config.dart';
 
 /// UI for configuring the API base URL at runtime.
 class DevApiUrlSettings extends StatefulWidget {
-  const DevApiUrlSettings({super.key, this.onUrlChanged, this.compact = false});
+  const DevApiUrlSettings({
+    super.key,
+    this.onUrlChanged,
+    this.compact = false,
+    this.enabled = true,
+    this.applyOverride = ApiBaseUrlConfig.saveOverride,
+  });
+
+  /// The login controller locks the picker while authentication is in flight.
+  final bool enabled;
+  final Future<bool> Function(String?) applyOverride;
 
   /// Called after the URL changes so the app can clear stale auth/session state.
   final Future<void> Function()? onUrlChanged;
@@ -46,18 +56,22 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
     super.dispose();
   }
 
-  Future<void> _applyUrl(Future<bool> Function() action) async {
+  bool get _enabled => widget.enabled && !_isSaving;
+
+  Future<void> _applyUrl(String? url) async {
+    if (!_enabled) return;
     setState(() {
       _errorMessage = null;
       _isSaving = true;
     });
 
     try {
-      final changed = await action();
+      final changed = await widget.applyOverride(url);
       if (!mounted) {
         return;
       }
 
+      _controller.text = ApiBaseUrlConfig.baseUrl;
       if (changed) {
         await widget.onUrlChanged?.call();
         if (!mounted) {
@@ -68,6 +82,13 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
     } on FormatException catch (error) {
       if (mounted) {
         setState(() => _errorMessage = error.message);
+      }
+    } catch (error, stack) {
+      FlutterError.reportError(
+        FlutterErrorDetails(exception: error, stack: stack),
+      );
+      if (mounted) {
+        setState(() => _errorMessage = context.tr.couldNotSaveChanges);
       }
     } finally {
       if (mounted) {
@@ -111,7 +132,7 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
             labelText: context.tr.apiBaseUrlLabel,
             hintText: ApiBaseUrlConfig.stagingUrl,
           ),
-          enabled: !_isSaving,
+          enabled: _enabled,
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -121,7 +142,7 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
             for (final preset in _presets(context))
               ActionChip(
                 label: Text(preset.label),
-                onPressed: _isSaving
+                onPressed: !_enabled
                     ? null
                     : () => _controller.text = preset.value,
               ),
@@ -139,20 +160,14 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
           children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: _isSaving
-                    ? null
-                    : () => _applyUrl(ApiBaseUrlConfig.clearOverride),
+                onPressed: _enabled ? () => _applyUrl(null) : null,
                 child: Text(context.tr.resetDefault),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: FilledButton(
-                onPressed: _isSaving
-                    ? null
-                    : () => _applyUrl(
-                        () => ApiBaseUrlConfig.saveOverride(_controller.text),
-                      ),
+                onPressed: _enabled ? () => _applyUrl(_controller.text) : null,
                 child: _isSaving
                     ? const SizedBox(
                         width: 18,
@@ -170,7 +185,7 @@ class _DevApiUrlSettingsState extends State<DevApiUrlSettings> {
 
   @override
   Widget build(BuildContext context) {
-    if (!DeveloperSettingsConfig.enabled) {
+    if (DeveloperSettingsConfig.production) {
       return const SizedBox.shrink();
     }
 

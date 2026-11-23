@@ -51,17 +51,23 @@ class SubjectLogbookController extends LevitController
   Future<void> load() async {
     final generation = ++_loadGeneration;
     final studentId = _studentContext.activeStudentId;
+    final yearId = _studentContext.activeYearId;
     final classGroupId = _studentContext.classGroupId.value;
     final classLabel = _studentContext.classLabel.value;
     bool isCurrent() =>
+        !isClosed &&
         generation == _loadGeneration &&
+        yearId == _studentContext.activeYearId &&
         studentId == _studentContext.activeStudentId &&
         classGroupId == _studentContext.classGroupId.value &&
         classLabel == _studentContext.classLabel.value;
     errorMessage('');
     subjectLabel(null);
     entries(const []);
-    if (studentId == null || classGroupId == null || classLabel == null) {
+    if (studentId == null ||
+        yearId == null ||
+        classGroupId == null ||
+        classLabel == null) {
       entries(const []);
       return;
     }
@@ -69,9 +75,16 @@ class SubjectLogbookController extends LevitController
     await runTask(() async {
       try {
         final client = _schoolClient();
+        final participation = await StudentSubjectParticipation.load(
+          client,
+          studentId,
+          academicYearId: yearId,
+        );
+        if (!isCurrent()) return;
         final options = await fetchClassSubjectOptions(
           client: client,
-          studentId: studentId,
+          participation: participation,
+          offeringId: byId ? subject : null,
           classGroupId: classGroupId,
           classLabel: classLabel,
           subjectFallback: systemL10n().subjectFallback,
@@ -87,7 +100,7 @@ class SubjectLogbookController extends LevitController
 
         subjectLabel(option.subjectName);
         final logEntries = await fetchCurriculumLogEntries(
-          studentId: studentId,
+          participation: participation,
           client: client,
           classGroupId: classGroupId,
           classSubjectId: option.id,

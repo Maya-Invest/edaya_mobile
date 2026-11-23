@@ -4,8 +4,6 @@ import 'package:levit_flutter/levit_flutter.dart';
 
 import '../../ui/edaya_brand_logo.dart';
 
-import '../../config/developer_settings_config.dart';
-import '../../config/dev_api_url_settings.dart';
 import 'app_session_controller.dart';
 import 'login_controller.dart';
 import 'passwordless_login_form.dart';
@@ -63,11 +61,8 @@ class LoginPage extends LScopedView<LoginController> {
                     PasswordlessLoginForm(
                       controller: controller,
                       subtitle: subtitle,
+                      showApiSwitcher: !startWithEnrollment,
                     ),
-                    if (DeveloperSettingsConfig.enabled) ...[
-                      const SizedBox(height: 24),
-                      const DevApiUrlSettings(compact: true),
-                    ],
                   ],
                 ),
               ),

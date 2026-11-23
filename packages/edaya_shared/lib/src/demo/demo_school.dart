@@ -1,9 +1,16 @@
+import 'dart:convert';
+
 import 'demo_grading.dart';
+import '../academic/logbook_note.dart';
+import '../api/document_issuance.dart' show isLeftoverFamilyPaper;
+import '../api/student_subject_participation.dart'
+    show StudentSubjectParticipation;
 import '../academic/grading_policy.dart';
 import 'package:edaya_api_client/edaya_api_client.dart';
 import 'school_clock.dart';
 part 'demo_teaching.dart';
 part 'demo_family.dart';
+part 'demo_report_roster.dart';
 
 typedef Row = Map<String, dynamic>;
 
@@ -92,13 +99,156 @@ class DemoSchool {
     return true;
   }
 
+  Row noticePage(Row options) {
+    final limit = int.tryParse('${options['limit'] ?? 30}');
+    if (limit == null || limit < 1 || limit > 100)
+      throw ApiError(400, 'Invalid limit');
+    final notices = matching('message-deliveries', {
+      'schoolId': school,
+      'recipientKind': role,
+      'recipientId': actor,
+      'subjectId': '$actor-account',
+    }).where((row) => row['eventKey'] != 'conversation.message').toList();
+    String at(Row row) => DateTime.parse(
+      (row['sentAt'] ?? row['createdAt']) as String,
+    ).toUtc().toIso8601String();
+    notices.sort((a, b) {
+      final date = DateTime.parse(at(b)).compareTo(DateTime.parse(at(a)));
+      return date != 0
+          ? date
+          : (b['id'] as String).compareTo(a['id'] as String);
+    });
+    final after = options['cursor'];
+    final start = after == null
+        ? 0
+        : notices.indexWhere((r) => r['id'] == after) + 1;
+    if (after != null && start == 0) throw ApiError(400, 'Invalid cursor');
+    final page = notices.skip(start).take(limit).toList();
+    return {
+      'items': [
+        for (final row in page)
+          {
+            'id': row['id'],
+            'title': row['title'],
+            'at': at(row),
+            'status': row['status'],
+            'preview': String.fromCharCodes(
+              (row['body'] as String).runes.take(320),
+            ),
+          },
+      ],
+      'nextCursor': start + page.length < notices.length
+          ? page.last['id']
+          : null,
+      'unreadCount': notices.where((r) => r['status'] != 'read').length,
+    };
+  }
+
   Object? request(String method, String path, Row body) {
-    final parts = Uri.parse(path).pathSegments;
+    final uri = Uri.parse(path);
+    final parts = uri.pathSegments;
+    if (method == 'GET' && uri.queryParameters.isNotEmpty) {
+      body = {...body, ...uri.queryParameters};
+    }
     if (parts.length < 3 || parts.first != 'core') throw ApiError(404, path);
     if (!teacher && body['studentId'] is String && !linked(body['studentId'])) {
       throw ApiError(403, 'Unlinked pupil');
     }
     switch (parts[1]) {
+      case 'reports':
+        if (method == 'GET' && uri.path == '/core/reports/class-roster') {
+          return classReportRoster(body);
+        }
+        throw ApiError(404, path);
+      case 'inbox':
+        if (method == 'GET' && parts.last == 'deliveries')
+          return noticePage(body);
+        if (method == 'GET' && parts.last == 'unread-conversations') {
+          final page = query('list-conversations', {'limit': 1}) as Row;
+          return {'count': page['unreadCount']};
+        }
+        throw ApiError(404, path);
+      case 'teacher':
+        if (method == 'GET' && uri.path == '/core/teacher/logbook') {
+          return teacherLogbook(body);
+        }
+        if (method == 'GET' && (uri.path == '/core/teacher/incidents' || uri.path == '/core/teacher/incidents/detail')) {
+          return teacherIncidents(body, detail: parts.last == 'detail');
+        }
+        if (uri.path == '/core/teacher/feedback/summaries' && method == 'GET') {
+          if (!teacher) throw ApiError(403, 'Teacher profile required');
+          final items =
+              teachingQuery('list-teacher-family-feedback-results', {}) as List;
+          return {
+            'items': [
+              for (final row in items.whereType<Row>())
+                if ((body['classGroupId'] == null ||
+                        body['classGroupId'] == row['classGroupId']) &&
+                    (body['classSubjectId'] == null ||
+                        body['classSubjectId'] == row['classSubjectId']))
+                  {
+                    for (final entry in row.entries)
+                      if (entry.key != 'questions' &&
+                          (entry.key != 'themes' ||
+                              row['overallSuppressed'] != true))
+                        entry.key: entry.value,
+                  },
+            ],
+          };
+        }
+        if (uri.path == '/core/teacher/home/daily-attendance-status' &&
+            method == 'GET') {
+          return dailyAttendanceStatus(body);
+        }
+        throw ApiError(404, path);
+      case 'guardian':
+        if (teacher || method != 'GET') {
+          throw ApiError(403, 'Guardian profile required');
+        }
+        if (uri.path == '/core/guardian/calendar/occurrence' &&
+            linked(body['studentId'])) {
+          return occurrenceDetail(body);
+        }
+        if (linked(body['studentId'])) {
+          if (uri.path == '/core/guardian/child/photo' ||
+              uri.path == '/core/guardian/child/papers') {
+            if (body['academicYearId'] != year)
+              throw ApiError(403, 'Wrong academic year');
+            return parts.last == 'photo'
+                ? childPhoto(body)
+                : familyPapers(body);
+          }
+          if (uri.path == '/core/guardian/fees/summary')
+            return feesSummary(body);
+          if (uri.path == '/core/guardian/settlements')
+            return settlementPage(body);
+        }
+        if (uri.path == '/core/guardian/payment' && linked(body['studentId'])) {
+          return paymentDetail(body);
+        }
+        if ((uri.path == '/core/guardian/results/overview' ||
+                uri.path == '/core/guardian/results/subject') &&
+            linked(body['studentId'])) {
+          return periodResultRead(body, subject: parts.last == 'subject');
+        }
+        if (uri.path == '/core/guardian/child-choices') return childChoices();
+        if (uri.path == '/core/guardian/feedback/campaigns' &&
+            linked(body['studentId'])) {
+          return {
+            'items':
+                (familyQuery('list-guardian-family-feedback-campaigns', {})
+                        as List)
+                    .whereType<Row>()
+                    .where((row) => row['studentId'] == body['studentId'])
+                    .toList(),
+          };
+        }
+        if (uri.path == '/core/guardian/home/highlights' &&
+            body['academicYearId'] == year &&
+            linked(body['studentId'])) {
+          return homeHighlights(body);
+        }
+        throw ApiError(403, 'Guardian context unavailable');
       case 'authorization':
         final profile = {
           'kind': role,

@@ -15,16 +15,23 @@ class ReportCardController extends LevitController
   ReportCardController({
     required this.reportCardId,
     required SchoolClientFactory schoolClient,
+    this.downloadOnly = false,
   }) : _schoolClient = schoolClient;
 
   final String reportCardId;
+  final bool downloadOnly;
   final SchoolClientFactory _schoolClient;
 
   final detail = LxVar<ReportCardDetail?>(null);
   final errorMessage = LxVar('');
   final downloadStatus = LxVar(ReportCardPdfStatus.idle);
   final downloadMessage = LxVar('');
-  String _templateKey = 'report-card.v1';
+  String? _templateKey;
+
+  String _reportTemplate(Map<String, dynamic> row) =>
+      (row['aggregation'] as Map?)?['source'] == 'report_cards'
+      ? 'annual-report-card.v1'
+      : 'report-card.v1';
 
   @override
   void onInit() {
@@ -33,7 +40,7 @@ class ReportCardController extends LevitController
     autoDispose(errorMessage);
     autoDispose(downloadStatus);
     autoDispose(downloadMessage);
-    unawaited(loadDetail());
+    if (!downloadOnly) unawaited(loadDetail());
   }
 
   Future<void> loadDetail() async {
@@ -41,26 +48,11 @@ class ReportCardController extends LevitController
       try {
         final client = _schoolClient();
         final row = await client.results.get(reportCardId);
-        _templateKey = (row['aggregation'] as Map?)?['source'] == 'report_cards'
-            ? 'annual-report-card.v1'
-            : 'report-card.v1';
-        var periodName =
-            row['periodId'] as String? ?? systemL10n().periodFallback;
-        final periodId = row['periodId'] as String?;
-        if (periodId != null) {
-          try {
-            // Report-card results identify their period, but do not carry a year.
-            final period = await client.academicPeriods.get(periodId);
-            periodName = academicPeriodLabel(period);
-          } on Object {
-            // fallback
-          }
-        }
-
-        final classGroupId = row['classGroupId'] as String?;
-        final subjectNameByClassSubjectId = classGroupId == null
-            ? const <String, String>{}
-            : await _loadSubjectNames(client, classGroupId);
+        _templateKey = _reportTemplate(row);
+        final (periodName, subjectNameByClassSubjectId) = await (
+          _periodName(client, row['periodId'] as String?),
+          _loadSubjectNames(client, row),
+        ).wait;
         detail(
           ReportCardDetail.fromJson(
             row,
@@ -86,10 +78,14 @@ class ReportCardController extends LevitController
 
     try {
       final client = _schoolClient();
+      final templateKey = _templateKey ??= _reportTemplate(
+        await client.results.get(reportCardId),
+      );
+      if (isClosed) return;
       final issuance = await downloadReadyIssuance(
         client,
         sourceId: reportCardId,
-        templateKey: _templateKey,
+        templateKey: templateKey,
       );
       if (issuance.outcome == DocumentJobOutcome.opened) {
         downloadStatus(ReportCardPdfStatus.idle);
@@ -176,13 +172,40 @@ class ReportCardController extends LevitController
     return mime == 'application/pdf' || name.endsWith('.pdf');
   }
 
+  Future<String> _periodName(api.SchoolClient client, String? periodId) async {
+    if (periodId == null) return systemL10n().periodFallback;
+    try {
+      return academicPeriodLabel(await client.academicPeriods.get(periodId));
+    } on Object {
+      return periodId;
+    }
+  }
+
   Future<Map<String, String>> _loadSubjectNames(
     api.SchoolClient client,
-    String classGroupId,
+    Map<String, dynamic> report,
   ) async {
-    final classSubjectRows = await client.classSubjects.list(
-      classGroupScope(classGroupId),
-    );
+    final classGroupId = report['classGroupId'] as String?;
+    if (classGroupId == null) return const {};
+    final missing = <String>{};
+    void collect(dynamic sections) {
+      if (sections is! List) return;
+      for (final row in sections.whereType<Map>()) {
+        if (row['sectionKind'] == 'module') {
+          collect(row['subResults']);
+        } else if (row['sectionKind'] == 'subject' && row['name'] == null) {
+          final id = row['classSubjectId'];
+          if (id is String && id.isNotEmpty) missing.add(id);
+        }
+      }
+    }
+
+    collect(report['sectionResults']);
+    if (missing.isEmpty) return const {};
+    final classSubjectRows = await client.classSubjects.listAll({
+      ...classGroupScope(classGroupId),
+      ...entitiesByIds(missing.toList()),
+    });
     final subjectIds = classSubjectRows
         .map((row) => row['subjectId'] as String?)
         .whereType<String>()
@@ -190,7 +213,7 @@ class ReportCardController extends LevitController
         .toList();
     final subjectRows = subjectIds.isEmpty
         ? <Map<String, dynamic>>[]
-        : await client.subjects.list(entitiesByIds(subjectIds));
+        : await client.subjects.listAll(entitiesByIds(subjectIds));
     final subjectNameById = {
       for (final subject in subjectRows)
         subject['id'] as String:

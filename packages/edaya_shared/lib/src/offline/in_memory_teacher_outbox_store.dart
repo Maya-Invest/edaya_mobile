@@ -16,8 +16,21 @@ class InMemoryTeacherOutboxStore implements TeacherOutboxStore {
   }
 
   @override
+  Future<TeacherOutboxEntry?> findEntry(String id) async =>
+      (await listPending()).where((entry) => entry.id == id).firstOrNull;
+
+  @override
+  Future<List<TeacherOutboxEntry>> listConflicts() async =>
+      (await listPending())
+          .where(
+            (entry) =>
+                entry.state == TeacherOutboxState.conflict ||
+                entry.state == TeacherOutboxState.rejected,
+          )
+          .toList();
+
+  @override
   Future<List<TeacherOutboxEntry>> listPending() async {
-    _recoverSyncing();
     final pending =
         _entriesByIdempotencyKey.values
             .where(
@@ -30,15 +43,25 @@ class InMemoryTeacherOutboxStore implements TeacherOutboxStore {
     return pending;
   }
 
-  void _recoverSyncing() {
-    for (final entry in _entriesByIdempotencyKey.values.toList()) {
-      if (entry.state == TeacherOutboxState.syncing) {
-        _entriesByIdempotencyKey[entry.idempotencyKey] = entry.copyWith(
-          state: TeacherOutboxState.pending,
-          updatedAt: DateTime.now(),
-        );
-      }
+  @override
+  Future<bool> replaceIfCurrent(
+    TeacherOutboxEntry expected,
+    TeacherOutboxEntry? replacement,
+  ) async {
+    final stored = _entriesByIdempotencyKey[expected.idempotencyKey];
+    if (stored == null || !sameTeacherOutboxVersion(stored, expected))
+      return false;
+    if (replacement == null) {
+      _entriesByIdempotencyKey.remove(expected.idempotencyKey);
+    } else {
+      _entriesByIdempotencyKey[expected.idempotencyKey] = replacement;
     }
+    return true;
+  }
+
+  @override
+  Future<void> prepareReplay() async {
+    // This in-memory queue cannot survive a previous process.
   }
 
   @override

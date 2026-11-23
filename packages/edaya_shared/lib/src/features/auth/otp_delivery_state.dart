@@ -115,11 +115,16 @@ class OtpDeliveryState with WidgetsBindingObserver {
     }
   }
 
+  int _discoveryGeneration = 0;
+
   Future<void> _discoverTesting() async {
     if (!auth.testOtpEnabled) return;
+    final generation = _discoveryGeneration;
     try {
       final available = await auth.testingOtpAvailable();
-      if (!_closed) testingAvailable(available);
+      if (!_closed && generation == _discoveryGeneration) {
+        testingAvailable(available);
+      }
     } catch (_) {
       /* Normal servers do not expose testing. */
     }
@@ -133,8 +138,7 @@ class OtpDeliveryState with WidgetsBindingObserver {
   bool get canSms => canResend && status.value?.canSms == true;
   void start() {
     WidgetsBinding.instance.addObserver(this);
-    unawaited(_discoverTesting());
-    unawaited(loadMethods());
+    discoverMethods();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       expired(
         status.value != null &&
@@ -154,14 +158,24 @@ class OtpDeliveryState with WidgetsBindingObserver {
     });
   }
 
+  /// Discover the active API's capabilities and discard outstanding discoveries.
+  void discoverMethods() {
+    _discoveryGeneration++;
+    phoneAvailable(false);
+    testingAvailable(false);
+    unawaited(_discoverTesting());
+    unawaited(loadMethods());
+  }
+
   Future<void> loadMethods() async {
+    final generation = _discoveryGeneration;
     try {
       final available = await auth.phoneAvailable();
-      if (!_closed) {
+      if (!_closed && generation == _discoveryGeneration) {
         phoneAvailable(available);
       }
     } catch (_) {
-      if (!_closed) phoneAvailable(false);
+      if (!_closed && generation == _discoveryGeneration) phoneAvailable(false);
     }
   }
 

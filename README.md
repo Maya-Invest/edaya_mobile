@@ -56,7 +56,7 @@ melos bootstrap
 
 Cross-app Flutter code used by guardian and teacher:
 
-- **Config** — `ApiBaseUrlConfig` (compile-time `--dart-define=API_URL` plus runtime override in all build modes), `DevApiUrlSettings`, `DeveloperSettingsConfig`
+- **Config** — `ApiBaseUrlConfig` resolves the build's `API_URL`. `DeveloperSettingsConfig.production` controls whether `DevApiUrlSettings` can override it.
 - **UI** — `PersonAvatar`, `DataState`, `RouteErrorPage`, `AccountSheetBody`, `ModalBottomSheetPage`, `AppTheme`
 - **App scaffolding** — `EdayaAppRoot`, `EdayaRootScope`, `EdayaRouterRefresh`, `registerEdayaDependencies`, `createEdayaSchoolClient`
 - **Auth** — `AuthSessionStorage`, `AppSessionController`, `AppBootstrapController`, `LoginPage` / `LoginController`
@@ -134,9 +134,11 @@ The guardian inbox queries the selected guardian profile and school together wit
 
 ## Local development
 
+See the [mobile run and build variable reference](docs/reference/mobile-run-build-variables.md) for the Guardian and Teacher build matrix, Dart defines, release inputs and local test settings.
+
 ### API URL
 
-Both apps default to `https://staging.api.edayaplus.com`. For local development, select the machine-local API explicitly:
+Both apps default to `https://staging.api.edayaplus.com`, except Teacher in debug mode on an iOS simulator, which defaults to `http://localhost:9999`. Use the following endpoints for local development and staging.
 
 | Target | API URL |
 |--------|---------|
@@ -154,7 +156,14 @@ flutter run --dart-define=API_URL=https://staging.api.edayaplus.com
 
 Run these Flutter commands from `apps/guardian` or `apps/teacher`. Use an explicit staging URL when targeting staging.
 
-The login and account screens expose **Developer settings** in all build modes (including production) to change the API URL at runtime (persisted in `SharedPreferences`). Presets include local, staging, and production. Restart the app after saving.
+| Build | `PRODUCTION` | API switcher on login |
+|---|---|---|
+| Local debug | Defaults to `false` | Visible |
+| Staging TestFlight and Google Play internal testing | `false` | Visible |
+| Public App Store and Google Play | `true` | Hidden |
+| Manual profile or release | Defaults to `true` | Hidden by default |
+
+To run a local release build with the picker, use `flutter run --release --dart-define=PRODUCTION=false` from either app directory. On the login screen, open **Developer settings**, choose a preset or enter a URL, and tap **Save**. The app remembers the selection and starts a fresh sign-in against that API immediately. **Reset default** restores the build's URL. Production builds ignore saved overrides. The account-screen picker is available only in non-production debug builds.
 
 ### Dev credentials
 

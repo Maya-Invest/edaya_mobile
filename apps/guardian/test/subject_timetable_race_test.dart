@@ -17,6 +17,19 @@ class _Students implements StudentContextController {
   @override
   final activeStudent = LxVar<LinkedStudent?>(child('first'));
   @override
+  final isLoading = LxVar(false);
+  @override
+  GuardianPupilSelection? get verifiedSelection => activeStudentId == null
+      ? null
+      : (
+          accountId: 'account',
+          schoolId: 'school',
+          guardianId: 'guardian',
+          academicYearId: 'year',
+          studentId: activeStudentId!,
+        );
+
+  @override
   String? get activeStudentId => activeStudent.value?.id;
   @override
   String? get activeYearId => 'year';
@@ -100,13 +113,17 @@ class _LogbookTransport implements api.Transport {
 }
 
 class _DetailTransport implements api.Transport {
+  final abortedStudents = <String>[];
   final pending = <Completer<Map<String, dynamic>>>[];
   Map<String, dynamic> lesson(String title) => {
-    'id': 'session',
-    'displayLabel': title,
-    'classSubjectId': 'music',
-    'startsAt': '2026-10-01T10:00:00Z',
-    'endsAt': '2026-10-01T11:00:00Z',
+    'occurrence': {
+      'id': 'session',
+      'kind': 'lesson',
+      'title': title,
+      'classSubjectId': 'music',
+      'startsAt': '2026-10-01T10:00:00Z',
+      'endsAt': '2026-10-01T11:00:00Z',
+    },
   };
   @override
   Future<T> request<T>(
@@ -114,25 +131,17 @@ class _DetailTransport implements api.Transport {
     String path, {
     api.TransportRequestOptions? options,
   }) async {
-    if (path.endsWith('/lesson-sessions/session')) {
-      if (pending.length >= 2) return lesson('second') as T;
-      final response = Completer<Map<String, dynamic>>();
-      pending.add(response);
-      return await response.future as T;
-    }
-    if (path.endsWith('/get-student-session-history') ||
-        path.endsWith('/get-student-timetable')) {
-      return {
-            'entries': [
-              {'id': 'session'},
-            ],
-            'events': [
-              {'id': 'session'},
-            ],
-          }
-          as T;
-    }
-    return <Map<String, dynamic>>[] as T;
+    expect(method, 'GET');
+    final uri = Uri.parse(path);
+    expect(uri.path, '/core/guardian/calendar/occurrence');
+    unawaited(
+      options!.abortTrigger!.then(
+        (_) => abortedStudents.add(uri.queryParameters['studentId']!),
+      ),
+    );
+    final response = Completer<Map<String, dynamic>>();
+    pending.add(response);
+    return await response.future as T;
   }
 }
 
@@ -204,6 +213,7 @@ void main() {
       final transport = _DetailTransport();
       final controller = SessionDetailController(
         sessionId: 'session',
+        academicYear: _Year(),
         studentContext: students,
         schoolClient: () => api.createSchoolClient(transport),
       );
@@ -212,6 +222,7 @@ void main() {
       await until(() => transport.pending.length == 1);
       students.activeStudent(child('second'));
       await until(() => transport.pending.length == 2);
+      await until(() => transport.abortedStudents.contains('first'));
       transport.pending[1].complete(transport.lesson('second'));
       await until(() => controller.session.value != null);
       transport.pending[0].complete(transport.lesson('first'));

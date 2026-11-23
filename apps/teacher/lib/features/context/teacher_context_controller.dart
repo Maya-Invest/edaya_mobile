@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:timezone/timezone.dart' as tz;
 
 import 'package:edaya_api_client/edaya_api_client.dart' as api;
@@ -70,6 +71,7 @@ class TeacherContextController extends LevitController
 
   bool _closed = false;
   int _loadGeneration = 0;
+  int _profileGeneration = 0;
   int _selectionRevision = 0;
 
   @override
@@ -254,13 +256,13 @@ class TeacherContextController extends LevitController
     final grants = _session.grants.value;
     final account = _session.user.value?.id;
     final yearId = _academicYear.selectedYearId.value;
-    bool stale() =>
+    bool scopeChanged() =>
         _closed ||
-        generation != _loadGeneration ||
         account != _session.user.value?.id ||
         yearId != _academicYear.selectedYearId.value ||
         grants?.schoolId != _session.schoolIdHeader ||
         grants?.actorId != _session.actorIdHeader;
+    bool stale() => generation != _loadGeneration || scopeChanged();
     if (account == null || grants == null || grants.kind != 'teacher') {
       _clearContext();
       return;
@@ -294,46 +296,33 @@ class TeacherContextController extends LevitController
           actor: resolvedTeacherId,
           year: yearId,
         );
-        if (preview == null || catalog?.workspace != workspace) {
-          try {
-            final teacher = await client.teachers.get(resolvedTeacherId);
-            if (stale()) return;
-            final firstName = teacher['firstName'] as String? ?? '';
-            final lastName = teacher['lastName'] as String? ?? '';
-            final fullName = '$firstName $lastName'.trim();
-            teacherName(
-              fullName.isEmpty
-                  ? (_session.user.value?.name ??
-                        systemL10n().teacherFallbackName)
-                  : fullName,
-            );
-            teacherPhotoUrl(teacher['photoUrl'] as String?);
-          } on Object {
-            if (stale()) return;
+        final loadMetadata = preview == null || catalog?.workspace != workspace;
+        if (loadMetadata) {
+          if (catalog?.workspace != workspace) {
             teacherName(
               _session.user.value?.name ?? systemL10n().teacherFallbackName,
             );
             teacherPhotoUrl(null);
           }
-
-          final schoolId = _session.schoolIdHeader;
-          if (schoolId != null && schoolId.isNotEmpty) {
-            try {
-              final school = await client.schools.get(schoolId);
-              if (stale()) return;
-              schoolTimeZone(school['timeZone'] as String? ?? 'UTC');
-              schoolName(school['name'] as String? ?? schoolId);
-            } on Object {
-              if (stale()) return;
-              schoolName(schoolId);
-            }
-          }
+          final profileGeneration = ++_profileGeneration;
+          unawaited(
+            _readTeacherProfile(
+              client,
+              resolvedTeacherId,
+              () => profileGeneration != _profileGeneration || scopeChanged(),
+            ),
+          );
         }
+        final school = loadMetadata
+            ? _readSchool(client, workspace.school, stale)
+            : Future<void>.value();
         final data = await readTeacherAssignmentCatalog(
           client,
           workspace,
-          previous: preview,
+          previous: preview ?? catalog,
         );
+        // The timetable's day boundaries depend on the school's time zone.
+        await school;
         if (stale()) return;
         final options = data.options;
         final saved = await _sessionStorage.readClassSelection(_selectionKey);
@@ -387,6 +376,44 @@ class TeacherContextController extends LevitController
     });
   }
 
+  Future<void> _readTeacherProfile(
+    api.SchoolClient client,
+    String id,
+    bool Function() stale,
+  ) async {
+    final fallback =
+        _session.user.value?.name ?? systemL10n().teacherFallbackName;
+    try {
+      final teacher = await client.teachers.get(id);
+      if (stale()) return;
+      final name = '${teacher['firstName'] ?? ''} ${teacher['lastName'] ?? ''}'
+          .trim();
+      teacherName(name.isEmpty ? fallback : name);
+      teacherPhotoUrl(teacher['photoUrl'] as String?);
+    } on Object {
+      if (stale()) return;
+      teacherName(fallback);
+      teacherPhotoUrl(null);
+    }
+  }
+
+  Future<void> _readSchool(
+    api.SchoolClient client,
+    String id,
+    bool Function() stale,
+  ) async {
+    try {
+      final school = await client.schools.get(id);
+      if (stale()) return;
+      schoolName(school['name'] as String? ?? id);
+      schoolTimeZone(school['timeZone'] as String? ?? 'UTC');
+    } on Object {
+      if (stale()) return;
+      schoolName(id);
+      if (catalog?.workspace.school != id) schoolTimeZone('UTC');
+    }
+  }
+
   bool canTeachSession({
     required String sessionId,
     required String? classGroupId,
@@ -405,6 +432,7 @@ class TeacherContextController extends LevitController
 
   void _clearContext() {
     _loadGeneration++;
+    _profileGeneration++;
     catalog = null;
     _pendingKey = null;
     if (_closed) return;

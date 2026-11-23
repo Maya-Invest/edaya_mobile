@@ -14,7 +14,7 @@ class ProgressOverviewPage extends StatelessWidget {
   final String? subjectId;
   @override
   Widget build(BuildContext context) {
-    if (prototypeIsLive(context)) return _LiveProgress(subjectId: subjectId);
+    if (prototypeIsLive(context)) return _LiveProgress(key: ValueKey(subjectId), subjectId: subjectId);
     final store = context.levit.find<MockStore>();
     return ListenableBuilder(
       listenable: store,
@@ -48,11 +48,12 @@ class ProgressOverviewPage extends StatelessWidget {
 }
 
 class _LiveProgress extends LScopedView<ProgressController> {
-  const _LiveProgress({this.subjectId});
+  const _LiveProgress({super.key, this.subjectId});
   final String? subjectId;
   @override
   ProgressController onConfigScope(LevitScope scope) => scope.put(
     () => ProgressController(
+      subjectId: subjectId,
       studentContext: scope.find<StudentContextController>(),
       academicYear: scope.find<AcademicYearController>(),
       schoolClient: scope.find<SchoolClientFactory>(),

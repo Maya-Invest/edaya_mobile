@@ -43,6 +43,9 @@ class _Transport implements api.Transport {
     String path, {
     api.TransportRequestOptions? options,
   }) async {
+    if (method == 'GET') throw api.ApiError(404, 'Legacy fixture');
+    if (path.endsWith('/list-guardian-family-feedback-campaigns'))
+      return <Map<String, dynamic>>[] as T;
     if (path.endsWith('/list-conversations')) {
       return <String, dynamic>{
             'items': [],

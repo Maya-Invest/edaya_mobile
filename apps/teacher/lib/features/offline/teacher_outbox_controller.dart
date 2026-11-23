@@ -31,6 +31,8 @@ class TeacherOutboxController extends LevitController
       >{};
   Future<void> _syncTail = Future.value();
   bool _autoScheduled = false;
+  int _summaryGeneration = 0;
+  TeacherOutboxContext? _summaryContext;
 
   void _autoSync() {
     if (_context?.call() == null || _autoScheduled || isClosed) return;
@@ -68,28 +70,59 @@ class TeacherOutboxController extends LevitController
     if (subscription != null) autoDispose(subscription);
     autoDispose(summary);
     autoDispose(conflicts);
-    unawaited(refreshSummary());
+    refreshBadge();
+  }
+
+  /// Refresh the optional badge without delaying navigation or offline replay.
+  void refreshBadge() {
+    unawaited(
+      refreshSummary().catchError((Object error, StackTrace stack) {
+        FlutterError.reportError(
+          FlutterErrorDetails(
+            exception: error,
+            stack: stack,
+            library: 'teacher offline queue',
+          ),
+        );
+      }),
+    );
   }
 
   Future<void> refreshSummary() async {
-    _outboxStore.bindContext(_context?.call());
-    summary(await _outboxStore.summary());
-    conflicts(
-      (await _outboxStore.listPending())
-          .where((entry) => !teacherOutboxEntryIsReplayable(entry))
-          .toList(),
-    );
+    final generation = ++_summaryGeneration;
+    final context = _context?.call();
+    final previous = _summaryContext;
+    if (context == null
+        ? previous != null
+        : previous == null || !context.matches(previous)) {
+      summary(const TeacherOutboxSummary(pendingCount: 0));
+      conflicts(const []);
+    }
+    _summaryContext = context;
+    _outboxStore.bindContext(context);
+    final result = await (
+      _outboxStore.summary(),
+      _outboxStore.listConflicts(),
+    ).wait;
+    final current = _context?.call();
+    if (generation != _summaryGeneration ||
+        isClosed ||
+        (context == null
+            ? current != null
+            : current == null || !context.matches(current)))
+      return;
+    summary(result.$1);
+    conflicts(result.$2);
   }
 
   Future<void> discardConflict(String id) async {
     _outboxStore.bindContext(_context?.call());
-    final entries = await _outboxStore.listPending();
-    if (!entries.any(
-      (entry) => entry.id == id && !teacherOutboxEntryIsReplayable(entry),
-    )) {
+    final conflict = await _outboxStore.findEntry(id);
+    if (conflict == null ||
+        (conflict.state != TeacherOutboxState.conflict &&
+            conflict.state != TeacherOutboxState.rejected) ||
+        !await _outboxStore.replaceIfCurrent(conflict, null))
       return;
-    }
-    await _outboxStore.remove(id);
     for (final entry in registers.entries.toList()) {
       if (entry.value.id() == id)
         await entry.key.add(() async {
@@ -130,6 +163,7 @@ class TeacherOutboxController extends LevitController
             : _context?.call()?.matches(context) == true);
     if (!active()) return 0;
     _outboxStore.bindContext(context);
+    await _outboxStore.prepareReplay();
     final pending = await _outboxStore.listPending();
     if (!active()) return 0;
     final client = context != null && scopedClient != null
@@ -152,15 +186,10 @@ class TeacherOutboxController extends LevitController
           .firstOrNull;
       Future<bool> replay() async {
         if (!active()) return false;
-        final latest = (await _outboxStore.listPending())
-            .where(
-              (r) =>
-                  r.id == entry.id &&
-                  teacherOutboxEntryMatchesContext(r, context),
-            )
-            .firstOrNull;
+        final latest = await _outboxStore.findEntry(entry.id);
         if (!active() ||
             latest == null ||
+            !teacherOutboxEntryMatchesContext(latest, context) ||
             !teacherOutboxEntryIsReplayable(latest))
           return false;
         final saved = await _syncEntry(client, latest, active);
@@ -168,10 +197,9 @@ class TeacherOutboxController extends LevitController
             open != null &&
             registers.containsKey(open.key) &&
             open.value.id() == entry.id) {
+          final updated = saved ? null : await _outboxStore.findEntry(entry.id);
           if (saved ||
-              (await _outboxStore.listPending()).any(
-                (r) => r.id == entry.id && !teacherOutboxEntryIsReplayable(r),
-              ))
+              (updated != null && !teacherOutboxEntryIsReplayable(updated)))
             await open.value.refresh();
         }
         return saved;
@@ -194,36 +222,21 @@ class TeacherOutboxController extends LevitController
     TeacherOutboxEntry entry,
     bool Function() active,
   ) async {
-    Future<bool> stillCurrent() async {
-      if (!active()) return false;
-      final entries = await _outboxStore.listPending();
-      return active() &&
-          entries.any(
-            (e) =>
-                e.id == entry.id &&
-                e.idempotencyKey == entry.idempotencyKey &&
-                (e.payload['body'] as Map?)?['requestId'] ==
-                    (entry.payload['body'] as Map?)?['requestId'] &&
-                teacherOutboxEntryMatchesContext(e, entry.context),
-          );
-    }
-
-    await _outboxStore.upsert(
-      entry.copyWith(
-        state: TeacherOutboxState.syncing,
-        updatedAt: DateTime.now(),
-      ),
+    final claimed = entry.copyWith(
+      state: TeacherOutboxState.syncing,
+      updatedAt: DateTime.now(),
     );
-
+    if (!await _outboxStore.replaceIfCurrent(entry, claimed)) return false;
+    if (!active()) {
+      await _outboxStore.replaceIfCurrent(claimed, entry);
+      return false;
+    }
     try {
       await syncTeacherOutboxEntry(client, entry);
-      if (!await stillCurrent()) return false;
-      await _outboxStore.remove(entry.id);
-      return true;
     } on Object catch (error) {
-      if (!await stillCurrent()) return false;
-      await _outboxStore.upsert(
-        entry.copyWith(
+      await _outboxStore.replaceIfCurrent(
+        claimed,
+        claimed.copyWith(
           state: isRetryableTeacherWriteFailure(error)
               ? TeacherOutboxState.failed
               : TeacherOutboxState.conflict,
@@ -234,5 +247,6 @@ class TeacherOutboxController extends LevitController
       );
       return false;
     }
+    return _outboxStore.replaceIfCurrent(claimed, null);
   }
 }

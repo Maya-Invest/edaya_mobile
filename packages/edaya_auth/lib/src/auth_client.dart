@@ -71,6 +71,7 @@ class AuthClient {
   final String? _originOverride;
   final http.Client _client;
   final CookieJar _cookieJar;
+  final directoryCache = contract.ConditionalReadCache();
 
   String get baseUrl => _baseUrlProvider?.call() ?? _baseUrl;
 
@@ -100,6 +101,7 @@ class AuthClient {
   }
 
   void clearCredentials() {
+    directoryCache.clear();
     _generation++;
     _renewalCredential = null;
     _credentialOrigin = null;

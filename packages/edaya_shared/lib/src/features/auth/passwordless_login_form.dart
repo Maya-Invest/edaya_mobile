@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:levit_flutter/levit_flutter.dart';
+import '../../config/dev_api_url_settings.dart';
+import '../../config/developer_settings_config.dart';
 import '../../l10n/l10n_extension.dart';
 import 'login_controller.dart';
 import 'otp_delivery_controls.dart';
@@ -12,10 +14,12 @@ class PasswordlessLoginForm extends StatelessWidget {
     required this.controller,
     this.subtitle,
     this.teacherQuickLogin = false,
+    this.showApiSwitcher = false,
   });
   final LoginController controller;
   final String? subtitle;
   final bool teacherQuickLogin;
+  final bool showApiSwitcher;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -275,6 +279,16 @@ class PasswordlessLoginForm extends StatelessWidget {
           ],
         );
       }),
+      if (showApiSwitcher && !DeveloperSettingsConfig.production) ...[
+        const SizedBox(height: 16),
+        LWatch(
+          () => DevApiUrlSettings(
+            compact: true,
+            enabled: !controller.isBusy.value,
+            applyOverride: controller.changeApiUrl,
+          ),
+        ),
+      ],
     ],
   );
 }

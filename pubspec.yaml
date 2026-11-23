@@ -28,7 +28,7 @@ melos:
       exec: dart analyze lib test
       description: Run static analysis on lib/ and test/ (skips build artifacts).
     test:
-      exec: flutter test --no-pub --exclude-tags 'integration || staging || design-review'
+      exec: flutter test --no-pub --file-reporter json:build/unit-events.jsonl --exclude-tags 'integration || staging || design-review'
       packageFilters:
         ignore: edaya_repo
       description: Run unit and widget tests, excluding live APIs and screenshot generation.

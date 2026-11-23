@@ -132,7 +132,7 @@ Future<void> execute(List<String> args) async {
       return;
     }
     if (name == 'unit') {
-      await run(['dart', 'run', 'melos', 'run', 'test']);
+      await runUnitTests();
       return;
     }
     if (name == 'integration') {
@@ -275,6 +275,15 @@ Future<void> execute(List<String> args) async {
     if (name == 'unit') {
       await execute(['test', 'tooling']);
       await execute(['test', 'unit']);
+      for (final app in applicationPaths.values) {
+        await run([
+          'flutter',
+          'test',
+          '--no-pub',
+          ...releaseDartDefines('production'),
+          'test/login_api_switcher_test.dart',
+        ], cwd: p.join(root, app));
+      }
       await run([
         'bundle',
         'exec',

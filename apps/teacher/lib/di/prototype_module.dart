@@ -85,7 +85,7 @@ Future<void> initializeTeacherAuthenticatedContext(
       }
     }
   }
-  await outbox.refreshSummary();
+  outbox.refreshBadge();
 }
 
 void registerPrototypeDependencies(

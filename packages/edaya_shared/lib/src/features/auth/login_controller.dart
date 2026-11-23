@@ -6,6 +6,8 @@ import 'package:flutter/widgets.dart';
 import 'otp_delivery_state.dart';
 
 import '../../l10n/l10n_lookup.dart';
+import '../../config/api_base_url_config.dart';
+import '../../config/developer_settings_config.dart';
 import 'app_session_controller.dart';
 
 enum LoginMode {
@@ -26,6 +28,7 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
     required String defaultEmail,
     this.startWithEnrollment = false,
     this.invitationToken,
+    this.clearInvitation,
     required Future<void> Function() onSignInSuccess,
   }) : _authClient = authClient,
        _session = session,
@@ -35,6 +38,7 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
 
   final bool startWithEnrollment;
   final String? Function()? invitationToken;
+  final Future<void> Function()? clearInvitation;
   final registrationEligible = LxVar(false);
   Timer? _proofExpiry;
   void _discardProof() {
@@ -181,6 +185,34 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
     mode(LoginMode.enterEmail);
   }
 
+  /// Switch the signed-out flow to a new API and request its terms and methods.
+  Future<bool> changeApiUrl(String? url) async {
+    if (DeveloperSettingsConfig.production ||
+        startWithEnrollment ||
+        isBusy.value) {
+      return false;
+    }
+    final changed = await runTask(() async {
+      if (!await ApiBaseUrlConfig.saveOverride(url)) return false;
+      _authClient.clearCredentials();
+      if (!_closed) {
+        showEmailEntry();
+        _completedUser = null;
+        recoveryCodes([]);
+        enrollmentSecret('');
+        registrationEligible(false);
+        terms(null);
+        delivery.refresh();
+        delivery.discoverMethods();
+        unawaited(loadTerms(locale: _termsLocale));
+      }
+      await clearInvitation?.call();
+      await _session.clearForApiUrlChange();
+      return true;
+    }, id: 'change-api-url');
+    return changed ?? false;
+  }
+
   Future<void> submit() async {
     if (isBusy.value) return;
     switch (mode.value) {
@@ -229,7 +261,7 @@ class LoginController extends LevitController with LevitReactiveTasksMixin {
         if (user != null) {
           recoveryCodes([]);
           _authClient.recoveryCodes = [];
-          await _completeSession(user);
+          await runTask(() => _completeSession(user), id: 'complete-session');
         }
     }
   }

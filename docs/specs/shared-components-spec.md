@@ -35,6 +35,10 @@ Submitted marks remain read-only in the teacher grading list. MarksCorrectionsPa
 
 ## Account authentication
 
+The shared `DevApiUrlSettings` picker appears below the live Guardian and Teacher sign-in forms when `PRODUCTION=false`. Local debug builds default to `false`. Profile and release builds default to `true`. TestFlight and Play internal staging builds explicitly set `false`, and public store builds set `true`. To exercise the staging behavior locally, run `flutter run --release --dart-define=PRODUCTION=false` from either app directory.
+
+Saving or resetting the API persists the choice, clears the previous authentication challenge and terms acceptance, and reloads the selected API's terms and methods. The picker is disabled during a sign-in submission. Production always uses the compiled URL. Account settings additionally require debug mode.
+
 Shared `LoginPage` and `LoginController` implement automatic email/international-phone detection and validation in one login contact field, email/phone OTP, authenticator verification/enrollment, recovery-code replacement and one-time recovery-code display for both apps. `AccountSecurityPage` links/unlinks verified contacts and enrolls an optional authenticator. Identifier removal requires the shared confirmation dialog. Auth challenges and TOTP secrets remain transient controller/client state; only the completed opaque renewal credential is persisted by the existing session storage.
 
 Before email verification the shared login form must not disclose Account existence. For a verified email without an Account, replace the OTP controls with a registration step. Explain the absence once. Offer Create account as the primary action only when the server permits it; otherwise give invitation guidance. Offer Use another email in either case. Creating an Account reuses the verified email and does not accept an invitation, grant a school role or bypass MFA. Preserve the pending invitation or existing app destination. Existing-account and authenticated contact-linking flows do not show registration.
