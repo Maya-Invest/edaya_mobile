@@ -76,6 +76,13 @@ void main() {
       store = await DemoStore.start(DemoRole.guardian);
       final client = createEdayaSchoolClient(store.auth);
       final scope = (await client.effectiveGrants()).guardianScope!;
+      await expectLater(
+        client.getClassReportRoster({
+          'classGroupId': 'demo-class-b',
+          'periodId': 'demo-t1',
+        }),
+        throwsA(isA<ApiError>().having((e) => e.status, 'status', 403)),
+      );
       expect(scope.studentIds, unorderedEquals(['demo-amina', 'demo-youssef']));
       expect(await client.students.listAll(), hasLength(2));
       final placements = await client.enrollments.listAll({
@@ -318,6 +325,67 @@ void main() {
         isEmpty,
       );
       expect(await store.readMedia(photo.attachmentId), isNull);
+    },
+  );
+
+  test(
+    'homeroom report roster reads saved cards and reflects comment edits',
+    () async {
+      store = await DemoStore.start(DemoRole.teacher);
+      final client = createEdayaSchoolClient(store.auth);
+      const selection = {'classGroupId': 'demo-class-b', 'periodId': 'demo-t1'};
+      final page = await client.getClassReportRoster(selection);
+      final pupils = (page['items'] as List).cast<Map>();
+      expect(pupils.map((p) => p['studentName']), ['Inès Yao', 'Youssef Koné']);
+      expect(page['matchedPupils'], 2);
+      expect(page['nextCursor'], isNull);
+      final report = pupils.first['report'] as Map;
+      expect(report['status'], 'draft');
+      expect(report['overallAverage'], 15);
+      expect(report['hasComment'], isTrue);
+      expect(page['totals'], {
+        'generatedCount': 2,
+        'publishedCount': 0,
+        'commentFilledCount': 2,
+        'remainingFields': 0,
+      });
+      final draft = await client.results.get(report['id'] as String);
+      await client.writeHomeroomReportComment({
+        'id': draft['id'],
+        'expectedVersion': draft['version'],
+        'teacherComment': ' ',
+        'requestId': 'demo-clear-comment',
+      });
+      final filtered = await client.getClassReportRoster({
+        ...selection,
+        'q': 'INÈS',
+        'status': 'draft',
+      });
+      expect(filtered['matchedPupils'], 1);
+      expect(filtered['items'].single['report']['hasComment'], isFalse);
+      final summary = await client.getClassReportRoster({
+        ...selection,
+        'view': 'summary',
+      });
+      expect(summary['items'], isEmpty);
+      expect(summary['totals'], filtered['totals']);
+      expect(summary['totals']['remainingFields'], 1);
+      expect(summary['totals']['commentFilledCount'], 1);
+      expect(
+        (await client.getClassReportRoster({
+          ...selection,
+          'classGroupId': 'demo-class-a',
+          'view': 'summary',
+        }))['totals']['generatedCount'],
+        3,
+      );
+      await expectLater(
+        client.getClassReportRoster({
+          ...selection,
+          'periodId': 'demo-archive-t3',
+        }),
+        throwsA(isA<ApiError>().having((e) => e.status, 'status', 403)),
+      );
     },
   );
 

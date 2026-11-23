@@ -10,6 +10,7 @@ import 'package:edaya_api_client/edaya_api_client.dart';
 import 'school_clock.dart';
 part 'demo_teaching.dart';
 part 'demo_family.dart';
+part 'demo_report_roster.dart';
 
 typedef Row = Map<String, dynamic>;
 
@@ -154,6 +155,11 @@ class DemoSchool {
       throw ApiError(403, 'Unlinked pupil');
     }
     switch (parts[1]) {
+      case 'reports':
+        if (method == 'GET' && uri.path == '/core/reports/class-roster') {
+          return classReportRoster(body);
+        }
+        throw ApiError(404, path);
       case 'inbox':
         if (method == 'GET' && parts.last == 'deliveries')
           return noticePage(body);

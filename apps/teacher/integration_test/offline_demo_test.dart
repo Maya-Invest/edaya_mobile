@@ -57,6 +57,35 @@ void main() {
       EdayaRootScope.find<GoRouter>().routeInformationProvider.value.uri.path,
       '/session/demo-math-b-lesson-0',
     );
+    final reportRouter = EdayaRootScope.find<GoRouter>();
+    reportRouter.go('/report-cards');
+    final pupil = find.text('Inès Yao');
+    await waitFor(tester, () => tester.any(pupil));
+    expect(find.text('Youssef Koné'), findsOneWidget);
+    expect(find.text('Trimestre 1'), findsOneWidget);
+    await tester.tap(pupil);
+    final comment = find.widgetWithText(TextField, tr.homeroomTeacherComment);
+    await waitFor(tester, () => tester.any(comment));
+    expect(
+      tester.widget<TextField>(comment).controller!.text,
+      'Un travail régulier.',
+    );
+    await tester.ensureVisible(comment);
+    await tester.enterText(comment, '');
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    final saveComment = find.widgetWithText(FilledButton, tr.save);
+    await tester.ensureVisible(saveComment);
+    await tester.tap(saveComment);
+    await waitFor(tester, () => tester.any(find.text(tr.commentSaved)));
+    reportRouter.pop();
+    await waitFor(
+      tester,
+      () =>
+          tester.any(pupil) &&
+          (tester.any(find.text(tr.comment)) ||
+              tester.any(find.text(tr.gradebookMissing))),
+    );
     final profile = await client.runCommand('update-teacher-self-profile', {
       'phone': '+2250102030405',
     });
